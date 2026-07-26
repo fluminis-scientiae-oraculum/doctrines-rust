@@ -1,0 +1,9 @@
+[project]
+name = "fso-doctrines-rust"
+slug = "fso-doctrines-rust"
+
+[amem]
+server = "https://amem.flusci.org"
+
+[client]
+manifest_version = 21
