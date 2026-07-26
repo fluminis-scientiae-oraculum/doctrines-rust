@@ -1,0 +1,20 @@
+no_progress = true
+max_retries = 3
+max_concurrency = 32
+timeout = 30
+retry_wait_time = 2
+
+# Generated bundles repeat links already checked in their canonical sources.
+exclude_path = [
+    "(^|/)dist/",
+    "(^|/)target/",
+    "(^|/)templates/",
+]
+
+# The reserved domain is an intentional UI-routing example. The two ACM
+# citation pages reject automated requests; source identity remains explicit.
+exclude = [
+    "^https://example\\.invalid/",
+    "^https://dl\\.acm\\.org/doi/10\\.1145/74850\\.74870$",
+    "^https://dl\\.acm\\.org/doi/10\\.1145/360303\\.360308$",
+]

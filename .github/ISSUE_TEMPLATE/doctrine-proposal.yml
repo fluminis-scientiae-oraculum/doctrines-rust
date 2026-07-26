@@ -1,0 +1,78 @@
+name: Doctrine proposal
+description: Propose new or changed normative Rust engineering guidance.
+title: "[Doctrine proposal] "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Normative additions, weakening, escape hatches, and supersession require an RFC.
+        Describe the engineering contract and evidence; avoid prescribing type machinery before classifying the invariant.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Identify the recurring engineering failure, affected decisions, and consequence.
+    validations:
+      required: true
+  - type: textarea
+    id: domains
+    attributes:
+      label: Affected domains
+      description: Name lifecycle, boundary, authority, persistence, concurrency, distributed, safety, or performance domains.
+    validations:
+      required: true
+  - type: textarea
+    id: normative_behavior
+    attributes:
+      label: Proposed normative behavior
+      description: State candidate MUST, MUST NOT, SHOULD, SHOULD NOT, or MAY rules and their applicability.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Link authoritative sources, incidents, executable examples, measurements, or compiler evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Compare simpler runtime checks, enums, newtypes, capabilities, typestate, services, or plain code.
+    validations:
+      required: true
+  - type: textarea
+    id: complexity
+    attributes:
+      label: Complexity impact
+      description: Address API surface, diagnostics, persistence, compilation, migration, and team comprehension.
+    validations:
+      required: true
+  - type: textarea
+    id: relationships
+    attributes:
+      label: Related doctrines
+      description: List doctrine IDs, patterns, boundary guides, reviews, and case studies affected.
+    validations:
+      required: true
+  - type: dropdown
+    id: rfc
+    attributes:
+      label: RFC drafting
+      description: Confirm whether the proposer can prepare the required RFC.
+      options:
+        - I can draft the RFC
+        - I can collaborate on the RFC
+        - I need a maintainer to sponsor the RFC
+    validations:
+      required: true
+  - type: checkboxes
+    id: accuracy
+    attributes:
+      label: Guarantee accuracy
+      options:
+        - label: I separated what the proposal can establish from external facts and residual uncertainty.
+          required: true

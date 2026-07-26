@@ -1,0 +1,64 @@
+name: Doctrine correction
+description: Report inaccurate, ambiguous, obsolete, or misleading doctrine text.
+title: "[Doctrine correction] "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A wording correction may use a direct pull request only when normative meaning remains unchanged.
+        If the correction changes obligations, exceptions, or applicability, it requires RFC review.
+  - type: input
+    id: path
+    attributes:
+      label: Exact path
+      description: Give the repository-relative file path.
+    validations:
+      required: true
+  - type: input
+    id: rule_id
+    attributes:
+      label: Rule ID
+      description: Give the stable rule ID, or explain why no rule ID applies.
+    validations:
+      required: true
+  - type: textarea
+    id: current_wording
+    attributes:
+      label: Current wording
+      description: Quote only the minimum text needed to identify the claim.
+    validations:
+      required: true
+  - type: textarea
+    id: defect
+    attributes:
+      label: Why the wording is wrong or misleading
+      description: Identify the incorrect guarantee, missing qualification, factual drift, ambiguity, or boundary omission.
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: Proposed correction
+      description: Supply precise replacement language or a concrete correction direction.
+    validations:
+      required: true
+  - type: dropdown
+    id: normative_change
+    attributes:
+      label: Normative meaning
+      description: Does the correction alter obligation, scope, exception, or enforcement evidence?
+      options:
+        - No, meaning remains unchanged
+        - Yes, normative meaning changes
+        - Uncertain; maintainer classification needed
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources and evidence
+      description: Link primary sources or provide executable evidence supporting the correction.
+    validations:
+      required: true

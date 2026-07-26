@@ -1,0 +1,76 @@
+name: Doctrine CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: doctrine-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate doctrine and workspace
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4
+        with:
+          toolchain: 1.97.1
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      - name: Run Clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+      - name: Run workspace tests
+        run: cargo test --workspace --all-features --locked
+
+      - name: Validate doctrine manifests and schemas
+        run: cargo run --locked -p doctrine-lint -- check
+
+      - name: Check generated bundles
+        run: cargo run --locked -p bundle-agent-context -- check
+
+      - name: Scan forbidden canonical markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          markers=(
+            'TO''DO'
+            'TB''D'
+            'coming ''soon'
+            'place''holder'
+            'lorem ''ipsum'
+            'fill ''this ''later'
+            'st''ub'
+            'future ''content'
+            'not ''implemented'
+          )
+          for marker in "${markers[@]}"; do
+            if git grep -niF "$marker" -- ':!templates/**'; then
+              echo "::error::forbidden canonical marker detected"
+              exit 1
+            fi
+          done
+
+      - name: Audit dependencies
+        uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        with:
+          command: check
+          arguments: --all-features

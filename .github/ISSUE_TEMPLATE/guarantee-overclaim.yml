@@ -1,0 +1,64 @@
+name: Guarantee overclaim
+description: Report a type, API, example, or doctrine claim stronger than its evidence.
+title: "[Guarantee overclaim] "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Treat security-sensitive or reconciliation-sensitive overclaims as correctness defects.
+        Separate local type evidence from mutable external reality.
+  - type: input
+    id: location
+    attributes:
+      label: Exact location
+      description: Give the path and rule ID, symbol, heading, or line.
+    validations:
+      required: true
+  - type: textarea
+    id: claim
+    attributes:
+      label: Exact claim
+      description: Quote the shortest complete claim that appears too strong.
+    validations:
+      required: true
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Establishing implementation or evidence
+      description: Identify constructors, visibility, validation, decoding, external observation, or tests behind the claim.
+    validations:
+      required: true
+  - type: textarea
+    id: actual_proof
+    attributes:
+      label: What is actually proven
+      description: State the narrow guarantee established by the current mechanism.
+    validations:
+      required: true
+  - type: textarea
+    id: missing_boundary
+    attributes:
+      label: Missing boundary or uncertainty
+      description: Identify bypasses, stale facts, external effects, timeout ambiguity, retries, or evidence gaps.
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical — unsafe or security boundary can be violated
+        - High — data loss, unauthorized effect, or false reconciliation likely
+        - Medium — callers can make materially wrong decisions
+        - Low — wording is misleading but operational impact is limited
+    validations:
+      required: true
+  - type: textarea
+    id: remedy
+    attributes:
+      label: Safer wording or design
+      description: Propose an evidence-accurate name, protected path, boundary check, uncertainty state, or qualification.
+    validations:
+      required: true

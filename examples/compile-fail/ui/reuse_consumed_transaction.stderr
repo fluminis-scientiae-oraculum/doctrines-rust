@@ -1,0 +1,16 @@
+error[E0382]: borrow of moved value: `transaction`
+ --> ui/reuse_consumed_transaction.rs:7:5
+  |
+4 |     let mut transaction = Transaction::begin();
+  |         --------------- move occurs because `transaction` has type `Transaction`, which does not implement the `Copy` trait
+5 |     transaction.stage("first mutation");
+6 |     let _receipt = transaction.commit();
+  |                                -------- `transaction` moved due to this method call
+7 |     transaction.stage("reuse after commit must not compile");
+  |     ^^^^^^^^^^^ value borrowed here after move
+  |
+note: `Transaction::commit` takes ownership of the receiver `self`, which moves `transaction`
+ --> src/lib.rs
+  |
+  |     pub fn commit(self) -> TransactionReceipt {
+  |                   ^^^^

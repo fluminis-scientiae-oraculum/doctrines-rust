@@ -1,0 +1,6 @@
+/target/
+**/wip/
+.lycheecache
+*.swp
+*.tmp
+.DS_Store
