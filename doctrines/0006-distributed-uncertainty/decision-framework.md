@@ -18,14 +18,14 @@ For every external operation record:
 
 ## Classify each failure point
 
-| Failure point | Knowledge | Default action |
-|---|---|---|
-| local validation before dispatch | no request sent | correct or reject |
-| admission rejection with authenticated response | confirmed rejection | do not blind retry unless condition changes |
-| connection failure before any bytes can be sent | likely local failure, subject to transport proof | safe retry if established |
-| failure after request may be received | execution unknown | reconcile or idempotent replay |
-| authenticated success response | confirmed at response boundary | persist evidence |
-| acknowledgement loss after consumer effect | effect may repeat | deduplicate on redelivery |
+| Failure point                                   | Knowledge                                        | Default action                              |
+| ----------------------------------------------- | ------------------------------------------------ | ------------------------------------------- |
+| local validation before dispatch                | no request sent                                  | correct or reject                           |
+| admission rejection with authenticated response | confirmed rejection                              | do not blind retry unless condition changes |
+| connection failure before any bytes can be sent | likely local failure, subject to transport proof | safe retry if established                   |
+| failure after request may be received           | execution unknown                                | reconcile or idempotent replay              |
+| authenticated success response                  | confirmed at response boundary                   | persist evidence                            |
+| acknowledgement loss after consumer effect      | effect may repeat                                | deduplicate on redelivery                   |
 
 Do not infer exact transport timing without support from the library and
 protocol.
@@ -62,14 +62,14 @@ outcomes still require reconciliation.
 
 ## Retry decision
 
-| Classification | Permitted behavior |
-|---|---|
-| safe retry | reuse operation identity within remaining budget |
-| unsafe retry | stop and escalate |
-| reconcile before retry | observe authoritative state, then decide |
-| confirmed rejection | retry only after documented condition changes |
-| rate/overload response | honor server guidance, backoff, jitter, cap attempts |
-| authentication/authorization failure | repair authority; do not storm |
+| Classification                       | Permitted behavior                                   |
+| ------------------------------------ | ---------------------------------------------------- |
+| safe retry                           | reuse operation identity within remaining budget     |
+| unsafe retry                         | stop and escalate                                    |
+| reconcile before retry               | observe authoritative state, then decide             |
+| confirmed rejection                  | retry only after documented condition changes        |
+| rate/overload response               | honor server guidance, backoff, jitter, cap attempts |
+| authentication/authorization failure | repair authority; do not storm                       |
 
 Calculate multiplication across callers, middleware, proxies, workers, and
 libraries. One logical deadline constrains all layers.
@@ -112,18 +112,18 @@ directly than delivery order. Define duplicate and gap behavior.
 
 A reconciliation record should contain:
 
-| Field | Purpose |
-|---|---|
-| operation ID | stable logical identity |
-| external key | provider lookup/deduplication |
+| Field               | Purpose                                     |
+| ------------------- | ------------------------------------------- |
+| operation ID        | stable logical identity                     |
+| external key        | provider lookup/deduplication               |
 | request fingerprint | compare intent without unnecessary raw data |
-| target | select authoritative source |
-| first/last attempt | timeline |
-| observation cursor | resume progress |
-| next action time | bounded scheduling |
-| attempt count | escalation |
-| current evidence | explain state |
-| owner | operational accountability |
+| target              | select authoritative source                 |
+| first/last attempt  | timeline                                    |
+| observation cursor  | resume progress                             |
+| next action time    | bounded scheduling                          |
+| attempt count       | escalation                                  |
+| current evidence    | explain state                               |
+| owner               | operational accountability                  |
 
 Define confirmed terminal transitions and a still-unknown path. Human override
 must be audited as new evidence or a policy decision, never retroactive proof.

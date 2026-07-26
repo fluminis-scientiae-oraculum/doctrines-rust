@@ -184,17 +184,17 @@ material in stable order.
 This index is synchronized with `manifest/doctrines.yaml`, which is the machine-readable
 discovery source.
 
-| ID | Active doctrine | Principal concern |
-|---|---|---|
-| RUST-DOC-0001 | [Making Invalid States Unrepresentable](doctrines/0001-invalid-states/README.md) | Invariant discovery, representation, construction, transitions, honest uncertainty |
-| RUST-DOC-0002 | [Error Modeling as Domain Design](doctrines/0002-error-modeling/README.md) | Structured failure, recoverability, retryability, panic boundaries |
-| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](doctrines/0003-ownership-and-capabilities/README.md) | Exclusive custody, capabilities, transfer, revocation, secrets |
-| RUST-DOC-0004 | [Concurrency and Async Correctness](doctrines/0004-concurrency-and-async/README.md) | Cancellation, backpressure, task ownership, synchronization |
-| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](doctrines/0005-persistence-boundaries/README.md) | Decoding, migrations, transactions, historical data |
-| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](doctrines/0006-distributed-uncertainty/README.md) | Idempotency, ambiguity, duplicates, reconciliation |
-| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](doctrines/0007-unsafe-rust/README.md) | Safety invariants, encapsulation, FFI, validation tooling |
-| RUST-DOC-0008 | [Testing as Layered Evidence](doctrines/0008-testing-and-evidence/README.md) | Evidence scope, forbidden programs, faults, model checking |
-| RUST-DOC-0009 | [Performance Claims Require Measurement](doctrines/0009-performance-and-measurement/README.md) | Workloads, profiling, distributions, regressions |
+| ID            | Active doctrine                                                                                          | Principal concern                                                                  |
+| ------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| RUST-DOC-0001 | [Making Invalid States Unrepresentable](doctrines/0001-invalid-states/README.md)                         | Invariant discovery, representation, construction, transitions, honest uncertainty |
+| RUST-DOC-0002 | [Error Modeling as Domain Design](doctrines/0002-error-modeling/README.md)                               | Structured failure, recoverability, retryability, panic boundaries                 |
+| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](doctrines/0003-ownership-and-capabilities/README.md)              | Exclusive custody, capabilities, transfer, revocation, secrets                     |
+| RUST-DOC-0004 | [Concurrency and Async Correctness](doctrines/0004-concurrency-and-async/README.md)                      | Cancellation, backpressure, task ownership, synchronization                        |
+| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](doctrines/0005-persistence-boundaries/README.md)           | Decoding, migrations, transactions, historical data                                |
+| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](doctrines/0006-distributed-uncertainty/README.md) | Idempotency, ambiguity, duplicates, reconciliation                                 |
+| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](doctrines/0007-unsafe-rust/README.md)                                | Safety invariants, encapsulation, FFI, validation tooling                          |
+| RUST-DOC-0008 | [Testing as Layered Evidence](doctrines/0008-testing-and-evidence/README.md)                             | Evidence scope, forbidden programs, faults, model checking                         |
+| RUST-DOC-0009 | [Performance Claims Require Measurement](doctrines/0009-performance-and-measurement/README.md)           | Workloads, profiling, distributions, regressions                                   |
 
 All doctrines begin at version `0.1.0`. Repository `0.1.0` establishes the initial corpus but
 does not claim `1.0` semantic stability. Patch releases clarify without changing normative
@@ -206,9 +206,14 @@ independently.
 
 The pinned development toolchain is Rust 1.97.1. The workspace MSRV is Rust 1.85.0, the first
 stable release supporting Edition 2024; selected dependencies declare compatibility with that
-floor. Run from the repository root:
+floor. Markdown tooling uses the exact Node.js, Prettier, and markdownlint-cli2 versions pinned
+by `.node-version` and `package-lock.json`. Run from the repository root:
 
 ```bash
+npm ci --ignore-scripts --no-audit
+npm audit --audit-level=high
+npm run check:markdown-format
+npm run lint:markdown
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
@@ -221,10 +226,13 @@ lychee --no-progress '**/*.md'
 git diff --check
 ```
 
-The workspace test command includes the `trybuild` compile-fail suite. CI repeats formatting,
-linting, tests, schema validation, bundle drift detection, and link checks with read-only
-repository permissions. CI confirms locally discovered behavior; it is not the first compiler
-or formatter.
+Run `npm run format:markdown` to format canonical and repository-governance Markdown before
+regenerating bundles. Prettier deliberately ignores `dist/`; generated Markdown changes only
+through `bundle-agent-context`. The workspace test command includes the `trybuild` compile-fail
+suite. CI exposes Markdown dependency audit, format, and lint as a distinct pull-request gate,
+then repeats Rust formatting, Clippy, tests, schema validation, bundle drift detection,
+dependency policy, and link checks with read-only repository permissions. CI confirms locally
+discovered behavior; it is not the first compiler, linter, or formatter.
 
 ## Contributing and evolution
 
@@ -672,18 +680,18 @@ claim.
 
 An example row:
 
-| Field | Content |
-|---|---|
-| ID | INV-PAY-004 |
-| Statement | A locally requested capture references an accepted authorization for the same payment and amount |
-| Scope | capture command construction |
-| Owner | payment domain |
-| Classification | transition and cross-entity invariant |
-| Enforcement mechanism | verifier-issued capability plus runtime amount comparison |
-| Trust boundary | provider authorization response and persisted reload |
-| Evidence | constructor tests, compiler rejection before authorization, integration contract test |
-| Failure consequence | unauthorized or wrong-amount capture |
-| Residual uncertainty | provider may reject, time out, or accept without returning acknowledgement |
+| Field                 | Content                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------ |
+| ID                    | INV-PAY-004                                                                                      |
+| Statement             | A locally requested capture references an accepted authorization for the same payment and amount |
+| Scope                 | capture command construction                                                                     |
+| Owner                 | payment domain                                                                                   |
+| Classification        | transition and cross-entity invariant                                                            |
+| Enforcement mechanism | verifier-issued capability plus runtime amount comparison                                        |
+| Trust boundary        | provider authorization response and persisted reload                                             |
+| Evidence              | constructor tests, compiler rejection before authorization, integration contract test            |
+| Failure consequence   | unauthorized or wrong-amount capture                                                             |
+| Residual uncertainty  | provider may reject, time out, or accept without returning acknowledgement                       |
 
 ## Discovery method
 
@@ -707,18 +715,18 @@ operational recovery. Negative cases are often more revealing than success paths
 
 Classification narrows choices without making them automatic:
 
-| Invariant shape | Usual first mechanism |
-|---|---|
-| Mutually exclusive state | enum with variant-specific data |
-| Stable local scalar rule | opaque validated newtype |
-| Whole-collection rule | validated collection wrapper |
-| Small locally controlled sequence | consuming transition or typestate |
-| Authority possession | capability type |
-| Dynamic or persisted lifecycle | runtime enum and validated state machine |
-| External input | parse and runtime validation |
-| Cross-entity fact | domain service plus transactional validation |
-| External effect result | structured `Result` |
-| Ambiguous distributed effect | explicit unknown state and reconciliation |
+| Invariant shape                   | Usual first mechanism                        |
+| --------------------------------- | -------------------------------------------- |
+| Mutually exclusive state          | enum with variant-specific data              |
+| Stable local scalar rule          | opaque validated newtype                     |
+| Whole-collection rule             | validated collection wrapper                 |
+| Small locally controlled sequence | consuming transition or typestate            |
+| Authority possession              | capability type                              |
+| Dynamic or persisted lifecycle    | runtime enum and validated state machine     |
+| External input                    | parse and runtime validation                 |
+| Cross-entity fact                 | domain service plus transactional validation |
+| External effect result            | structured `Result`                          |
+| Ambiguous distributed effect      | explicit unknown state and reconciliation    |
 
 These are starting points. A complex system often uses several: a runtime persisted payment
 status, a consuming local authorization capability, an opaque idempotency key, and an
@@ -1202,13 +1210,13 @@ If an answer is absent, narrow the claim or complete the design.
 
 Use this ledger for major types, case studies, review, and pull requests:
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| `PositiveMoney` is non-zero | `NonZeroU64` accepted by a fallible constructor | private field; no unchecked public constructor | DTO and row conversions call constructor | scoped migration conversion if reviewed | sufficient funds, correct FX, tax or allocation policy | overflow on later arithmetic, currency mismatch |
-| `VerifiedEmailAddress` passed ownership verification | verifier-only proof token after completed challenge | private fields and restricted proof-token constructor | persisted issuer, scope, time, and address revalidated on load | administrative import with audit | future deliverability, continued control, RFC-complete validity | revocation, expiry, provider error |
-| `Connection<Open>` completed local connection transition | consuming `connect` returned `Ok` | state marker and constructor visibility | not normally serialized; restoration requires a new connection | test transport factory | remote liveness at next send | immediate network failure, peer closure |
-| `AuthorizedPayment` passed local authorization transition | accepted authorization response and identity/amount checks | consuming transition; capability not freely cloneable | row decode validates status and authorization reference | repair tool with scoped authorization | capture success, settlement, absence of provider reversal | timeout, expiry, provider rejection |
-| `UnknownCapture` has reconciliation identity | explicit outcome constructor after ambiguous transport result | private operation and token fields | durable row stores operation identity and provider scope | manual reconciliation record with audit | whether capture succeeded or failed | delayed visibility, concurrent reconciliation |
+| Claim                                                     | Established by                                                | Protected construction                                | Boundary preservation                                          | Escape hatches                          | Does not prove                                                  | Residual runtime risk                           |
+| --------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------- |
+| `PositiveMoney` is non-zero                               | `NonZeroU64` accepted by a fallible constructor               | private field; no unchecked public constructor        | DTO and row conversions call constructor                       | scoped migration conversion if reviewed | sufficient funds, correct FX, tax or allocation policy          | overflow on later arithmetic, currency mismatch |
+| `VerifiedEmailAddress` passed ownership verification      | verifier-only proof token after completed challenge           | private fields and restricted proof-token constructor | persisted issuer, scope, time, and address revalidated on load | administrative import with audit        | future deliverability, continued control, RFC-complete validity | revocation, expiry, provider error              |
+| `Connection<Open>` completed local connection transition  | consuming `connect` returned `Ok`                             | state marker and constructor visibility               | not normally serialized; restoration requires a new connection | test transport factory                  | remote liveness at next send                                    | immediate network failure, peer closure         |
+| `AuthorizedPayment` passed local authorization transition | accepted authorization response and identity/amount checks    | consuming transition; capability not freely cloneable | row decode validates status and authorization reference        | repair tool with scoped authorization   | capture success, settlement, absence of provider reversal       | timeout, expiry, provider rejection             |
+| `UnknownCapture` has reconciliation identity              | explicit outcome constructor after ambiguous transport result | private operation and token fields                    | durable row stores operation identity and provider scope       | manual reconciliation record with audit | whether capture succeeded or failed                             | delayed visibility, concurrent reconciliation   |
 
 Ledger rows should identify exact project types and methods during review. Generic examples
 teach structure but are not evidence for an implementation.
@@ -1427,17 +1435,17 @@ ladder prompts an explanation for skipping simpler options.
 
 For a representation choice, record:
 
-| Dimension | Observation | Cost or risk | Evidence |
-|---|---|---|---|
-| Invalid action | Which misuse is prevented | Consequence and frequency | incidents, threat model, review |
-| State graph | State and transition count | explosion or clarity | state diagram |
-| Control | local, external, or shared | stale proof and runtime need | boundary map |
-| Persistence | format and migration | conversion and compatibility | schema tests |
-| API | caller count and stability | semver and diagnostics | compile-fail tests |
-| Runtime | dispatch, allocation, synchronization | latency and contention | benchmarks or profiles |
-| Build | generics and macros | compile time and binary size | measured builds |
-| Team | familiarity and support | maintenance and incident cost | review exercise |
-| Alternative | simpler mechanism | residual invalidity | comparative prototype |
+| Dimension      | Observation                           | Cost or risk                  | Evidence                        |
+| -------------- | ------------------------------------- | ----------------------------- | ------------------------------- |
+| Invalid action | Which misuse is prevented             | Consequence and frequency     | incidents, threat model, review |
+| State graph    | State and transition count            | explosion or clarity          | state diagram                   |
+| Control        | local, external, or shared            | stale proof and runtime need  | boundary map                    |
+| Persistence    | format and migration                  | conversion and compatibility  | schema tests                    |
+| API            | caller count and stability            | semver and diagnostics        | compile-fail tests              |
+| Runtime        | dispatch, allocation, synchronization | latency and contention        | benchmarks or profiles          |
+| Build          | generics and macros                   | compile time and binary size  | measured builds                 |
+| Team           | familiarity and support               | maintenance and incident cost | review exercise                 |
+| Alternative    | simpler mechanism                     | residual invalidity           | comparative prototype           |
 
 The decision also states a removal trigger. If state count grows beyond the usable limit,
 persistence becomes necessary, diagnostics degrade, or measurement shows material cost, the
@@ -2257,18 +2265,18 @@ the fact is stable and local, dynamic and persisted, relational, authoritative, 
 
 The first selection table is:
 
-| Problem | Preferred mechanism |
-|---|---|
-| Mutually exclusive state | `enum` |
-| Validated scalar or identifier | opaque newtype |
-| Non-empty or bounded collection | validated wrapper |
-| Locally controlled operation sequence | typestate or consuming transition |
-| Authority to perform an operation | capability type |
-| Dynamic or persisted state | runtime enum/state machine |
-| External input | runtime parse and validation |
-| Cross-entity business rule | domain service or transactional runtime validation |
-| External success/failure | `Result` |
-| Indeterminate distributed outcome | explicit unknown/reconciliation state |
+| Problem                               | Preferred mechanism                                |
+| ------------------------------------- | -------------------------------------------------- |
+| Mutually exclusive state              | `enum`                                             |
+| Validated scalar or identifier        | opaque newtype                                     |
+| Non-empty or bounded collection       | validated wrapper                                  |
+| Locally controlled operation sequence | typestate or consuming transition                  |
+| Authority to perform an operation     | capability type                                    |
+| Dynamic or persisted state            | runtime enum/state machine                         |
+| External input                        | runtime parse and validation                       |
+| Cross-entity business rule            | domain service or transactional runtime validation |
+| External success/failure              | `Result`                                           |
+| Indeterminate distributed outcome     | explicit unknown/reconciliation state              |
 
 “Preferred” means first candidate, not automatic answer. Multiple mechanisms often compose.
 
@@ -2322,16 +2330,16 @@ cross-entity invariants transactionally.
 
 Consider typestate when all answers are favorable:
 
-| Question | Favorable evidence |
-|---|---|
-| Is sequencing locally controlled? | Current owner chooses every transition |
-| Is the graph small? | Few states and stable transitions |
-| Is ownership natural? | Prior state can be consumed without harming recovery |
-| Is storage unnecessary? | Value is short-lived or runtime conversion is explicit |
-| Are callers static? | No routine heterogeneous collection or dynamic dispatch |
-| Is failure designed? | Transition returns prior state, error evidence, or unknown state |
-| Are diagnostics usable? | Compile-fail examples point to the domain mistake |
-| Is cost proportionate? | Consequence exceeds API/build/maintenance cost |
+| Question                          | Favorable evidence                                               |
+| --------------------------------- | ---------------------------------------------------------------- |
+| Is sequencing locally controlled? | Current owner chooses every transition                           |
+| Is the graph small?               | Few states and stable transitions                                |
+| Is ownership natural?             | Prior state can be consumed without harming recovery             |
+| Is storage unnecessary?           | Value is short-lived or runtime conversion is explicit           |
+| Are callers static?               | No routine heterogeneous collection or dynamic dispatch          |
+| Is failure designed?              | Transition returns prior state, error evidence, or unknown state |
+| Are diagnostics usable?           | Compile-fail examples point to the domain mistake                |
+| Is cost proportionate?            | Consequence exceeds API/build/maintenance cost                   |
 
 If several answers are unfavorable, stop and use a runtime enum or consuming method.
 
@@ -2416,14 +2424,14 @@ checked conversion.
 
 Mark the external commitment point. Then classify outcomes:
 
-| Observation | Domain meaning | Retry posture |
-|---|---|---|
-| Request definitely not sent | local failure | retry may be safe after policy check |
-| Definitive accepted response | confirmed success | do not repeat effect |
-| Definitive rejected response | confirmed rejection | retry only if rejection is retriable |
-| Sent, response lost or timed out | unknown | reconcile or use proven idempotency |
-| Cancellation before commitment confirmed | cancelled/non-executed | retry may be safe |
-| Cancellation acknowledgement absent | unknown | reconcile |
+| Observation                              | Domain meaning         | Retry posture                        |
+| ---------------------------------------- | ---------------------- | ------------------------------------ |
+| Request definitely not sent              | local failure          | retry may be safe after policy check |
+| Definitive accepted response             | confirmed success      | do not repeat effect                 |
+| Definitive rejected response             | confirmed rejection    | retry only if rejection is retriable |
+| Sent, response lost or timed out         | unknown                | reconcile or use proven idempotency  |
+| Cancellation before commitment confirmed | cancelled/non-executed | retry may be safe                    |
+| Cancellation acknowledgement absent      | unknown                | reconcile                            |
 
 Define idempotency key scope, uniqueness, retention, and replay response. If those properties
 are unknown, do not label retry safe.
@@ -3454,14 +3462,14 @@ object.
 
 Ask who receives the error and what decisions remain:
 
-| Boundary | Preferred form | Reason |
-|---|---|---|
-| Reusable library | structured domain enum or stable opaque typed error | callers need action and compatibility |
-| Internal domain service | structured enum | preserves business outcomes |
-| Application orchestration | typed errors until final decision, then opaque report | combines action with rich context |
-| CLI/process entry | formatted report and exit code after classification | no upstream Rust caller |
-| HTTP/RPC | internal typed error mapped to stable public status/code/body | separates protocol recipient from internals |
-| Background job | typed retry/reconcile decision plus correlated report | scheduler action must be safe |
+| Boundary                  | Preferred form                                                | Reason                                      |
+| ------------------------- | ------------------------------------------------------------- | ------------------------------------------- |
+| Reusable library          | structured domain enum or stable opaque typed error           | callers need action and compatibility       |
+| Internal domain service   | structured enum                                               | preserves business outcomes                 |
+| Application orchestration | typed errors until final decision, then opaque report         | combines action with rich context           |
+| CLI/process entry         | formatted report and exit code after classification           | no upstream Rust caller                     |
+| HTTP/RPC                  | internal typed error mapped to stable public status/code/body | separates protocol recipient from internals |
+| Background job            | typed retry/reconcile decision plus correlated report         | scheduler action must be safe               |
 
 Use `thiserror` or equivalent when derivation reduces mechanical implementations without
 changing the model. Use an `anyhow`-style report where control decisions are already complete
@@ -3539,26 +3547,26 @@ surface.
 
 Record pass, fail, not applicable, or waiver for each gate.
 
-| Gate | Question | Pass evidence | Failure example | Severity | Remediation |
-|---|---|---|---|---|---|
-| Inventory | Are causes, post-error state, actions, recipients, and commitment semantics listed? | failure matrix | error enum copied from dependency | major | model domain failures first |
-| Structure | Can callers distinguish actionable outcomes without parsing text? | typed matching tests | `Result<T, String>` | major | introduce stable categories |
-| Source | Is causal detail preserved safely? | source-chain test | formatted source discarded | major | wrap with `source` |
-| Context | Does context identify operation without erasing category? | structured context | all errors become one sentence | major | attach context separately |
-| Validation | Is invalid input distinct from internal failure? | boundary tests | malformed request returns 500 | major | map validation explicitly |
-| Authorization | Is denial preserved and redacted? | security mapping | denial becomes not-found internally too | critical | retain protected audit category |
-| Cancellation | Is cancellation distinct and commitment-aware? | cancellation tests | cancelled task assumed rolled back | critical | define post-cancel state |
-| Timeout | Can timeout mean unknown execution? | commitment analysis | timeout maps to rejection | critical | add unknown outcome |
-| Retry | Is retry typed by semantics, idempotency, budget, and backoff? | retry table and fault tests | retry every transport error | critical | add decision policy |
-| Recovery | Does each variant state whether values or handles remain usable? | API docs and tests | consumed guard silently lost | major | return recovery evidence |
-| Panic | Are expected external failures returned? | panic inventory | panic on user JSON | critical | make boundary fallible |
-| Unwrap | Does each production unwrap follow a local invariant? | reviewed search | unwrap database result | major | propagate structured error |
-| Secrets | Are display, debug, source, response, and logs recipient-safe? | redaction tests | token in provider error | critical | sanitize and correlate |
-| Conversion | Do `From` and mapping preserve security/reconciliation data? | conversion tests | provider reference dropped | critical | retain fields or protected record |
-| Compatibility | Is public evolution deliberate? | semver/non-exhaustive analysis | downstream exhaustive match breaks | major | stabilize or document migration |
-| Logging | Is final handling logged once with correlation? | trace of one failure | same error logged four times | minor | assign log owner |
-| Codes | Are public codes stable and documented? | code catalogue tests | message text used as code | major | introduce semantic code |
-| Evidence | Do tests cover action distinctions, not only display strings? | variant and fault tests | snapshot-only evidence | major | test semantics |
+| Gate          | Question                                                                            | Pass evidence                  | Failure example                         | Severity | Remediation                       |
+| ------------- | ----------------------------------------------------------------------------------- | ------------------------------ | --------------------------------------- | -------- | --------------------------------- |
+| Inventory     | Are causes, post-error state, actions, recipients, and commitment semantics listed? | failure matrix                 | error enum copied from dependency       | major    | model domain failures first       |
+| Structure     | Can callers distinguish actionable outcomes without parsing text?                   | typed matching tests           | `Result<T, String>`                     | major    | introduce stable categories       |
+| Source        | Is causal detail preserved safely?                                                  | source-chain test              | formatted source discarded              | major    | wrap with `source`                |
+| Context       | Does context identify operation without erasing category?                           | structured context             | all errors become one sentence          | major    | attach context separately         |
+| Validation    | Is invalid input distinct from internal failure?                                    | boundary tests                 | malformed request returns 500           | major    | map validation explicitly         |
+| Authorization | Is denial preserved and redacted?                                                   | security mapping               | denial becomes not-found internally too | critical | retain protected audit category   |
+| Cancellation  | Is cancellation distinct and commitment-aware?                                      | cancellation tests             | cancelled task assumed rolled back      | critical | define post-cancel state          |
+| Timeout       | Can timeout mean unknown execution?                                                 | commitment analysis            | timeout maps to rejection               | critical | add unknown outcome               |
+| Retry         | Is retry typed by semantics, idempotency, budget, and backoff?                      | retry table and fault tests    | retry every transport error             | critical | add decision policy               |
+| Recovery      | Does each variant state whether values or handles remain usable?                    | API docs and tests             | consumed guard silently lost            | major    | return recovery evidence          |
+| Panic         | Are expected external failures returned?                                            | panic inventory                | panic on user JSON                      | critical | make boundary fallible            |
+| Unwrap        | Does each production unwrap follow a local invariant?                               | reviewed search                | unwrap database result                  | major    | propagate structured error        |
+| Secrets       | Are display, debug, source, response, and logs recipient-safe?                      | redaction tests                | token in provider error                 | critical | sanitize and correlate            |
+| Conversion    | Do `From` and mapping preserve security/reconciliation data?                        | conversion tests               | provider reference dropped              | critical | retain fields or protected record |
+| Compatibility | Is public evolution deliberate?                                                     | semver/non-exhaustive analysis | downstream exhaustive match breaks      | major    | stabilize or document migration   |
+| Logging       | Is final handling logged once with correlation?                                     | trace of one failure           | same error logged four times            | minor    | assign log owner                  |
+| Codes         | Are public codes stable and documented?                                             | code catalogue tests           | message text used as code               | major    | introduce semantic code           |
+| Evidence      | Do tests cover action distinctions, not only display strings?                       | variant and fault tests        | snapshot-only evidence                  | major    | test semantics                    |
 
 A critical failure blocks approval unless an explicit doctrine waiver permits it. Redacting a
 public message does not justify erasing protected internal evidence.
@@ -4052,13 +4060,13 @@ guarantee ledger must keep those scopes separate.
 
 ## Guarantee ledger examples
 
-| Claim | Established by | Does not prove |
-|---|---|---|
-| `CommitPermit` has not been consumed through this value | private, non-cloneable ownership and consuming `commit` | database commit will succeed or acknowledgement will arrive |
-| `FileLock` owns one acquired operating-system lock handle | successful acquisition and owned handle | every other process or host honors the same locking protocol |
-| `SessionCapability` was issued for a principal and scope | protected issuer and signed or server-side grant | session remains unexpired, unrevoked, or sufficient for changed policy |
-| `SecretBytes` redacts ordinary formatting | custom trait implementations and absent display | copies never existed or memory is absent from swap and crash dumps |
-| `ShutdownPermit` has one process-local owner | private non-cloneable value | all external workers will acknowledge shutdown |
+| Claim                                                     | Established by                                          | Does not prove                                                         |
+| --------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `CommitPermit` has not been consumed through this value   | private, non-cloneable ownership and consuming `commit` | database commit will succeed or acknowledgement will arrive            |
+| `FileLock` owns one acquired operating-system lock handle | successful acquisition and owned handle                 | every other process or host honors the same locking protocol           |
+| `SessionCapability` was issued for a principal and scope  | protected issuer and signed or server-side grant        | session remains unexpired, unrevoked, or sufficient for changed policy |
+| `SecretBytes` redacts ordinary formatting                 | custom trait implementations and absent display         | copies never existed or memory is absent from swap and crash dumps     |
+| `ShutdownPermit` has one process-local owner              | private non-cloneable value                             | all external workers will acknowledge shutdown                         |
 
 These entries show why a capability's constructor, methods, and documentation must be reviewed
 together. A name such as `ExclusiveLease` is dishonest if the server does not reject stale
@@ -4133,16 +4141,16 @@ Ask:
 6. What happens on cancellation, drop, panic, or process loss?
 7. Does completion have a fallible external effect?
 
-| Shape | First mechanism |
-|---|---|
-| Exclusive local custody | owned non-cloneable value |
-| One-time operation | consuming token or capability |
-| Temporary read access | immutable borrow |
-| Temporary exclusive mutation | mutable borrow or scoped guard |
-| Shareable immutable authority | cloneable scoped capability |
-| Mutable external permission | runtime recheck or bounded lease |
-| Single task owns mutable state | actor/task ownership |
-| Shared state with short critical section | documented lock |
+| Shape                                    | First mechanism                  |
+| ---------------------------------------- | -------------------------------- |
+| Exclusive local custody                  | owned non-cloneable value        |
+| One-time operation                       | consuming token or capability    |
+| Temporary read access                    | immutable borrow                 |
+| Temporary exclusive mutation             | mutable borrow or scoped guard   |
+| Shareable immutable authority            | cloneable scoped capability      |
+| Mutable external permission              | runtime recheck or bounded lease |
+| Single task owns mutable state           | actor/task ownership             |
+| Shared state with short critical section | documented lock                  |
 
 ## Capability design
 
@@ -4192,26 +4200,26 @@ to avoid choosing an owner.
 
 Record pass, fail, not applicable, or waiver.
 
-| Gate | Question | Pass evidence | Failure example | Severity | Remediation |
-|---|---|---|---|---|---|
-| Authority map | Is every resource and operation owner named? | custody/lifecycle map | ambient service access | major | assign ownership |
-| Exclusivity | Does exclusive domain authority have one local owner? | non-cloneable value | copied commit token | critical | consume or coordinate |
-| Issuance | Can unauthorized code construct capability? | restricted constructor | public capability field | critical | restrict issuer |
-| Least privilege | Does capability expose only scoped operations? | narrow methods/scope | admin service inside token | critical | split capabilities |
-| Clone | Is every authority clone deliberate? | clone contract/test | derive for convenience | critical | remove or redefine |
-| Transfer | Is delegation explicit and auditable? | move/delegation record | hidden clone across tasks | major | model transfer |
-| Revocation | Can stale authority be used? | recheck or lease | perpetual session capability | critical | bound validity |
-| Borrow | Does borrowed access grant only required rights? | receiver/lifetime audit | read view exposes mutation | major | narrow borrow |
-| RAII | Is drop limited to local/best-effort cleanup? | explicit fallible close | drop claims rollback | critical | expose completion |
-| Secret debug | Are formatting paths redacted? | trait/redaction tests | derived debug token | critical | custom debug |
-| Secret copies | Are clone and serialization minimized? | call-site inventory | secret freely cloneable | critical | scope exposure |
-| Zeroization | Is claim limited to controlled buffers? | guarantee ledger | “all traces removed” | major | narrow claim |
-| Shared state | Was ownership designed before lock choice? | alternatives/lock invariant | global `Arc<Mutex<_>>` | major | choose owner |
-| Lock scope | Are external awaits/effects outside lock? | code trace/test | network call under lock | critical | split critical section |
-| Interior mutability | Is aliasing need explicit? | reentrancy/sync analysis | `RefCell` to appease compiler | major | redesign ownership |
-| Lifetime | Does each lifetime express a real referent relation? | signature explanation | ornamental generics | minor | simplify |
-| Task owner | Who joins, cancels, and closes? | supervision tree | detached resource task | critical | structure tasks |
-| External truth | Are local and external authority claims separated? | non-guarantees | local lease implies global lock | critical | revalidate/fence |
+| Gate                | Question                                              | Pass evidence               | Failure example                 | Severity | Remediation            |
+| ------------------- | ----------------------------------------------------- | --------------------------- | ------------------------------- | -------- | ---------------------- |
+| Authority map       | Is every resource and operation owner named?          | custody/lifecycle map       | ambient service access          | major    | assign ownership       |
+| Exclusivity         | Does exclusive domain authority have one local owner? | non-cloneable value         | copied commit token             | critical | consume or coordinate  |
+| Issuance            | Can unauthorized code construct capability?           | restricted constructor      | public capability field         | critical | restrict issuer        |
+| Least privilege     | Does capability expose only scoped operations?        | narrow methods/scope        | admin service inside token      | critical | split capabilities     |
+| Clone               | Is every authority clone deliberate?                  | clone contract/test         | derive for convenience          | critical | remove or redefine     |
+| Transfer            | Is delegation explicit and auditable?                 | move/delegation record      | hidden clone across tasks       | major    | model transfer         |
+| Revocation          | Can stale authority be used?                          | recheck or lease            | perpetual session capability    | critical | bound validity         |
+| Borrow              | Does borrowed access grant only required rights?      | receiver/lifetime audit     | read view exposes mutation      | major    | narrow borrow          |
+| RAII                | Is drop limited to local/best-effort cleanup?         | explicit fallible close     | drop claims rollback            | critical | expose completion      |
+| Secret debug        | Are formatting paths redacted?                        | trait/redaction tests       | derived debug token             | critical | custom debug           |
+| Secret copies       | Are clone and serialization minimized?                | call-site inventory         | secret freely cloneable         | critical | scope exposure         |
+| Zeroization         | Is claim limited to controlled buffers?               | guarantee ledger            | “all traces removed”            | major    | narrow claim           |
+| Shared state        | Was ownership designed before lock choice?            | alternatives/lock invariant | global `Arc<Mutex<_>>`          | major    | choose owner           |
+| Lock scope          | Are external awaits/effects outside lock?             | code trace/test             | network call under lock         | critical | split critical section |
+| Interior mutability | Is aliasing need explicit?                            | reentrancy/sync analysis    | `RefCell` to appease compiler   | major    | redesign ownership     |
+| Lifetime            | Does each lifetime express a real referent relation?  | signature explanation       | ornamental generics             | minor    | simplify               |
+| Task owner          | Who joins, cancels, and closes?                       | supervision tree            | detached resource task          | critical | structure tasks        |
+| External truth      | Are local and external authority claims separated?    | non-guarantees              | local lease implies global lock | critical | revalidate/fence       |
 
 ---
 
@@ -4855,13 +4863,13 @@ correctly release local capacity, but it cannot undo an external effect.
 
 Cancellation analysis records:
 
-| Question | Required answer |
-|---|---|
-| What changed before suspension? | local and external mutations |
-| What happens if the future is dropped? | destructor, abandonment, or no action |
-| Who owns recovery? | current task, supervisor, lease expiry, or reconciler |
-| Can the operation resume safely? | cursor, transaction, or idempotency evidence |
-| Can success be unknown? | explicit reconciliation state and identity |
+| Question                               | Required answer                                       |
+| -------------------------------------- | ----------------------------------------------------- |
+| What changed before suspension?        | local and external mutations                          |
+| What happens if the future is dropped? | destructor, abandonment, or no action                 |
+| Who owns recovery?                     | current task, supervisor, lease expiry, or reconciler |
+| Can the operation resume safely?       | cursor, transaction, or idempotency evidence          |
+| Can success be unknown?                | explicit reconciliation state and identity            |
 
 Cancellation-safe does not mean infallible. It means that dropping the future
 at the specified point does not violate its documented protocol.
@@ -4994,14 +5002,14 @@ If these artifacts cannot be stated, implementation is premature.
 
 ## Choose the state model
 
-| Need | Initial choice | Main checks |
-|---|---|---|
-| One sequential owner, many commands | actor or owner task | mailbox bound, response cancellation, supervision |
-| Short shared reads and updates | lock-protected state | complete invariant, lock order, contention |
-| Read-mostly immutable views | snapshot or copy-on-write | update cost, stale reads, retention |
-| Fixed parallel pure work | bounded worker pool | input bound, result order, panic propagation |
-| Narrow flag or counter protocol | atomic | happens-before argument, ordering, model evidence |
-| External durable coordination | runtime protocol | lease, fencing, expiry, split brain, reconciliation |
+| Need                                | Initial choice            | Main checks                                         |
+| ----------------------------------- | ------------------------- | --------------------------------------------------- |
+| One sequential owner, many commands | actor or owner task       | mailbox bound, response cancellation, supervision   |
+| Short shared reads and updates      | lock-protected state      | complete invariant, lock order, contention          |
+| Read-mostly immutable views         | snapshot or copy-on-write | update cost, stale reads, retention                 |
+| Fixed parallel pure work            | bounded worker pool       | input bound, result order, panic propagation        |
+| Narrow flag or counter protocol     | atomic                    | happens-before argument, ordering, model evidence   |
+| External durable coordination       | runtime protocol          | lease, fencing, expiry, split brain, reconciliation |
 
 Prefer one owner when shared mutation is complex. Prefer a lock when operations
 are short and the protected invariant is clear. Prefer ordinary sequential code
@@ -5045,13 +5053,13 @@ For each producer-consumer boundary, calculate:
 
 Choose among:
 
-| Policy | Use when | Cost |
-|---|---|---|
-| Wait | caller can absorb latency and pressure should propagate | deadline and head-of-line blocking |
-| Reject | caller can retry or degrade safely | visible failure and retry coordination |
-| Shed | work is explicitly disposable | information loss |
-| Coalesce | newest or aggregate value is sufficient | intermediate history lost |
-| Persist | work must survive process loss | storage, replay, deduplication |
+| Policy   | Use when                                                | Cost                                   |
+| -------- | ------------------------------------------------------- | -------------------------------------- |
+| Wait     | caller can absorb latency and pressure should propagate | deadline and head-of-line blocking     |
+| Reject   | caller can retry or degrade safely                      | visible failure and retry coordination |
+| Shed     | work is explicitly disposable                           | information loss                       |
+| Coalesce | newest or aggregate value is sufficient                 | intermediate history lost              |
+| Persist  | work must survive process loss                          | storage, replay, deduplication         |
 
 An open-ended source with an unbounded in-memory queue fails the decision gate.
 
@@ -5075,16 +5083,16 @@ was not decided.
 
 For every spawn, record:
 
-| Field | Required content |
-|---|---|
-| Task name | stable operational identity |
-| Owner | task or component that observes it |
-| Completion | join, result channel, or supervised state |
-| Failure | propagation, restart, degradation, or process stop |
-| Cancellation | trigger and cleanup behavior |
-| Capacity | maximum instances |
-| Shutdown | admission stop, drain, deadline, abort |
-| Observability | active count, failures, age, queue depth |
+| Field         | Required content                                   |
+| ------------- | -------------------------------------------------- |
+| Task name     | stable operational identity                        |
+| Owner         | task or component that observes it                 |
+| Completion    | join, result channel, or supervised state          |
+| Failure       | propagation, restart, degradation, or process stop |
+| Cancellation  | trigger and cleanup behavior                       |
+| Capacity      | maximum instances                                  |
+| Shutdown      | admission stop, drain, deadline, abort             |
+| Observability | active count, failures, age, queue depth           |
 
 Detach only when loss is acceptable and the work remains bounded and observable.
 
@@ -5134,58 +5142,58 @@ integration tests. State which schedules and failures remain untested.
 Record each gate as **pass**, **fail**, **not applicable**, or an approved
 **waiver reference**. A critical failure blocks merge.
 
-| Gate | Question | Pass evidence | Failure example | Severity | Remediation |
-|---|---|---|---|---|---|
-| C01 | Is mutable-state ownership explicit? | ownership map | several tasks mutate shared state by convention | critical | assign owner and synchronization |
-| C02 | Does each synchronization primitive name its invariant? | invariant-to-primitive mapping | mutex exists only because sharing was convenient | high | define protected relationship |
-| C03 | Are related fields updated under one protocol? | atomic grouped transition | status and handle use separate locks | critical | combine state or coordinate transition |
-| C04 | Is aliasing authority minimal? | narrow borrowed or message interface | broad mutable handle escapes | high | restrict interface |
-| C05 | Is every task represented in a task tree? | spawn inventory | untracked spawn | high | add owner and completion path |
-| C06 | Are task failures observed? | join or supervisor result handling | join handle dropped | critical | propagate or supervise failure |
-| C07 | Are panics handled according to policy? | panic branch and telemetry | worker silently disappears | high | define fail, restart, or degrade |
-| C08 | Are restart attempts bounded? | restart budget | permanent failure loops forever | high | cap and expose terminal state |
-| C09 | Does restart use backoff and jitter where needed? | policy and tests | all workers restart simultaneously | high | stagger bounded retries |
-| C10 | Is concurrency bounded? | semaphore, pool, or finite proof | spawn per unbounded input | critical | impose reviewed limit |
-| C11 | Is queue capacity justified? | resource calculation | arbitrary enormous buffer | high | derive from budget |
-| C12 | Is overload behavior explicit? | wait/reject/shed/persist contract | memory grows until failure | critical | add backpressure |
-| C13 | Is overload visible? | queue age/depth/rejection metrics | saturation is silent | medium | instrument capacity signals |
-| C14 | Is fairness considered? | scheduling policy | one tenant monopolizes permits | medium | partition or schedule fairly |
-| C15 | Is each channel closure branch handled? | closure tests | receive loop spins after closure | high | terminate or transition |
-| C16 | Does receiver loss reach senders? | send error policy | sends reported successful after owner exit | critical | preserve closure failure |
-| C17 | Is drain behavior defined? | shutdown contract | queue is silently discarded | high | drain, persist, or document loss |
-| C18 | Is lock scope bounded? | visible narrow guard lifetime | guard spans whole request | high | extract and release |
-| C19 | Is `.await` absent under synchronous locks? | code inspection | network call while mutex held | critical | split phase or use owner task |
-| C20 | Are blocking calls classified? | blocking-work inventory | synchronous filesystem call on executor | high | isolate deliberately |
-| C21 | Is blocking-pool capacity bounded? | pool configuration | isolation pool grows without limit | high | add capacity and admission |
-| C22 | Can cancelled blocking work continue? | explicit accounting | request cancellation assumed to stop syscall | high | supervise remaining work |
-| C23 | Is a lock acquisition order documented? | acyclic lock graph | paths acquire A/B and B/A | critical | establish order or redesign |
-| C24 | Are callbacks excluded from lock scope? | call graph evidence | arbitrary callback under lock | high | release before callback |
-| C25 | Is poisoning policy explicit? | recovery or fail-stop rationale | poisoned lock blindly unwrapped | high | validate or terminate |
-| C26 | Is every suspension point cancellation-reviewed? | cancellation table | timeout drops half-finished operation | critical | reorder, guard, or reconcile |
-| C27 | Does cancellation release local resources? | RAII or explicit cleanup test | permit leak | high | add owned guard |
-| C28 | Are external effects before cancellation recorded? | outcome state | timeout becomes definitive rejection | critical | represent uncertainty |
-| C29 | Can partial progress resume safely? | cursor/idempotency evidence | restart repeats unsafe effect | critical | persist progress or reconcile |
-| C30 | Are timeout budgets end-to-end? | deadline allocation | nested layers each use full timeout | high | propagate remaining budget |
-| C31 | Is retry multiplication calculated? | attempt equation | client, proxy, worker each retry blindly | critical | centralize budgets |
-| C32 | Are retries idempotency-classified? | operation table | mutation retried after lost response | critical | reconcile or use idempotency |
-| C33 | Are retry waves desynchronized? | jitter policy | thundering herd at fixed intervals | high | add jitter and admission |
-| C34 | Is ordering scope precise? | key/producer/partition contract | FIFO called global order | high | narrow claim |
-| C35 | Are retry and failover effects on order stated? | scenario tests | redelivery reorders unnoticed | high | version or tolerate reorder |
-| C36 | Does shutdown stop admission first? | ordered procedure | new work enters while draining | high | close ingress |
-| C37 | Does shutdown have a deadline? | time budget | waits forever | high | define forced termination |
-| C38 | Are in-flight effects classified at shutdown? | work accounting | process exit loses ambiguous request | critical | persist or reconcile |
-| C39 | Are resources released on all exits? | tests for normal/error/cancel | permits survive task failure | high | use guards and cleanup |
-| C40 | Are detached tasks exceptional and named? | approved inventory | anonymous fire-and-forget | high | supervise or document exception |
-| C41 | Are detached resources bounded? | count and queue limits | cleanup task accumulation | critical | bound and shed |
-| C42 | Are detached failures observable? | metrics and logs | background failure invisible | high | report health |
-| C43 | Does each atomic name its invariant? | code comment and design note | atomic chosen for speed | critical | define protocol |
-| C44 | Is memory ordering justified? | happens-before argument | copied `Relaxed` ordering | critical | prove or use lock |
-| C45 | Is unsafe concurrency separately reviewed? | RUST-DOC-0007 evidence | manual `Send` with no proof | critical | perform unsafe audit |
-| C46 | Are small protocols model-tested where valuable? | Loom or equivalent result | rare schedule only stress-tested | medium | add controlled schedule tests |
-| C47 | Are async trait costs understood? | dispatch/allocation analysis | boxed future on hot path by accident | medium | simplify or measure |
-| C48 | Are latency claims distributions, not anecdotes? | p50/p95/p99 under load | one local timing | medium | benchmark correctly |
-| C49 | Does local state avoid remote-liveness claims? | guarantee ledger | connected state promises next send | critical | narrow guarantee |
-| C50 | Are evidence limits documented? | residual-risk section | tests presented as universal proof | high | state untested schedules |
+| Gate | Question                                                | Pass evidence                        | Failure example                                  | Severity | Remediation                            |
+| ---- | ------------------------------------------------------- | ------------------------------------ | ------------------------------------------------ | -------- | -------------------------------------- |
+| C01  | Is mutable-state ownership explicit?                    | ownership map                        | several tasks mutate shared state by convention  | critical | assign owner and synchronization       |
+| C02  | Does each synchronization primitive name its invariant? | invariant-to-primitive mapping       | mutex exists only because sharing was convenient | high     | define protected relationship          |
+| C03  | Are related fields updated under one protocol?          | atomic grouped transition            | status and handle use separate locks             | critical | combine state or coordinate transition |
+| C04  | Is aliasing authority minimal?                          | narrow borrowed or message interface | broad mutable handle escapes                     | high     | restrict interface                     |
+| C05  | Is every task represented in a task tree?               | spawn inventory                      | untracked spawn                                  | high     | add owner and completion path          |
+| C06  | Are task failures observed?                             | join or supervisor result handling   | join handle dropped                              | critical | propagate or supervise failure         |
+| C07  | Are panics handled according to policy?                 | panic branch and telemetry           | worker silently disappears                       | high     | define fail, restart, or degrade       |
+| C08  | Are restart attempts bounded?                           | restart budget                       | permanent failure loops forever                  | high     | cap and expose terminal state          |
+| C09  | Does restart use backoff and jitter where needed?       | policy and tests                     | all workers restart simultaneously               | high     | stagger bounded retries                |
+| C10  | Is concurrency bounded?                                 | semaphore, pool, or finite proof     | spawn per unbounded input                        | critical | impose reviewed limit                  |
+| C11  | Is queue capacity justified?                            | resource calculation                 | arbitrary enormous buffer                        | high     | derive from budget                     |
+| C12  | Is overload behavior explicit?                          | wait/reject/shed/persist contract    | memory grows until failure                       | critical | add backpressure                       |
+| C13  | Is overload visible?                                    | queue age/depth/rejection metrics    | saturation is silent                             | medium   | instrument capacity signals            |
+| C14  | Is fairness considered?                                 | scheduling policy                    | one tenant monopolizes permits                   | medium   | partition or schedule fairly           |
+| C15  | Is each channel closure branch handled?                 | closure tests                        | receive loop spins after closure                 | high     | terminate or transition                |
+| C16  | Does receiver loss reach senders?                       | send error policy                    | sends reported successful after owner exit       | critical | preserve closure failure               |
+| C17  | Is drain behavior defined?                              | shutdown contract                    | queue is silently discarded                      | high     | drain, persist, or document loss       |
+| C18  | Is lock scope bounded?                                  | visible narrow guard lifetime        | guard spans whole request                        | high     | extract and release                    |
+| C19  | Is `.await` absent under synchronous locks?             | code inspection                      | network call while mutex held                    | critical | split phase or use owner task          |
+| C20  | Are blocking calls classified?                          | blocking-work inventory              | synchronous filesystem call on executor          | high     | isolate deliberately                   |
+| C21  | Is blocking-pool capacity bounded?                      | pool configuration                   | isolation pool grows without limit               | high     | add capacity and admission             |
+| C22  | Can cancelled blocking work continue?                   | explicit accounting                  | request cancellation assumed to stop syscall     | high     | supervise remaining work               |
+| C23  | Is a lock acquisition order documented?                 | acyclic lock graph                   | paths acquire A/B and B/A                        | critical | establish order or redesign            |
+| C24  | Are callbacks excluded from lock scope?                 | call graph evidence                  | arbitrary callback under lock                    | high     | release before callback                |
+| C25  | Is poisoning policy explicit?                           | recovery or fail-stop rationale      | poisoned lock blindly unwrapped                  | high     | validate or terminate                  |
+| C26  | Is every suspension point cancellation-reviewed?        | cancellation table                   | timeout drops half-finished operation            | critical | reorder, guard, or reconcile           |
+| C27  | Does cancellation release local resources?              | RAII or explicit cleanup test        | permit leak                                      | high     | add owned guard                        |
+| C28  | Are external effects before cancellation recorded?      | outcome state                        | timeout becomes definitive rejection             | critical | represent uncertainty                  |
+| C29  | Can partial progress resume safely?                     | cursor/idempotency evidence          | restart repeats unsafe effect                    | critical | persist progress or reconcile          |
+| C30  | Are timeout budgets end-to-end?                         | deadline allocation                  | nested layers each use full timeout              | high     | propagate remaining budget             |
+| C31  | Is retry multiplication calculated?                     | attempt equation                     | client, proxy, worker each retry blindly         | critical | centralize budgets                     |
+| C32  | Are retries idempotency-classified?                     | operation table                      | mutation retried after lost response             | critical | reconcile or use idempotency           |
+| C33  | Are retry waves desynchronized?                         | jitter policy                        | thundering herd at fixed intervals               | high     | add jitter and admission               |
+| C34  | Is ordering scope precise?                              | key/producer/partition contract      | FIFO called global order                         | high     | narrow claim                           |
+| C35  | Are retry and failover effects on order stated?         | scenario tests                       | redelivery reorders unnoticed                    | high     | version or tolerate reorder            |
+| C36  | Does shutdown stop admission first?                     | ordered procedure                    | new work enters while draining                   | high     | close ingress                          |
+| C37  | Does shutdown have a deadline?                          | time budget                          | waits forever                                    | high     | define forced termination              |
+| C38  | Are in-flight effects classified at shutdown?           | work accounting                      | process exit loses ambiguous request             | critical | persist or reconcile                   |
+| C39  | Are resources released on all exits?                    | tests for normal/error/cancel        | permits survive task failure                     | high     | use guards and cleanup                 |
+| C40  | Are detached tasks exceptional and named?               | approved inventory                   | anonymous fire-and-forget                        | high     | supervise or document exception        |
+| C41  | Are detached resources bounded?                         | count and queue limits               | cleanup task accumulation                        | critical | bound and shed                         |
+| C42  | Are detached failures observable?                       | metrics and logs                     | background failure invisible                     | high     | report health                          |
+| C43  | Does each atomic name its invariant?                    | code comment and design note         | atomic chosen for speed                          | critical | define protocol                        |
+| C44  | Is memory ordering justified?                           | happens-before argument              | copied `Relaxed` ordering                        | critical | prove or use lock                      |
+| C45  | Is unsafe concurrency separately reviewed?              | RUST-DOC-0007 evidence               | manual `Send` with no proof                      | critical | perform unsafe audit                   |
+| C46  | Are small protocols model-tested where valuable?        | Loom or equivalent result            | rare schedule only stress-tested                 | medium   | add controlled schedule tests          |
+| C47  | Are async trait costs understood?                       | dispatch/allocation analysis         | boxed future on hot path by accident             | medium   | simplify or measure                    |
+| C48  | Are latency claims distributions, not anecdotes?        | p50/p95/p99 under load               | one local timing                                 | medium   | benchmark correctly                    |
+| C49  | Does local state avoid remote-liveness claims?          | guarantee ledger                     | connected state promises next send               | critical | narrow guarantee                       |
+| C50  | Are evidence limits documented?                         | residual-risk section                | tests presented as universal proof               | high     | state untested schedules               |
 
 ## Review outcome
 
@@ -5406,66 +5414,66 @@ not be the synchronization mechanism that establishes its assertion.
 
 **Actor ownership**
 : A model in which one task owns mutable state and other tasks request changes
-  through messages. It simplifies mutation authority but still requires mailbox
-  capacity, supervision, and shutdown semantics.
+through messages. It simplifies mutation authority but still requires mailbox
+capacity, supervision, and shutdown semantics.
 
 **Backpressure**
 : A policy that makes downstream capacity constrain upstream production through
-  waiting, rejection, shedding, coalescing, or durable buffering.
+waiting, rejection, shedding, coalescing, or durable buffering.
 
 **Cancellation safety**
 : The property that dropping an incomplete future at a stated suspension point
-  does not violate its documented invariant or lose unrecoverable progress.
+does not violate its documented invariant or lose unrecoverable progress.
 
 **Channel closure**
 : The protocol event produced when the relevant sender or receiver set has
-  disappeared. Meaning depends on channel kind and component lifecycle.
+disappeared. Meaning depends on channel kind and component lifecycle.
 
 **Convoying**
 : Delayed progress caused when many operations serialize behind a slow holder or
-  resource.
+resource.
 
 **Detached task**
 : A task whose completion is not structurally awaited by the immediate caller.
-  It still requires an operational owner.
+It still requires an operational owner.
 
 **Graceful shutdown**
 : A bounded lifecycle protocol that stops admission, accounts for outstanding
-  work, releases resources, and defines behavior at its deadline.
+work, releases resources, and defines behavior at its deadline.
 
 **Happens-before**
 : A synchronization relationship used to reason that memory effects become
-  observable in a required order. It is stronger and more precise than
-  wall-clock intuition.
+observable in a required order. It is stronger and more precise than
+wall-clock intuition.
 
 **Lock graph**
 : A directed graph in which an edge represents acquiring one lock while holding
-  another. A cycle indicates a potential deadlock protocol.
+another. A cycle indicates a potential deadlock protocol.
 
 **Lock poisoning**
 : A mechanism that records that a panic occurred while exclusive state was
-  guarded. It signals possible invariant damage; recovery policy remains a
-  component decision.
+guarded. It signals possible invariant damage; recovery policy remains a
+component decision.
 
 **Retry amplification**
 : Multiplication of attempts when independent layers retry one logical
-  operation.
+operation.
 
 **Structured concurrency**
 : Task lifecycle organization in which child work has an accountable owner and
-  bounded relationship to parent completion, failure, and cancellation.
+bounded relationship to parent completion, failure, and cancellation.
 
 **Task supervision**
 : Observation and policy for task completion, panic, cancellation, failure,
-  restart, and terminal degradation.
+restart, and terminal degradation.
 
 **Thundering herd**
 : A synchronized group of waiters or retries that simultaneously contend for a
-  recovering resource.
+recovering resource.
 
 **Unknown outcome**
 : A state in which local evidence cannot determine whether an external effect
-  occurred. It requires reconciliation rather than assumed rejection.
+occurred. It requires reconciliation rather than assumed rejection.
 
 ---
 
@@ -6035,12 +6043,12 @@ or degraded read model contains the uncertainty.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| decoded email satisfies syntax policy | checked row conversion | private newtype field | all readers use `TryFrom` | audited internal import | ownership or deliverability | policy changes, corrupt row |
-| update used current aggregate version | version predicate affected one row | repository API | conflict preserved | administrative repair | absence of all business races | retry conflict, isolation anomaly |
-| outbox intent shares domain commit | same local transaction | repository operation | publisher reads durable row | direct DB write | single delivery or consumer success | duplicate, delay, poison message |
-| transaction handle cannot be reused locally | consuming commit/rollback | private fields | API lifecycle | driver internals | definite remote commit result | connection loss ambiguity |
+| Claim                                       | Established by                     | Protected construction | Boundary preservation       | Escape hatches          | Does not prove                      | Residual runtime risk             |
+| ------------------------------------------- | ---------------------------------- | ---------------------- | --------------------------- | ----------------------- | ----------------------------------- | --------------------------------- |
+| decoded email satisfies syntax policy       | checked row conversion             | private newtype field  | all readers use `TryFrom`   | audited internal import | ownership or deliverability         | policy changes, corrupt row       |
+| update used current aggregate version       | version predicate affected one row | repository API         | conflict preserved          | administrative repair   | absence of all business races       | retry conflict, isolation anomaly |
+| outbox intent shares domain commit          | same local transaction             | repository operation   | publisher reads durable row | direct DB write         | single delivery or consumer success | duplicate, delay, poison message  |
+| transaction handle cannot be reused locally | consuming commit/rollback          | private fields         | API lifecycle               | driver internals        | definite remote commit result       | connection loss ambiguity         |
 
 ## Cost of overapplication
 
@@ -6091,15 +6099,15 @@ constructing the domain entity.
 
 ## Choose invariant enforcement
 
-| Invariant | Primary mechanism | Reinforcement |
-|---|---|---|
-| positive scalar | private newtype constructor | SQL check constraint |
-| unique business key | domain conflict type | unique constraint |
-| valid foreign reference | repository/domain rule | foreign key |
-| state-associated fields | sum-type conversion | discriminator checks |
-| cross-row balance | transactional service | isolation, locks, constraints |
-| current-write version | optimistic predicate | version column |
-| volatile eligibility policy | transactional domain service | audit record |
+| Invariant                   | Primary mechanism            | Reinforcement                 |
+| --------------------------- | ---------------------------- | ----------------------------- |
+| positive scalar             | private newtype constructor  | SQL check constraint          |
+| unique business key         | domain conflict type         | unique constraint             |
+| valid foreign reference     | repository/domain rule       | foreign key                   |
+| state-associated fields     | sum-type conversion          | discriminator checks          |
+| cross-row balance           | transactional service        | isolation, locks, constraints |
+| current-write version       | optimistic predicate         | version column                |
+| volatile eligibility policy | transactional domain service | audit record                  |
 
 If the database cannot enforce an invariant, state the race and repair model.
 
@@ -6203,58 +6211,58 @@ Stop the design if:
 Mark every gate **pass**, **fail**, **not applicable**, or with an approved
 **waiver reference**.
 
-| Gate | Question | Pass evidence | Failure example | Severity | Remediation |
-|---|---|---|---|---|---|
-| P01 | Are all durable representations inventoried? | storage map | cache snapshot omitted | high | enumerate sources |
-| P02 | Are alternate writers known? | writer list | admin tool bypasses service | high | constrain or validate |
-| P03 | Is persisted data treated as boundary input? | fallible conversion | row directly becomes trusted type | critical | add raw model |
-| P04 | Are private newtype constructors preserved? | checked constructor call | ORM writes field internally | critical | route through `TryFrom` |
-| P05 | Do invalid rows fail explicitly? | structured error | invalid value normalized silently | critical | reject or quarantine |
-| P06 | Are conversion diagnostics actionable? | record ID and category | opaque decode error | medium | add safe context |
-| P07 | Are sensitive values absent from diagnostics? | redaction tests | token printed with row error | critical | redact |
-| P08 | Are storage and domain models separated where needed? | contract comparison | nullable row leaks into domain | high | split models |
-| P09 | Are null combinations validated? | truth table | paid row has no receipt | critical | sum conversion and checks |
-| P10 | Are defaults evidence-honest? | provenance | migration invents verification time | critical | derive or keep unknown |
-| P11 | Does schema reinforce stable invariants? | constraint map | alternate writer can store zero | high | add constraint |
-| P12 | Are constraint failures structured? | conflict mapping | all become internal error | high | preserve category |
-| P13 | Are cross-row rules transactionally protected? | isolation proof | check then update races | critical | lock/constraint/protocol |
-| P14 | Is isolation tied to the anomaly? | documented analysis | transaction assumed sufficient | critical | choose mechanism |
-| P15 | Are concurrent writers tested? | competing-operation test | only sequential test | high | add concurrency evidence |
-| P16 | Are lost updates prevented? | version or atomic update | blind overwrite | critical | add concurrency control |
-| P17 | Is version conflict visible? | typed conflict | zero rows treated as success | critical | return conflict |
-| P18 | Is last-write-wins explicit if used? | policy approval | accidental overwrite | high | document or prevent |
-| P19 | Is enum encoding stable? | encoding table | source variant name persisted casually | high | define tags |
-| P20 | Are unknown enum values handled? | explicit branch | decoder panics | high | reject/retain/unknown |
-| P21 | Is downgrade behavior considered? | compatibility matrix | old reader misinterprets new state | high | stage rollout |
-| P22 | Are durable formats versioned? | version strategy | old snapshot silently decoded anew | critical | add version/migration |
-| P23 | Are unknown versions rejected safely? | fixture test | version ignored | high | preserve incompatibility |
-| P24 | Does migration name invariant effects? | migration contract | shape-only description | high | add domain analysis |
-| P25 | Does strengthening scan old rows? | precondition query | constraint fails mid-rollout | critical | scan and repair |
-| P26 | Is postcondition verified completely? | authoritative query | sampled rows only | critical | query full affected set |
-| P27 | Is rollback semantically safe? | compatibility reasoning | old binary corrupts new meaning | high | prefer forward repair |
-| P28 | Is rollout order explicit? | expand/contract sequence | writer deploys before readers | critical | stage compatibility |
-| P29 | Are decoding resource limits set? | limits and tests | huge blob allocated blindly | high | bound or stream |
-| P30 | Are batches bounded? | pagination policy | full table loaded | high | page and cap |
-| P31 | Is transaction handle lifecycle guarded? | consuming/runtime state | reused after commit | high | consume or reject |
-| P32 | Is commit ambiguity considered? | driver/protocol analysis | any error means rollback | critical | reconcile unknown |
-| P33 | Are rollback errors preserved? | cleanup result | rollback failure discarded | high | report residual state |
-| P34 | Is connection loss behavior documented? | failure matrix | retry assumes no commit | critical | identify outcome |
-| P35 | Are external effects outside DB atomicity? | boundary diagram | email called transactionally | critical | add durable protocol |
-| P36 | Is durable intent used when loss matters? | outbox/inbox design | commit then best-effort publish | critical | couple intent |
-| P37 | Is outbox write in the same transaction? | query evidence | separate connection writes | critical | make atomic |
-| P38 | Is publisher retry idempotent? | operation identity | duplicate external effect | critical | deduplicate/reconcile |
-| P39 | Is outbox lag observable? | metrics/alerts | stuck events invisible | high | instrument |
-| P40 | Is retention defined? | cleanup policy | dedup/outbox grows forever | medium | bound safely |
-| P41 | Is ordering scope documented? | aggregate/partition rule | insertion order called global | high | narrow claim |
-| P42 | Is invalid history quarantined? | explicit path | unchecked constructor used | critical | contain invalid evidence |
-| P43 | Is repair audited? | before/after evidence | manual edit unrecorded | high | record repair |
-| P44 | Are backup/restores validated? | restore test | stale schema restored blindly | high | migrate and check |
-| P45 | Are replicas/freshness claims accurate? | read-routing contract | replica read called current | high | state staleness |
-| P46 | Are durability settings identified? | configuration evidence | product default assumed | critical | document and monitor |
-| P47 | Are schema and domain tests linked? | invariant matrix | tests cover only model | medium | add boundary cases |
-| P48 | Are administrative escape paths reviewed? | access and audit policy | direct SQL silently allowed | high | restrict and validate |
-| P49 | Does guarantee ledger state non-guarantees? | completed ledger | persisted implies externally complete | critical | narrow claim |
-| P50 | Are evidence limits stated? | residual risks | tests presented as proof of all history | high | document limits |
+| Gate | Question                                              | Pass evidence            | Failure example                         | Severity | Remediation               |
+| ---- | ----------------------------------------------------- | ------------------------ | --------------------------------------- | -------- | ------------------------- |
+| P01  | Are all durable representations inventoried?          | storage map              | cache snapshot omitted                  | high     | enumerate sources         |
+| P02  | Are alternate writers known?                          | writer list              | admin tool bypasses service             | high     | constrain or validate     |
+| P03  | Is persisted data treated as boundary input?          | fallible conversion      | row directly becomes trusted type       | critical | add raw model             |
+| P04  | Are private newtype constructors preserved?           | checked constructor call | ORM writes field internally             | critical | route through `TryFrom`   |
+| P05  | Do invalid rows fail explicitly?                      | structured error         | invalid value normalized silently       | critical | reject or quarantine      |
+| P06  | Are conversion diagnostics actionable?                | record ID and category   | opaque decode error                     | medium   | add safe context          |
+| P07  | Are sensitive values absent from diagnostics?         | redaction tests          | token printed with row error            | critical | redact                    |
+| P08  | Are storage and domain models separated where needed? | contract comparison      | nullable row leaks into domain          | high     | split models              |
+| P09  | Are null combinations validated?                      | truth table              | paid row has no receipt                 | critical | sum conversion and checks |
+| P10  | Are defaults evidence-honest?                         | provenance               | migration invents verification time     | critical | derive or keep unknown    |
+| P11  | Does schema reinforce stable invariants?              | constraint map           | alternate writer can store zero         | high     | add constraint            |
+| P12  | Are constraint failures structured?                   | conflict mapping         | all become internal error               | high     | preserve category         |
+| P13  | Are cross-row rules transactionally protected?        | isolation proof          | check then update races                 | critical | lock/constraint/protocol  |
+| P14  | Is isolation tied to the anomaly?                     | documented analysis      | transaction assumed sufficient          | critical | choose mechanism          |
+| P15  | Are concurrent writers tested?                        | competing-operation test | only sequential test                    | high     | add concurrency evidence  |
+| P16  | Are lost updates prevented?                           | version or atomic update | blind overwrite                         | critical | add concurrency control   |
+| P17  | Is version conflict visible?                          | typed conflict           | zero rows treated as success            | critical | return conflict           |
+| P18  | Is last-write-wins explicit if used?                  | policy approval          | accidental overwrite                    | high     | document or prevent       |
+| P19  | Is enum encoding stable?                              | encoding table           | source variant name persisted casually  | high     | define tags               |
+| P20  | Are unknown enum values handled?                      | explicit branch          | decoder panics                          | high     | reject/retain/unknown     |
+| P21  | Is downgrade behavior considered?                     | compatibility matrix     | old reader misinterprets new state      | high     | stage rollout             |
+| P22  | Are durable formats versioned?                        | version strategy         | old snapshot silently decoded anew      | critical | add version/migration     |
+| P23  | Are unknown versions rejected safely?                 | fixture test             | version ignored                         | high     | preserve incompatibility  |
+| P24  | Does migration name invariant effects?                | migration contract       | shape-only description                  | high     | add domain analysis       |
+| P25  | Does strengthening scan old rows?                     | precondition query       | constraint fails mid-rollout            | critical | scan and repair           |
+| P26  | Is postcondition verified completely?                 | authoritative query      | sampled rows only                       | critical | query full affected set   |
+| P27  | Is rollback semantically safe?                        | compatibility reasoning  | old binary corrupts new meaning         | high     | prefer forward repair     |
+| P28  | Is rollout order explicit?                            | expand/contract sequence | writer deploys before readers           | critical | stage compatibility       |
+| P29  | Are decoding resource limits set?                     | limits and tests         | huge blob allocated blindly             | high     | bound or stream           |
+| P30  | Are batches bounded?                                  | pagination policy        | full table loaded                       | high     | page and cap              |
+| P31  | Is transaction handle lifecycle guarded?              | consuming/runtime state  | reused after commit                     | high     | consume or reject         |
+| P32  | Is commit ambiguity considered?                       | driver/protocol analysis | any error means rollback                | critical | reconcile unknown         |
+| P33  | Are rollback errors preserved?                        | cleanup result           | rollback failure discarded              | high     | report residual state     |
+| P34  | Is connection loss behavior documented?               | failure matrix           | retry assumes no commit                 | critical | identify outcome          |
+| P35  | Are external effects outside DB atomicity?            | boundary diagram         | email called transactionally            | critical | add durable protocol      |
+| P36  | Is durable intent used when loss matters?             | outbox/inbox design      | commit then best-effort publish         | critical | couple intent             |
+| P37  | Is outbox write in the same transaction?              | query evidence           | separate connection writes              | critical | make atomic               |
+| P38  | Is publisher retry idempotent?                        | operation identity       | duplicate external effect               | critical | deduplicate/reconcile     |
+| P39  | Is outbox lag observable?                             | metrics/alerts           | stuck events invisible                  | high     | instrument                |
+| P40  | Is retention defined?                                 | cleanup policy           | dedup/outbox grows forever              | medium   | bound safely              |
+| P41  | Is ordering scope documented?                         | aggregate/partition rule | insertion order called global           | high     | narrow claim              |
+| P42  | Is invalid history quarantined?                       | explicit path            | unchecked constructor used              | critical | contain invalid evidence  |
+| P43  | Is repair audited?                                    | before/after evidence    | manual edit unrecorded                  | high     | record repair             |
+| P44  | Are backup/restores validated?                        | restore test             | stale schema restored blindly           | high     | migrate and check         |
+| P45  | Are replicas/freshness claims accurate?               | read-routing contract    | replica read called current             | high     | state staleness           |
+| P46  | Are durability settings identified?                   | configuration evidence   | product default assumed                 | critical | document and monitor      |
+| P47  | Are schema and domain tests linked?                   | invariant matrix         | tests cover only model                  | medium   | add boundary cases        |
+| P48  | Are administrative escape paths reviewed?             | access and audit policy  | direct SQL silently allowed             | high     | restrict and validate     |
+| P49  | Does guarantee ledger state non-guarantees?           | completed ledger         | persisted implies externally complete   | critical | narrow claim              |
+| P50  | Are evidence limits stated?                           | residual risks           | tests presented as proof of all history | high     | document limits           |
 
 Critical failures block merge. A waiver must identify owner, affected paths,
 compensating controls, monitoring, expiry, and a condition for removal.
@@ -6452,51 +6460,51 @@ rows, but must report every omission.
 
 **Ambiguous commit**
 : A commit attempt whose client-side result does not establish whether the
-  database made the transaction durable.
+database made the transaction durable.
 
 **Data migration**
 : A controlled transformation of stored values, including the evidence and
-  invariant meaning attached to them.
+invariant meaning attached to them.
 
 **Durable intent**
 : A persisted record that an external action should be attempted, written so
-  process failure cannot silently forget the obligation.
+process failure cannot silently forget the obligation.
 
 **Expand-and-contract**
 : A rollout sequence that first adds a representation compatible with old code,
-  migrates readers and writers, then removes the old representation.
+migrates readers and writers, then removes the old representation.
 
 **Historical invalid data**
 : A stored representation that exists but cannot establish current trusted
-  domain invariants.
+domain invariants.
 
 **Inbox**
 : Durable consumer-side recording used to recognize and coordinate repeated
-  message delivery.
+message delivery.
 
 **Optimistic concurrency**
 : A strategy that performs an update only if a previously observed version or
-  predicate remains current.
+predicate remains current.
 
 **Outbox**
 : A durable publication-intent record written in the same local transaction as
-  the associated domain transition.
+the associated domain transition.
 
 **Persistence model**
 : A representation designed for storage shape, compatibility, and physical
-  decoding, not automatically a trusted domain entity.
+decoding, not automatically a trusted domain entity.
 
 **Quarantine**
 : Isolation of invalid stored evidence with identity and diagnostics so it can
-  be audited and repaired without entering trusted operations.
+be audited and repaired without entering trusted operations.
 
 **Schema constraint**
 : A database-enforced predicate such as nullability, uniqueness, referential
-  integrity, or a check expression.
+integrity, or a check expression.
 
 **Storage discriminator**
 : A stable encoded value selecting one variant or lifecycle state in a durable
-  representation.
+representation.
 
 ---
 
@@ -7093,13 +7101,13 @@ Access and retention should match the evidence's sensitivity.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| operation has stable identity | generated once and persisted | private operation constructor | reused across attempts | administrative replay | effect executed once | identity collision, misuse |
-| provider confirmed capture | authenticated response or reconciled event | outcome transition | evidence retained | operator override | later settlement | provider reversal, stale event |
-| capture is unknown | timeout after possible dispatch | explicit variant | token persists | destructive manual edit | success or rejection | delayed observation |
-| duplicate local DB effect is suppressed | unique inbox plus atomic mutation | repository transaction | durable identity | retention expiry | remote side effect uniqueness | late replay |
-| worker currently holds local lease handle | checked acquisition | non-clone authority | fencing sent with writes | raw backend access | exclusive remote action forever | pause, partition, expiry |
+| Claim                                     | Established by                             | Protected construction        | Boundary preservation    | Escape hatches          | Does not prove                  | Residual runtime risk          |
+| ----------------------------------------- | ------------------------------------------ | ----------------------------- | ------------------------ | ----------------------- | ------------------------------- | ------------------------------ |
+| operation has stable identity             | generated once and persisted               | private operation constructor | reused across attempts   | administrative replay   | effect executed once            | identity collision, misuse     |
+| provider confirmed capture                | authenticated response or reconciled event | outcome transition            | evidence retained        | operator override       | later settlement                | provider reversal, stale event |
+| capture is unknown                        | timeout after possible dispatch            | explicit variant              | token persists           | destructive manual edit | success or rejection            | delayed observation            |
+| duplicate local DB effect is suppressed   | unique inbox plus atomic mutation          | repository transaction        | durable identity         | retention expiry        | remote side effect uniqueness   | late replay                    |
+| worker currently holds local lease handle | checked acquisition                        | non-clone authority           | fencing sent with writes | raw backend access      | exclusive remote action forever | pause, partition, expiry       |
 
 ## Proportionality
 
@@ -7134,14 +7142,14 @@ For every external operation record:
 
 ## Classify each failure point
 
-| Failure point | Knowledge | Default action |
-|---|---|---|
-| local validation before dispatch | no request sent | correct or reject |
-| admission rejection with authenticated response | confirmed rejection | do not blind retry unless condition changes |
-| connection failure before any bytes can be sent | likely local failure, subject to transport proof | safe retry if established |
-| failure after request may be received | execution unknown | reconcile or idempotent replay |
-| authenticated success response | confirmed at response boundary | persist evidence |
-| acknowledgement loss after consumer effect | effect may repeat | deduplicate on redelivery |
+| Failure point                                   | Knowledge                                        | Default action                              |
+| ----------------------------------------------- | ------------------------------------------------ | ------------------------------------------- |
+| local validation before dispatch                | no request sent                                  | correct or reject                           |
+| admission rejection with authenticated response | confirmed rejection                              | do not blind retry unless condition changes |
+| connection failure before any bytes can be sent | likely local failure, subject to transport proof | safe retry if established                   |
+| failure after request may be received           | execution unknown                                | reconcile or idempotent replay              |
+| authenticated success response                  | confirmed at response boundary                   | persist evidence                            |
+| acknowledgement loss after consumer effect      | effect may repeat                                | deduplicate on redelivery                   |
 
 Do not infer exact transport timing without support from the library and
 protocol.
@@ -7178,14 +7186,14 @@ outcomes still require reconciliation.
 
 ## Retry decision
 
-| Classification | Permitted behavior |
-|---|---|
-| safe retry | reuse operation identity within remaining budget |
-| unsafe retry | stop and escalate |
-| reconcile before retry | observe authoritative state, then decide |
-| confirmed rejection | retry only after documented condition changes |
-| rate/overload response | honor server guidance, backoff, jitter, cap attempts |
-| authentication/authorization failure | repair authority; do not storm |
+| Classification                       | Permitted behavior                                   |
+| ------------------------------------ | ---------------------------------------------------- |
+| safe retry                           | reuse operation identity within remaining budget     |
+| unsafe retry                         | stop and escalate                                    |
+| reconcile before retry               | observe authoritative state, then decide             |
+| confirmed rejection                  | retry only after documented condition changes        |
+| rate/overload response               | honor server guidance, backoff, jitter, cap attempts |
+| authentication/authorization failure | repair authority; do not storm                       |
 
 Calculate multiplication across callers, middleware, proxies, workers, and
 libraries. One logical deadline constrains all layers.
@@ -7228,18 +7236,18 @@ directly than delivery order. Define duplicate and gap behavior.
 
 A reconciliation record should contain:
 
-| Field | Purpose |
-|---|---|
-| operation ID | stable logical identity |
-| external key | provider lookup/deduplication |
+| Field               | Purpose                                     |
+| ------------------- | ------------------------------------------- |
+| operation ID        | stable logical identity                     |
+| external key        | provider lookup/deduplication               |
 | request fingerprint | compare intent without unnecessary raw data |
-| target | select authoritative source |
-| first/last attempt | timeline |
-| observation cursor | resume progress |
-| next action time | bounded scheduling |
-| attempt count | escalation |
-| current evidence | explain state |
-| owner | operational accountability |
+| target              | select authoritative source                 |
+| first/last attempt  | timeline                                    |
+| observation cursor  | resume progress                             |
+| next action time    | bounded scheduling                          |
+| attempt count       | escalation                                  |
+| current evidence    | explain state                               |
+| owner               | operational accountability                  |
 
 Define confirmed terminal transitions and a still-unknown path. Human override
 must be audited as new evidence or a policy decision, never retroactive proof.
@@ -7268,60 +7276,60 @@ Stop and redesign when:
 Each gate receives **pass**, **fail**, **not applicable**, or an approved
 **waiver reference**.
 
-| Gate | Question | Pass evidence | Failure example | Severity | Remediation |
-|---|---|---|---|---|---|
-| D01 | Are all external effects inventoried? | effect map | notification hidden in callback | critical | enumerate side effects |
-| D02 | Is logical operation identity stable? | persisted ID | ID generated per retry | critical | generate once |
-| D03 | Are transport attempts separately identified? | attempt log | retries indistinguishable | medium | add attempt identity |
-| D04 | Is request fingerprint retained safely? | canonical fingerprint | same key accepts changed amount | critical | bind payload |
-| D05 | Does timeout avoid definitive failure? | unknown branch | timeout becomes declined | critical | preserve uncertainty |
-| D06 | Is pre-dispatch failure actually proven? | transport evidence | connection error guessed early | high | narrow classification |
-| D07 | Are confirmed rejections authenticated? | protocol evidence | proxy text treated as provider decision | high | validate source |
-| D08 | Are outcomes operationally distinct? | outcome table | one generic error | critical | structure outcomes |
-| D09 | Does unknown carry reconciliation identity? | durable token | only error string remains | critical | persist evidence |
-| D10 | Is reconciliation owner named? | service/runbook owner | unknown state abandoned | critical | assign custody |
-| D11 | Is reconciliation source authoritative? | provider query/event contract | local cache decides | critical | use authoritative observation |
-| D12 | Is observation freshness stated? | timestamp/version | stale read called current | high | record and revalidate |
-| D13 | Can still-unknown remain explicit? | state transition | absence converted to failure too early | critical | retain state |
-| D14 | Is escalation bounded by age/attempt? | policy | retries continue silently forever | high | escalate visibly |
-| D15 | Is idempotency scope defined? | account/resource/endpoint rule | key meaning global by assumption | critical | define namespace |
-| D16 | Is key uniqueness defined? | generator and collision analysis | timestamp-only key | high | use robust identity |
-| D17 | Is payload bound to key? | conflict test | same key changes request | critical | store fingerprint |
-| D18 | Are concurrent same-key calls handled? | atomic claim | both execute before record | critical | serialize/constraint |
-| D19 | Is response replay behavior defined? | stored terminal response | duplicate gets unrelated response | high | define replay |
-| D20 | Is key retention sufficient? | horizon calculation | key pruned before broker replay | critical | extend or constrain replay |
-| D21 | Is post-expiry behavior documented? | contract | old key silently executes again | high | reject or identify new intent |
-| D22 | Are naturally idempotent claims scoped? | effect set | repeated email called idempotent | critical | analyze all effects |
-| D23 | Does every retry reuse identity? | attempt trace | retry loop regenerates key | critical | move ID outside loop |
-| D24 | Is retry classification per failure point? | matrix | retry every I/O error | critical | classify |
-| D25 | Is total attempt budget bounded? | equation | layers multiply without cap | high | coordinate |
-| D26 | Is one deadline propagated? | remaining-time budget | each layer restarts timeout | high | propagate deadline |
-| D27 | Are backoff and jitter appropriate? | policy | synchronized fixed retry | high | desynchronize |
-| D28 | Is downstream overload honored? | rate-limit handling | immediate repeated retry | critical | wait/shed |
-| D29 | Are duplicates expected by consumers? | duplicate test | duplicate panics or repeats charge | critical | deduplicate/idempotent effect |
-| D30 | Is dedup state durable when needed? | inbox/store | in-memory set | critical | persist |
-| D31 | Is claim atomic with local effect? | transaction proof | inbox records before effect | critical | coordinate |
-| D32 | Is acknowledgement order explicit? | crash matrix | ack timing incidental | critical | define protocol |
-| D33 | Are crash points before/after effect tested? | fault tests | only happy path | high | inject crashes |
-| D34 | Is poison-message handling defined? | quarantine/dead-letter | endless hot loop | high | isolate and escalate |
-| D35 | Is replay policy explicit? | operator procedure | replay duplicates unknown effects | high | preserve identities |
-| D36 | Is ordering scope named? | key/partition contract | global FIFO claim | critical | narrow |
-| D37 | Are gaps handled? | version policy | missing predecessor ignored | high | wait/reconcile/reject |
-| D38 | Are out-of-order events tested? | sequence fixtures | assumed broker order | high | add versions |
-| D39 | Are exactly-once claims bounded? | guarantee ledger | broad slogan | critical | specify mechanism |
-| D40 | Are excluded external effects named? | boundary diagram | DB transaction includes email claim | critical | list exclusions |
-| D41 | Is compensation called a new effect? | saga state model | refund called rollback | high | model separately |
-| D42 | Is compensation failure handled? | outcome and reconcile path | compensation assumed successful | critical | retain uncertainty |
-| D43 | Is compensation idempotency analyzed? | repeat test | duplicate reversal | critical | stable identity |
-| D44 | Are concurrent coordinators controlled? | lease/CAS protocol | two reconcilers both act | critical | claim and fence |
-| D45 | Do leases use fencing where needed? | monotonic token at resource | expired owner still accepted | critical | add fencing |
-| D46 | Are clock assumptions documented? | lease timing analysis | wall clocks assumed identical | high | bound skew or avoid |
-| D47 | Is audit causality preserved? | parent/trigger IDs | attempts cannot be reconstructed | high | enrich audit schema |
-| D48 | Are audit secrets minimized? | field classification | raw credential logged | critical | redact/minimize |
-| D49 | Are retry/reconcile queues bounded? | capacity and age metrics | backlog consumes memory | critical | persist and bound workers |
-| D50 | Are fault tests representative? | loss/delay/duplicate/reorder matrix | mock returns only error | high | inject protocol failures |
-| D51 | Does guarantee ledger state residual uncertainty? | completed ledger | types imply remote permanence | critical | narrow claims |
-| D52 | Can users act safely while outcome is unknown? | UI/API contract | retry button duplicates effect | critical | gate action or reconcile |
+| Gate | Question                                          | Pass evidence                       | Failure example                         | Severity | Remediation                   |
+| ---- | ------------------------------------------------- | ----------------------------------- | --------------------------------------- | -------- | ----------------------------- |
+| D01  | Are all external effects inventoried?             | effect map                          | notification hidden in callback         | critical | enumerate side effects        |
+| D02  | Is logical operation identity stable?             | persisted ID                        | ID generated per retry                  | critical | generate once                 |
+| D03  | Are transport attempts separately identified?     | attempt log                         | retries indistinguishable               | medium   | add attempt identity          |
+| D04  | Is request fingerprint retained safely?           | canonical fingerprint               | same key accepts changed amount         | critical | bind payload                  |
+| D05  | Does timeout avoid definitive failure?            | unknown branch                      | timeout becomes declined                | critical | preserve uncertainty          |
+| D06  | Is pre-dispatch failure actually proven?          | transport evidence                  | connection error guessed early          | high     | narrow classification         |
+| D07  | Are confirmed rejections authenticated?           | protocol evidence                   | proxy text treated as provider decision | high     | validate source               |
+| D08  | Are outcomes operationally distinct?              | outcome table                       | one generic error                       | critical | structure outcomes            |
+| D09  | Does unknown carry reconciliation identity?       | durable token                       | only error string remains               | critical | persist evidence              |
+| D10  | Is reconciliation owner named?                    | service/runbook owner               | unknown state abandoned                 | critical | assign custody                |
+| D11  | Is reconciliation source authoritative?           | provider query/event contract       | local cache decides                     | critical | use authoritative observation |
+| D12  | Is observation freshness stated?                  | timestamp/version                   | stale read called current               | high     | record and revalidate         |
+| D13  | Can still-unknown remain explicit?                | state transition                    | absence converted to failure too early  | critical | retain state                  |
+| D14  | Is escalation bounded by age/attempt?             | policy                              | retries continue silently forever       | high     | escalate visibly              |
+| D15  | Is idempotency scope defined?                     | account/resource/endpoint rule      | key meaning global by assumption        | critical | define namespace              |
+| D16  | Is key uniqueness defined?                        | generator and collision analysis    | timestamp-only key                      | high     | use robust identity           |
+| D17  | Is payload bound to key?                          | conflict test                       | same key changes request                | critical | store fingerprint             |
+| D18  | Are concurrent same-key calls handled?            | atomic claim                        | both execute before record              | critical | serialize/constraint          |
+| D19  | Is response replay behavior defined?              | stored terminal response            | duplicate gets unrelated response       | high     | define replay                 |
+| D20  | Is key retention sufficient?                      | horizon calculation                 | key pruned before broker replay         | critical | extend or constrain replay    |
+| D21  | Is post-expiry behavior documented?               | contract                            | old key silently executes again         | high     | reject or identify new intent |
+| D22  | Are naturally idempotent claims scoped?           | effect set                          | repeated email called idempotent        | critical | analyze all effects           |
+| D23  | Does every retry reuse identity?                  | attempt trace                       | retry loop regenerates key              | critical | move ID outside loop          |
+| D24  | Is retry classification per failure point?        | matrix                              | retry every I/O error                   | critical | classify                      |
+| D25  | Is total attempt budget bounded?                  | equation                            | layers multiply without cap             | high     | coordinate                    |
+| D26  | Is one deadline propagated?                       | remaining-time budget               | each layer restarts timeout             | high     | propagate deadline            |
+| D27  | Are backoff and jitter appropriate?               | policy                              | synchronized fixed retry                | high     | desynchronize                 |
+| D28  | Is downstream overload honored?                   | rate-limit handling                 | immediate repeated retry                | critical | wait/shed                     |
+| D29  | Are duplicates expected by consumers?             | duplicate test                      | duplicate panics or repeats charge      | critical | deduplicate/idempotent effect |
+| D30  | Is dedup state durable when needed?               | inbox/store                         | in-memory set                           | critical | persist                       |
+| D31  | Is claim atomic with local effect?                | transaction proof                   | inbox records before effect             | critical | coordinate                    |
+| D32  | Is acknowledgement order explicit?                | crash matrix                        | ack timing incidental                   | critical | define protocol               |
+| D33  | Are crash points before/after effect tested?      | fault tests                         | only happy path                         | high     | inject crashes                |
+| D34  | Is poison-message handling defined?               | quarantine/dead-letter              | endless hot loop                        | high     | isolate and escalate          |
+| D35  | Is replay policy explicit?                        | operator procedure                  | replay duplicates unknown effects       | high     | preserve identities           |
+| D36  | Is ordering scope named?                          | key/partition contract              | global FIFO claim                       | critical | narrow                        |
+| D37  | Are gaps handled?                                 | version policy                      | missing predecessor ignored             | high     | wait/reconcile/reject         |
+| D38  | Are out-of-order events tested?                   | sequence fixtures                   | assumed broker order                    | high     | add versions                  |
+| D39  | Are exactly-once claims bounded?                  | guarantee ledger                    | broad slogan                            | critical | specify mechanism             |
+| D40  | Are excluded external effects named?              | boundary diagram                    | DB transaction includes email claim     | critical | list exclusions               |
+| D41  | Is compensation called a new effect?              | saga state model                    | refund called rollback                  | high     | model separately              |
+| D42  | Is compensation failure handled?                  | outcome and reconcile path          | compensation assumed successful         | critical | retain uncertainty            |
+| D43  | Is compensation idempotency analyzed?             | repeat test                         | duplicate reversal                      | critical | stable identity               |
+| D44  | Are concurrent coordinators controlled?           | lease/CAS protocol                  | two reconcilers both act                | critical | claim and fence               |
+| D45  | Do leases use fencing where needed?               | monotonic token at resource         | expired owner still accepted            | critical | add fencing                   |
+| D46  | Are clock assumptions documented?                 | lease timing analysis               | wall clocks assumed identical           | high     | bound skew or avoid           |
+| D47  | Is audit causality preserved?                     | parent/trigger IDs                  | attempts cannot be reconstructed        | high     | enrich audit schema           |
+| D48  | Are audit secrets minimized?                      | field classification                | raw credential logged                   | critical | redact/minimize               |
+| D49  | Are retry/reconcile queues bounded?               | capacity and age metrics            | backlog consumes memory                 | critical | persist and bound workers     |
+| D50  | Are fault tests representative?                   | loss/delay/duplicate/reorder matrix | mock returns only error                 | high     | inject protocol failures      |
+| D51  | Does guarantee ledger state residual uncertainty? | completed ledger                    | types imply remote permanence           | critical | narrow claims                 |
+| D52  | Can users act safely while outcome is unknown?    | UI/API contract                     | retry button duplicates effect          | critical | gate action or reconcile      |
 
 Critical failures block merge. Waivers need a named owner, affected operations,
 accepted consequence, compensating control, monitoring, expiry, and resolution
@@ -7519,42 +7527,42 @@ visibility still need bounds.
 
 **Acknowledgement ambiguity**
 : Uncertainty caused when processing may have completed but acknowledgement was
-  lost or not durably coordinated.
+lost or not durably coordinated.
 
 **Compensation**
 : A new action intended to mitigate a prior effect. It is not equivalent to
-  erasing history and may fail independently.
+erasing history and may fail independently.
 
 **Deduplication**
 : Recognition of a previously seen logical identity to suppress repeated
-  processing or replay a stored result.
+processing or replay a stored result.
 
 **Fencing token**
 : A monotonically ordered authority value checked by the protected resource so
-  operations from stale lease holders can be rejected.
+operations from stale lease holders can be rejected.
 
 **Idempotency key**
 : Stable identity used by a receiver to bind repeated attempts of one logical
-  operation to one scoped result.
+operation to one scoped result.
 
 **Logical operation**
 : One domain intent, potentially represented by several transport attempts.
 
 **Reconciliation**
 : Acquisition and evaluation of authoritative evidence to resolve or continue
-  an unknown outcome.
+an unknown outcome.
 
 **Replay horizon**
 : The maximum period over which a prior message or request identity may
-  legitimately return.
+legitimately return.
 
 **Saga**
 : A distributed workflow of independently committed actions with explicit
-  follow-up or compensating actions.
+follow-up or compensating actions.
 
 **Unknown outcome**
 : A state in which available evidence does not establish either execution
-  success or definitive rejection.
+success or definitive rejection.
 
 ---
 
@@ -8131,12 +8139,12 @@ maintenance costs dominate.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| slice references initialized allocation | bounds, alignment, lifetime proof | private wrapper | raw input checked before slice | unsafe internal helper | business validity of bytes | allocator or FFI contract breach |
-| FFI handle is released once | ownership wrapper and `Drop` | private field | constructor accepts only owned handle | raw binding layer | remote resource cleanup succeeded | foreign destructor failure |
-| wrapper is safe to transfer | complete `Send` proof | no aliasing escape | foreign thread contract checked | direct bindings | external library bug | upstream version change |
-| array is fully initialized | progress guard then conversion | `MaybeUninit` remains private | errors drop initialized prefix | manual raw access | element semantic validity | panicking foreign destructor |
+| Claim                                   | Established by                    | Protected construction        | Boundary preservation                 | Escape hatches         | Does not prove                    | Residual runtime risk            |
+| --------------------------------------- | --------------------------------- | ----------------------------- | ------------------------------------- | ---------------------- | --------------------------------- | -------------------------------- |
+| slice references initialized allocation | bounds, alignment, lifetime proof | private wrapper               | raw input checked before slice        | unsafe internal helper | business validity of bytes        | allocator or FFI contract breach |
+| FFI handle is released once             | ownership wrapper and `Drop`      | private field                 | constructor accepts only owned handle | raw binding layer      | remote resource cleanup succeeded | foreign destructor failure       |
+| wrapper is safe to transfer             | complete `Send` proof             | no aliasing escape            | foreign thread contract checked       | direct bindings        | external library bug              | upstream version change          |
+| array is fully initialized              | progress guard then conversion    | `MaybeUninit` remains private | errors drop initialized prefix        | manual raw access      | element semantic validity         | panicking foreign destructor     |
 
 ## Cost of overapplication
 
@@ -8171,18 +8179,18 @@ If the need is only to silence a borrow error, redesign ownership first.
 
 For every unsafe operation record:
 
-| Obligation | Evidence |
-|---|---|
-| allocation/provenance | originating allocation or foreign contract |
-| bounds | checked range and overflow handling |
-| alignment | type/layout contract or runtime check |
-| initialization | construction state and exact initialized region |
-| validity | bit-pattern validation before typed observation |
-| aliasing | all references and mutation authority |
-| lifetime | owner and destruction order |
-| concurrency | synchronization and thread contract |
-| panic/drop | every partial state and destructor path |
-| target/ABI | supported platforms and primary specification |
+| Obligation            | Evidence                                        |
+| --------------------- | ----------------------------------------------- |
+| allocation/provenance | originating allocation or foreign contract      |
+| bounds                | checked range and overflow handling             |
+| alignment             | type/layout contract or runtime check           |
+| initialization        | construction state and exact initialized region |
+| validity              | bit-pattern validation before typed observation |
+| aliasing              | all references and mutation authority           |
+| lifetime              | owner and destruction order                     |
+| concurrency           | synchronization and thread contract             |
+| panic/drop            | every partial state and destructor path         |
+| target/ABI            | supported platforms and primary specification   |
 
 Any unanswered applicable row blocks implementation.
 
@@ -8237,16 +8245,16 @@ non-`Sync`.
 
 ## Evidence matrix
 
-| Risk | Useful evidence |
-|---|---|
-| pointer validity and aliasing | Miri, fuzzing, targeted tests |
-| address and bounds defects | AddressSanitizer |
-| data races | ThreadSanitizer, Loom for modeled code |
-| uninitialized reads | MemorySanitizer where supported, Miri |
-| FFI layout | bindgen/layout tests, C-side assertions |
-| panic safety | injected panics and drop counters |
-| target assumptions | cross-target CI or hardware tests |
-| performance justification | benchmark and profiler under RUST-DOC-0009 |
+| Risk                          | Useful evidence                            |
+| ----------------------------- | ------------------------------------------ |
+| pointer validity and aliasing | Miri, fuzzing, targeted tests              |
+| address and bounds defects    | AddressSanitizer                           |
+| data races                    | ThreadSanitizer, Loom for modeled code     |
+| uninitialized reads           | MemorySanitizer where supported, Miri      |
+| FFI layout                    | bindgen/layout tests, C-side assertions    |
+| panic safety                  | injected panics and drop counters          |
+| target assumptions            | cross-target CI or hardware tests          |
+| performance justification     | benchmark and profiler under RUST-DOC-0009 |
 
 Tool limitations must be recorded.
 
@@ -8275,64 +8283,64 @@ Stop when:
 Mark each gate **pass**, **fail**, **not applicable**, or with an approved
 **waiver reference**. Safety-contract failures cannot be waived into soundness.
 
-| Gate | Question | Pass evidence | Failure example | Severity | Remediation |
-|---|---|---|---|---|---|
-| U01 | Is unsafe necessary? | safe alternatives and measured need | borrow checker bypass | critical | redesign safely |
-| U02 | Is unsafe inventory complete? | tool/search inventory | macro-generated unsafe missed | critical | enumerate |
-| U03 | Is lexical scope minimal? | small block | whole function marked unsafe | high | narrow block |
-| U04 | Is API visibility minimal? | private module/helper | raw constructor public | critical | encapsulate |
-| U05 | Does every block state invariant? | `SAFETY:` argument | “pointer seems valid” | critical | write proof |
-| U06 | Does comment cover each operation? | operation-to-premise mapping | one generic comment | critical | split or expand |
-| U07 | Are safe callers adversarially considered? | call-sequence analysis | intended use only | critical | test full safe surface |
-| U08 | Are hidden caller obligations absent? | signature enforces rules | safe method says “must not call twice” | critical | encode/check/mark unsafe |
-| U09 | Does unsafe API have `# Safety` docs? | complete section | caller obligations omitted | critical | document |
-| U10 | Are obligations non-circular? | concrete predicates | “call only when safe” | critical | specify facts |
-| U11 | Is pointer origin known? | allocation/foreign provenance | integer address guessed | critical | trace origin |
-| U12 | Is nullability checked? | check or non-null contract | dereference nullable result | critical | validate |
-| U13 | Is alignment established? | layout or runtime check | byte offset cast blindly | critical | align/copy |
-| U14 | Are bounds and overflow checked? | checked arithmetic | length multiplication wraps | critical | checked operations |
-| U15 | Is dereferenceability established? | live allocation range | pointer only numerically in range | critical | prove allocation |
-| U16 | Is initialization tracked? | progress state | assume-init before complete | critical | guard |
-| U17 | Is typed validity established? | bit-pattern validation | arbitrary byte as bool | critical | remain untyped |
-| U18 | Are enum discriminants valid? | stable conversion | transmute integer to enum | critical | checked match |
-| U19 | Is aliasing permitted? | reference graph | mutable and shared references overlap | critical | shorten/restructure |
-| U20 | Is lifetime bounded by owner? | custody proof | forged static reference | critical | return owned/short borrow |
-| U21 | Is reallocation considered? | capacity/pinning proof | reference held across vector push | critical | avoid movement |
-| U22 | Are zero-sized types handled? | explicit case | pointer increment assumes size | high | account for ZST |
-| U23 | Is one-past-end use valid? | arithmetic proof | dereference end pointer | critical | correct bounds |
-| U24 | Are integer-pointer conversions justified? | supported provenance API | round-trip assumed universally valid | critical | use supported operations |
-| U25 | Is every initialized value dropped once? | guard and counters | panic leaks/double drops | critical | track prefix |
-| U26 | Is error cleanup sound? | failure tests | partial FFI output leaked | critical | cleanup guard |
-| U27 | Is panic cleanup sound? | injected panic | callback panic corrupts collection | critical | use repair guard |
-| U28 | Is transmute unavoidable? | narrower alternatives rejected | convenience cast | critical | replace |
-| U29 | Are transmute sizes/layouts proven? | primary contract/assertion | current compiler observation | critical | establish or remove |
-| U30 | Is ownership preserved across bit cast? | drop analysis | duplicated owned pointer | critical | use safe conversion |
-| U31 | Is FFI ABI exact? | header/spec match | default ABI assumed | critical | correct declaration |
-| U32 | Is representation stable? | applicable `repr` contract | Rust layout exported | critical | boundary type |
-| U33 | Are foreign lengths in correct units? | bytes/elements contract | byte length used as elements | critical | convert checked |
-| U34 | Is FFI ownership explicit? | boundary table | unclear who frees | critical | define lifecycle |
-| U35 | Is allocator pairing correct? | matching free function | Rust frees C allocation | critical | return to origin |
-| U36 | Is string encoding explicit? | conversion policy | UTF-8 assumed from C | high | validate |
-| U37 | Are callbacks lifetime-safe? | registration/unregistration proof | stack context retained | critical | own context |
-| U38 | Are callback threads known? | foreign contract | thread-affine state accessed anywhere | critical | marshal/synchronize |
-| U39 | Is reentrancy handled? | state-machine analysis | callback reenters mutable borrow | critical | guard/design |
-| U40 | Is unwind policy explicit? | catch/abort/ABI contract | panic crosses C ABI | critical | contain unwind |
-| U41 | Is foreign exception behavior known? | source contract | exception crosses Rust unknowingly | critical | wrapper boundary |
-| U42 | Does unsafe `Send` cover all fields? | concurrency proof | raw pointer ignored | critical | prove or remove |
-| U43 | Does unsafe `Sync` cover shared methods? | alias/mutation proof | foreign handle not thread-safe | critical | restrict |
-| U44 | Is drop thread behavior valid? | destruction contract | must free on creator thread | critical | enforce affinity |
-| U45 | Are atomics ordered by invariant? | happens-before proof | folklore ordering | critical | prove/use lock |
-| U46 | Does safe abstraction remain sound after panic? | state and drop evidence | poison ignored | critical | isolate invalid state |
-| U47 | Has Miri run where supported? | command/result | no dynamic UB evidence | high | run or explain |
-| U48 | Have relevant sanitizers run? | target results | concurrency code untested | high | add evidence |
-| U49 | Is fuzzing aimed at boundary invariants? | corpus/property | only fixed examples | medium | fuzz |
-| U50 | Are tool blind spots recorded? | evidence limits | clean run called proof | high | qualify |
-| U51 | Are unsafe dependencies inventoried? | dependency audit | transitive FFI crate ignored | high | review |
-| U52 | Are advisories and maintenance current? | audit evidence | abandoned critical crate | high | update/replace |
-| U53 | Are target assumptions tested? | target matrix | only developer architecture | high | cross-test |
-| U54 | Is performance justification measured? | benchmark/profile | “faster” assertion | high | measure |
-| U55 | Is re-audit trigger documented? | assumption list | compiler upgrade ignored | high | define trigger |
-| U56 | Does guarantee ledger state non-guarantees? | completed ledger | safe wrapper claims foreign correctness | critical | narrow claim |
+| Gate | Question                                        | Pass evidence                       | Failure example                         | Severity | Remediation               |
+| ---- | ----------------------------------------------- | ----------------------------------- | --------------------------------------- | -------- | ------------------------- |
+| U01  | Is unsafe necessary?                            | safe alternatives and measured need | borrow checker bypass                   | critical | redesign safely           |
+| U02  | Is unsafe inventory complete?                   | tool/search inventory               | macro-generated unsafe missed           | critical | enumerate                 |
+| U03  | Is lexical scope minimal?                       | small block                         | whole function marked unsafe            | high     | narrow block              |
+| U04  | Is API visibility minimal?                      | private module/helper               | raw constructor public                  | critical | encapsulate               |
+| U05  | Does every block state invariant?               | `SAFETY:` argument                  | “pointer seems valid”                   | critical | write proof               |
+| U06  | Does comment cover each operation?              | operation-to-premise mapping        | one generic comment                     | critical | split or expand           |
+| U07  | Are safe callers adversarially considered?      | call-sequence analysis              | intended use only                       | critical | test full safe surface    |
+| U08  | Are hidden caller obligations absent?           | signature enforces rules            | safe method says “must not call twice”  | critical | encode/check/mark unsafe  |
+| U09  | Does unsafe API have `# Safety` docs?           | complete section                    | caller obligations omitted              | critical | document                  |
+| U10  | Are obligations non-circular?                   | concrete predicates                 | “call only when safe”                   | critical | specify facts             |
+| U11  | Is pointer origin known?                        | allocation/foreign provenance       | integer address guessed                 | critical | trace origin              |
+| U12  | Is nullability checked?                         | check or non-null contract          | dereference nullable result             | critical | validate                  |
+| U13  | Is alignment established?                       | layout or runtime check             | byte offset cast blindly                | critical | align/copy                |
+| U14  | Are bounds and overflow checked?                | checked arithmetic                  | length multiplication wraps             | critical | checked operations        |
+| U15  | Is dereferenceability established?              | live allocation range               | pointer only numerically in range       | critical | prove allocation          |
+| U16  | Is initialization tracked?                      | progress state                      | assume-init before complete             | critical | guard                     |
+| U17  | Is typed validity established?                  | bit-pattern validation              | arbitrary byte as bool                  | critical | remain untyped            |
+| U18  | Are enum discriminants valid?                   | stable conversion                   | transmute integer to enum               | critical | checked match             |
+| U19  | Is aliasing permitted?                          | reference graph                     | mutable and shared references overlap   | critical | shorten/restructure       |
+| U20  | Is lifetime bounded by owner?                   | custody proof                       | forged static reference                 | critical | return owned/short borrow |
+| U21  | Is reallocation considered?                     | capacity/pinning proof              | reference held across vector push       | critical | avoid movement            |
+| U22  | Are zero-sized types handled?                   | explicit case                       | pointer increment assumes size          | high     | account for ZST           |
+| U23  | Is one-past-end use valid?                      | arithmetic proof                    | dereference end pointer                 | critical | correct bounds            |
+| U24  | Are integer-pointer conversions justified?      | supported provenance API            | round-trip assumed universally valid    | critical | use supported operations  |
+| U25  | Is every initialized value dropped once?        | guard and counters                  | panic leaks/double drops                | critical | track prefix              |
+| U26  | Is error cleanup sound?                         | failure tests                       | partial FFI output leaked               | critical | cleanup guard             |
+| U27  | Is panic cleanup sound?                         | injected panic                      | callback panic corrupts collection      | critical | use repair guard          |
+| U28  | Is transmute unavoidable?                       | narrower alternatives rejected      | convenience cast                        | critical | replace                   |
+| U29  | Are transmute sizes/layouts proven?             | primary contract/assertion          | current compiler observation            | critical | establish or remove       |
+| U30  | Is ownership preserved across bit cast?         | drop analysis                       | duplicated owned pointer                | critical | use safe conversion       |
+| U31  | Is FFI ABI exact?                               | header/spec match                   | default ABI assumed                     | critical | correct declaration       |
+| U32  | Is representation stable?                       | applicable `repr` contract          | Rust layout exported                    | critical | boundary type             |
+| U33  | Are foreign lengths in correct units?           | bytes/elements contract             | byte length used as elements            | critical | convert checked           |
+| U34  | Is FFI ownership explicit?                      | boundary table                      | unclear who frees                       | critical | define lifecycle          |
+| U35  | Is allocator pairing correct?                   | matching free function              | Rust frees C allocation                 | critical | return to origin          |
+| U36  | Is string encoding explicit?                    | conversion policy                   | UTF-8 assumed from C                    | high     | validate                  |
+| U37  | Are callbacks lifetime-safe?                    | registration/unregistration proof   | stack context retained                  | critical | own context               |
+| U38  | Are callback threads known?                     | foreign contract                    | thread-affine state accessed anywhere   | critical | marshal/synchronize       |
+| U39  | Is reentrancy handled?                          | state-machine analysis              | callback reenters mutable borrow        | critical | guard/design              |
+| U40  | Is unwind policy explicit?                      | catch/abort/ABI contract            | panic crosses C ABI                     | critical | contain unwind            |
+| U41  | Is foreign exception behavior known?            | source contract                     | exception crosses Rust unknowingly      | critical | wrapper boundary          |
+| U42  | Does unsafe `Send` cover all fields?            | concurrency proof                   | raw pointer ignored                     | critical | prove or remove           |
+| U43  | Does unsafe `Sync` cover shared methods?        | alias/mutation proof                | foreign handle not thread-safe          | critical | restrict                  |
+| U44  | Is drop thread behavior valid?                  | destruction contract                | must free on creator thread             | critical | enforce affinity          |
+| U45  | Are atomics ordered by invariant?               | happens-before proof                | folklore ordering                       | critical | prove/use lock            |
+| U46  | Does safe abstraction remain sound after panic? | state and drop evidence             | poison ignored                          | critical | isolate invalid state     |
+| U47  | Has Miri run where supported?                   | command/result                      | no dynamic UB evidence                  | high     | run or explain            |
+| U48  | Have relevant sanitizers run?                   | target results                      | concurrency code untested               | high     | add evidence              |
+| U49  | Is fuzzing aimed at boundary invariants?        | corpus/property                     | only fixed examples                     | medium   | fuzz                      |
+| U50  | Are tool blind spots recorded?                  | evidence limits                     | clean run called proof                  | high     | qualify                   |
+| U51  | Are unsafe dependencies inventoried?            | dependency audit                    | transitive FFI crate ignored            | high     | review                    |
+| U52  | Are advisories and maintenance current?         | audit evidence                      | abandoned critical crate                | high     | update/replace            |
+| U53  | Are target assumptions tested?                  | target matrix                       | only developer architecture             | high     | cross-test                |
+| U54  | Is performance justification measured?          | benchmark/profile                   | “faster” assertion                      | high     | measure                   |
+| U55  | Is re-audit trigger documented?                 | assumption list                     | compiler upgrade ignored                | high     | define trigger            |
+| U56  | Does guarantee ledger state non-guarantees?     | completed ledger                    | safe wrapper claims foreign correctness | critical | narrow claim              |
 
 Approval requires a reviewer competent in the relevant unsafe domain. Tool
 success cannot compensate for an incomplete safety argument.
@@ -8526,43 +8534,43 @@ and review.
 
 **Aliasing invariant**
 : The set of permitted simultaneous references and mutation paths for one
-  memory region.
+memory region.
 
 **Fencing**
 : Prevention of stale concurrent authority, commonly through a monotonically
-  checked token.
+checked token.
 
 **Foreign-function interface**
 : A boundary where Rust calls or is called by code governed by another ABI,
-  layout, allocation, error, or unwind model.
+layout, allocation, error, or unwind model.
 
 **Initialized**
 : Containing a valid value for the relevant typed interpretation, not merely
-  allocated bytes.
+allocated bytes.
 
 **Provenance**
 : The allocation and authority history associated with a pointer, beyond its
-  numeric address.
+numeric address.
 
 **Safe abstraction**
 : An API whose safe callers cannot cause undefined behavior, even though its
-  private implementation uses unsafe operations.
+private implementation uses unsafe operations.
 
 **Safety invariant**
 : A condition that must hold whenever unsafe code relies on it to satisfy
-  language or library preconditions.
+language or library preconditions.
 
 **Soundness**
 : Preservation of Rust's safety contract for all behavior available through a
-  safe interface.
+safe interface.
 
 **Validity**
 : Requirements a bit pattern must satisfy to be observed as a particular Rust
-  type.
+type.
 
 **Unwinding**
 : Stack traversal caused by panic or a foreign exception, including destructor
-  execution across frames.
+execution across frames.
 
 ---
 
@@ -9032,19 +9040,19 @@ contract.
 
 The following layers are complementary rather than a strict ranking:
 
-| Evidence | Supports | Does not establish |
-|---|---|---|
-| compiler rejection | a specific program cannot type-check under tested API/toolchain | runtime correctness or all prohibited programs |
-| type checking | accepted code satisfies language and trait constraints | domain truth or external behavior |
-| unit test | local behavior for selected inputs | boundary integration or full input space |
-| property test | a property over generated cases | mathematical universality outside generation/model |
-| compile-fail test | important misuse remains rejected | runtime failure handling |
-| integration test | behavior across instantiated components | every deployment or failure |
-| contract test | agreed protocol examples and compatibility | provider implementation correctness everywhere |
-| fault injection | recovery at selected failure points | all timing and correlated failures |
-| model checking | modeled schedules within stated bounds | unmodeled code, inputs, or unbounded executions |
-| production telemetry | observed deployed behavior | invisible failures or workloads not seen |
-| incident evidence | a real failure mechanism and consequence | absence of other mechanisms |
+| Evidence             | Supports                                                        | Does not establish                                 |
+| -------------------- | --------------------------------------------------------------- | -------------------------------------------------- |
+| compiler rejection   | a specific program cannot type-check under tested API/toolchain | runtime correctness or all prohibited programs     |
+| type checking        | accepted code satisfies language and trait constraints          | domain truth or external behavior                  |
+| unit test            | local behavior for selected inputs                              | boundary integration or full input space           |
+| property test        | a property over generated cases                                 | mathematical universality outside generation/model |
+| compile-fail test    | important misuse remains rejected                               | runtime failure handling                           |
+| integration test     | behavior across instantiated components                         | every deployment or failure                        |
+| contract test        | agreed protocol examples and compatibility                      | provider implementation correctness everywhere     |
+| fault injection      | recovery at selected failure points                             | all timing and correlated failures                 |
+| model checking       | modeled schedules within stated bounds                          | unmodeled code, inputs, or unbounded executions    |
+| production telemetry | observed deployed behavior                                      | invisible failures or workloads not seen           |
+| incident evidence    | a real failure mechanism and consequence                        | absence of other mechanisms                        |
 
 Tests become persuasive when their scope matches the claim and independent
 layers agree.
@@ -9173,13 +9181,13 @@ or doctrine correction where appropriate.
 
 ## Evidence ledger example
 
-| Claim | Evidence | Scope | Does not prove | Residual risk |
-|---|---|---|---|---|
-| direct verified-email construction is blocked | compile-fail test | public API on pinned compiler | verifier truth | unsafe/internal future escape |
-| raw DB email is validated | integration fixtures plus constructor tests | tested schema/driver versions | all historical rows valid | alternate writer or corruption |
-| duplicate command does not repeat local effect | transactional integration test | local database boundary | remote effect uniqueness | retention expiry |
-| atomic protocol preserves one-owner state | Loom model plus reasoning | modeled bounds and primitives | unsupported target behavior | model mismatch |
-| timeout remains unknown | fault injection after dispatch | selected protocol points | provider final state | reconciliation outage |
+| Claim                                          | Evidence                                    | Scope                         | Does not prove              | Residual risk                  |
+| ---------------------------------------------- | ------------------------------------------- | ----------------------------- | --------------------------- | ------------------------------ |
+| direct verified-email construction is blocked  | compile-fail test                           | public API on pinned compiler | verifier truth              | unsafe/internal future escape  |
+| raw DB email is validated                      | integration fixtures plus constructor tests | tested schema/driver versions | all historical rows valid   | alternate writer or corruption |
+| duplicate command does not repeat local effect | transactional integration test              | local database boundary       | remote effect uniqueness    | retention expiry               |
+| atomic protocol preserves one-owner state      | Loom model plus reasoning                   | modeled bounds and primitives | unsupported target behavior | model mismatch                 |
+| timeout remains unknown                        | fault injection after dispatch              | selected protocol points      | provider final state        | reconciliation outage          |
 
 ## Proportionality
 
@@ -9211,18 +9219,18 @@ For every invariant record:
 
 ## Select test classes
 
-| Claim shape | Primary evidence |
-|---|---|
-| public API cannot express misuse | compile-fail test |
-| constructor accepts/rejects specified values | unit/table tests |
-| law holds across broad generated values | property test |
-| parser and serializer agree with format | fixtures, properties, contract tests |
-| database conversion preserves invariant | real integration test |
-| consumer tolerates replay | duplicate/fault-injection test |
-| small concurrent protocol preserves state | model checking plus unit tests |
-| unsafe operation respects memory rules | proof plus Miri/sanitizers/fuzzing |
-| end-to-end workflow recovers from crash | fault-injected system test |
-| deployed workload meets expectation | telemetry plus performance evidence |
+| Claim shape                                  | Primary evidence                     |
+| -------------------------------------------- | ------------------------------------ |
+| public API cannot express misuse             | compile-fail test                    |
+| constructor accepts/rejects specified values | unit/table tests                     |
+| law holds across broad generated values      | property test                        |
+| parser and serializer agree with format      | fixtures, properties, contract tests |
+| database conversion preserves invariant      | real integration test                |
+| consumer tolerates replay                    | duplicate/fault-injection test       |
+| small concurrent protocol preserves state    | model checking plus unit tests       |
+| unsafe operation respects memory rules       | proof plus Miri/sanitizers/fuzzing   |
+| end-to-end workflow recovers from crash      | fault-injected system test           |
+| deployed workload meets expectation          | telemetry plus performance evidence  |
 
 Use more than one layer when a claim crosses layers.
 
@@ -9270,14 +9278,14 @@ rule. Update expected output only after semantic review on the pinned toolchain.
 
 For each double, compare:
 
-| Real behavior | Double behavior | Gap owner |
-|---|---|---|
-| latency/cancellation | controlled delay or instant | named integration suite |
-| capacity/backpressure | bounded or unlimited | overload suite |
-| transaction/isolation | real or simplified | database tests |
-| duplicate/order | configurable or perfect | messaging fault tests |
-| unknown outcome | representable or binary | distributed suite |
-| schema/version | actual codec or hand-built values | contract suite |
+| Real behavior         | Double behavior                   | Gap owner               |
+| --------------------- | --------------------------------- | ----------------------- |
+| latency/cancellation  | controlled delay or instant       | named integration suite |
+| capacity/backpressure | bounded or unlimited              | overload suite          |
+| transaction/isolation | real or simplified                | database tests          |
+| duplicate/order       | configurable or perfect           | messaging fault tests   |
+| unknown outcome       | representable or binary           | distributed suite       |
+| schema/version        | actual codec or hand-built values | contract suite          |
 
 If the double erases the very risk under test, replace it.
 
@@ -9316,68 +9324,68 @@ Stop approval when:
 Record **pass**, **fail**, **not applicable**, or an approved **waiver
 reference** for every gate.
 
-| Gate | Question | Pass evidence | Failure example | Severity | Remediation |
-|---|---|---|---|---|---|
-| T01 | Does each test map to a claim? | invariant/risk reference | incidental method call test | high | name purpose |
-| T02 | Does every critical invariant have evidence? | evidence matrix | authority invariant untested | critical | add layer |
-| T03 | Are evidence limits stated? | scope/non-proof column | passing tests called proof | high | qualify |
-| T04 | Are valid constructor cases tested? | representative table | no acceptance test | medium | add |
-| T05 | Are invalid constructor cases tested? | boundary rejection | only happy path | high | add negatives |
-| T06 | Are exact bounds tested? | below/at/above cases | only middle value | high | add boundaries |
-| T07 | Are structured errors asserted? | category assertions | only `is_err()` | medium | inspect category |
-| T08 | Is normalization tested? | idempotence/collision cases | silent data change | high | add properties |
-| T09 | Are Unicode/encoding risks represented? | fixtures | ASCII-only parser tests | high | broaden domain |
-| T10 | Are size/resource limits tested? | oversized input | decoder limit unexercised | high | add adversarial case |
-| T11 | Is property appropriate? | domain-level statement | implementation restatement | high | define independently |
-| T12 | Does generator cover relevant partitions? | distribution analysis | invalid cases filtered out | high | improve generator |
-| T13 | Are failing seeds reproducible? | seed capture | random CI failure irreproducible | high | persist seed |
-| T14 | Is shrink result interpretable? | minimal case | huge opaque failure | medium | tune strategy |
-| T15 | Is oracle independent enough? | model/spec comparison | encoder tests itself | high | add oracle |
-| T16 | Are prohibited APIs compile-tested? | UI cases | privacy only assumed | high | add compile-fail |
-| T17 | Is each compile-fail source minimal? | one prohibition | unrelated errors | high | simplify |
-| T18 | Does diagnostic fail for intended reason? | semantic inspection | missing import causes pass | critical | repair fixture |
-| T19 | Was `.stderr` change reviewed? | focused diff rationale | overwrite accepted blindly | critical | inspect |
-| T20 | Is pinned compiler used for UI evidence? | toolchain config | diagnostics vary unnoticed | high | pin |
-| T21 | Are real codecs exercised? | serialization integration | hand-built domain only | high | cross boundary |
-| T22 | Is real database behavior exercised where needed? | integration setup | in-memory map stands for isolation | critical | add DB test |
-| T23 | Are migrations tested from old fixtures? | version fixtures | fresh schema only | high | migrate |
-| T24 | Are protocol contracts versioned? | compatibility tests | current pair only | high | add matrix |
-| T25 | Are unknown fields/variants tested? | forward cases | decoder panics | high | add |
-| T26 | Is authentication/authorization boundary tested? | separate outcomes | mock principal injected | critical | cross real adapter |
-| T27 | Do doubles preserve relevant failures? | fidelity table | remote never times out | critical | improve double |
-| T28 | Are double gaps covered elsewhere? | suite reference | undocumented omission | high | assign owner |
-| T29 | Does concurrency test use explicit synchronization? | barrier/event/model | sleeps establish order | critical | control schedule |
-| T30 | Is cancellation tested at partial steps? | cancellation matrix | only before start | critical | inject at awaits |
-| T31 | Is cleanup asserted after cancellation? | resource counts/state | task drop assumed enough | high | inspect postcondition |
-| T32 | Are lock/channel closures tested? | owner-drop cases | unwrap closure | high | add |
-| T33 | Is shutdown tested while loaded? | drain/deadline case | idle-only shutdown | high | add outstanding work |
-| T34 | Is model abstraction documented? | production/model map | Loom model differs silently | high | explain gaps |
-| T35 | Are model bounds sufficient for claim? | bound rationale | one trivial step | high | expand/narrow claim |
-| T36 | Are partial durable failures injected? | crash-point matrix | error only before write | critical | inject between steps |
-| T37 | Are duplicate deliveries tested? | repeated identity case | broker double once-only | critical | add replay |
-| T38 | Are delayed acknowledgements tested? | effect-before-loss case | timeout only pre-dispatch | critical | inject loss |
-| T39 | Are reorderings tested? | version/out-of-order cases | global FIFO assumed | high | add sequences |
-| T40 | Does unknown remain unknown? | outcome assertion | timeout collapsed | critical | preserve state |
-| T41 | Is reconciliation tested repeatedly? | still-unknown then terminal | one query only | high | model lifecycle |
-| T42 | Are retries bounded in tests? | virtual-time budget | test can loop forever | high | cap |
-| T43 | Do snapshots exclude nondeterministic noise? | normalization policy | changing timestamps | medium | stabilize |
-| T44 | Are snapshot changes semantically explained? | review note | bulk approval | critical | classify diffs |
-| T45 | Are golden fixtures sourced and versioned? | provenance | unexplained blob | medium | document |
-| T46 | Are flaky signatures retained? | issue/log evidence | rerun erases failure | high | capture first |
-| T47 | Is retry temporary and visible? | owner/expiry | permanent CI reruns | high | fix cause |
-| T48 | Are tests isolated in parallel? | unique resources | shared fixed port/file | high | allocate uniquely |
-| T49 | Are environment mutations restored safely? | scoped guard/process | global env races | high | isolate process |
-| T50 | Are clocks controlled? | injected/paused clock | wall-clock sleep | high | abstract time |
-| T51 | Is randomness seeded? | recorded seed | irreproducible fuzz failure | high | capture |
-| T52 | Is coverage supplemental? | invariant matrix | percentage alone | high | add semantic evidence |
-| T53 | Are benchmark assertions separately tested? | correctness suite | benchmark only | high | extract tests |
-| T54 | Does unsafe code have specialized evidence? | Miri/sanitizer results | ordinary tests only | critical | run tools |
-| T55 | Are tool blind spots stated? | limitations | Miri called complete proof | high | qualify |
-| T56 | Does telemetry detect claimed outcomes? | tested metrics | silent failure not instrumented | high | add observability |
-| T57 | Did incidents create regressions? | linked test | fix has no reproduction | high | encode mechanism |
-| T58 | Is test-data sensitivity controlled? | synthetic/redacted fixtures | production secret copied | critical | scrub |
-| T59 | Are cleanup failures visible? | teardown result | errors ignored | high | report |
-| T60 | Is total suite cost proportionate? | layer rationale | redundant slow tests | medium | rebalance |
+| Gate | Question                                            | Pass evidence               | Failure example                    | Severity | Remediation           |
+| ---- | --------------------------------------------------- | --------------------------- | ---------------------------------- | -------- | --------------------- |
+| T01  | Does each test map to a claim?                      | invariant/risk reference    | incidental method call test        | high     | name purpose          |
+| T02  | Does every critical invariant have evidence?        | evidence matrix             | authority invariant untested       | critical | add layer             |
+| T03  | Are evidence limits stated?                         | scope/non-proof column      | passing tests called proof         | high     | qualify               |
+| T04  | Are valid constructor cases tested?                 | representative table        | no acceptance test                 | medium   | add                   |
+| T05  | Are invalid constructor cases tested?               | boundary rejection          | only happy path                    | high     | add negatives         |
+| T06  | Are exact bounds tested?                            | below/at/above cases        | only middle value                  | high     | add boundaries        |
+| T07  | Are structured errors asserted?                     | category assertions         | only `is_err()`                    | medium   | inspect category      |
+| T08  | Is normalization tested?                            | idempotence/collision cases | silent data change                 | high     | add properties        |
+| T09  | Are Unicode/encoding risks represented?             | fixtures                    | ASCII-only parser tests            | high     | broaden domain        |
+| T10  | Are size/resource limits tested?                    | oversized input             | decoder limit unexercised          | high     | add adversarial case  |
+| T11  | Is property appropriate?                            | domain-level statement      | implementation restatement         | high     | define independently  |
+| T12  | Does generator cover relevant partitions?           | distribution analysis       | invalid cases filtered out         | high     | improve generator     |
+| T13  | Are failing seeds reproducible?                     | seed capture                | random CI failure irreproducible   | high     | persist seed          |
+| T14  | Is shrink result interpretable?                     | minimal case                | huge opaque failure                | medium   | tune strategy         |
+| T15  | Is oracle independent enough?                       | model/spec comparison       | encoder tests itself               | high     | add oracle            |
+| T16  | Are prohibited APIs compile-tested?                 | UI cases                    | privacy only assumed               | high     | add compile-fail      |
+| T17  | Is each compile-fail source minimal?                | one prohibition             | unrelated errors                   | high     | simplify              |
+| T18  | Does diagnostic fail for intended reason?           | semantic inspection         | missing import causes pass         | critical | repair fixture        |
+| T19  | Was `.stderr` change reviewed?                      | focused diff rationale      | overwrite accepted blindly         | critical | inspect               |
+| T20  | Is pinned compiler used for UI evidence?            | toolchain config            | diagnostics vary unnoticed         | high     | pin                   |
+| T21  | Are real codecs exercised?                          | serialization integration   | hand-built domain only             | high     | cross boundary        |
+| T22  | Is real database behavior exercised where needed?   | integration setup           | in-memory map stands for isolation | critical | add DB test           |
+| T23  | Are migrations tested from old fixtures?            | version fixtures            | fresh schema only                  | high     | migrate               |
+| T24  | Are protocol contracts versioned?                   | compatibility tests         | current pair only                  | high     | add matrix            |
+| T25  | Are unknown fields/variants tested?                 | forward cases               | decoder panics                     | high     | add                   |
+| T26  | Is authentication/authorization boundary tested?    | separate outcomes           | mock principal injected            | critical | cross real adapter    |
+| T27  | Do doubles preserve relevant failures?              | fidelity table              | remote never times out             | critical | improve double        |
+| T28  | Are double gaps covered elsewhere?                  | suite reference             | undocumented omission              | high     | assign owner          |
+| T29  | Does concurrency test use explicit synchronization? | barrier/event/model         | sleeps establish order             | critical | control schedule      |
+| T30  | Is cancellation tested at partial steps?            | cancellation matrix         | only before start                  | critical | inject at awaits      |
+| T31  | Is cleanup asserted after cancellation?             | resource counts/state       | task drop assumed enough           | high     | inspect postcondition |
+| T32  | Are lock/channel closures tested?                   | owner-drop cases            | unwrap closure                     | high     | add                   |
+| T33  | Is shutdown tested while loaded?                    | drain/deadline case         | idle-only shutdown                 | high     | add outstanding work  |
+| T34  | Is model abstraction documented?                    | production/model map        | Loom model differs silently        | high     | explain gaps          |
+| T35  | Are model bounds sufficient for claim?              | bound rationale             | one trivial step                   | high     | expand/narrow claim   |
+| T36  | Are partial durable failures injected?              | crash-point matrix          | error only before write            | critical | inject between steps  |
+| T37  | Are duplicate deliveries tested?                    | repeated identity case      | broker double once-only            | critical | add replay            |
+| T38  | Are delayed acknowledgements tested?                | effect-before-loss case     | timeout only pre-dispatch          | critical | inject loss           |
+| T39  | Are reorderings tested?                             | version/out-of-order cases  | global FIFO assumed                | high     | add sequences         |
+| T40  | Does unknown remain unknown?                        | outcome assertion           | timeout collapsed                  | critical | preserve state        |
+| T41  | Is reconciliation tested repeatedly?                | still-unknown then terminal | one query only                     | high     | model lifecycle       |
+| T42  | Are retries bounded in tests?                       | virtual-time budget         | test can loop forever              | high     | cap                   |
+| T43  | Do snapshots exclude nondeterministic noise?        | normalization policy        | changing timestamps                | medium   | stabilize             |
+| T44  | Are snapshot changes semantically explained?        | review note                 | bulk approval                      | critical | classify diffs        |
+| T45  | Are golden fixtures sourced and versioned?          | provenance                  | unexplained blob                   | medium   | document              |
+| T46  | Are flaky signatures retained?                      | issue/log evidence          | rerun erases failure               | high     | capture first         |
+| T47  | Is retry temporary and visible?                     | owner/expiry                | permanent CI reruns                | high     | fix cause             |
+| T48  | Are tests isolated in parallel?                     | unique resources            | shared fixed port/file             | high     | allocate uniquely     |
+| T49  | Are environment mutations restored safely?          | scoped guard/process        | global env races                   | high     | isolate process       |
+| T50  | Are clocks controlled?                              | injected/paused clock       | wall-clock sleep                   | high     | abstract time         |
+| T51  | Is randomness seeded?                               | recorded seed               | irreproducible fuzz failure        | high     | capture               |
+| T52  | Is coverage supplemental?                           | invariant matrix            | percentage alone                   | high     | add semantic evidence |
+| T53  | Are benchmark assertions separately tested?         | correctness suite           | benchmark only                     | high     | extract tests         |
+| T54  | Does unsafe code have specialized evidence?         | Miri/sanitizer results      | ordinary tests only                | critical | run tools             |
+| T55  | Are tool blind spots stated?                        | limitations                 | Miri called complete proof         | high     | qualify               |
+| T56  | Does telemetry detect claimed outcomes?             | tested metrics              | silent failure not instrumented    | high     | add observability     |
+| T57  | Did incidents create regressions?                   | linked test                 | fix has no reproduction            | high     | encode mechanism      |
+| T58  | Is test-data sensitivity controlled?                | synthetic/redacted fixtures | production secret copied           | critical | scrub                 |
+| T59  | Are cleanup failures visible?                       | teardown result             | errors ignored                     | high     | report                |
+| T60  | Is total suite cost proportionate?                  | layer rationale             | redundant slow tests               | medium   | rebalance             |
 
 Critical gaps block merge. Waivers identify the uncovered invariant, alternative
 evidence, consequence, owner, expiry, and removal condition.
@@ -9568,41 +9576,41 @@ establish impossibility.
 
 **Contract test**
 : Evidence that independently deployed components preserve an agreed protocol
-  shape and semantics.
+shape and semantics.
 
 **Crash-point matrix**
 : A list of interruption locations between durable or external steps and the
-  expected recoverable state at each.
+expected recoverable state at each.
 
 **Evidence ledger**
 : A mapping from claims to evidence scope, non-proofs, and residual risk.
 
 **Fault injection**
 : Deliberate creation of failures, delays, losses, crashes, or resource
-  exhaustion at controlled protocol points.
+exhaustion at controlled protocol points.
 
 **Flaky test**
 : A test whose result changes without an intended change to the tested contract,
-  indicating uncontrolled state, time, schedule, environment, or behavior.
+indicating uncontrolled state, time, schedule, environment, or behavior.
 
 **Model checking**
 : Systematic exploration of states or schedules within an explicit model and
-  bounds.
+bounds.
 
 **Property test**
 : Repeated evaluation of a stated property over generated values, usually with
-  shrinking of counterexamples.
+shrinking of counterexamples.
 
 **Snapshot**
 : Committed expected output compared as a whole or structured artifact.
 
 **Test double**
 : A replacement for a real collaborator, including mock, fake, emulator, or
-  in-memory implementation.
+in-memory implementation.
 
 **UI test**
 : In this repository, a compile-fail test that compares compiler diagnostics;
-  the term does not necessarily mean graphical interface testing.
+the term does not necessarily mean graphical interface testing.
 
 ---
 
@@ -10202,13 +10210,13 @@ threshold above noise. Trend reports may be better on ordinary CI.
 
 ## Performance guarantee ledger
 
-| Claim | Workload/environment | Established by | Does not prove | Residual risk |
-|---|---|---|---|---|
-| parser reduced allocation bytes | named corpus, allocator, release build | allocation profile and benchmark | lower end-to-end latency | corpus drift |
-| batching raises throughput | concurrency sweep, real database | load test | improved p99 latency | production query mix |
-| async version overlaps I/O | executor trace and utilization | integrated benchmark | parallel CPU speedup | runtime contention |
-| binary shrank | identical features/toolchain/target | artifact measurement | faster startup | compression/deployment variance |
-| unsafe path is materially faster | safe baseline and representative samples | profile plus benchmark | soundness | target and compiler changes |
+| Claim                            | Workload/environment                     | Established by                   | Does not prove           | Residual risk                   |
+| -------------------------------- | ---------------------------------------- | -------------------------------- | ------------------------ | ------------------------------- |
+| parser reduced allocation bytes  | named corpus, allocator, release build   | allocation profile and benchmark | lower end-to-end latency | corpus drift                    |
+| batching raises throughput       | concurrency sweep, real database         | load test                        | improved p99 latency     | production query mix            |
+| async version overlaps I/O       | executor trace and utilization           | integrated benchmark             | parallel CPU speedup     | runtime contention              |
+| binary shrank                    | identical features/toolchain/target      | artifact measurement             | faster startup           | compression/deployment variance |
+| unsafe path is materially faster | safe baseline and representative samples | profile plus benchmark           | soundness                | target and compiler changes     |
 
 ## Proportionality
 
@@ -10242,17 +10250,17 @@ If no decision changes with the result, do not optimize yet.
 
 ## Choose observation
 
-| Question | Observation |
-|---|---|
-| Where is CPU spent? | sampled/instrumented CPU profile |
-| What waits? | async trace, span timing, syscall trace |
-| What allocates? | allocation count/bytes and heap profile |
-| Why are tails slow? | percentile trace correlated with inputs/queues |
-| Is a lock saturated? | lock wait/hold profile and concurrency sweep |
-| Is storage dominant? | query plan, round-trips, I/O and durability timing |
-| Is network dominant? | request trace, payload size, retransmit/rate limits |
-| What grows the binary? | section/symbol/generic analysis |
-| What slows builds? | clean/incremental timing and compiler timings |
+| Question               | Observation                                         |
+| ---------------------- | --------------------------------------------------- |
+| Where is CPU spent?    | sampled/instrumented CPU profile                    |
+| What waits?            | async trace, span timing, syscall trace             |
+| What allocates?        | allocation count/bytes and heap profile             |
+| Why are tails slow?    | percentile trace correlated with inputs/queues      |
+| Is a lock saturated?   | lock wait/hold profile and concurrency sweep        |
+| Is storage dominant?   | query plan, round-trips, I/O and durability timing  |
+| Is network dominant?   | request trace, payload size, retransmit/rate limits |
+| What grows the binary? | section/symbol/generic analysis                     |
+| What slows builds?     | clean/incremental timing and compiler timings       |
 
 Collect a baseline before modifying code.
 
@@ -10302,16 +10310,16 @@ operational margin.
 
 ## Optimization choice
 
-| Measured bottleneck | Candidate direction | Correctness check |
-|---|---|---|
-| algorithmic complexity | better data structure/algorithm | ordering, limits, worst case |
-| allocation churn | reuse, ownership change, compact representation | retention, aliasing |
-| serialization | format/configuration/buffering | compatibility, validation |
-| syscall/round-trip | batching or pipelining | partial failure, latency |
-| lock contention | ownership partitioning or shorter scope | invariant atomicity |
-| cache misses | layout/locality change | representation validity |
-| monomorphization | dispatch/API simplification | behavior and object safety |
-| compile time | dependency/features/generic reduction | runtime and diagnostics |
+| Measured bottleneck    | Candidate direction                             | Correctness check            |
+| ---------------------- | ----------------------------------------------- | ---------------------------- |
+| algorithmic complexity | better data structure/algorithm                 | ordering, limits, worst case |
+| allocation churn       | reuse, ownership change, compact representation | retention, aliasing          |
+| serialization          | format/configuration/buffering                  | compatibility, validation    |
+| syscall/round-trip     | batching or pipelining                          | partial failure, latency     |
+| lock contention        | ownership partitioning or shorter scope         | invariant atomicity          |
+| cache misses           | layout/locality change                          | representation validity      |
+| monomorphization       | dispatch/API simplification                     | behavior and object safety   |
+| compile time           | dependency/features/generic reduction           | runtime and diagnostics      |
 
 ## Unsafe gate
 
@@ -10359,68 +10367,68 @@ Stop when:
 Mark every gate **pass**, **fail**, **not applicable**, or an approved **waiver
 reference**.
 
-| Gate | Question | Pass evidence | Failure example | Severity | Remediation |
-|---|---|---|---|---|---|
-| M01 | Is objective quantified? | metric and target | “make faster” | critical | define outcome |
-| M02 | Is workload representative? | input distribution | tiny synthetic only | critical | sample/model reality |
-| M03 | Is concurrency specified? | range and nominal load | single-thread claim generalized | high | sweep |
-| M04 | Are correctness constraints fixed? | invariant list | errors dropped for speed | critical | restore semantics |
-| M05 | Is baseline commit identified? | SHA/config | vague prior version | high | record |
-| M06 | Is toolchain recorded? | version/profile/target | debug vs release comparison | critical | rebuild comparably |
-| M07 | Are features identical? | feature manifest | dependency feature changed | high | normalize |
-| M08 | Is hardware/OS recorded? | environment summary | different machines | high | control or qualify |
-| M09 | Is frequency/thermal state considered? | policy/monitoring | throttled run | high | stabilize |
-| M10 | Is environment noise measured? | repeated baseline | one shared-host sample | high | repeat/control |
-| M11 | Was profiling performed? | relevant profile | bottleneck guessed | high | profile |
-| M12 | Does profile support target? | cost attribution | optimized cold code | critical | redirect |
-| M13 | Is profiler overhead considered? | comparison | tracing dominates | medium | sample/qualify |
-| M14 | Is benchmark work retained? | result consumption | computation optimized away | critical | black-box/consume |
-| M15 | Are constants controlled? | dynamic inputs | compiler precomputes | critical | vary input |
-| M16 | Is setup located correctly? | methodology | input allocation accidentally timed | high | separate/define |
-| M17 | Is teardown excluded/included deliberately? | scope | destructor cost omitted unintentionally | high | align claim |
-| M18 | Is warmup documented? | preparation | first and steady mixed | high | separate |
-| M19 | Is cache state documented? | cold/warm method | filesystem cache unknown | high | control |
-| M20 | Are connections reused as intended? | setup trace | handshake accidentally excluded | high | match workload |
-| M21 | Is sample count sufficient? | framework/statistics | one timing | critical | collect samples |
-| M22 | Is variability reported? | CI/error/dispersion | point estimate only | high | report |
-| M23 | Is practical significance assessed? | objective delta | tiny statistical win | medium | simplify |
-| M24 | Are p50/p95/p99 present for latency? | distribution | average only | critical | measure tails |
-| M25 | Are outliers explained rather than discarded? | policy | slow samples deleted | high | analyze |
-| M26 | Is wall-clock distinguished from CPU? | named metrics | parallel run called cheaper | high | measure both |
-| M27 | Is aggregate CPU captured for parallel work? | process/thread CPU | only elapsed time | high | record resource |
-| M28 | Is throughput paired with latency? | load curve | batching throughput only | high | report distribution |
-| M29 | Is saturation point identified? | sweep | nominal point only | high | load to overload |
-| M30 | Is overload behavior preserved? | rejection/queue data | unbounded queue inflates throughput | critical | restore backpressure |
-| M31 | Is queue wait included? | end-to-end latency | service time only | high | include ingress |
-| M32 | Is downstream load measured? | DB/API metrics | local speed overloads dependency | critical | coordinate |
-| M33 | Are lock wait and hold measured? | contention profile | mutex blamed by count | high | instrument |
-| M34 | Are allocations counted? | count/bytes | clone syntax used as proof | high | measure |
-| M35 | Is peak and retained memory considered? | heap/RSS profile | fewer allocs retain huge buffer | high | measure lifetimes |
-| M36 | Is allocator identified? | environment | cross-allocator comparison | medium | record |
-| M37 | Is copy claim scoped? | data-flow | “zero-copy” broad claim | critical | enumerate copies |
-| M38 | Are lifetime/retention costs assessed? | ownership analysis | slice pins large buffer | high | compare total |
-| M39 | Are serialization costs profiled? | component trace | iterator optimized instead | high | target boundary |
-| M40 | Are syscalls/round-trips counted? | trace | source CPU blamed | high | measure system path |
-| M41 | Are database plans and locks considered? | query evidence | local benchmark excludes DB | high | integrate |
-| M42 | Are network limits/rate behavior included? | load trace | unlimited fake server | high | use realistic boundary |
-| M43 | Is async described accurately? | overlap/CPU data | async means parallel | critical | narrow claim |
-| M44 | Is clone removal architecturally safe? | ownership/contention | introduces global mutex | critical | redesign/measure |
-| M45 | Does algorithmic complexity improve? | input-size curve | lower constant, worse growth | high | test sizes |
-| M46 | Are worst-case inputs represented? | adversarial corpus | average-only parser | high | add |
-| M47 | Does unsafe satisfy doctrine 0007? | proof and tools | unchecked indexing for tiny gain | critical | remove/review |
-| M48 | Is unsafe benefit material? | safe baseline comparison | no measurable difference | critical | keep safe |
-| M49 | Are platform fallbacks measured? | target matrix | SIMD only one CPU | high | test dispatch |
-| M50 | Is binary size measured where affected? | artifact data | generics assumed free | medium | inspect |
-| M51 | Is compile time measured where affected? | clean/incremental data | macro cost ignored | medium | time builds |
-| M52 | Is monomorphization assessed? | symbol/code-size evidence | generic explosion | medium | simplify |
-| M53 | Is benchmark separate from correctness tests? | suite link | benchmark is sole check | critical | add tests |
-| M54 | Are fault/error paths still tested? | negative suite | fast path bypasses validation | critical | restore coverage |
-| M55 | Is regression metric stable enough? | history/variance | noisy shared runner hard gate | high | trend/dedicated host |
-| M56 | Is threshold above noise and meaningful? | rationale | arbitrary one percent | high | calibrate |
-| M57 | Does rerun policy avoid cherry-picking? | aggregate policy | keep fastest rerun | critical | predefine method |
-| M58 | Are commands reproducible? | checked-in harness/docs | manual GUI steps only | high | script |
-| M59 | Are results retained with provenance? | record/raw format | PR says “much faster” | high | attach evidence |
-| M60 | Is claim no broader than evidence? | guarantee ledger | microbench generalized | critical | narrow |
+| Gate | Question                                      | Pass evidence             | Failure example                         | Severity | Remediation            |
+| ---- | --------------------------------------------- | ------------------------- | --------------------------------------- | -------- | ---------------------- |
+| M01  | Is objective quantified?                      | metric and target         | “make faster”                           | critical | define outcome         |
+| M02  | Is workload representative?                   | input distribution        | tiny synthetic only                     | critical | sample/model reality   |
+| M03  | Is concurrency specified?                     | range and nominal load    | single-thread claim generalized         | high     | sweep                  |
+| M04  | Are correctness constraints fixed?            | invariant list            | errors dropped for speed                | critical | restore semantics      |
+| M05  | Is baseline commit identified?                | SHA/config                | vague prior version                     | high     | record                 |
+| M06  | Is toolchain recorded?                        | version/profile/target    | debug vs release comparison             | critical | rebuild comparably     |
+| M07  | Are features identical?                       | feature manifest          | dependency feature changed              | high     | normalize              |
+| M08  | Is hardware/OS recorded?                      | environment summary       | different machines                      | high     | control or qualify     |
+| M09  | Is frequency/thermal state considered?        | policy/monitoring         | throttled run                           | high     | stabilize              |
+| M10  | Is environment noise measured?                | repeated baseline         | one shared-host sample                  | high     | repeat/control         |
+| M11  | Was profiling performed?                      | relevant profile          | bottleneck guessed                      | high     | profile                |
+| M12  | Does profile support target?                  | cost attribution          | optimized cold code                     | critical | redirect               |
+| M13  | Is profiler overhead considered?              | comparison                | tracing dominates                       | medium   | sample/qualify         |
+| M14  | Is benchmark work retained?                   | result consumption        | computation optimized away              | critical | black-box/consume      |
+| M15  | Are constants controlled?                     | dynamic inputs            | compiler precomputes                    | critical | vary input             |
+| M16  | Is setup located correctly?                   | methodology               | input allocation accidentally timed     | high     | separate/define        |
+| M17  | Is teardown excluded/included deliberately?   | scope                     | destructor cost omitted unintentionally | high     | align claim            |
+| M18  | Is warmup documented?                         | preparation               | first and steady mixed                  | high     | separate               |
+| M19  | Is cache state documented?                    | cold/warm method          | filesystem cache unknown                | high     | control                |
+| M20  | Are connections reused as intended?           | setup trace               | handshake accidentally excluded         | high     | match workload         |
+| M21  | Is sample count sufficient?                   | framework/statistics      | one timing                              | critical | collect samples        |
+| M22  | Is variability reported?                      | CI/error/dispersion       | point estimate only                     | high     | report                 |
+| M23  | Is practical significance assessed?           | objective delta           | tiny statistical win                    | medium   | simplify               |
+| M24  | Are p50/p95/p99 present for latency?          | distribution              | average only                            | critical | measure tails          |
+| M25  | Are outliers explained rather than discarded? | policy                    | slow samples deleted                    | high     | analyze                |
+| M26  | Is wall-clock distinguished from CPU?         | named metrics             | parallel run called cheaper             | high     | measure both           |
+| M27  | Is aggregate CPU captured for parallel work?  | process/thread CPU        | only elapsed time                       | high     | record resource        |
+| M28  | Is throughput paired with latency?            | load curve                | batching throughput only                | high     | report distribution    |
+| M29  | Is saturation point identified?               | sweep                     | nominal point only                      | high     | load to overload       |
+| M30  | Is overload behavior preserved?               | rejection/queue data      | unbounded queue inflates throughput     | critical | restore backpressure   |
+| M31  | Is queue wait included?                       | end-to-end latency        | service time only                       | high     | include ingress        |
+| M32  | Is downstream load measured?                  | DB/API metrics            | local speed overloads dependency        | critical | coordinate             |
+| M33  | Are lock wait and hold measured?              | contention profile        | mutex blamed by count                   | high     | instrument             |
+| M34  | Are allocations counted?                      | count/bytes               | clone syntax used as proof              | high     | measure                |
+| M35  | Is peak and retained memory considered?       | heap/RSS profile          | fewer allocs retain huge buffer         | high     | measure lifetimes      |
+| M36  | Is allocator identified?                      | environment               | cross-allocator comparison              | medium   | record                 |
+| M37  | Is copy claim scoped?                         | data-flow                 | “zero-copy” broad claim                 | critical | enumerate copies       |
+| M38  | Are lifetime/retention costs assessed?        | ownership analysis        | slice pins large buffer                 | high     | compare total          |
+| M39  | Are serialization costs profiled?             | component trace           | iterator optimized instead              | high     | target boundary        |
+| M40  | Are syscalls/round-trips counted?             | trace                     | source CPU blamed                       | high     | measure system path    |
+| M41  | Are database plans and locks considered?      | query evidence            | local benchmark excludes DB             | high     | integrate              |
+| M42  | Are network limits/rate behavior included?    | load trace                | unlimited fake server                   | high     | use realistic boundary |
+| M43  | Is async described accurately?                | overlap/CPU data          | async means parallel                    | critical | narrow claim           |
+| M44  | Is clone removal architecturally safe?        | ownership/contention      | introduces global mutex                 | critical | redesign/measure       |
+| M45  | Does algorithmic complexity improve?          | input-size curve          | lower constant, worse growth            | high     | test sizes             |
+| M46  | Are worst-case inputs represented?            | adversarial corpus        | average-only parser                     | high     | add                    |
+| M47  | Does unsafe satisfy doctrine 0007?            | proof and tools           | unchecked indexing for tiny gain        | critical | remove/review          |
+| M48  | Is unsafe benefit material?                   | safe baseline comparison  | no measurable difference                | critical | keep safe              |
+| M49  | Are platform fallbacks measured?              | target matrix             | SIMD only one CPU                       | high     | test dispatch          |
+| M50  | Is binary size measured where affected?       | artifact data             | generics assumed free                   | medium   | inspect                |
+| M51  | Is compile time measured where affected?      | clean/incremental data    | macro cost ignored                      | medium   | time builds            |
+| M52  | Is monomorphization assessed?                 | symbol/code-size evidence | generic explosion                       | medium   | simplify               |
+| M53  | Is benchmark separate from correctness tests? | suite link                | benchmark is sole check                 | critical | add tests              |
+| M54  | Are fault/error paths still tested?           | negative suite            | fast path bypasses validation           | critical | restore coverage       |
+| M55  | Is regression metric stable enough?           | history/variance          | noisy shared runner hard gate           | high     | trend/dedicated host   |
+| M56  | Is threshold above noise and meaningful?      | rationale                 | arbitrary one percent                   | high     | calibrate              |
+| M57  | Does rerun policy avoid cherry-picking?       | aggregate policy          | keep fastest rerun                      | critical | predefine method       |
+| M58  | Are commands reproducible?                    | checked-in harness/docs   | manual GUI steps only                   | high     | script                 |
+| M59  | Are results retained with provenance?         | record/raw format         | PR says “much faster”                   | high     | attach evidence        |
+| M60  | Is claim no broader than evidence?            | guarantee ledger          | microbench generalized                  | critical | narrow                 |
 
 Critical failures block the performance claim and any complexity justified by
 it. Correctness failures block the change itself.
@@ -10610,43 +10618,43 @@ threshold, or report trends.
 
 **Allocation profile**
 : Measurement of allocation count, bytes, lifetime, and call sites under a
-  defined workload.
+defined workload.
 
 **Benchmark workload**
 : The input distribution, concurrency, state, and boundary operations exercised
-  by a measurement.
+by a measurement.
 
 **Cold state**
 : Execution before relevant process, connection, page, filesystem, data, or
-  instruction caches are populated.
+instruction caches are populated.
 
 **Flamegraph**
 : Aggregated sampled stack visualization showing where observed time or samples
-  accumulated.
+accumulated.
 
 **Latency percentile**
 : Value below which a stated proportion of observed latencies falls, calculated
-  with a specified aggregation method.
+with a specified aggregation method.
 
 **Monomorphization**
 : Generation of concrete code instances for generic uses, affecting
-  optimization, compile time, and binary size.
+optimization, compile time, and binary size.
 
 **Practical significance**
 : Whether a measured difference is large enough to affect the stated objective,
-  distinct from statistical detectability.
+distinct from statistical detectability.
 
 **Saturation**
 : Load point where a limiting resource is fully utilized and additional demand
-  primarily increases waiting, rejection, or collapse.
+primarily increases waiting, rejection, or collapse.
 
 **Steady state**
 : Measurement period after intended initialization and warmup conditions have
-  stabilized.
+stabilized.
 
 **Zero-copy**
 : A scoped claim that specified data copies do not occur along a defined path;
-  it is not a universal property of a system.
+it is not a universal property of a system.
 
 ---
 
@@ -10688,17 +10696,17 @@ representation, and states both guarantees gained and guarantees not gained.
 Boundary, persistence, testing, and complexity sections prevent a local type
 shape from being mistaken for a complete system proof.
 
-| Pattern | Primary fit | Common overapplication |
-|---|---|---|
-| [Sum types](sum-types.md) | mutually exclusive runtime states | variant explosion for independent dimensions |
-| [Opaque newtypes](opaque-newtypes.md) | one value with a stable local invariant | names stronger than construction evidence |
-| [Smart constructors](smart-constructors.md) | checked establishment and normalization | incomplete checks split across callers |
-| [Typestate](typestate.md) | small, locally controlled protocol sequence | persisted or externally determined state |
-| [Capability types](capability-types.md) | possession represents authority | cloneable handles with undefined revocation |
-| [Consuming transitions](consuming-transitions.md) | prevent reuse of prior lifecycle state | losing recovery evidence on fallible transition |
-| [Validated collections](validated-collections.md) | non-empty, bounded, sorted, or unique sets | mutation paths that invalidate the wrapper |
-| [Hybrid state machines](hybrid-state-machines.md) | local typed workflow plus dynamic persistence | duplicated state without conversion contract |
-| [Explicit uncertainty](explicit-uncertainty.md) | external effect may have indeterminate outcome | treating unknown as generic error |
+| Pattern                                           | Primary fit                                    | Common overapplication                          |
+| ------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------- |
+| [Sum types](sum-types.md)                         | mutually exclusive runtime states              | variant explosion for independent dimensions    |
+| [Opaque newtypes](opaque-newtypes.md)             | one value with a stable local invariant        | names stronger than construction evidence       |
+| [Smart constructors](smart-constructors.md)       | checked establishment and normalization        | incomplete checks split across callers          |
+| [Typestate](typestate.md)                         | small, locally controlled protocol sequence    | persisted or externally determined state        |
+| [Capability types](capability-types.md)           | possession represents authority                | cloneable handles with undefined revocation     |
+| [Consuming transitions](consuming-transitions.md) | prevent reuse of prior lifecycle state         | losing recovery evidence on fallible transition |
+| [Validated collections](validated-collections.md) | non-empty, bounded, sorted, or unique sets     | mutation paths that invalidate the wrapper      |
+| [Hybrid state machines](hybrid-state-machines.md) | local typed workflow plus dynamic persistence  | duplicated state without conversion contract    |
+| [Explicit uncertainty](explicit-uncertainty.md)   | external effect may have indeterminate outcome | treating unknown as generic error               |
 
 ## Selection rule
 
@@ -12071,15 +12079,15 @@ these evidence levels.
 
 ## Guides
 
-| Boundary | Primary concerns |
-|---|---|
-| [Serde](serde.md) | checked deserialization, versioning, allocation limits |
-| [Database decoding](database-decoding.md) | raw rows, domain conversion, migration, concurrency |
-| [HTTP and RPC](http-and-rpc.md) | DTOs, authentication/authorization, idempotency, error mapping |
-| [Messaging](messaging.md) | duplicates, ordering, acknowledgement, replay, schema evolution |
-| [Configuration](configuration.md) | startup validation, secrets, defaults, reload |
-| [Filesystem](filesystem.md) | path trust, symlinks, TOCTOU, atomic replacement, durability |
-| [FFI](ffi.md) | ABI, representation, ownership, unwind, allocator and error boundaries |
+| Boundary                                  | Primary concerns                                                       |
+| ----------------------------------------- | ---------------------------------------------------------------------- |
+| [Serde](serde.md)                         | checked deserialization, versioning, allocation limits                 |
+| [Database decoding](database-decoding.md) | raw rows, domain conversion, migration, concurrency                    |
+| [HTTP and RPC](http-and-rpc.md)           | DTOs, authentication/authorization, idempotency, error mapping         |
+| [Messaging](messaging.md)                 | duplicates, ordering, acknowledgement, replay, schema evolution        |
+| [Configuration](configuration.md)         | startup validation, secrets, defaults, reload                          |
+| [Filesystem](filesystem.md)               | path trust, symlinks, TOCTOU, atomic replacement, durability           |
+| [FFI](ffi.md)                             | ABI, representation, ownership, unwind, allocator and error boundaries |
 
 ## Required boundary record
 
@@ -12238,14 +12246,14 @@ service.
 
 ## Decision table
 
-| Situation | Preferred approach |
-|---|---|
-| scalar with local invariant | raw scalar plus `try_from` |
-| cross-field state | raw DTO then domain conversion |
-| untrusted large sequence | streaming visitor with explicit cap |
-| long-lived format | versioned envelope and compatibility fixtures |
-| proxy retaining unknown data | bounded extension map with sensitivity policy |
-| secret-bearing output | dedicated response DTO, no broad domain serialization |
+| Situation                    | Preferred approach                                    |
+| ---------------------------- | ----------------------------------------------------- |
+| scalar with local invariant  | raw scalar plus `try_from`                            |
+| cross-field state            | raw DTO then domain conversion                        |
+| untrusted large sequence     | streaming visitor with explicit cap                   |
+| long-lived format            | versioned envelope and compatibility fixtures         |
+| proxy retaining unknown data | bounded extension map with sensitivity policy         |
+| secret-bearing output        | dedicated response DTO, no broad domain serialization |
 
 ## Review prompts
 
@@ -12378,15 +12386,15 @@ Ambiguous commit and persistence-after-external-effect require reconciliation.
 
 ## Decision table
 
-| Invariant | Boundary treatment |
-|---|---|
-| scalar range/format | row field to checked newtype |
-| mutually exclusive columns | raw row truth table to enum |
-| uniqueness | constructor plus database constraint |
-| aggregate version | optimistic update predicate |
-| cross-row balance | transaction plus appropriate isolation/locking |
-| historical invalid data | quarantine or audited migration |
-| state plus publication | transactional outbox, not fictional cross-system atomicity |
+| Invariant                  | Boundary treatment                                         |
+| -------------------------- | ---------------------------------------------------------- |
+| scalar range/format        | row field to checked newtype                               |
+| mutually exclusive columns | raw row truth table to enum                                |
+| uniqueness                 | constructor plus database constraint                       |
+| aggregate version          | optimistic update predicate                                |
+| cross-row balance          | transaction plus appropriate isolation/locking             |
+| historical invalid data    | quarantine or audited migration                            |
+| state plus publication     | transactional outbox, not fictional cross-system atomicity |
 
 ## Review prompts
 
@@ -12513,16 +12521,16 @@ after return.
 
 ## Decision table
 
-| Concern | Boundary mechanism |
-|---|---|
-| request shape | bounded DTO decode |
-| value invariant | smart constructor |
-| identity | credential verification |
-| authority | action/resource authorization capability |
-| concurrent update | version/conflict protocol |
-| repeat mutation | scoped idempotency contract |
-| ambiguous effect | operation ID plus unknown/reconciliation |
-| public failure | stable code and redacted message |
+| Concern           | Boundary mechanism                       |
+| ----------------- | ---------------------------------------- |
+| request shape     | bounded DTO decode                       |
+| value invariant   | smart constructor                        |
+| identity          | credential verification                  |
+| authority         | action/resource authorization capability |
+| concurrent update | version/conflict protocol                |
+| repeat mutation   | scoped idempotency contract              |
+| ambiguous effect  | operation ID plus unknown/reconciliation |
+| public failure    | stable code and redacted message         |
 
 ## Review prompts
 
@@ -12654,15 +12662,15 @@ historical facts may no longer authorize current actions.
 
 ## Delivery decision table
 
-| Scenario | Required behavior |
-|---|---|
-| repeated message ID, completed locally | return/reuse recorded outcome |
-| repeated ID, different fingerprint | reject as conflict/security event |
-| gap in required aggregate sequence | wait, fetch, or reconcile; do not guess |
-| invalid payload | quarantine/dead-letter with bounded diagnostics |
-| effect completed, ack lost | deduplicate on redelivery |
-| external effect response lost | persist unknown and reconcile |
-| newer unsupported schema | reject or retain per compatibility policy |
+| Scenario                               | Required behavior                               |
+| -------------------------------------- | ----------------------------------------------- |
+| repeated message ID, completed locally | return/reuse recorded outcome                   |
+| repeated ID, different fingerprint     | reject as conflict/security event               |
+| gap in required aggregate sequence     | wait, fetch, or reconcile; do not guess         |
+| invalid payload                        | quarantine/dead-letter with bounded diagnostics |
+| effect completed, ack lost             | deduplicate on redelivery                       |
+| external effect response lost          | persist unknown and reconcile                   |
+| newer unsupported schema               | reject or retain per compatibility policy       |
 
 ## Review prompts
 
@@ -12790,15 +12798,15 @@ Readiness checks are observations at a time.
 
 ## Reload contract
 
-| Phase | Required behavior |
-|---|---|
-| acquire | bounded read with source/version |
-| parse | raw snapshot, no mutation of active state |
-| validate | all per-field and cross-field rules |
-| prepare | create dependent resources without exposing partial state |
-| swap | atomic publication of complete valid snapshot |
-| retire | bounded cleanup of old resources |
-| fail | retain prior snapshot and report redacted diagnostics |
+| Phase    | Required behavior                                         |
+| -------- | --------------------------------------------------------- |
+| acquire  | bounded read with source/version                          |
+| parse    | raw snapshot, no mutation of active state                 |
+| validate | all per-field and cross-field rules                       |
+| prepare  | create dependent resources without exposing partial state |
+| swap     | atomic publication of complete valid snapshot             |
+| retire   | bounded cleanup of old resources                          |
+| fail     | retain prior snapshot and report redacted diagnostics     |
 
 ## Review prompts
 
@@ -13068,17 +13076,17 @@ changes, and target ABIs can invalidate premises and trigger re-audit.
 
 ## FFI contract table
 
-| Dimension | Required record |
-|---|---|
-| ABI/layout | calling convention, `repr`, widths, alignment, targets |
-| pointer | nullability, bounds, mutability, provenance |
-| ownership | borrow/take/give, lifetime, matching release |
-| strings | encoding, length, terminator, interior null |
-| errors | status/out-param rules, unknown code |
-| callbacks | retention, thread, reentrancy, unregister |
-| unwind | catch, abort, or supported unwind ABI |
-| concurrency | affinity, synchronization, `Send`/`Sync` proof |
-| allocation | allocator of origin and cleanup |
+| Dimension   | Required record                                        |
+| ----------- | ------------------------------------------------------ |
+| ABI/layout  | calling convention, `repr`, widths, alignment, targets |
+| pointer     | nullability, bounds, mutability, provenance            |
+| ownership   | borrow/take/give, lifetime, matching release           |
+| strings     | encoding, length, terminator, interior null            |
+| errors      | status/out-param rules, unknown code                   |
+| callbacks   | retention, thread, reentrancy, unregister              |
+| unwind      | catch, abort, or supported unwind ABI                  |
+| concurrency | affinity, synchronization, `Send`/`Sync` proof         |
+| allocation  | allocator of origin and cleanup                        |
 
 ---
 
@@ -13102,14 +13110,14 @@ residual risk only where governance permits it.
 
 ## Procedures
 
-| Procedure | Use |
-|---|---|
-| [Pre-implementation](pre-implementation.md) | before representation and API commitments |
-| [Domain model review](domain-model-review.md) | values, states, construction, transition, authority |
-| [Boundary review](boundary-review.md) | DTO, Serde, database, protocol, size, version, secrecy |
-| [Typestate review](typestate-review.md) | proportional use of type-level sequencing |
-| [Distributed-effects review](distributed-effects-review.md) | timeout, retry, duplicate, reconciliation, ordering |
-| [Final correctness audit](final-correctness-audit.md) | release/merge guarantee ledger and aggregate gates |
+| Procedure                                                   | Use                                                    |
+| ----------------------------------------------------------- | ------------------------------------------------------ |
+| [Pre-implementation](pre-implementation.md)                 | before representation and API commitments              |
+| [Domain model review](domain-model-review.md)               | values, states, construction, transition, authority    |
+| [Boundary review](boundary-review.md)                       | DTO, Serde, database, protocol, size, version, secrecy |
+| [Typestate review](typestate-review.md)                     | proportional use of type-level sequencing              |
+| [Distributed-effects review](distributed-effects-review.md) | timeout, retry, duplicate, reconciliation, ordering    |
+| [Final correctness audit](final-correctness-audit.md)       | release/merge guarantee ledger and aggregate gates     |
 
 ## Evidence rule
 
@@ -13147,77 +13155,77 @@ or protocol choices become expensive to reverse.
 
 ## Domain and invariant inventory
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| PRE-01 | Is the domain objective stated without prescribing a Rust mechanism? | outcome and scope |
-| PRE-02 | Is a shared vocabulary defined for values, actors, states, and effects? | vocabulary artifact |
-| PRE-03 | Are ambiguous terms split by evidence level? | definitions such as parsed/verified |
-| PRE-04 | Are non-goals and excluded systems explicit? | bounded scope |
-| PRE-05 | Does every consequential invariant have a stable ID? | invariant inventory |
-| PRE-06 | Is each invariant statement testable or reviewable? | precise predicate |
-| PRE-07 | Is each invariant classified as value, state, transition, authority, lifecycle, boundary, cross-entity, temporal, environmental, or distributed? | classification field |
-| PRE-08 | Is the invariant owner named? | component or role |
-| PRE-09 | Is the enforcement mechanism proposed without claiming more than it proves? | mechanism column |
-| PRE-10 | Is the trust boundary that establishes evidence named? | boundary column |
-| PRE-11 | Is failure consequence recorded? | consequence/severity |
-| PRE-12 | Is residual uncertainty recorded? | uncertainty column |
-| PRE-13 | Are preconditions distinguished from invariants? | separate entries |
-| PRE-14 | Are assumptions and observations distinguished from guarantees? | assumption ledger |
-| PRE-15 | Are cross-entity rules excluded from pure scalar constructors? | enforcement placement |
-| PRE-16 | Are external mutable facts identified as runtime evidence? | observation policy |
+| ID     | Question                                                                                                                                         | Pass evidence                       |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| PRE-01 | Is the domain objective stated without prescribing a Rust mechanism?                                                                             | outcome and scope                   |
+| PRE-02 | Is a shared vocabulary defined for values, actors, states, and effects?                                                                          | vocabulary artifact                 |
+| PRE-03 | Are ambiguous terms split by evidence level?                                                                                                     | definitions such as parsed/verified |
+| PRE-04 | Are non-goals and excluded systems explicit?                                                                                                     | bounded scope                       |
+| PRE-05 | Does every consequential invariant have a stable ID?                                                                                             | invariant inventory                 |
+| PRE-06 | Is each invariant statement testable or reviewable?                                                                                              | precise predicate                   |
+| PRE-07 | Is each invariant classified as value, state, transition, authority, lifecycle, boundary, cross-entity, temporal, environmental, or distributed? | classification field                |
+| PRE-08 | Is the invariant owner named?                                                                                                                    | component or role                   |
+| PRE-09 | Is the enforcement mechanism proposed without claiming more than it proves?                                                                      | mechanism column                    |
+| PRE-10 | Is the trust boundary that establishes evidence named?                                                                                           | boundary column                     |
+| PRE-11 | Is failure consequence recorded?                                                                                                                 | consequence/severity                |
+| PRE-12 | Is residual uncertainty recorded?                                                                                                                | uncertainty column                  |
+| PRE-13 | Are preconditions distinguished from invariants?                                                                                                 | separate entries                    |
+| PRE-14 | Are assumptions and observations distinguished from guarantees?                                                                                  | assumption ledger                   |
+| PRE-15 | Are cross-entity rules excluded from pure scalar constructors?                                                                                   | enforcement placement               |
+| PRE-16 | Are external mutable facts identified as runtime evidence?                                                                                       | observation policy                  |
 
 ## State and authority
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| PRE-17 | Is a state graph provided for each meaningful lifecycle? | nodes and legal edges |
-| PRE-18 | Does each state list required associated evidence? | state payload table |
-| PRE-19 | Are mutually exclusive and independent dimensions distinguished? | representation rationale |
-| PRE-20 | Does every transition identify actor and authority? | transition table |
-| PRE-21 | Does every transition identify precondition and postcondition? | edge contract |
-| PRE-22 | Are failure and cancellation edges present? | complete graph |
-| PRE-23 | Are unknown or reconciliation states included where execution can be ambiguous? | explicit nodes |
-| PRE-24 | Is an authority map provided for privileged actions? | principal/capability map |
-| PRE-25 | Are capability construction, transfer, clone, expiry, and revocation defined? | authority lifecycle |
-| PRE-26 | Are secret-bearing values and permitted readers identified? | data/authority map |
+| ID     | Question                                                                        | Pass evidence            |
+| ------ | ------------------------------------------------------------------------------- | ------------------------ |
+| PRE-17 | Is a state graph provided for each meaningful lifecycle?                        | nodes and legal edges    |
+| PRE-18 | Does each state list required associated evidence?                              | state payload table      |
+| PRE-19 | Are mutually exclusive and independent dimensions distinguished?                | representation rationale |
+| PRE-20 | Does every transition identify actor and authority?                             | transition table         |
+| PRE-21 | Does every transition identify precondition and postcondition?                  | edge contract            |
+| PRE-22 | Are failure and cancellation edges present?                                     | complete graph           |
+| PRE-23 | Are unknown or reconciliation states included where execution can be ambiguous? | explicit nodes           |
+| PRE-24 | Is an authority map provided for privileged actions?                            | principal/capability map |
+| PRE-25 | Are capability construction, transfer, clone, expiry, and revocation defined?   | authority lifecycle      |
+| PRE-26 | Are secret-bearing values and permitted readers identified?                     | data/authority map       |
 
 ## Trust boundaries and external effects
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| PRE-27 | Is every ingress and egress boundary inventoried? | boundary map |
-| PRE-28 | Does each ingress show raw, structural, and trusted representations? | conversion pipeline |
-| PRE-29 | Are alternate writers and privileged bypass paths listed? | bypass inventory |
-| PRE-30 | Are parsing, validation, authentication, and authorization separated? | layered design |
-| PRE-31 | Are size, nesting, allocation, and concurrency limits proposed? | resource table |
-| PRE-32 | Is version/unknown-value policy stated? | compatibility matrix |
-| PRE-33 | Is every external side effect inventoried? | effect list |
-| PRE-34 | Does each effect identify the point after which execution can be unknown? | protocol timeline |
-| PRE-35 | Are idempotency and retry classifications stated per failure point? | failure matrix |
-| PRE-36 | Is reconciliation evidence and owner identified? | reconciliation plan |
-| PRE-37 | Are compensation actions treated as new fallible effects? | saga contract |
-| PRE-38 | Are ordering claims scoped by key, producer, partition, and failover? | ordering contract |
+| ID     | Question                                                                  | Pass evidence        |
+| ------ | ------------------------------------------------------------------------- | -------------------- |
+| PRE-27 | Is every ingress and egress boundary inventoried?                         | boundary map         |
+| PRE-28 | Does each ingress show raw, structural, and trusted representations?      | conversion pipeline  |
+| PRE-29 | Are alternate writers and privileged bypass paths listed?                 | bypass inventory     |
+| PRE-30 | Are parsing, validation, authentication, and authorization separated?     | layered design       |
+| PRE-31 | Are size, nesting, allocation, and concurrency limits proposed?           | resource table       |
+| PRE-32 | Is version/unknown-value policy stated?                                   | compatibility matrix |
+| PRE-33 | Is every external side effect inventoried?                                | effect list          |
+| PRE-34 | Does each effect identify the point after which execution can be unknown? | protocol timeline    |
+| PRE-35 | Are idempotency and retry classifications stated per failure point?       | failure matrix       |
+| PRE-36 | Is reconciliation evidence and owner identified?                          | reconciliation plan  |
+| PRE-37 | Are compensation actions treated as new fallible effects?                 | saga contract        |
+| PRE-38 | Are ordering claims scoped by key, producer, partition, and failover?     | ordering contract    |
 
 ## Persistence, complexity, and evidence
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| PRE-39 | Is the persistence representation distinct where its contract differs? | row/domain comparison |
-| PRE-40 | Are transaction boundaries aligned with cross-entity invariants? | transaction map |
-| PRE-41 | Is optimistic concurrency or another lost-update strategy selected? | conflict protocol |
-| PRE-42 | Are migration and old-value compatibility needs identified? | version plan |
-| PRE-43 | Is persistence plus messaging coordinated durably where loss matters? | outbox/inbox decision |
-| PRE-44 | Is the concurrency ownership and synchronization model stated? | task/state ownership |
-| PRE-45 | Are queue, pool, and retry capacities bounded? | capacity budget |
-| PRE-46 | Is cancellation cleanup defined for partial operations? | cancellation table |
-| PRE-47 | Is the simplest sufficient representation selected from enum, newtype, runtime validation, typestate, capability, or plain code? | decision record |
-| PRE-48 | Does the complexity budget cover diagnostics, compile time, code size, migration, and team operation? | budget assessment |
-| PRE-49 | Is unsafe code absent or separately justified under RUST-DOC-0007? | unsafe decision |
-| PRE-50 | Does each invariant map to planned compiler, unit, property, compile-fail, integration, fault, model, or operational evidence? | evidence matrix |
-| PRE-51 | Are negative and prohibited paths included? | rejection plan |
-| PRE-52 | Are real boundaries exercised where consequential? | integration plan |
-| PRE-53 | Are evidence limitations stated? | non-proof column |
-| PRE-54 | Does the initial guarantee ledger state claim, establishment, protected construction, boundary preservation, escape hatches, non-proofs, and runtime risk? | ledger |
+| ID     | Question                                                                                                                                                   | Pass evidence         |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| PRE-39 | Is the persistence representation distinct where its contract differs?                                                                                     | row/domain comparison |
+| PRE-40 | Are transaction boundaries aligned with cross-entity invariants?                                                                                           | transaction map       |
+| PRE-41 | Is optimistic concurrency or another lost-update strategy selected?                                                                                        | conflict protocol     |
+| PRE-42 | Are migration and old-value compatibility needs identified?                                                                                                | version plan          |
+| PRE-43 | Is persistence plus messaging coordinated durably where loss matters?                                                                                      | outbox/inbox decision |
+| PRE-44 | Is the concurrency ownership and synchronization model stated?                                                                                             | task/state ownership  |
+| PRE-45 | Are queue, pool, and retry capacities bounded?                                                                                                             | capacity budget       |
+| PRE-46 | Is cancellation cleanup defined for partial operations?                                                                                                    | cancellation table    |
+| PRE-47 | Is the simplest sufficient representation selected from enum, newtype, runtime validation, typestate, capability, or plain code?                           | decision record       |
+| PRE-48 | Does the complexity budget cover diagnostics, compile time, code size, migration, and team operation?                                                      | budget assessment     |
+| PRE-49 | Is unsafe code absent or separately justified under RUST-DOC-0007?                                                                                         | unsafe decision       |
+| PRE-50 | Does each invariant map to planned compiler, unit, property, compile-fail, integration, fault, model, or operational evidence?                             | evidence matrix       |
+| PRE-51 | Are negative and prohibited paths included?                                                                                                                | rejection plan        |
+| PRE-52 | Are real boundaries exercised where consequential?                                                                                                         | integration plan      |
+| PRE-53 | Are evidence limitations stated?                                                                                                                           | non-proof column      |
+| PRE-54 | Does the initial guarantee ledger state claim, establishment, protected construction, boundary preservation, escape hatches, non-proofs, and runtime risk? | ledger                |
 
 ## Exit criteria
 
@@ -13241,73 +13249,73 @@ with source paths and doctrine rule IDs.
 
 ## Values and names
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DMR-01 | Does each trusted type name only evidence its constructors establish? | constructor/name comparison |
-| DMR-02 | Are raw, parsed, policy-accepted, verified, authorized, and reconciled values distinct where operationally different? | evidence ladder |
-| DMR-03 | Are primitive aliases replaced where unit or invariant mixing is consequential? | opaque type |
-| DMR-04 | Are zero and empty states evaluated explicitly? | boundary table |
-| DMR-05 | Does integer money include explicit currency? | money representation |
-| DMR-06 | Does arithmetic reject currency mismatch and overflow? | checked operations |
-| DMR-07 | Are tax, FX, scale, allocation, and rounding outside the scalar guarantee? | non-guarantees |
-| DMR-08 | Does email syntax avoid ownership/deliverability claims? | evidence-accurate types |
-| DMR-09 | Are identifiers nonempty/bounded/normalized according to one policy? | constructor |
-| DMR-10 | Are secrets deliberately non-formatting and minimally cloneable? | trait/API audit |
+| ID     | Question                                                                                                              | Pass evidence               |
+| ------ | --------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| DMR-01 | Does each trusted type name only evidence its constructors establish?                                                 | constructor/name comparison |
+| DMR-02 | Are raw, parsed, policy-accepted, verified, authorized, and reconciled values distinct where operationally different? | evidence ladder             |
+| DMR-03 | Are primitive aliases replaced where unit or invariant mixing is consequential?                                       | opaque type                 |
+| DMR-04 | Are zero and empty states evaluated explicitly?                                                                       | boundary table              |
+| DMR-05 | Does integer money include explicit currency?                                                                         | money representation        |
+| DMR-06 | Does arithmetic reject currency mismatch and overflow?                                                                | checked operations          |
+| DMR-07 | Are tax, FX, scale, allocation, and rounding outside the scalar guarantee?                                            | non-guarantees              |
+| DMR-08 | Does email syntax avoid ownership/deliverability claims?                                                              | evidence-accurate types     |
+| DMR-09 | Are identifiers nonempty/bounded/normalized according to one policy?                                                  | constructor                 |
+| DMR-10 | Are secrets deliberately non-formatting and minimally cloneable?                                                      | trait/API audit             |
 
 ## Construction and mutation
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DMR-11 | Are trusted representation fields private? | visibility inspection |
-| DMR-12 | Does every public constructor enforce the complete documented invariant? | constructor trace |
-| DMR-13 | Is fallible construction visibly fallible? | `Result`/`TryFrom` API |
-| DMR-14 | Is normalization centralized and ordered before dependent checks? | construction pipeline |
-| DMR-15 | Are errors structured and actionable? | error enum/categories |
-| DMR-16 | Do mutation methods preserve the complete invariant? | mutation proof/tests |
-| DMR-17 | Are mutable representation escapes absent? | no `DerefMut`/raw field |
-| DMR-18 | Do conversion impls preserve evidence direction? | `From` versus `TryFrom` audit |
-| DMR-19 | Are unchecked constructors private, narrow, and obligation-documented? | escape-hatch inventory |
-| DMR-20 | Are unsafe constructors reviewed under doctrine 0007? | safety proof |
+| ID     | Question                                                                 | Pass evidence                 |
+| ------ | ------------------------------------------------------------------------ | ----------------------------- |
+| DMR-11 | Are trusted representation fields private?                               | visibility inspection         |
+| DMR-12 | Does every public constructor enforce the complete documented invariant? | constructor trace             |
+| DMR-13 | Is fallible construction visibly fallible?                               | `Result`/`TryFrom` API        |
+| DMR-14 | Is normalization centralized and ordered before dependent checks?        | construction pipeline         |
+| DMR-15 | Are errors structured and actionable?                                    | error enum/categories         |
+| DMR-16 | Do mutation methods preserve the complete invariant?                     | mutation proof/tests          |
+| DMR-17 | Are mutable representation escapes absent?                               | no `DerefMut`/raw field       |
+| DMR-18 | Do conversion impls preserve evidence direction?                         | `From` versus `TryFrom` audit |
+| DMR-19 | Are unchecked constructors private, narrow, and obligation-documented?   | escape-hatch inventory        |
+| DMR-20 | Are unsafe constructors reviewed under doctrine 0007?                    | safety proof                  |
 
 ## States and transitions
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DMR-21 | Are mutually exclusive states represented by a sum type? | state shape |
-| DMR-22 | Are contradictory boolean/optional combinations absent? | truth-table review |
-| DMR-23 | Does associated data live only in meaningful variants? | enum payloads |
-| DMR-24 | Are independent dimensions kept separate? | state decomposition |
-| DMR-25 | Is variant evolution and unknown persistence planned? | encoding/version policy |
-| DMR-26 | Are legal transition edges explicit? | state graph |
-| DMR-27 | Are illegal transitions structurally blocked or explicitly rejected? | API/runtime checks |
-| DMR-28 | Do consuming transitions prevent invalid prior-state reuse where useful? | ownership API |
-| DMR-29 | Do fallible transitions preserve or consume prior authority honestly? | error shape |
-| DMR-30 | Do async transitions handle cancellation and partial effects? | cancellation matrix |
-| DMR-31 | Does local typestate avoid remote-liveness claims? | guarantee ledger |
-| DMR-32 | Are persisted/dynamic states represented at runtime? | hybrid/runtime model |
-| DMR-33 | Are unknown distributed outcomes explicit? | outcome enum |
-| DMR-34 | Does reconciliation require new evidence rather than arbitrary assignment? | transition service |
+| ID     | Question                                                                   | Pass evidence           |
+| ------ | -------------------------------------------------------------------------- | ----------------------- |
+| DMR-21 | Are mutually exclusive states represented by a sum type?                   | state shape             |
+| DMR-22 | Are contradictory boolean/optional combinations absent?                    | truth-table review      |
+| DMR-23 | Does associated data live only in meaningful variants?                     | enum payloads           |
+| DMR-24 | Are independent dimensions kept separate?                                  | state decomposition     |
+| DMR-25 | Is variant evolution and unknown persistence planned?                      | encoding/version policy |
+| DMR-26 | Are legal transition edges explicit?                                       | state graph             |
+| DMR-27 | Are illegal transitions structurally blocked or explicitly rejected?       | API/runtime checks      |
+| DMR-28 | Do consuming transitions prevent invalid prior-state reuse where useful?   | ownership API           |
+| DMR-29 | Do fallible transitions preserve or consume prior authority honestly?      | error shape             |
+| DMR-30 | Do async transitions handle cancellation and partial effects?              | cancellation matrix     |
+| DMR-31 | Does local typestate avoid remote-liveness claims?                         | guarantee ledger        |
+| DMR-32 | Are persisted/dynamic states represented at runtime?                       | hybrid/runtime model    |
+| DMR-33 | Are unknown distributed outcomes explicit?                                 | outcome enum            |
+| DMR-34 | Does reconciliation require new evidence rather than arbitrary assignment? | transition service      |
 
 ## Authority, aggregates, and external rules
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DMR-35 | Are privileged constructors restricted to the authority owner? | module visibility |
-| DMR-36 | Does each capability expose least-privilege operations? | API surface |
-| DMR-37 | Is capability cloning justified? | clone/transfer policy |
-| DMR-38 | Are expiry and revocation runtime semantics explicit? | authority lifecycle |
-| DMR-39 | Are single-use tokens consumed or transactionally claimed? | use protocol |
-| DMR-40 | Are collection invariants protected after mutation? | wrapper API |
-| DMR-41 | Are completeness claims absent from paginated subsets? | type naming |
-| DMR-42 | Are cross-entity rules enforced in a domain service/transaction? | service boundary |
-| DMR-43 | Are environmental assumptions represented as checks/observations? | runtime validation |
-| DMR-44 | Do external effects remain fallible? | `Result`/outcome API |
-| DMR-45 | Does timeout preserve unknown execution where needed? | outcome handling |
-| DMR-46 | Are public escape hatches enumerated in the guarantee ledger? | ledger |
-| DMR-47 | Does each type list what it proves? | documentation |
-| DMR-48 | Does each type list what it does not prove? | documentation |
-| DMR-49 | Does executable evidence cover acceptance and rejection? | tests |
-| DMR-50 | Is type-system complexity proportional to misuse impact? | complexity decision |
+| ID     | Question                                                          | Pass evidence         |
+| ------ | ----------------------------------------------------------------- | --------------------- |
+| DMR-35 | Are privileged constructors restricted to the authority owner?    | module visibility     |
+| DMR-36 | Does each capability expose least-privilege operations?           | API surface           |
+| DMR-37 | Is capability cloning justified?                                  | clone/transfer policy |
+| DMR-38 | Are expiry and revocation runtime semantics explicit?             | authority lifecycle   |
+| DMR-39 | Are single-use tokens consumed or transactionally claimed?        | use protocol          |
+| DMR-40 | Are collection invariants protected after mutation?               | wrapper API           |
+| DMR-41 | Are completeness claims absent from paginated subsets?            | type naming           |
+| DMR-42 | Are cross-entity rules enforced in a domain service/transaction?  | service boundary      |
+| DMR-43 | Are environmental assumptions represented as checks/observations? | runtime validation    |
+| DMR-44 | Do external effects remain fallible?                              | `Result`/outcome API  |
+| DMR-45 | Does timeout preserve unknown execution where needed?             | outcome handling      |
+| DMR-46 | Are public escape hatches enumerated in the guarantee ledger?     | ledger                |
+| DMR-47 | Does each type list what it proves?                               | documentation         |
+| DMR-48 | Does each type list what it does not prove?                       | documentation         |
+| DMR-49 | Does executable evidence cover acceptance and rejection?          | tests                 |
+| DMR-50 | Is type-system complexity proportional to misuse impact?          | complexity decision   |
 
 ## Exit criteria
 
@@ -13329,80 +13337,80 @@ applicable**, or **waiver reference**.
 
 ## Inventory and layering
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| BR-01 | Is the boundary owner and threat/error model named? | boundary record |
-| BR-02 | Are all raw bytes, metadata, and alternate sources inventoried? | input list |
-| BR-03 | Is transport/physical parsing separate from domain validation? | layered conversion |
-| BR-04 | Is a raw DTO/row/foreign type used where contracts differ? | representation map |
-| BR-05 | Are trusted types constructed only after complete validation? | call trace |
-| BR-06 | Are authentication and authorization separate transitions? | evidence path |
+| ID    | Question                                                              | Pass evidence        |
+| ----- | --------------------------------------------------------------------- | -------------------- |
+| BR-01 | Is the boundary owner and threat/error model named?                   | boundary record      |
+| BR-02 | Are all raw bytes, metadata, and alternate sources inventoried?       | input list           |
+| BR-03 | Is transport/physical parsing separate from domain validation?        | layered conversion   |
+| BR-04 | Is a raw DTO/row/foreign type used where contracts differ?            | representation map   |
+| BR-05 | Are trusted types constructed only after complete validation?         | call trace           |
+| BR-06 | Are authentication and authorization separate transitions?            | evidence path        |
 | BR-07 | Are cross-entity checks placed transactionally or in domain services? | enforcement location |
-| BR-08 | Are egress DTOs deliberate rather than broad domain serialization? | output types |
-| BR-09 | Are privileged administrative paths included in the inventory? | bypass list |
-| BR-10 | Are cache, replay, restore, and migration paths included? | complete map |
+| BR-08 | Are egress DTOs deliberate rather than broad domain serialization?    | output types         |
+| BR-09 | Are privileged administrative paths included in the inventory?        | bypass list          |
+| BR-10 | Are cache, replay, restore, and migration paths included?             | complete map         |
 
 ## Parsing and resource limits
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| BR-11 | Is maximum raw input size enforced before large allocation? | limit/config test |
-| BR-12 | Are decompression ratios and expanded size bounded? | decompression policy |
-| BR-13 | Are nesting, field, element, and batch counts bounded? | parser limits |
-| BR-14 | Are numeric conversions checked for range and units? | conversion code |
-| BR-15 | Are text encoding and Unicode policies explicit? | parser policy |
-| BR-16 | Are duplicate fields/headers/keys handled deliberately? | fixtures |
-| BR-17 | Are paths protected from traversal and lossy conversion? | path policy |
-| BR-18 | Are pointer null, length, alignment, and ownership checked at FFI? | FFI contract |
-| BR-19 | Are time and size values represented with typed units? | DTO/domain types |
-| BR-20 | Does malformed input return structured failure without panic? | negative tests |
+| ID    | Question                                                           | Pass evidence        |
+| ----- | ------------------------------------------------------------------ | -------------------- |
+| BR-11 | Is maximum raw input size enforced before large allocation?        | limit/config test    |
+| BR-12 | Are decompression ratios and expanded size bounded?                | decompression policy |
+| BR-13 | Are nesting, field, element, and batch counts bounded?             | parser limits        |
+| BR-14 | Are numeric conversions checked for range and units?               | conversion code      |
+| BR-15 | Are text encoding and Unicode policies explicit?                   | parser policy        |
+| BR-16 | Are duplicate fields/headers/keys handled deliberately?            | fixtures             |
+| BR-17 | Are paths protected from traversal and lossy conversion?           | path policy          |
+| BR-18 | Are pointer null, length, alignment, and ownership checked at FFI? | FFI contract         |
+| BR-19 | Are time and size values represented with typed units?             | DTO/domain types     |
+| BR-20 | Does malformed input return structured failure without panic?      | negative tests       |
 
 ## Construction and bypasses
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| BR-21 | Does Serde delegate to checked `TryFrom` or manual validation? | implementation |
-| BR-22 | Does every database read validate trusted newtypes? | row conversions |
-| BR-23 | Are derived decoders prevented from assigning trusted fields unchecked? | derive audit |
-| BR-24 | Are unchecked `From` conversions absent for fallible evidence? | impl search |
-| BR-25 | Are defaults prevented from inventing historical or verified facts? | default audit |
-| BR-26 | Are partial projections named as partial types? | query/type review |
-| BR-27 | Can test-only or feature-gated constructors ship? | feature matrix |
-| BR-28 | Are unsafe layout/construction shortcuts absent or fully audited? | unsafe inventory |
-| BR-29 | Are UI/client claims excluded from backend authority? | authorization trace |
-| BR-30 | Does every bypass have a scoped, reviewed obligation? | escape-hatch ledger |
+| ID    | Question                                                                | Pass evidence       |
+| ----- | ----------------------------------------------------------------------- | ------------------- |
+| BR-21 | Does Serde delegate to checked `TryFrom` or manual validation?          | implementation      |
+| BR-22 | Does every database read validate trusted newtypes?                     | row conversions     |
+| BR-23 | Are derived decoders prevented from assigning trusted fields unchecked? | derive audit        |
+| BR-24 | Are unchecked `From` conversions absent for fallible evidence?          | impl search         |
+| BR-25 | Are defaults prevented from inventing historical or verified facts?     | default audit       |
+| BR-26 | Are partial projections named as partial types?                         | query/type review   |
+| BR-27 | Can test-only or feature-gated constructors ship?                       | feature matrix      |
+| BR-28 | Are unsafe layout/construction shortcuts absent or fully audited?       | unsafe inventory    |
+| BR-29 | Are UI/client claims excluded from backend authority?                   | authorization trace |
+| BR-30 | Does every bypass have a scoped, reviewed obligation?                   | escape-hatch ledger |
 
 ## Evolution, errors, and secrecy
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| BR-31 | Is long-lived representation versioned? | envelope/schema version |
-| BR-32 | Is unknown-field policy deliberate? | reject/ignore/retain rationale |
-| BR-33 | Is unknown enum/version behavior explicit? | compatibility tests |
-| BR-34 | Are stable external tags independent of source rename? | encoding table |
-| BR-35 | Is rolling old/new compatibility tested? | version matrix |
-| BR-36 | Are syntax, validation, authority, conflict, availability, and unknown outcomes distinguishable as needed? | error model |
-| BR-37 | Are source errors retained internally? | error chain |
-| BR-38 | Are public diagnostics redacted and stable? | error mapping tests |
-| BR-39 | Are secrets absent from logs, debug, metrics, and snapshots? | redaction audit |
-| BR-40 | Are quarantine/dead-letter records access-controlled and retained safely? | operations policy |
-| BR-41 | Are correlation IDs bounded and sensitivity-classified? | telemetry schema |
-| BR-42 | Are credentials minimized across parsing copies? | secret data flow |
+| ID    | Question                                                                                                   | Pass evidence                  |
+| ----- | ---------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| BR-31 | Is long-lived representation versioned?                                                                    | envelope/schema version        |
+| BR-32 | Is unknown-field policy deliberate?                                                                        | reject/ignore/retain rationale |
+| BR-33 | Is unknown enum/version behavior explicit?                                                                 | compatibility tests            |
+| BR-34 | Are stable external tags independent of source rename?                                                     | encoding table                 |
+| BR-35 | Is rolling old/new compatibility tested?                                                                   | version matrix                 |
+| BR-36 | Are syntax, validation, authority, conflict, availability, and unknown outcomes distinguishable as needed? | error model                    |
+| BR-37 | Are source errors retained internally?                                                                     | error chain                    |
+| BR-38 | Are public diagnostics redacted and stable?                                                                | error mapping tests            |
+| BR-39 | Are secrets absent from logs, debug, metrics, and snapshots?                                               | redaction audit                |
+| BR-40 | Are quarantine/dead-letter records access-controlled and retained safely?                                  | operations policy              |
+| BR-41 | Are correlation IDs bounded and sensitivity-classified?                                                    | telemetry schema               |
+| BR-42 | Are credentials minimized across parsing copies?                                                           | secret data flow               |
 
 ## Evidence and non-guarantees
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| BR-43 | Do tests cover valid and invalid boundary values? | fixtures |
-| BR-44 | Do tests cover oversized and resource-hostile input? | adversarial cases |
-| BR-45 | Do tests cross the real codec/driver/router/ABI where consequential? | integration suite |
-| BR-46 | Do tests cover old and future/unknown values? | compatibility fixtures |
-| BR-47 | Do fault tests cover partial effects and acknowledgement loss? | fault matrix |
-| BR-48 | Are invalid historical records rejected or quarantined? | database evidence |
-| BR-49 | Is fuzz/property evidence used where input space warrants it? | test record |
-| BR-50 | Does the boundary ledger state what parsing proves? | guarantee entry |
-| BR-51 | Does it state mutable external facts not proved? | non-guarantees |
-| BR-52 | Are observation time, freshness, and reconciliation recorded? | evidence lifecycle |
+| ID    | Question                                                             | Pass evidence          |
+| ----- | -------------------------------------------------------------------- | ---------------------- |
+| BR-43 | Do tests cover valid and invalid boundary values?                    | fixtures               |
+| BR-44 | Do tests cover oversized and resource-hostile input?                 | adversarial cases      |
+| BR-45 | Do tests cross the real codec/driver/router/ABI where consequential? | integration suite      |
+| BR-46 | Do tests cover old and future/unknown values?                        | compatibility fixtures |
+| BR-47 | Do fault tests cover partial effects and acknowledgement loss?       | fault matrix           |
+| BR-48 | Are invalid historical records rejected or quarantined?              | database evidence      |
+| BR-49 | Is fuzz/property evidence used where input space warrants it?        | test record            |
+| BR-50 | Does the boundary ledger state what parsing proves?                  | guarantee entry        |
+| BR-51 | Does it state mutable external facts not proved?                     | non-guarantees         |
+| BR-52 | Are observation time, freshness, and reconciliation recorded?        | evidence lifecycle     |
 
 ## Exit criteria
 
@@ -13425,78 +13433,78 @@ runtime validation rather than presuming typestate wins.
 
 ## Fit and scope
 
-| ID | Question | Pass evidence |
-|---|---|---|
+| ID     | Question                                                                    | Pass evidence            |
+| ------ | --------------------------------------------------------------------------- | ------------------------ |
 | TSR-01 | Is the protected problem operation sequencing rather than value validation? | invariant classification |
-| TSR-02 | Is the sequence locally controlled by one handle owner? | ownership map |
-| TSR-03 | Is state not primarily externally determined? | boundary analysis |
-| TSR-04 | Is the state graph small and stable enough for static APIs? | node/edge count |
-| TSR-05 | Are illegal calls consequential and frequent enough to justify types? | risk assessment |
-| TSR-06 | Can marker construction be restricted? | visibility |
-| TSR-07 | Does each marker represent evidence actually established? | guarantee mapping |
-| TSR-08 | Are independent dimensions kept out of a type cross-product? | decomposition |
-| TSR-09 | Is the workflow unsuitable for a simpler consuming non-generic handle? | alternative comparison |
-| TSR-10 | Is a runtime enum explicitly evaluated? | decision record |
+| TSR-02 | Is the sequence locally controlled by one handle owner?                     | ownership map            |
+| TSR-03 | Is state not primarily externally determined?                               | boundary analysis        |
+| TSR-04 | Is the state graph small and stable enough for static APIs?                 | node/edge count          |
+| TSR-05 | Are illegal calls consequential and frequent enough to justify types?       | risk assessment          |
+| TSR-06 | Can marker construction be restricted?                                      | visibility               |
+| TSR-07 | Does each marker represent evidence actually established?                   | guarantee mapping        |
+| TSR-08 | Are independent dimensions kept out of a type cross-product?                | decomposition            |
+| TSR-09 | Is the workflow unsuitable for a simpler consuming non-generic handle?      | alternative comparison   |
+| TSR-10 | Is a runtime enum explicitly evaluated?                                     | decision record          |
 
 ## Transition design
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| TSR-11 | Does each legal edge have one clear method? | state API graph |
-| TSR-12 | Are illegal state-specific methods absent from the type? | impl inspection |
-| TSR-13 | Do transitions consume the prior state when reuse is invalid? | signatures |
-| TSR-14 | Are infallible transitions truly local and infallible? | operation analysis |
-| TSR-15 | Do fallible transitions return structured errors? | error types |
-| TSR-16 | Is the prior handle returned only when non-transition is proven? | error/recovery shape |
-| TSR-17 | Is external ambiguity represented instead of restoring old state? | unknown outcome |
-| TSR-18 | Are transition payloads carried in the successor type? | successor fields |
-| TSR-19 | Are authorization and capability requirements explicit? | method arguments |
+| ID     | Question                                                                    | Pass evidence              |
+| ------ | --------------------------------------------------------------------------- | -------------------------- |
+| TSR-11 | Does each legal edge have one clear method?                                 | state API graph            |
+| TSR-12 | Are illegal state-specific methods absent from the type?                    | impl inspection            |
+| TSR-13 | Do transitions consume the prior state when reuse is invalid?               | signatures                 |
+| TSR-14 | Are infallible transitions truly local and infallible?                      | operation analysis         |
+| TSR-15 | Do fallible transitions return structured errors?                           | error types                |
+| TSR-16 | Is the prior handle returned only when non-transition is proven?            | error/recovery shape       |
+| TSR-17 | Is external ambiguity represented instead of restoring old state?           | unknown outcome            |
+| TSR-18 | Are transition payloads carried in the successor type?                      | successor fields           |
+| TSR-19 | Are authorization and capability requirements explicit?                     | method arguments           |
 | TSR-20 | Can parallel or duplicate transition attempts occur through another handle? | resource identity analysis |
 
 ## Async and external reality
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| TSR-21 | Is every `.await` in a transition cancellation-reviewed? | cancellation table |
-| TSR-22 | Does cancellation release or reconcile consumed resources? | cleanup evidence |
-| TSR-23 | Are blocking operations isolated appropriately? | async design |
-| TSR-24 | Does an open/connected marker mean only local transition success? | documentation |
-| TSR-25 | Do send/capture/commit operations remain fallible? | method results |
-| TSR-26 | Can timeout produce explicit unknown outcome? | outcome type |
-| TSR-27 | Are external facts re-observed when needed? | validation policy |
-| TSR-28 | Does typestate avoid claiming current remote liveness? | guarantee ledger |
-| TSR-29 | Does a lease/capability marker account for expiry/revocation? | runtime check |
-| TSR-30 | Is compensation modeled as a later fallible transition? | state graph |
+| ID     | Question                                                          | Pass evidence      |
+| ------ | ----------------------------------------------------------------- | ------------------ |
+| TSR-21 | Is every `.await` in a transition cancellation-reviewed?          | cancellation table |
+| TSR-22 | Does cancellation release or reconcile consumed resources?        | cleanup evidence   |
+| TSR-23 | Are blocking operations isolated appropriately?                   | async design       |
+| TSR-24 | Does an open/connected marker mean only local transition success? | documentation      |
+| TSR-25 | Do send/capture/commit operations remain fallible?                | method results     |
+| TSR-26 | Can timeout produce explicit unknown outcome?                     | outcome type       |
+| TSR-27 | Are external facts re-observed when needed?                       | validation policy  |
+| TSR-28 | Does typestate avoid claiming current remote liveness?            | guarantee ledger   |
+| TSR-29 | Does a lease/capability marker account for expiry/revocation?     | runtime check      |
+| TSR-30 | Is compensation modeled as a later fallible transition?           | state graph        |
 
 ## Persistence and ergonomics
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| TSR-31 | Must states be stored heterogeneously or inspected dynamically? | usage inventory |
-| TSR-32 | Is a stable runtime persisted enum defined where needed? | storage model |
-| TSR-33 | Does rehydration validate before issuing a typed handle? | restoration service |
-| TSR-34 | Is marker spelling excluded from durable protocol evidence? | encoding policy |
+| ID     | Question                                                                | Pass evidence           |
+| ------ | ----------------------------------------------------------------------- | ----------------------- |
+| TSR-31 | Must states be stored heterogeneously or inspected dynamically?         | usage inventory         |
+| TSR-32 | Is a stable runtime persisted enum defined where needed?                | storage model           |
+| TSR-33 | Does rehydration validate before issuing a typed handle?                | restoration service     |
+| TSR-34 | Is marker spelling excluded from durable protocol evidence?             | encoding policy         |
 | TSR-35 | Are optimistic version or claim semantics present for multiple workers? | persistence concurrency |
-| TSR-36 | Can trait objects or plugin interfaces use the design clearly? | dispatch design |
-| TSR-37 | Are mocks and test harnesses comprehensible? | test API review |
-| TSR-38 | Are compiler diagnostics useful at misuse sites? | compile-fail output |
-| TSR-39 | Is generic propagation limited at public boundaries? | API signatures |
-| TSR-40 | Are transition errors smaller/clearer than equivalent runtime checks? | caller comparison |
-| TSR-41 | Has monomorphization/code-size impact been considered? | size analysis |
-| TSR-42 | Has compile-time and IDE diagnostic impact been considered? | complexity budget |
+| TSR-36 | Can trait objects or plugin interfaces use the design clearly?          | dispatch design         |
+| TSR-37 | Are mocks and test harnesses comprehensible?                            | test API review         |
+| TSR-38 | Are compiler diagnostics useful at misuse sites?                        | compile-fail output     |
+| TSR-39 | Is generic propagation limited at public boundaries?                    | API signatures          |
+| TSR-40 | Are transition errors smaller/clearer than equivalent runtime checks?   | caller comparison       |
+| TSR-41 | Has monomorphization/code-size impact been considered?                  | size analysis           |
+| TSR-42 | Has compile-time and IDE diagnostic impact been considered?             | complexity budget       |
 
 ## Evidence and decision
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| TSR-43 | Do compile-fail tests prove important prohibited calls? | UI tests |
-| TSR-44 | Do they fail for the intended reason? | diagnostic inspection |
-| TSR-45 | Are every successful and failed transition tested? | unit suite |
-| TSR-46 | Are cancellation and external failure tested? | fault suite |
-| TSR-47 | Is persisted/runtime conversion tested? | integration suite |
-| TSR-48 | Are unknown outcomes and reconciliation tested? | distributed tests |
-| TSR-49 | Does documentation state exact guarantees and non-guarantees? | ledger/docs |
-| TSR-50 | Does benefit exceed type/API complexity? | signed decision |
+| ID     | Question                                                      | Pass evidence         |
+| ------ | ------------------------------------------------------------- | --------------------- |
+| TSR-43 | Do compile-fail tests prove important prohibited calls?       | UI tests              |
+| TSR-44 | Do they fail for the intended reason?                         | diagnostic inspection |
+| TSR-45 | Are every successful and failed transition tested?            | unit suite            |
+| TSR-46 | Are cancellation and external failure tested?                 | fault suite           |
+| TSR-47 | Is persisted/runtime conversion tested?                       | integration suite     |
+| TSR-48 | Are unknown outcomes and reconciliation tested?               | distributed tests     |
+| TSR-49 | Does documentation state exact guarantees and non-guarantees? | ledger/docs           |
+| TSR-50 | Does benefit exceed type/API complexity?                      | signed decision       |
 
 ## Exit criteria
 
@@ -13519,88 +13527,88 @@ applicable**, or **waiver reference**.
 
 ## Effect and identity
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-01 | Is each external effect listed separately? | effect inventory |
-| DER-02 | Is one logical operation distinct from transport attempts? | identity model |
-| DER-03 | Is operation identity generated before first dispatch? | lifecycle trace |
-| DER-04 | Do retries reuse the logical identity? | attempt tests |
-| DER-05 | Is the target/resource included in identity scope? | key contract |
-| DER-06 | Is request intent fingerprinted canonically? | fingerprint design |
-| DER-07 | Is identity collision risk proportionate? | generator analysis |
-| DER-08 | Is same identity with different payload rejected? | conflict behavior |
-| DER-09 | Are concurrent same-identity attempts coordinated? | atomic claim |
-| DER-10 | Is identity retained for the full replay horizon? | retention calculation |
+| ID     | Question                                                   | Pass evidence         |
+| ------ | ---------------------------------------------------------- | --------------------- |
+| DER-01 | Is each external effect listed separately?                 | effect inventory      |
+| DER-02 | Is one logical operation distinct from transport attempts? | identity model        |
+| DER-03 | Is operation identity generated before first dispatch?     | lifecycle trace       |
+| DER-04 | Do retries reuse the logical identity?                     | attempt tests         |
+| DER-05 | Is the target/resource included in identity scope?         | key contract          |
+| DER-06 | Is request intent fingerprinted canonically?               | fingerprint design    |
+| DER-07 | Is identity collision risk proportionate?                  | generator analysis    |
+| DER-08 | Is same identity with different payload rejected?          | conflict behavior     |
+| DER-09 | Are concurrent same-identity attempts coordinated?         | atomic claim          |
+| DER-10 | Is identity retained for the full replay horizon?          | retention calculation |
 
 ## Timeout, outcome, and retry
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-11 | Is the point after which execution may have occurred identified? | protocol timeline |
-| DER-12 | Does timeout avoid implying non-execution? | outcome mapping |
-| DER-13 | Is local pre-dispatch failure supported by actual protocol evidence? | transport contract |
-| DER-14 | Are confirmed success and confirmed rejection authenticated? | response verification |
-| DER-15 | Are confirmed, rejected, local-failure, and unknown outcomes distinct as needed? | outcome type |
-| DER-16 | Does unknown carry reconciliation evidence? | stored token |
-| DER-17 | Is retry classified at every failure point? | decision matrix |
-| DER-18 | Are unsafe retries prohibited? | retry policy |
-| DER-19 | Does reconcile-before-retry exist for ambiguity? | transition path |
-| DER-20 | Is one end-to-end deadline propagated? | deadline budget |
-| DER-21 | Is maximum retry multiplication across layers calculated? | attempt equation |
-| DER-22 | Are backoff, jitter, and server guidance applied? | policy |
-| DER-23 | Are retry concurrency and queues bounded? | capacity |
-| DER-24 | Are overload and rate-limit responses preserved? | error/retry handling |
+| ID     | Question                                                                         | Pass evidence         |
+| ------ | -------------------------------------------------------------------------------- | --------------------- |
+| DER-11 | Is the point after which execution may have occurred identified?                 | protocol timeline     |
+| DER-12 | Does timeout avoid implying non-execution?                                       | outcome mapping       |
+| DER-13 | Is local pre-dispatch failure supported by actual protocol evidence?             | transport contract    |
+| DER-14 | Are confirmed success and confirmed rejection authenticated?                     | response verification |
+| DER-15 | Are confirmed, rejected, local-failure, and unknown outcomes distinct as needed? | outcome type          |
+| DER-16 | Does unknown carry reconciliation evidence?                                      | stored token          |
+| DER-17 | Is retry classified at every failure point?                                      | decision matrix       |
+| DER-18 | Are unsafe retries prohibited?                                                   | retry policy          |
+| DER-19 | Does reconcile-before-retry exist for ambiguity?                                 | transition path       |
+| DER-20 | Is one end-to-end deadline propagated?                                           | deadline budget       |
+| DER-21 | Is maximum retry multiplication across layers calculated?                        | attempt equation      |
+| DER-22 | Are backoff, jitter, and server guidance applied?                                | policy                |
+| DER-23 | Are retry concurrency and queues bounded?                                        | capacity              |
+| DER-24 | Are overload and rate-limit responses preserved?                                 | error/retry handling  |
 
 ## Delivery, order, and coordination
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-25 | Are duplicates expected for at-least-once delivery? | consumer contract |
-| DER-26 | Is deduplication durable when protecting durable effects? | inbox/store |
-| DER-27 | Is dedup claim atomic with the local effect? | transaction |
+| ID     | Question                                                    | Pass evidence         |
+| ------ | ----------------------------------------------------------- | --------------------- |
+| DER-25 | Are duplicates expected for at-least-once delivery?         | consumer contract     |
+| DER-26 | Is deduplication durable when protecting durable effects?   | inbox/store           |
+| DER-27 | Is dedup claim atomic with the local effect?                | transaction           |
 | DER-28 | Is dedup retention sufficient and expiry behavior explicit? | retention/replay plan |
-| DER-29 | Is acknowledgement order documented? | crash-point matrix |
-| DER-30 | Is acknowledgement loss handled? | redelivery test |
-| DER-31 | Are poison messages isolated without a hot retry loop? | dead-letter policy |
-| DER-32 | Is administrative replay identity-preserving and audited? | replay runbook |
-| DER-33 | Is ordering scoped to key/partition/producer/consumer? | ordering contract |
-| DER-34 | Are gaps and out-of-order versions handled? | state/version policy |
-| DER-35 | Are failover and retry effects on order stated? | scenario tests |
-| DER-36 | Is every exactly-once claim boundary-specific? | guarantee ledger |
-| DER-37 | Are external effects outside the claimed transaction named? | boundary diagram |
-| DER-38 | Is persistence plus publication coordinated durably? | outbox/event log |
+| DER-29 | Is acknowledgement order documented?                        | crash-point matrix    |
+| DER-30 | Is acknowledgement loss handled?                            | redelivery test       |
+| DER-31 | Are poison messages isolated without a hot retry loop?      | dead-letter policy    |
+| DER-32 | Is administrative replay identity-preserving and audited?   | replay runbook        |
+| DER-33 | Is ordering scoped to key/partition/producer/consumer?      | ordering contract     |
+| DER-34 | Are gaps and out-of-order versions handled?                 | state/version policy  |
+| DER-35 | Are failover and retry effects on order stated?             | scenario tests        |
+| DER-36 | Is every exactly-once claim boundary-specific?              | guarantee ledger      |
+| DER-37 | Are external effects outside the claimed transaction named? | boundary diagram      |
+| DER-38 | Is persistence plus publication coordinated durably?        | outbox/event log      |
 
 ## Reconciliation, compensation, and authority
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-39 | Is every unknown state durable when process loss matters? | persistence model |
-| DER-40 | Is a reconciliation owner named? | service/runbook ownership |
-| DER-41 | Is the observation source authoritative? | provider contract |
-| DER-42 | Are observation freshness and finality defined? | timestamp/version/window |
-| DER-43 | Can reconciliation remain unknown? | repeated state path |
-| DER-44 | Are reconciliation attempts bounded and observable? | age/attempt metrics |
-| DER-45 | Is terminal human escalation defined? | operations procedure |
-| DER-46 | Are operator overrides audited as decisions, not proof? | audit event |
-| DER-47 | Is compensation modeled as a new effect? | saga states |
-| DER-48 | Does compensation have idempotency and unknown handling? | effect contract |
-| DER-49 | Are concurrent coordinators claimed atomically? | lease/CAS |
-| DER-50 | Are stale lease owners fenced at the effect resource? | fencing token |
-| DER-51 | Are clock and process-pause assumptions documented? | lease analysis |
-| DER-52 | Can users safely act while state is unknown? | API/UI behavior |
+| ID     | Question                                                  | Pass evidence             |
+| ------ | --------------------------------------------------------- | ------------------------- |
+| DER-39 | Is every unknown state durable when process loss matters? | persistence model         |
+| DER-40 | Is a reconciliation owner named?                          | service/runbook ownership |
+| DER-41 | Is the observation source authoritative?                  | provider contract         |
+| DER-42 | Are observation freshness and finality defined?           | timestamp/version/window  |
+| DER-43 | Can reconciliation remain unknown?                        | repeated state path       |
+| DER-44 | Are reconciliation attempts bounded and observable?       | age/attempt metrics       |
+| DER-45 | Is terminal human escalation defined?                     | operations procedure      |
+| DER-46 | Are operator overrides audited as decisions, not proof?   | audit event               |
+| DER-47 | Is compensation modeled as a new effect?                  | saga states               |
+| DER-48 | Does compensation have idempotency and unknown handling?  | effect contract           |
+| DER-49 | Are concurrent coordinators claimed atomically?           | lease/CAS                 |
+| DER-50 | Are stale lease owners fenced at the effect resource?     | fencing token             |
+| DER-51 | Are clock and process-pause assumptions documented?       | lease analysis            |
+| DER-52 | Can users safely act while state is unknown?              | API/UI behavior           |
 
 ## Audit, secrecy, and evidence
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-53 | Does audit preserve operation, attempt, parent, trigger, and target? | event schema |
-| DER-54 | Are outcome observations and decisions reconstructible? | incident query |
-| DER-55 | Are credentials and unnecessary personal data excluded? | field classification |
-| DER-56 | Is correlation retained without uncontrolled tracking? | privacy policy |
-| DER-57 | Do tests inject loss before and after dispatch? | fault suite |
-| DER-58 | Do tests inject duplicate, delay, reordering, and crash? | scenario matrix |
-| DER-59 | Do tests cover concurrent identity and reconciler claims? | concurrency suite |
-| DER-60 | Does the ledger state residual unknowns and non-guarantees? | completed ledger |
+| ID     | Question                                                             | Pass evidence        |
+| ------ | -------------------------------------------------------------------- | -------------------- |
+| DER-53 | Does audit preserve operation, attempt, parent, trigger, and target? | event schema         |
+| DER-54 | Are outcome observations and decisions reconstructible?              | incident query       |
+| DER-55 | Are credentials and unnecessary personal data excluded?              | field classification |
+| DER-56 | Is correlation retained without uncontrolled tracking?               | privacy policy       |
+| DER-57 | Do tests inject loss before and after dispatch?                      | fault suite          |
+| DER-58 | Do tests inject duplicate, delay, reordering, and crash?             | scenario matrix      |
+| DER-59 | Do tests cover concurrent identity and reconciler claims?            | concurrency suite    |
+| DER-60 | Does the ledger state residual unknowns and non-guarantees?          | completed ledger     |
 
 ## Exit criteria
 
@@ -13623,111 +13631,111 @@ This audit checks evidence; it does not infer completion from CI color.
 
 ## Repository and scope integrity
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-01 | Does the diff match the approved scope? | complete diff review |
-| FCA-02 | Are unrelated user changes preserved? | status/diff provenance |
-| FCA-03 | Are all new files intentional and reviewable? | full file inventory |
-| FCA-04 | Are archives, encoded payloads, generated source commits, and transient artifacts absent? | inventory/scan |
-| FCA-05 | Are secrets, credentials, personal paths, and internal identifiers absent? | positive-controlled secret/PII scan |
-| FCA-06 | Are canonical and generated paths separated? | architecture check |
-| FCA-07 | Are generated files derived only by the declared tool? | clean regeneration |
-| FCA-08 | Are dependency additions justified and licensed? | dependency review |
-| FCA-09 | Is MSRV/toolchain policy preserved? | toolchain matrix |
-| FCA-10 | Is repository version/change log accurate? | metadata comparison |
+| ID     | Question                                                                                  | Pass evidence                       |
+| ------ | ----------------------------------------------------------------------------------------- | ----------------------------------- |
+| FCA-01 | Does the diff match the approved scope?                                                   | complete diff review                |
+| FCA-02 | Are unrelated user changes preserved?                                                     | status/diff provenance              |
+| FCA-03 | Are all new files intentional and reviewable?                                             | full file inventory                 |
+| FCA-04 | Are archives, encoded payloads, generated source commits, and transient artifacts absent? | inventory/scan                      |
+| FCA-05 | Are secrets, credentials, personal paths, and internal identifiers absent?                | positive-controlled secret/PII scan |
+| FCA-06 | Are canonical and generated paths separated?                                              | architecture check                  |
+| FCA-07 | Are generated files derived only by the declared tool?                                    | clean regeneration                  |
+| FCA-08 | Are dependency additions justified and licensed?                                          | dependency review                   |
+| FCA-09 | Is MSRV/toolchain policy preserved?                                                       | toolchain matrix                    |
+| FCA-10 | Is repository version/change log accurate?                                                | metadata comparison                 |
 
 ## Invariants, construction, and authority
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-11 | Is the invariant inventory current? | reviewed artifact |
-| FCA-12 | Does every changed trusted type have exact proof and non-proof statements? | documentation/ledger |
-| FCA-13 | Are trusted fields and constructors protected? | visibility/construction audit |
-| FCA-14 | Do all decoders preserve construction evidence? | Serde/DB/boundary trace |
-| FCA-15 | Are contradictory states structurally absent or explicitly rejected? | state truth table |
-| FCA-16 | Are legal transitions and authority explicit? | state/authority graph |
-| FCA-17 | Are capability cloning, transfer, expiry, and revocation honest? | lifecycle contract |
-| FCA-18 | Are secret types protected from formatting and serialization? | trait audit |
-| FCA-19 | Are cross-entity invariants enforced transactionally/runtime? | service/query evidence |
-| FCA-20 | Are escape hatches enumerated, scoped, and reviewed? | ledger |
+| ID     | Question                                                                   | Pass evidence                 |
+| ------ | -------------------------------------------------------------------------- | ----------------------------- |
+| FCA-11 | Is the invariant inventory current?                                        | reviewed artifact             |
+| FCA-12 | Does every changed trusted type have exact proof and non-proof statements? | documentation/ledger          |
+| FCA-13 | Are trusted fields and constructors protected?                             | visibility/construction audit |
+| FCA-14 | Do all decoders preserve construction evidence?                            | Serde/DB/boundary trace       |
+| FCA-15 | Are contradictory states structurally absent or explicitly rejected?       | state truth table             |
+| FCA-16 | Are legal transitions and authority explicit?                              | state/authority graph         |
+| FCA-17 | Are capability cloning, transfer, expiry, and revocation honest?           | lifecycle contract            |
+| FCA-18 | Are secret types protected from formatting and serialization?              | trait audit                   |
+| FCA-19 | Are cross-entity invariants enforced transactionally/runtime?              | service/query evidence        |
+| FCA-20 | Are escape hatches enumerated, scoped, and reviewed?                       | ledger                        |
 
 ## Boundaries, persistence, and evolution
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-21 | Is every ingress represented raw → structural → trusted? | boundary map |
-| FCA-22 | Are resource limits enforced before expensive processing? | limits/tests |
-| FCA-23 | Are authentication and authorization distinct? | request flow |
-| FCA-24 | Are unknown fields/versions/variants handled deliberately? | compatibility policy |
-| FCA-25 | Are durable formats and enum tags stable/versioned? | schema/encoding |
-| FCA-26 | Do migrations state and verify invariant transformations? | migration evidence |
-| FCA-27 | Are invalid historical values rejected or quarantined? | tests/operations |
-| FCA-28 | Are lost updates and conflicts explicit? | version/lock protocol |
-| FCA-29 | Are transaction isolation claims mechanism-specific? | database analysis |
-| FCA-30 | Are public errors structured and redacted? | error tests |
+| ID     | Question                                                   | Pass evidence         |
+| ------ | ---------------------------------------------------------- | --------------------- |
+| FCA-21 | Is every ingress represented raw → structural → trusted?   | boundary map          |
+| FCA-22 | Are resource limits enforced before expensive processing?  | limits/tests          |
+| FCA-23 | Are authentication and authorization distinct?             | request flow          |
+| FCA-24 | Are unknown fields/versions/variants handled deliberately? | compatibility policy  |
+| FCA-25 | Are durable formats and enum tags stable/versioned?        | schema/encoding       |
+| FCA-26 | Do migrations state and verify invariant transformations?  | migration evidence    |
+| FCA-27 | Are invalid historical values rejected or quarantined?     | tests/operations      |
+| FCA-28 | Are lost updates and conflicts explicit?                   | version/lock protocol |
+| FCA-29 | Are transaction isolation claims mechanism-specific?       | database analysis     |
+| FCA-30 | Are public errors structured and redacted?                 | error tests           |
 
 ## Concurrency, effects, and uncertainty
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-31 | Is shared mutable state ownership explicit? | ownership map |
-| FCA-32 | Are locks scoped and ordered? | lock graph |
-| FCA-33 | Is async blocking work isolated and bounded? | pool/capacity design |
-| FCA-34 | Are cancellation points and cleanup reviewed? | cancellation matrix |
-| FCA-35 | Are tasks supervised and shutdown bounded? | task tree/tests |
-| FCA-36 | Are queues and concurrency bounded with backpressure? | capacity/overload tests |
-| FCA-37 | Does every external effect remain fallible? | APIs |
-| FCA-38 | Does timeout preserve unknown execution? | outcome states |
-| FCA-39 | Are idempotency scope, binding, retention, and replay defined? | key contract |
-| FCA-40 | Are duplicates and acknowledgement loss expected? | consumer evidence |
-| FCA-41 | Are ordering and exactly-once claims scoped? | guarantee ledger |
-| FCA-42 | Is persistence plus side effect coordinated without fictional atomicity? | outbox/reconciliation |
-| FCA-43 | Are compensations fallible new effects? | saga model |
-| FCA-44 | Are unknown outcomes durable, owned, and reconcilable? | operations plan |
+| ID     | Question                                                                 | Pass evidence           |
+| ------ | ------------------------------------------------------------------------ | ----------------------- |
+| FCA-31 | Is shared mutable state ownership explicit?                              | ownership map           |
+| FCA-32 | Are locks scoped and ordered?                                            | lock graph              |
+| FCA-33 | Is async blocking work isolated and bounded?                             | pool/capacity design    |
+| FCA-34 | Are cancellation points and cleanup reviewed?                            | cancellation matrix     |
+| FCA-35 | Are tasks supervised and shutdown bounded?                               | task tree/tests         |
+| FCA-36 | Are queues and concurrency bounded with backpressure?                    | capacity/overload tests |
+| FCA-37 | Does every external effect remain fallible?                              | APIs                    |
+| FCA-38 | Does timeout preserve unknown execution?                                 | outcome states          |
+| FCA-39 | Are idempotency scope, binding, retention, and replay defined?           | key contract            |
+| FCA-40 | Are duplicates and acknowledgement loss expected?                        | consumer evidence       |
+| FCA-41 | Are ordering and exactly-once claims scoped?                             | guarantee ledger        |
+| FCA-42 | Is persistence plus side effect coordinated without fictional atomicity? | outbox/reconciliation   |
+| FCA-43 | Are compensations fallible new effects?                                  | saga model              |
+| FCA-44 | Are unknown outcomes durable, owned, and reconcilable?                   | operations plan         |
 
 ## Unsafe, evidence, and performance
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-45 | Is unsafe code absent or fully reviewed under doctrine 0007? | unsafe inventory/proof |
-| FCA-46 | Does each unsafe block state complete safety premises? | local comments |
-| FCA-47 | Are FFI ABI, ownership, unwind, and threading explicit? | boundary contract |
-| FCA-48 | Are unsafe dependencies proportionally reviewed? | dependency audit |
-| FCA-49 | Do tests trace to invariants and failure risks? | evidence matrix |
-| FCA-50 | Are positive, negative, and prohibited programs covered? | test suite |
-| FCA-51 | Are real boundaries exercised where consequential? | integration evidence |
-| FCA-52 | Are cancellation, duplicate, reordering, and partial failures injected? | fault matrix |
-| FCA-53 | Were compile-fail diagnostics inspected semantically? | reviewed stderr diff |
-| FCA-54 | Are snapshots reviewed rather than bulk accepted? | focused rationale |
-| FCA-55 | Is flakiness resolved rather than retried away? | failure records |
-| FCA-56 | Are model/Miri/sanitizer limits stated? | evidence limits |
-| FCA-57 | Are performance claims workload- and environment-scoped? | benchmark record |
-| FCA-58 | Does profiling support optimization? | profile |
-| FCA-59 | Are latency distributions, allocation, contention, and boundary costs measured as relevant? | results |
-| FCA-60 | Is correctness evidence independent from benchmarks? | suite linkage |
+| ID     | Question                                                                                    | Pass evidence          |
+| ------ | ------------------------------------------------------------------------------------------- | ---------------------- |
+| FCA-45 | Is unsafe code absent or fully reviewed under doctrine 0007?                                | unsafe inventory/proof |
+| FCA-46 | Does each unsafe block state complete safety premises?                                      | local comments         |
+| FCA-47 | Are FFI ABI, ownership, unwind, and threading explicit?                                     | boundary contract      |
+| FCA-48 | Are unsafe dependencies proportionally reviewed?                                            | dependency audit       |
+| FCA-49 | Do tests trace to invariants and failure risks?                                             | evidence matrix        |
+| FCA-50 | Are positive, negative, and prohibited programs covered?                                    | test suite             |
+| FCA-51 | Are real boundaries exercised where consequential?                                          | integration evidence   |
+| FCA-52 | Are cancellation, duplicate, reordering, and partial failures injected?                     | fault matrix           |
+| FCA-53 | Were compile-fail diagnostics inspected semantically?                                       | reviewed stderr diff   |
+| FCA-54 | Are snapshots reviewed rather than bulk accepted?                                           | focused rationale      |
+| FCA-55 | Is flakiness resolved rather than retried away?                                             | failure records        |
+| FCA-56 | Are model/Miri/sanitizer limits stated?                                                     | evidence limits        |
+| FCA-57 | Are performance claims workload- and environment-scoped?                                    | benchmark record       |
+| FCA-58 | Does profiling support optimization?                                                        | profile                |
+| FCA-59 | Are latency distributions, allocation, contention, and boundary costs measured as relevant? | results                |
+| FCA-60 | Is correctness evidence independent from benchmarks?                                        | suite linkage          |
 
 ## Governance and reproducibility
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-61 | Are normative changes identified rather than called wording edits? | doctrine diff classification |
-| FCA-62 | Does every required normative change have an accepted RFC? | RFC link |
-| FCA-63 | Are doctrine IDs and versions preserved or changed by policy? | manifest comparison |
-| FCA-64 | Are source notes and attribution current? | provenance review |
-| FCA-65 | Do manifests and JSON Schemas agree? | lint/schema result |
-| FCA-66 | Does doctrine lint pass on the complete tree? | exact command/result |
-| FCA-67 | Does deterministic bundle generation produce no diff? | generate/check result |
-| FCA-68 | Do format, Clippy, tests, compile-fail, and dependency policy pass? | exact commands/results |
-| FCA-69 | Do Markdown links pass with only narrow documented exclusions? | link-check result |
-| FCA-70 | Is the working tree clean after regeneration and validation? | `git status --short` |
+| ID     | Question                                                            | Pass evidence                |
+| ------ | ------------------------------------------------------------------- | ---------------------------- |
+| FCA-61 | Are normative changes identified rather than called wording edits?  | doctrine diff classification |
+| FCA-62 | Does every required normative change have an accepted RFC?          | RFC link                     |
+| FCA-63 | Are doctrine IDs and versions preserved or changed by policy?       | manifest comparison          |
+| FCA-64 | Are source notes and attribution current?                           | provenance review            |
+| FCA-65 | Do manifests and JSON Schemas agree?                                | lint/schema result           |
+| FCA-66 | Does doctrine lint pass on the complete tree?                       | exact command/result         |
+| FCA-67 | Does deterministic bundle generation produce no diff?               | generate/check result        |
+| FCA-68 | Do format, Clippy, tests, compile-fail, and dependency policy pass? | exact commands/results       |
+| FCA-69 | Do Markdown links pass with only narrow documented exclusions?      | link-check result            |
+| FCA-70 | Is the working tree clean after regeneration and validation?        | `git status --short`         |
 
 ## Required guarantee ledger
 
 Every major domain or case-study claim uses:
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| exact claim | constructor, transition, protocol, or evidence | privacy/authority mechanism | decoding and persistence path | privileged paths | excluded facts | failure/uncertainty |
+| Claim       | Established by                                 | Protected construction      | Boundary preservation         | Escape hatches   | Does not prove | Residual runtime risk |
+| ----------- | ---------------------------------------------- | --------------------------- | ----------------------------- | ---------------- | -------------- | --------------------- |
+| exact claim | constructor, transition, protocol, or evidence | privacy/authority mechanism | decoding and persistence path | privileged paths | excluded facts | failure/uncertainty   |
 
 The auditor rejects rows whose claim is broader than establishment evidence.
 External mutable facts state observation time and reconciliation. Passing tests

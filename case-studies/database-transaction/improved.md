@@ -121,10 +121,10 @@ outbox recovery and duplicate delivery.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| only active handle mutates locally | private `ActiveTransaction` and consuming terminal methods | repository begin | handle is not serialized | driver raw API | DB transaction remains active remotely | connection/pool failure |
-| update used expected version | conditional update affects exactly one row | repository method | structured conflict | direct SQL administration | broader predicate serializability | concurrent policy change |
-| account, audit, and outbox intent commit together | one configured DB transaction | repository transaction | checked row reads | manual DB mutation | message delivered | database failure |
-| commit is unknown after ambiguous disconnect | adapter classification plus operation record | explicit variant | durable reconciliation token | operator decision | commit or rollback | missing DB evidence |
-| publisher reuses one message identity | durable outbox ID | unique constraint | consumer sees same ID | retention/replay tool | one delivery | acknowledgement loss |
+| Claim                                             | Established by                                             | Protected construction | Boundary preservation        | Escape hatches            | Does not prove                         | Residual runtime risk    |
+| ------------------------------------------------- | ---------------------------------------------------------- | ---------------------- | ---------------------------- | ------------------------- | -------------------------------------- | ------------------------ |
+| only active handle mutates locally                | private `ActiveTransaction` and consuming terminal methods | repository begin       | handle is not serialized     | driver raw API            | DB transaction remains active remotely | connection/pool failure  |
+| update used expected version                      | conditional update affects exactly one row                 | repository method      | structured conflict          | direct SQL administration | broader predicate serializability      | concurrent policy change |
+| account, audit, and outbox intent commit together | one configured DB transaction                              | repository transaction | checked row reads            | manual DB mutation        | message delivered                      | database failure         |
+| commit is unknown after ambiguous disconnect      | adapter classification plus operation record               | explicit variant       | durable reconciliation token | operator decision         | commit or rollback                     | missing DB evidence      |
+| publisher reuses one message identity             | durable outbox ID                                          | unique constraint      | consumer sees same ID        | retention/replay tool     | one delivery                           | acknowledgement loss     |

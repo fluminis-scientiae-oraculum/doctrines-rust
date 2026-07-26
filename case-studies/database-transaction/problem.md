@@ -21,16 +21,16 @@ specific distributed mechanism says otherwise.
 
 ## Invariants
 
-| ID | Statement | Mechanism |
-|---|---|---|
-| TX-01 | Only an active handle may mutate, commit, or roll back. | consuming local handle |
-| TX-02 | Commit/rollback consumes local transaction authority. | ownership API |
-| TX-03 | Account update uses the version read or reports conflict. | optimistic predicate |
-| TX-04 | Cross-row balance/audit intent changes atomically in the database. | transaction plus constraint/isolation |
-| TX-05 | Commit error preserves confirmed rejection versus unknown outcome. | structured outcome |
-| TX-06 | An external publish is not called database-atomic. | outbox boundary |
-| TX-07 | Cancellation does not silently abandon an owned transaction without cleanup policy. | guard/supervision |
-| TX-08 | Historical rows decode through current domain validation. | raw row `TryFrom` |
+| ID    | Statement                                                                           | Mechanism                             |
+| ----- | ----------------------------------------------------------------------------------- | ------------------------------------- |
+| TX-01 | Only an active handle may mutate, commit, or roll back.                             | consuming local handle                |
+| TX-02 | Commit/rollback consumes local transaction authority.                               | ownership API                         |
+| TX-03 | Account update uses the version read or reports conflict.                           | optimistic predicate                  |
+| TX-04 | Cross-row balance/audit intent changes atomically in the database.                  | transaction plus constraint/isolation |
+| TX-05 | Commit error preserves confirmed rejection versus unknown outcome.                  | structured outcome                    |
+| TX-06 | An external publish is not called database-atomic.                                  | outbox boundary                       |
+| TX-07 | Cancellation does not silently abandon an owned transaction without cleanup policy. | guard/supervision                     |
+| TX-08 | Historical rows decode through current domain validation.                           | raw row `TryFrom`                     |
 
 ## Boundaries
 

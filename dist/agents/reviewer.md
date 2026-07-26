@@ -336,13 +336,13 @@ If an answer is absent, narrow the claim or complete the design.
 
 Use this ledger for major types, case studies, review, and pull requests:
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| `PositiveMoney` is non-zero | `NonZeroU64` accepted by a fallible constructor | private field; no unchecked public constructor | DTO and row conversions call constructor | scoped migration conversion if reviewed | sufficient funds, correct FX, tax or allocation policy | overflow on later arithmetic, currency mismatch |
-| `VerifiedEmailAddress` passed ownership verification | verifier-only proof token after completed challenge | private fields and restricted proof-token constructor | persisted issuer, scope, time, and address revalidated on load | administrative import with audit | future deliverability, continued control, RFC-complete validity | revocation, expiry, provider error |
-| `Connection<Open>` completed local connection transition | consuming `connect` returned `Ok` | state marker and constructor visibility | not normally serialized; restoration requires a new connection | test transport factory | remote liveness at next send | immediate network failure, peer closure |
-| `AuthorizedPayment` passed local authorization transition | accepted authorization response and identity/amount checks | consuming transition; capability not freely cloneable | row decode validates status and authorization reference | repair tool with scoped authorization | capture success, settlement, absence of provider reversal | timeout, expiry, provider rejection |
-| `UnknownCapture` has reconciliation identity | explicit outcome constructor after ambiguous transport result | private operation and token fields | durable row stores operation identity and provider scope | manual reconciliation record with audit | whether capture succeeded or failed | delayed visibility, concurrent reconciliation |
+| Claim                                                     | Established by                                                | Protected construction                                | Boundary preservation                                          | Escape hatches                          | Does not prove                                                  | Residual runtime risk                           |
+| --------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------- |
+| `PositiveMoney` is non-zero                               | `NonZeroU64` accepted by a fallible constructor               | private field; no unchecked public constructor        | DTO and row conversions call constructor                       | scoped migration conversion if reviewed | sufficient funds, correct FX, tax or allocation policy          | overflow on later arithmetic, currency mismatch |
+| `VerifiedEmailAddress` passed ownership verification      | verifier-only proof token after completed challenge           | private fields and restricted proof-token constructor | persisted issuer, scope, time, and address revalidated on load | administrative import with audit        | future deliverability, continued control, RFC-complete validity | revocation, expiry, provider error              |
+| `Connection<Open>` completed local connection transition  | consuming `connect` returned `Ok`                             | state marker and constructor visibility               | not normally serialized; restoration requires a new connection | test transport factory                  | remote liveness at next send                                    | immediate network failure, peer closure         |
+| `AuthorizedPayment` passed local authorization transition | accepted authorization response and identity/amount checks    | consuming transition; capability not freely cloneable | row decode validates status and authorization reference        | repair tool with scoped authorization   | capture success, settlement, absence of provider reversal       | timeout, expiry, provider rejection             |
+| `UnknownCapture` has reconciliation identity              | explicit outcome constructor after ambiguous transport result | private operation and token fields                    | durable row stores operation identity and provider scope       | manual reconciliation record with audit | whether capture succeeded or failed                             | delayed visibility, concurrent reconciliation   |
 
 Ledger rows should identify exact project types and methods during review. Generic examples
 teach structure but are not evidence for an implementation.
@@ -561,17 +561,17 @@ ladder prompts an explanation for skipping simpler options.
 
 For a representation choice, record:
 
-| Dimension | Observation | Cost or risk | Evidence |
-|---|---|---|---|
-| Invalid action | Which misuse is prevented | Consequence and frequency | incidents, threat model, review |
-| State graph | State and transition count | explosion or clarity | state diagram |
-| Control | local, external, or shared | stale proof and runtime need | boundary map |
-| Persistence | format and migration | conversion and compatibility | schema tests |
-| API | caller count and stability | semver and diagnostics | compile-fail tests |
-| Runtime | dispatch, allocation, synchronization | latency and contention | benchmarks or profiles |
-| Build | generics and macros | compile time and binary size | measured builds |
-| Team | familiarity and support | maintenance and incident cost | review exercise |
-| Alternative | simpler mechanism | residual invalidity | comparative prototype |
+| Dimension      | Observation                           | Cost or risk                  | Evidence                        |
+| -------------- | ------------------------------------- | ----------------------------- | ------------------------------- |
+| Invalid action | Which misuse is prevented             | Consequence and frequency     | incidents, threat model, review |
+| State graph    | State and transition count            | explosion or clarity          | state diagram                   |
+| Control        | local, external, or shared            | stale proof and runtime need  | boundary map                    |
+| Persistence    | format and migration                  | conversion and compatibility  | schema tests                    |
+| API            | caller count and stability            | semver and diagnostics        | compile-fail tests              |
+| Runtime        | dispatch, allocation, synchronization | latency and contention        | benchmarks or profiles          |
+| Build          | generics and macros                   | compile time and binary size  | measured builds                 |
+| Team           | familiarity and support               | maintenance and incident cost | review exercise                 |
+| Alternative    | simpler mechanism                     | residual invalidity           | comparative prototype           |
 
 The decision also states a removal trigger. If state count grows beyond the usable limit,
 persistence becomes necessary, diagnostics degrade, or measurement shows material cost, the
@@ -3420,73 +3420,73 @@ with source paths and doctrine rule IDs.
 
 ## Values and names
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DMR-01 | Does each trusted type name only evidence its constructors establish? | constructor/name comparison |
-| DMR-02 | Are raw, parsed, policy-accepted, verified, authorized, and reconciled values distinct where operationally different? | evidence ladder |
-| DMR-03 | Are primitive aliases replaced where unit or invariant mixing is consequential? | opaque type |
-| DMR-04 | Are zero and empty states evaluated explicitly? | boundary table |
-| DMR-05 | Does integer money include explicit currency? | money representation |
-| DMR-06 | Does arithmetic reject currency mismatch and overflow? | checked operations |
-| DMR-07 | Are tax, FX, scale, allocation, and rounding outside the scalar guarantee? | non-guarantees |
-| DMR-08 | Does email syntax avoid ownership/deliverability claims? | evidence-accurate types |
-| DMR-09 | Are identifiers nonempty/bounded/normalized according to one policy? | constructor |
-| DMR-10 | Are secrets deliberately non-formatting and minimally cloneable? | trait/API audit |
+| ID     | Question                                                                                                              | Pass evidence               |
+| ------ | --------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| DMR-01 | Does each trusted type name only evidence its constructors establish?                                                 | constructor/name comparison |
+| DMR-02 | Are raw, parsed, policy-accepted, verified, authorized, and reconciled values distinct where operationally different? | evidence ladder             |
+| DMR-03 | Are primitive aliases replaced where unit or invariant mixing is consequential?                                       | opaque type                 |
+| DMR-04 | Are zero and empty states evaluated explicitly?                                                                       | boundary table              |
+| DMR-05 | Does integer money include explicit currency?                                                                         | money representation        |
+| DMR-06 | Does arithmetic reject currency mismatch and overflow?                                                                | checked operations          |
+| DMR-07 | Are tax, FX, scale, allocation, and rounding outside the scalar guarantee?                                            | non-guarantees              |
+| DMR-08 | Does email syntax avoid ownership/deliverability claims?                                                              | evidence-accurate types     |
+| DMR-09 | Are identifiers nonempty/bounded/normalized according to one policy?                                                  | constructor                 |
+| DMR-10 | Are secrets deliberately non-formatting and minimally cloneable?                                                      | trait/API audit             |
 
 ## Construction and mutation
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DMR-11 | Are trusted representation fields private? | visibility inspection |
-| DMR-12 | Does every public constructor enforce the complete documented invariant? | constructor trace |
-| DMR-13 | Is fallible construction visibly fallible? | `Result`/`TryFrom` API |
-| DMR-14 | Is normalization centralized and ordered before dependent checks? | construction pipeline |
-| DMR-15 | Are errors structured and actionable? | error enum/categories |
-| DMR-16 | Do mutation methods preserve the complete invariant? | mutation proof/tests |
-| DMR-17 | Are mutable representation escapes absent? | no `DerefMut`/raw field |
-| DMR-18 | Do conversion impls preserve evidence direction? | `From` versus `TryFrom` audit |
-| DMR-19 | Are unchecked constructors private, narrow, and obligation-documented? | escape-hatch inventory |
-| DMR-20 | Are unsafe constructors reviewed under doctrine 0007? | safety proof |
+| ID     | Question                                                                 | Pass evidence                 |
+| ------ | ------------------------------------------------------------------------ | ----------------------------- |
+| DMR-11 | Are trusted representation fields private?                               | visibility inspection         |
+| DMR-12 | Does every public constructor enforce the complete documented invariant? | constructor trace             |
+| DMR-13 | Is fallible construction visibly fallible?                               | `Result`/`TryFrom` API        |
+| DMR-14 | Is normalization centralized and ordered before dependent checks?        | construction pipeline         |
+| DMR-15 | Are errors structured and actionable?                                    | error enum/categories         |
+| DMR-16 | Do mutation methods preserve the complete invariant?                     | mutation proof/tests          |
+| DMR-17 | Are mutable representation escapes absent?                               | no `DerefMut`/raw field       |
+| DMR-18 | Do conversion impls preserve evidence direction?                         | `From` versus `TryFrom` audit |
+| DMR-19 | Are unchecked constructors private, narrow, and obligation-documented?   | escape-hatch inventory        |
+| DMR-20 | Are unsafe constructors reviewed under doctrine 0007?                    | safety proof                  |
 
 ## States and transitions
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DMR-21 | Are mutually exclusive states represented by a sum type? | state shape |
-| DMR-22 | Are contradictory boolean/optional combinations absent? | truth-table review |
-| DMR-23 | Does associated data live only in meaningful variants? | enum payloads |
-| DMR-24 | Are independent dimensions kept separate? | state decomposition |
-| DMR-25 | Is variant evolution and unknown persistence planned? | encoding/version policy |
-| DMR-26 | Are legal transition edges explicit? | state graph |
-| DMR-27 | Are illegal transitions structurally blocked or explicitly rejected? | API/runtime checks |
-| DMR-28 | Do consuming transitions prevent invalid prior-state reuse where useful? | ownership API |
-| DMR-29 | Do fallible transitions preserve or consume prior authority honestly? | error shape |
-| DMR-30 | Do async transitions handle cancellation and partial effects? | cancellation matrix |
-| DMR-31 | Does local typestate avoid remote-liveness claims? | guarantee ledger |
-| DMR-32 | Are persisted/dynamic states represented at runtime? | hybrid/runtime model |
-| DMR-33 | Are unknown distributed outcomes explicit? | outcome enum |
-| DMR-34 | Does reconciliation require new evidence rather than arbitrary assignment? | transition service |
+| ID     | Question                                                                   | Pass evidence           |
+| ------ | -------------------------------------------------------------------------- | ----------------------- |
+| DMR-21 | Are mutually exclusive states represented by a sum type?                   | state shape             |
+| DMR-22 | Are contradictory boolean/optional combinations absent?                    | truth-table review      |
+| DMR-23 | Does associated data live only in meaningful variants?                     | enum payloads           |
+| DMR-24 | Are independent dimensions kept separate?                                  | state decomposition     |
+| DMR-25 | Is variant evolution and unknown persistence planned?                      | encoding/version policy |
+| DMR-26 | Are legal transition edges explicit?                                       | state graph             |
+| DMR-27 | Are illegal transitions structurally blocked or explicitly rejected?       | API/runtime checks      |
+| DMR-28 | Do consuming transitions prevent invalid prior-state reuse where useful?   | ownership API           |
+| DMR-29 | Do fallible transitions preserve or consume prior authority honestly?      | error shape             |
+| DMR-30 | Do async transitions handle cancellation and partial effects?              | cancellation matrix     |
+| DMR-31 | Does local typestate avoid remote-liveness claims?                         | guarantee ledger        |
+| DMR-32 | Are persisted/dynamic states represented at runtime?                       | hybrid/runtime model    |
+| DMR-33 | Are unknown distributed outcomes explicit?                                 | outcome enum            |
+| DMR-34 | Does reconciliation require new evidence rather than arbitrary assignment? | transition service      |
 
 ## Authority, aggregates, and external rules
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DMR-35 | Are privileged constructors restricted to the authority owner? | module visibility |
-| DMR-36 | Does each capability expose least-privilege operations? | API surface |
-| DMR-37 | Is capability cloning justified? | clone/transfer policy |
-| DMR-38 | Are expiry and revocation runtime semantics explicit? | authority lifecycle |
-| DMR-39 | Are single-use tokens consumed or transactionally claimed? | use protocol |
-| DMR-40 | Are collection invariants protected after mutation? | wrapper API |
-| DMR-41 | Are completeness claims absent from paginated subsets? | type naming |
-| DMR-42 | Are cross-entity rules enforced in a domain service/transaction? | service boundary |
-| DMR-43 | Are environmental assumptions represented as checks/observations? | runtime validation |
-| DMR-44 | Do external effects remain fallible? | `Result`/outcome API |
-| DMR-45 | Does timeout preserve unknown execution where needed? | outcome handling |
-| DMR-46 | Are public escape hatches enumerated in the guarantee ledger? | ledger |
-| DMR-47 | Does each type list what it proves? | documentation |
-| DMR-48 | Does each type list what it does not prove? | documentation |
-| DMR-49 | Does executable evidence cover acceptance and rejection? | tests |
-| DMR-50 | Is type-system complexity proportional to misuse impact? | complexity decision |
+| ID     | Question                                                          | Pass evidence         |
+| ------ | ----------------------------------------------------------------- | --------------------- |
+| DMR-35 | Are privileged constructors restricted to the authority owner?    | module visibility     |
+| DMR-36 | Does each capability expose least-privilege operations?           | API surface           |
+| DMR-37 | Is capability cloning justified?                                  | clone/transfer policy |
+| DMR-38 | Are expiry and revocation runtime semantics explicit?             | authority lifecycle   |
+| DMR-39 | Are single-use tokens consumed or transactionally claimed?        | use protocol          |
+| DMR-40 | Are collection invariants protected after mutation?               | wrapper API           |
+| DMR-41 | Are completeness claims absent from paginated subsets?            | type naming           |
+| DMR-42 | Are cross-entity rules enforced in a domain service/transaction?  | service boundary      |
+| DMR-43 | Are environmental assumptions represented as checks/observations? | runtime validation    |
+| DMR-44 | Do external effects remain fallible?                              | `Result`/outcome API  |
+| DMR-45 | Does timeout preserve unknown execution where needed?             | outcome handling      |
+| DMR-46 | Are public escape hatches enumerated in the guarantee ledger?     | ledger                |
+| DMR-47 | Does each type list what it proves?                               | documentation         |
+| DMR-48 | Does each type list what it does not prove?                       | documentation         |
+| DMR-49 | Does executable evidence cover acceptance and rejection?          | tests                 |
+| DMR-50 | Is type-system complexity proportional to misuse impact?          | complexity decision   |
 
 ## Exit criteria
 
@@ -3508,80 +3508,80 @@ applicable**, or **waiver reference**.
 
 ## Inventory and layering
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| BR-01 | Is the boundary owner and threat/error model named? | boundary record |
-| BR-02 | Are all raw bytes, metadata, and alternate sources inventoried? | input list |
-| BR-03 | Is transport/physical parsing separate from domain validation? | layered conversion |
-| BR-04 | Is a raw DTO/row/foreign type used where contracts differ? | representation map |
-| BR-05 | Are trusted types constructed only after complete validation? | call trace |
-| BR-06 | Are authentication and authorization separate transitions? | evidence path |
+| ID    | Question                                                              | Pass evidence        |
+| ----- | --------------------------------------------------------------------- | -------------------- |
+| BR-01 | Is the boundary owner and threat/error model named?                   | boundary record      |
+| BR-02 | Are all raw bytes, metadata, and alternate sources inventoried?       | input list           |
+| BR-03 | Is transport/physical parsing separate from domain validation?        | layered conversion   |
+| BR-04 | Is a raw DTO/row/foreign type used where contracts differ?            | representation map   |
+| BR-05 | Are trusted types constructed only after complete validation?         | call trace           |
+| BR-06 | Are authentication and authorization separate transitions?            | evidence path        |
 | BR-07 | Are cross-entity checks placed transactionally or in domain services? | enforcement location |
-| BR-08 | Are egress DTOs deliberate rather than broad domain serialization? | output types |
-| BR-09 | Are privileged administrative paths included in the inventory? | bypass list |
-| BR-10 | Are cache, replay, restore, and migration paths included? | complete map |
+| BR-08 | Are egress DTOs deliberate rather than broad domain serialization?    | output types         |
+| BR-09 | Are privileged administrative paths included in the inventory?        | bypass list          |
+| BR-10 | Are cache, replay, restore, and migration paths included?             | complete map         |
 
 ## Parsing and resource limits
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| BR-11 | Is maximum raw input size enforced before large allocation? | limit/config test |
-| BR-12 | Are decompression ratios and expanded size bounded? | decompression policy |
-| BR-13 | Are nesting, field, element, and batch counts bounded? | parser limits |
-| BR-14 | Are numeric conversions checked for range and units? | conversion code |
-| BR-15 | Are text encoding and Unicode policies explicit? | parser policy |
-| BR-16 | Are duplicate fields/headers/keys handled deliberately? | fixtures |
-| BR-17 | Are paths protected from traversal and lossy conversion? | path policy |
-| BR-18 | Are pointer null, length, alignment, and ownership checked at FFI? | FFI contract |
-| BR-19 | Are time and size values represented with typed units? | DTO/domain types |
-| BR-20 | Does malformed input return structured failure without panic? | negative tests |
+| ID    | Question                                                           | Pass evidence        |
+| ----- | ------------------------------------------------------------------ | -------------------- |
+| BR-11 | Is maximum raw input size enforced before large allocation?        | limit/config test    |
+| BR-12 | Are decompression ratios and expanded size bounded?                | decompression policy |
+| BR-13 | Are nesting, field, element, and batch counts bounded?             | parser limits        |
+| BR-14 | Are numeric conversions checked for range and units?               | conversion code      |
+| BR-15 | Are text encoding and Unicode policies explicit?                   | parser policy        |
+| BR-16 | Are duplicate fields/headers/keys handled deliberately?            | fixtures             |
+| BR-17 | Are paths protected from traversal and lossy conversion?           | path policy          |
+| BR-18 | Are pointer null, length, alignment, and ownership checked at FFI? | FFI contract         |
+| BR-19 | Are time and size values represented with typed units?             | DTO/domain types     |
+| BR-20 | Does malformed input return structured failure without panic?      | negative tests       |
 
 ## Construction and bypasses
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| BR-21 | Does Serde delegate to checked `TryFrom` or manual validation? | implementation |
-| BR-22 | Does every database read validate trusted newtypes? | row conversions |
-| BR-23 | Are derived decoders prevented from assigning trusted fields unchecked? | derive audit |
-| BR-24 | Are unchecked `From` conversions absent for fallible evidence? | impl search |
-| BR-25 | Are defaults prevented from inventing historical or verified facts? | default audit |
-| BR-26 | Are partial projections named as partial types? | query/type review |
-| BR-27 | Can test-only or feature-gated constructors ship? | feature matrix |
-| BR-28 | Are unsafe layout/construction shortcuts absent or fully audited? | unsafe inventory |
-| BR-29 | Are UI/client claims excluded from backend authority? | authorization trace |
-| BR-30 | Does every bypass have a scoped, reviewed obligation? | escape-hatch ledger |
+| ID    | Question                                                                | Pass evidence       |
+| ----- | ----------------------------------------------------------------------- | ------------------- |
+| BR-21 | Does Serde delegate to checked `TryFrom` or manual validation?          | implementation      |
+| BR-22 | Does every database read validate trusted newtypes?                     | row conversions     |
+| BR-23 | Are derived decoders prevented from assigning trusted fields unchecked? | derive audit        |
+| BR-24 | Are unchecked `From` conversions absent for fallible evidence?          | impl search         |
+| BR-25 | Are defaults prevented from inventing historical or verified facts?     | default audit       |
+| BR-26 | Are partial projections named as partial types?                         | query/type review   |
+| BR-27 | Can test-only or feature-gated constructors ship?                       | feature matrix      |
+| BR-28 | Are unsafe layout/construction shortcuts absent or fully audited?       | unsafe inventory    |
+| BR-29 | Are UI/client claims excluded from backend authority?                   | authorization trace |
+| BR-30 | Does every bypass have a scoped, reviewed obligation?                   | escape-hatch ledger |
 
 ## Evolution, errors, and secrecy
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| BR-31 | Is long-lived representation versioned? | envelope/schema version |
-| BR-32 | Is unknown-field policy deliberate? | reject/ignore/retain rationale |
-| BR-33 | Is unknown enum/version behavior explicit? | compatibility tests |
-| BR-34 | Are stable external tags independent of source rename? | encoding table |
-| BR-35 | Is rolling old/new compatibility tested? | version matrix |
-| BR-36 | Are syntax, validation, authority, conflict, availability, and unknown outcomes distinguishable as needed? | error model |
-| BR-37 | Are source errors retained internally? | error chain |
-| BR-38 | Are public diagnostics redacted and stable? | error mapping tests |
-| BR-39 | Are secrets absent from logs, debug, metrics, and snapshots? | redaction audit |
-| BR-40 | Are quarantine/dead-letter records access-controlled and retained safely? | operations policy |
-| BR-41 | Are correlation IDs bounded and sensitivity-classified? | telemetry schema |
-| BR-42 | Are credentials minimized across parsing copies? | secret data flow |
+| ID    | Question                                                                                                   | Pass evidence                  |
+| ----- | ---------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| BR-31 | Is long-lived representation versioned?                                                                    | envelope/schema version        |
+| BR-32 | Is unknown-field policy deliberate?                                                                        | reject/ignore/retain rationale |
+| BR-33 | Is unknown enum/version behavior explicit?                                                                 | compatibility tests            |
+| BR-34 | Are stable external tags independent of source rename?                                                     | encoding table                 |
+| BR-35 | Is rolling old/new compatibility tested?                                                                   | version matrix                 |
+| BR-36 | Are syntax, validation, authority, conflict, availability, and unknown outcomes distinguishable as needed? | error model                    |
+| BR-37 | Are source errors retained internally?                                                                     | error chain                    |
+| BR-38 | Are public diagnostics redacted and stable?                                                                | error mapping tests            |
+| BR-39 | Are secrets absent from logs, debug, metrics, and snapshots?                                               | redaction audit                |
+| BR-40 | Are quarantine/dead-letter records access-controlled and retained safely?                                  | operations policy              |
+| BR-41 | Are correlation IDs bounded and sensitivity-classified?                                                    | telemetry schema               |
+| BR-42 | Are credentials minimized across parsing copies?                                                           | secret data flow               |
 
 ## Evidence and non-guarantees
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| BR-43 | Do tests cover valid and invalid boundary values? | fixtures |
-| BR-44 | Do tests cover oversized and resource-hostile input? | adversarial cases |
-| BR-45 | Do tests cross the real codec/driver/router/ABI where consequential? | integration suite |
-| BR-46 | Do tests cover old and future/unknown values? | compatibility fixtures |
-| BR-47 | Do fault tests cover partial effects and acknowledgement loss? | fault matrix |
-| BR-48 | Are invalid historical records rejected or quarantined? | database evidence |
-| BR-49 | Is fuzz/property evidence used where input space warrants it? | test record |
-| BR-50 | Does the boundary ledger state what parsing proves? | guarantee entry |
-| BR-51 | Does it state mutable external facts not proved? | non-guarantees |
-| BR-52 | Are observation time, freshness, and reconciliation recorded? | evidence lifecycle |
+| ID    | Question                                                             | Pass evidence          |
+| ----- | -------------------------------------------------------------------- | ---------------------- |
+| BR-43 | Do tests cover valid and invalid boundary values?                    | fixtures               |
+| BR-44 | Do tests cover oversized and resource-hostile input?                 | adversarial cases      |
+| BR-45 | Do tests cross the real codec/driver/router/ABI where consequential? | integration suite      |
+| BR-46 | Do tests cover old and future/unknown values?                        | compatibility fixtures |
+| BR-47 | Do fault tests cover partial effects and acknowledgement loss?       | fault matrix           |
+| BR-48 | Are invalid historical records rejected or quarantined?              | database evidence      |
+| BR-49 | Is fuzz/property evidence used where input space warrants it?        | test record            |
+| BR-50 | Does the boundary ledger state what parsing proves?                  | guarantee entry        |
+| BR-51 | Does it state mutable external facts not proved?                     | non-guarantees         |
+| BR-52 | Are observation time, freshness, and reconciliation recorded?        | evidence lifecycle     |
 
 ## Exit criteria
 
@@ -3604,78 +3604,78 @@ runtime validation rather than presuming typestate wins.
 
 ## Fit and scope
 
-| ID | Question | Pass evidence |
-|---|---|---|
+| ID     | Question                                                                    | Pass evidence            |
+| ------ | --------------------------------------------------------------------------- | ------------------------ |
 | TSR-01 | Is the protected problem operation sequencing rather than value validation? | invariant classification |
-| TSR-02 | Is the sequence locally controlled by one handle owner? | ownership map |
-| TSR-03 | Is state not primarily externally determined? | boundary analysis |
-| TSR-04 | Is the state graph small and stable enough for static APIs? | node/edge count |
-| TSR-05 | Are illegal calls consequential and frequent enough to justify types? | risk assessment |
-| TSR-06 | Can marker construction be restricted? | visibility |
-| TSR-07 | Does each marker represent evidence actually established? | guarantee mapping |
-| TSR-08 | Are independent dimensions kept out of a type cross-product? | decomposition |
-| TSR-09 | Is the workflow unsuitable for a simpler consuming non-generic handle? | alternative comparison |
-| TSR-10 | Is a runtime enum explicitly evaluated? | decision record |
+| TSR-02 | Is the sequence locally controlled by one handle owner?                     | ownership map            |
+| TSR-03 | Is state not primarily externally determined?                               | boundary analysis        |
+| TSR-04 | Is the state graph small and stable enough for static APIs?                 | node/edge count          |
+| TSR-05 | Are illegal calls consequential and frequent enough to justify types?       | risk assessment          |
+| TSR-06 | Can marker construction be restricted?                                      | visibility               |
+| TSR-07 | Does each marker represent evidence actually established?                   | guarantee mapping        |
+| TSR-08 | Are independent dimensions kept out of a type cross-product?                | decomposition            |
+| TSR-09 | Is the workflow unsuitable for a simpler consuming non-generic handle?      | alternative comparison   |
+| TSR-10 | Is a runtime enum explicitly evaluated?                                     | decision record          |
 
 ## Transition design
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| TSR-11 | Does each legal edge have one clear method? | state API graph |
-| TSR-12 | Are illegal state-specific methods absent from the type? | impl inspection |
-| TSR-13 | Do transitions consume the prior state when reuse is invalid? | signatures |
-| TSR-14 | Are infallible transitions truly local and infallible? | operation analysis |
-| TSR-15 | Do fallible transitions return structured errors? | error types |
-| TSR-16 | Is the prior handle returned only when non-transition is proven? | error/recovery shape |
-| TSR-17 | Is external ambiguity represented instead of restoring old state? | unknown outcome |
-| TSR-18 | Are transition payloads carried in the successor type? | successor fields |
-| TSR-19 | Are authorization and capability requirements explicit? | method arguments |
+| ID     | Question                                                                    | Pass evidence              |
+| ------ | --------------------------------------------------------------------------- | -------------------------- |
+| TSR-11 | Does each legal edge have one clear method?                                 | state API graph            |
+| TSR-12 | Are illegal state-specific methods absent from the type?                    | impl inspection            |
+| TSR-13 | Do transitions consume the prior state when reuse is invalid?               | signatures                 |
+| TSR-14 | Are infallible transitions truly local and infallible?                      | operation analysis         |
+| TSR-15 | Do fallible transitions return structured errors?                           | error types                |
+| TSR-16 | Is the prior handle returned only when non-transition is proven?            | error/recovery shape       |
+| TSR-17 | Is external ambiguity represented instead of restoring old state?           | unknown outcome            |
+| TSR-18 | Are transition payloads carried in the successor type?                      | successor fields           |
+| TSR-19 | Are authorization and capability requirements explicit?                     | method arguments           |
 | TSR-20 | Can parallel or duplicate transition attempts occur through another handle? | resource identity analysis |
 
 ## Async and external reality
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| TSR-21 | Is every `.await` in a transition cancellation-reviewed? | cancellation table |
-| TSR-22 | Does cancellation release or reconcile consumed resources? | cleanup evidence |
-| TSR-23 | Are blocking operations isolated appropriately? | async design |
-| TSR-24 | Does an open/connected marker mean only local transition success? | documentation |
-| TSR-25 | Do send/capture/commit operations remain fallible? | method results |
-| TSR-26 | Can timeout produce explicit unknown outcome? | outcome type |
-| TSR-27 | Are external facts re-observed when needed? | validation policy |
-| TSR-28 | Does typestate avoid claiming current remote liveness? | guarantee ledger |
-| TSR-29 | Does a lease/capability marker account for expiry/revocation? | runtime check |
-| TSR-30 | Is compensation modeled as a later fallible transition? | state graph |
+| ID     | Question                                                          | Pass evidence      |
+| ------ | ----------------------------------------------------------------- | ------------------ |
+| TSR-21 | Is every `.await` in a transition cancellation-reviewed?          | cancellation table |
+| TSR-22 | Does cancellation release or reconcile consumed resources?        | cleanup evidence   |
+| TSR-23 | Are blocking operations isolated appropriately?                   | async design       |
+| TSR-24 | Does an open/connected marker mean only local transition success? | documentation      |
+| TSR-25 | Do send/capture/commit operations remain fallible?                | method results     |
+| TSR-26 | Can timeout produce explicit unknown outcome?                     | outcome type       |
+| TSR-27 | Are external facts re-observed when needed?                       | validation policy  |
+| TSR-28 | Does typestate avoid claiming current remote liveness?            | guarantee ledger   |
+| TSR-29 | Does a lease/capability marker account for expiry/revocation?     | runtime check      |
+| TSR-30 | Is compensation modeled as a later fallible transition?           | state graph        |
 
 ## Persistence and ergonomics
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| TSR-31 | Must states be stored heterogeneously or inspected dynamically? | usage inventory |
-| TSR-32 | Is a stable runtime persisted enum defined where needed? | storage model |
-| TSR-33 | Does rehydration validate before issuing a typed handle? | restoration service |
-| TSR-34 | Is marker spelling excluded from durable protocol evidence? | encoding policy |
+| ID     | Question                                                                | Pass evidence           |
+| ------ | ----------------------------------------------------------------------- | ----------------------- |
+| TSR-31 | Must states be stored heterogeneously or inspected dynamically?         | usage inventory         |
+| TSR-32 | Is a stable runtime persisted enum defined where needed?                | storage model           |
+| TSR-33 | Does rehydration validate before issuing a typed handle?                | restoration service     |
+| TSR-34 | Is marker spelling excluded from durable protocol evidence?             | encoding policy         |
 | TSR-35 | Are optimistic version or claim semantics present for multiple workers? | persistence concurrency |
-| TSR-36 | Can trait objects or plugin interfaces use the design clearly? | dispatch design |
-| TSR-37 | Are mocks and test harnesses comprehensible? | test API review |
-| TSR-38 | Are compiler diagnostics useful at misuse sites? | compile-fail output |
-| TSR-39 | Is generic propagation limited at public boundaries? | API signatures |
-| TSR-40 | Are transition errors smaller/clearer than equivalent runtime checks? | caller comparison |
-| TSR-41 | Has monomorphization/code-size impact been considered? | size analysis |
-| TSR-42 | Has compile-time and IDE diagnostic impact been considered? | complexity budget |
+| TSR-36 | Can trait objects or plugin interfaces use the design clearly?          | dispatch design         |
+| TSR-37 | Are mocks and test harnesses comprehensible?                            | test API review         |
+| TSR-38 | Are compiler diagnostics useful at misuse sites?                        | compile-fail output     |
+| TSR-39 | Is generic propagation limited at public boundaries?                    | API signatures          |
+| TSR-40 | Are transition errors smaller/clearer than equivalent runtime checks?   | caller comparison       |
+| TSR-41 | Has monomorphization/code-size impact been considered?                  | size analysis           |
+| TSR-42 | Has compile-time and IDE diagnostic impact been considered?             | complexity budget       |
 
 ## Evidence and decision
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| TSR-43 | Do compile-fail tests prove important prohibited calls? | UI tests |
-| TSR-44 | Do they fail for the intended reason? | diagnostic inspection |
-| TSR-45 | Are every successful and failed transition tested? | unit suite |
-| TSR-46 | Are cancellation and external failure tested? | fault suite |
-| TSR-47 | Is persisted/runtime conversion tested? | integration suite |
-| TSR-48 | Are unknown outcomes and reconciliation tested? | distributed tests |
-| TSR-49 | Does documentation state exact guarantees and non-guarantees? | ledger/docs |
-| TSR-50 | Does benefit exceed type/API complexity? | signed decision |
+| ID     | Question                                                      | Pass evidence         |
+| ------ | ------------------------------------------------------------- | --------------------- |
+| TSR-43 | Do compile-fail tests prove important prohibited calls?       | UI tests              |
+| TSR-44 | Do they fail for the intended reason?                         | diagnostic inspection |
+| TSR-45 | Are every successful and failed transition tested?            | unit suite            |
+| TSR-46 | Are cancellation and external failure tested?                 | fault suite           |
+| TSR-47 | Is persisted/runtime conversion tested?                       | integration suite     |
+| TSR-48 | Are unknown outcomes and reconciliation tested?               | distributed tests     |
+| TSR-49 | Does documentation state exact guarantees and non-guarantees? | ledger/docs           |
+| TSR-50 | Does benefit exceed type/API complexity?                      | signed decision       |
 
 ## Exit criteria
 
@@ -3698,88 +3698,88 @@ applicable**, or **waiver reference**.
 
 ## Effect and identity
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-01 | Is each external effect listed separately? | effect inventory |
-| DER-02 | Is one logical operation distinct from transport attempts? | identity model |
-| DER-03 | Is operation identity generated before first dispatch? | lifecycle trace |
-| DER-04 | Do retries reuse the logical identity? | attempt tests |
-| DER-05 | Is the target/resource included in identity scope? | key contract |
-| DER-06 | Is request intent fingerprinted canonically? | fingerprint design |
-| DER-07 | Is identity collision risk proportionate? | generator analysis |
-| DER-08 | Is same identity with different payload rejected? | conflict behavior |
-| DER-09 | Are concurrent same-identity attempts coordinated? | atomic claim |
-| DER-10 | Is identity retained for the full replay horizon? | retention calculation |
+| ID     | Question                                                   | Pass evidence         |
+| ------ | ---------------------------------------------------------- | --------------------- |
+| DER-01 | Is each external effect listed separately?                 | effect inventory      |
+| DER-02 | Is one logical operation distinct from transport attempts? | identity model        |
+| DER-03 | Is operation identity generated before first dispatch?     | lifecycle trace       |
+| DER-04 | Do retries reuse the logical identity?                     | attempt tests         |
+| DER-05 | Is the target/resource included in identity scope?         | key contract          |
+| DER-06 | Is request intent fingerprinted canonically?               | fingerprint design    |
+| DER-07 | Is identity collision risk proportionate?                  | generator analysis    |
+| DER-08 | Is same identity with different payload rejected?          | conflict behavior     |
+| DER-09 | Are concurrent same-identity attempts coordinated?         | atomic claim          |
+| DER-10 | Is identity retained for the full replay horizon?          | retention calculation |
 
 ## Timeout, outcome, and retry
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-11 | Is the point after which execution may have occurred identified? | protocol timeline |
-| DER-12 | Does timeout avoid implying non-execution? | outcome mapping |
-| DER-13 | Is local pre-dispatch failure supported by actual protocol evidence? | transport contract |
-| DER-14 | Are confirmed success and confirmed rejection authenticated? | response verification |
-| DER-15 | Are confirmed, rejected, local-failure, and unknown outcomes distinct as needed? | outcome type |
-| DER-16 | Does unknown carry reconciliation evidence? | stored token |
-| DER-17 | Is retry classified at every failure point? | decision matrix |
-| DER-18 | Are unsafe retries prohibited? | retry policy |
-| DER-19 | Does reconcile-before-retry exist for ambiguity? | transition path |
-| DER-20 | Is one end-to-end deadline propagated? | deadline budget |
-| DER-21 | Is maximum retry multiplication across layers calculated? | attempt equation |
-| DER-22 | Are backoff, jitter, and server guidance applied? | policy |
-| DER-23 | Are retry concurrency and queues bounded? | capacity |
-| DER-24 | Are overload and rate-limit responses preserved? | error/retry handling |
+| ID     | Question                                                                         | Pass evidence         |
+| ------ | -------------------------------------------------------------------------------- | --------------------- |
+| DER-11 | Is the point after which execution may have occurred identified?                 | protocol timeline     |
+| DER-12 | Does timeout avoid implying non-execution?                                       | outcome mapping       |
+| DER-13 | Is local pre-dispatch failure supported by actual protocol evidence?             | transport contract    |
+| DER-14 | Are confirmed success and confirmed rejection authenticated?                     | response verification |
+| DER-15 | Are confirmed, rejected, local-failure, and unknown outcomes distinct as needed? | outcome type          |
+| DER-16 | Does unknown carry reconciliation evidence?                                      | stored token          |
+| DER-17 | Is retry classified at every failure point?                                      | decision matrix       |
+| DER-18 | Are unsafe retries prohibited?                                                   | retry policy          |
+| DER-19 | Does reconcile-before-retry exist for ambiguity?                                 | transition path       |
+| DER-20 | Is one end-to-end deadline propagated?                                           | deadline budget       |
+| DER-21 | Is maximum retry multiplication across layers calculated?                        | attempt equation      |
+| DER-22 | Are backoff, jitter, and server guidance applied?                                | policy                |
+| DER-23 | Are retry concurrency and queues bounded?                                        | capacity              |
+| DER-24 | Are overload and rate-limit responses preserved?                                 | error/retry handling  |
 
 ## Delivery, order, and coordination
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-25 | Are duplicates expected for at-least-once delivery? | consumer contract |
-| DER-26 | Is deduplication durable when protecting durable effects? | inbox/store |
-| DER-27 | Is dedup claim atomic with the local effect? | transaction |
+| ID     | Question                                                    | Pass evidence         |
+| ------ | ----------------------------------------------------------- | --------------------- |
+| DER-25 | Are duplicates expected for at-least-once delivery?         | consumer contract     |
+| DER-26 | Is deduplication durable when protecting durable effects?   | inbox/store           |
+| DER-27 | Is dedup claim atomic with the local effect?                | transaction           |
 | DER-28 | Is dedup retention sufficient and expiry behavior explicit? | retention/replay plan |
-| DER-29 | Is acknowledgement order documented? | crash-point matrix |
-| DER-30 | Is acknowledgement loss handled? | redelivery test |
-| DER-31 | Are poison messages isolated without a hot retry loop? | dead-letter policy |
-| DER-32 | Is administrative replay identity-preserving and audited? | replay runbook |
-| DER-33 | Is ordering scoped to key/partition/producer/consumer? | ordering contract |
-| DER-34 | Are gaps and out-of-order versions handled? | state/version policy |
-| DER-35 | Are failover and retry effects on order stated? | scenario tests |
-| DER-36 | Is every exactly-once claim boundary-specific? | guarantee ledger |
-| DER-37 | Are external effects outside the claimed transaction named? | boundary diagram |
-| DER-38 | Is persistence plus publication coordinated durably? | outbox/event log |
+| DER-29 | Is acknowledgement order documented?                        | crash-point matrix    |
+| DER-30 | Is acknowledgement loss handled?                            | redelivery test       |
+| DER-31 | Are poison messages isolated without a hot retry loop?      | dead-letter policy    |
+| DER-32 | Is administrative replay identity-preserving and audited?   | replay runbook        |
+| DER-33 | Is ordering scoped to key/partition/producer/consumer?      | ordering contract     |
+| DER-34 | Are gaps and out-of-order versions handled?                 | state/version policy  |
+| DER-35 | Are failover and retry effects on order stated?             | scenario tests        |
+| DER-36 | Is every exactly-once claim boundary-specific?              | guarantee ledger      |
+| DER-37 | Are external effects outside the claimed transaction named? | boundary diagram      |
+| DER-38 | Is persistence plus publication coordinated durably?        | outbox/event log      |
 
 ## Reconciliation, compensation, and authority
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-39 | Is every unknown state durable when process loss matters? | persistence model |
-| DER-40 | Is a reconciliation owner named? | service/runbook ownership |
-| DER-41 | Is the observation source authoritative? | provider contract |
-| DER-42 | Are observation freshness and finality defined? | timestamp/version/window |
-| DER-43 | Can reconciliation remain unknown? | repeated state path |
-| DER-44 | Are reconciliation attempts bounded and observable? | age/attempt metrics |
-| DER-45 | Is terminal human escalation defined? | operations procedure |
-| DER-46 | Are operator overrides audited as decisions, not proof? | audit event |
-| DER-47 | Is compensation modeled as a new effect? | saga states |
-| DER-48 | Does compensation have idempotency and unknown handling? | effect contract |
-| DER-49 | Are concurrent coordinators claimed atomically? | lease/CAS |
-| DER-50 | Are stale lease owners fenced at the effect resource? | fencing token |
-| DER-51 | Are clock and process-pause assumptions documented? | lease analysis |
-| DER-52 | Can users safely act while state is unknown? | API/UI behavior |
+| ID     | Question                                                  | Pass evidence             |
+| ------ | --------------------------------------------------------- | ------------------------- |
+| DER-39 | Is every unknown state durable when process loss matters? | persistence model         |
+| DER-40 | Is a reconciliation owner named?                          | service/runbook ownership |
+| DER-41 | Is the observation source authoritative?                  | provider contract         |
+| DER-42 | Are observation freshness and finality defined?           | timestamp/version/window  |
+| DER-43 | Can reconciliation remain unknown?                        | repeated state path       |
+| DER-44 | Are reconciliation attempts bounded and observable?       | age/attempt metrics       |
+| DER-45 | Is terminal human escalation defined?                     | operations procedure      |
+| DER-46 | Are operator overrides audited as decisions, not proof?   | audit event               |
+| DER-47 | Is compensation modeled as a new effect?                  | saga states               |
+| DER-48 | Does compensation have idempotency and unknown handling?  | effect contract           |
+| DER-49 | Are concurrent coordinators claimed atomically?           | lease/CAS                 |
+| DER-50 | Are stale lease owners fenced at the effect resource?     | fencing token             |
+| DER-51 | Are clock and process-pause assumptions documented?       | lease analysis            |
+| DER-52 | Can users safely act while state is unknown?              | API/UI behavior           |
 
 ## Audit, secrecy, and evidence
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-53 | Does audit preserve operation, attempt, parent, trigger, and target? | event schema |
-| DER-54 | Are outcome observations and decisions reconstructible? | incident query |
-| DER-55 | Are credentials and unnecessary personal data excluded? | field classification |
-| DER-56 | Is correlation retained without uncontrolled tracking? | privacy policy |
-| DER-57 | Do tests inject loss before and after dispatch? | fault suite |
-| DER-58 | Do tests inject duplicate, delay, reordering, and crash? | scenario matrix |
-| DER-59 | Do tests cover concurrent identity and reconciler claims? | concurrency suite |
-| DER-60 | Does the ledger state residual unknowns and non-guarantees? | completed ledger |
+| ID     | Question                                                             | Pass evidence        |
+| ------ | -------------------------------------------------------------------- | -------------------- |
+| DER-53 | Does audit preserve operation, attempt, parent, trigger, and target? | event schema         |
+| DER-54 | Are outcome observations and decisions reconstructible?              | incident query       |
+| DER-55 | Are credentials and unnecessary personal data excluded?              | field classification |
+| DER-56 | Is correlation retained without uncontrolled tracking?               | privacy policy       |
+| DER-57 | Do tests inject loss before and after dispatch?                      | fault suite          |
+| DER-58 | Do tests inject duplicate, delay, reordering, and crash?             | scenario matrix      |
+| DER-59 | Do tests cover concurrent identity and reconciler claims?            | concurrency suite    |
+| DER-60 | Does the ledger state residual unknowns and non-guarantees?          | completed ledger     |
 
 ## Exit criteria
 
@@ -3802,111 +3802,111 @@ This audit checks evidence; it does not infer completion from CI color.
 
 ## Repository and scope integrity
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-01 | Does the diff match the approved scope? | complete diff review |
-| FCA-02 | Are unrelated user changes preserved? | status/diff provenance |
-| FCA-03 | Are all new files intentional and reviewable? | full file inventory |
-| FCA-04 | Are archives, encoded payloads, generated source commits, and transient artifacts absent? | inventory/scan |
-| FCA-05 | Are secrets, credentials, personal paths, and internal identifiers absent? | positive-controlled secret/PII scan |
-| FCA-06 | Are canonical and generated paths separated? | architecture check |
-| FCA-07 | Are generated files derived only by the declared tool? | clean regeneration |
-| FCA-08 | Are dependency additions justified and licensed? | dependency review |
-| FCA-09 | Is MSRV/toolchain policy preserved? | toolchain matrix |
-| FCA-10 | Is repository version/change log accurate? | metadata comparison |
+| ID     | Question                                                                                  | Pass evidence                       |
+| ------ | ----------------------------------------------------------------------------------------- | ----------------------------------- |
+| FCA-01 | Does the diff match the approved scope?                                                   | complete diff review                |
+| FCA-02 | Are unrelated user changes preserved?                                                     | status/diff provenance              |
+| FCA-03 | Are all new files intentional and reviewable?                                             | full file inventory                 |
+| FCA-04 | Are archives, encoded payloads, generated source commits, and transient artifacts absent? | inventory/scan                      |
+| FCA-05 | Are secrets, credentials, personal paths, and internal identifiers absent?                | positive-controlled secret/PII scan |
+| FCA-06 | Are canonical and generated paths separated?                                              | architecture check                  |
+| FCA-07 | Are generated files derived only by the declared tool?                                    | clean regeneration                  |
+| FCA-08 | Are dependency additions justified and licensed?                                          | dependency review                   |
+| FCA-09 | Is MSRV/toolchain policy preserved?                                                       | toolchain matrix                    |
+| FCA-10 | Is repository version/change log accurate?                                                | metadata comparison                 |
 
 ## Invariants, construction, and authority
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-11 | Is the invariant inventory current? | reviewed artifact |
-| FCA-12 | Does every changed trusted type have exact proof and non-proof statements? | documentation/ledger |
-| FCA-13 | Are trusted fields and constructors protected? | visibility/construction audit |
-| FCA-14 | Do all decoders preserve construction evidence? | Serde/DB/boundary trace |
-| FCA-15 | Are contradictory states structurally absent or explicitly rejected? | state truth table |
-| FCA-16 | Are legal transitions and authority explicit? | state/authority graph |
-| FCA-17 | Are capability cloning, transfer, expiry, and revocation honest? | lifecycle contract |
-| FCA-18 | Are secret types protected from formatting and serialization? | trait audit |
-| FCA-19 | Are cross-entity invariants enforced transactionally/runtime? | service/query evidence |
-| FCA-20 | Are escape hatches enumerated, scoped, and reviewed? | ledger |
+| ID     | Question                                                                   | Pass evidence                 |
+| ------ | -------------------------------------------------------------------------- | ----------------------------- |
+| FCA-11 | Is the invariant inventory current?                                        | reviewed artifact             |
+| FCA-12 | Does every changed trusted type have exact proof and non-proof statements? | documentation/ledger          |
+| FCA-13 | Are trusted fields and constructors protected?                             | visibility/construction audit |
+| FCA-14 | Do all decoders preserve construction evidence?                            | Serde/DB/boundary trace       |
+| FCA-15 | Are contradictory states structurally absent or explicitly rejected?       | state truth table             |
+| FCA-16 | Are legal transitions and authority explicit?                              | state/authority graph         |
+| FCA-17 | Are capability cloning, transfer, expiry, and revocation honest?           | lifecycle contract            |
+| FCA-18 | Are secret types protected from formatting and serialization?              | trait audit                   |
+| FCA-19 | Are cross-entity invariants enforced transactionally/runtime?              | service/query evidence        |
+| FCA-20 | Are escape hatches enumerated, scoped, and reviewed?                       | ledger                        |
 
 ## Boundaries, persistence, and evolution
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-21 | Is every ingress represented raw → structural → trusted? | boundary map |
-| FCA-22 | Are resource limits enforced before expensive processing? | limits/tests |
-| FCA-23 | Are authentication and authorization distinct? | request flow |
-| FCA-24 | Are unknown fields/versions/variants handled deliberately? | compatibility policy |
-| FCA-25 | Are durable formats and enum tags stable/versioned? | schema/encoding |
-| FCA-26 | Do migrations state and verify invariant transformations? | migration evidence |
-| FCA-27 | Are invalid historical values rejected or quarantined? | tests/operations |
-| FCA-28 | Are lost updates and conflicts explicit? | version/lock protocol |
-| FCA-29 | Are transaction isolation claims mechanism-specific? | database analysis |
-| FCA-30 | Are public errors structured and redacted? | error tests |
+| ID     | Question                                                   | Pass evidence         |
+| ------ | ---------------------------------------------------------- | --------------------- |
+| FCA-21 | Is every ingress represented raw → structural → trusted?   | boundary map          |
+| FCA-22 | Are resource limits enforced before expensive processing?  | limits/tests          |
+| FCA-23 | Are authentication and authorization distinct?             | request flow          |
+| FCA-24 | Are unknown fields/versions/variants handled deliberately? | compatibility policy  |
+| FCA-25 | Are durable formats and enum tags stable/versioned?        | schema/encoding       |
+| FCA-26 | Do migrations state and verify invariant transformations?  | migration evidence    |
+| FCA-27 | Are invalid historical values rejected or quarantined?     | tests/operations      |
+| FCA-28 | Are lost updates and conflicts explicit?                   | version/lock protocol |
+| FCA-29 | Are transaction isolation claims mechanism-specific?       | database analysis     |
+| FCA-30 | Are public errors structured and redacted?                 | error tests           |
 
 ## Concurrency, effects, and uncertainty
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-31 | Is shared mutable state ownership explicit? | ownership map |
-| FCA-32 | Are locks scoped and ordered? | lock graph |
-| FCA-33 | Is async blocking work isolated and bounded? | pool/capacity design |
-| FCA-34 | Are cancellation points and cleanup reviewed? | cancellation matrix |
-| FCA-35 | Are tasks supervised and shutdown bounded? | task tree/tests |
-| FCA-36 | Are queues and concurrency bounded with backpressure? | capacity/overload tests |
-| FCA-37 | Does every external effect remain fallible? | APIs |
-| FCA-38 | Does timeout preserve unknown execution? | outcome states |
-| FCA-39 | Are idempotency scope, binding, retention, and replay defined? | key contract |
-| FCA-40 | Are duplicates and acknowledgement loss expected? | consumer evidence |
-| FCA-41 | Are ordering and exactly-once claims scoped? | guarantee ledger |
-| FCA-42 | Is persistence plus side effect coordinated without fictional atomicity? | outbox/reconciliation |
-| FCA-43 | Are compensations fallible new effects? | saga model |
-| FCA-44 | Are unknown outcomes durable, owned, and reconcilable? | operations plan |
+| ID     | Question                                                                 | Pass evidence           |
+| ------ | ------------------------------------------------------------------------ | ----------------------- |
+| FCA-31 | Is shared mutable state ownership explicit?                              | ownership map           |
+| FCA-32 | Are locks scoped and ordered?                                            | lock graph              |
+| FCA-33 | Is async blocking work isolated and bounded?                             | pool/capacity design    |
+| FCA-34 | Are cancellation points and cleanup reviewed?                            | cancellation matrix     |
+| FCA-35 | Are tasks supervised and shutdown bounded?                               | task tree/tests         |
+| FCA-36 | Are queues and concurrency bounded with backpressure?                    | capacity/overload tests |
+| FCA-37 | Does every external effect remain fallible?                              | APIs                    |
+| FCA-38 | Does timeout preserve unknown execution?                                 | outcome states          |
+| FCA-39 | Are idempotency scope, binding, retention, and replay defined?           | key contract            |
+| FCA-40 | Are duplicates and acknowledgement loss expected?                        | consumer evidence       |
+| FCA-41 | Are ordering and exactly-once claims scoped?                             | guarantee ledger        |
+| FCA-42 | Is persistence plus side effect coordinated without fictional atomicity? | outbox/reconciliation   |
+| FCA-43 | Are compensations fallible new effects?                                  | saga model              |
+| FCA-44 | Are unknown outcomes durable, owned, and reconcilable?                   | operations plan         |
 
 ## Unsafe, evidence, and performance
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-45 | Is unsafe code absent or fully reviewed under doctrine 0007? | unsafe inventory/proof |
-| FCA-46 | Does each unsafe block state complete safety premises? | local comments |
-| FCA-47 | Are FFI ABI, ownership, unwind, and threading explicit? | boundary contract |
-| FCA-48 | Are unsafe dependencies proportionally reviewed? | dependency audit |
-| FCA-49 | Do tests trace to invariants and failure risks? | evidence matrix |
-| FCA-50 | Are positive, negative, and prohibited programs covered? | test suite |
-| FCA-51 | Are real boundaries exercised where consequential? | integration evidence |
-| FCA-52 | Are cancellation, duplicate, reordering, and partial failures injected? | fault matrix |
-| FCA-53 | Were compile-fail diagnostics inspected semantically? | reviewed stderr diff |
-| FCA-54 | Are snapshots reviewed rather than bulk accepted? | focused rationale |
-| FCA-55 | Is flakiness resolved rather than retried away? | failure records |
-| FCA-56 | Are model/Miri/sanitizer limits stated? | evidence limits |
-| FCA-57 | Are performance claims workload- and environment-scoped? | benchmark record |
-| FCA-58 | Does profiling support optimization? | profile |
-| FCA-59 | Are latency distributions, allocation, contention, and boundary costs measured as relevant? | results |
-| FCA-60 | Is correctness evidence independent from benchmarks? | suite linkage |
+| ID     | Question                                                                                    | Pass evidence          |
+| ------ | ------------------------------------------------------------------------------------------- | ---------------------- |
+| FCA-45 | Is unsafe code absent or fully reviewed under doctrine 0007?                                | unsafe inventory/proof |
+| FCA-46 | Does each unsafe block state complete safety premises?                                      | local comments         |
+| FCA-47 | Are FFI ABI, ownership, unwind, and threading explicit?                                     | boundary contract      |
+| FCA-48 | Are unsafe dependencies proportionally reviewed?                                            | dependency audit       |
+| FCA-49 | Do tests trace to invariants and failure risks?                                             | evidence matrix        |
+| FCA-50 | Are positive, negative, and prohibited programs covered?                                    | test suite             |
+| FCA-51 | Are real boundaries exercised where consequential?                                          | integration evidence   |
+| FCA-52 | Are cancellation, duplicate, reordering, and partial failures injected?                     | fault matrix           |
+| FCA-53 | Were compile-fail diagnostics inspected semantically?                                       | reviewed stderr diff   |
+| FCA-54 | Are snapshots reviewed rather than bulk accepted?                                           | focused rationale      |
+| FCA-55 | Is flakiness resolved rather than retried away?                                             | failure records        |
+| FCA-56 | Are model/Miri/sanitizer limits stated?                                                     | evidence limits        |
+| FCA-57 | Are performance claims workload- and environment-scoped?                                    | benchmark record       |
+| FCA-58 | Does profiling support optimization?                                                        | profile                |
+| FCA-59 | Are latency distributions, allocation, contention, and boundary costs measured as relevant? | results                |
+| FCA-60 | Is correctness evidence independent from benchmarks?                                        | suite linkage          |
 
 ## Governance and reproducibility
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| FCA-61 | Are normative changes identified rather than called wording edits? | doctrine diff classification |
-| FCA-62 | Does every required normative change have an accepted RFC? | RFC link |
-| FCA-63 | Are doctrine IDs and versions preserved or changed by policy? | manifest comparison |
-| FCA-64 | Are source notes and attribution current? | provenance review |
-| FCA-65 | Do manifests and JSON Schemas agree? | lint/schema result |
-| FCA-66 | Does doctrine lint pass on the complete tree? | exact command/result |
-| FCA-67 | Does deterministic bundle generation produce no diff? | generate/check result |
-| FCA-68 | Do format, Clippy, tests, compile-fail, and dependency policy pass? | exact commands/results |
-| FCA-69 | Do Markdown links pass with only narrow documented exclusions? | link-check result |
-| FCA-70 | Is the working tree clean after regeneration and validation? | `git status --short` |
+| ID     | Question                                                            | Pass evidence                |
+| ------ | ------------------------------------------------------------------- | ---------------------------- |
+| FCA-61 | Are normative changes identified rather than called wording edits?  | doctrine diff classification |
+| FCA-62 | Does every required normative change have an accepted RFC?          | RFC link                     |
+| FCA-63 | Are doctrine IDs and versions preserved or changed by policy?       | manifest comparison          |
+| FCA-64 | Are source notes and attribution current?                           | provenance review            |
+| FCA-65 | Do manifests and JSON Schemas agree?                                | lint/schema result           |
+| FCA-66 | Does doctrine lint pass on the complete tree?                       | exact command/result         |
+| FCA-67 | Does deterministic bundle generation produce no diff?               | generate/check result        |
+| FCA-68 | Do format, Clippy, tests, compile-fail, and dependency policy pass? | exact commands/results       |
+| FCA-69 | Do Markdown links pass with only narrow documented exclusions?      | link-check result            |
+| FCA-70 | Is the working tree clean after regeneration and validation?        | `git status --short`         |
 
 ## Required guarantee ledger
 
 Every major domain or case-study claim uses:
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| exact claim | constructor, transition, protocol, or evidence | privacy/authority mechanism | decoding and persistence path | privileged paths | excluded facts | failure/uncertainty |
+| Claim       | Established by                                 | Protected construction      | Boundary preservation         | Escape hatches   | Does not prove | Residual runtime risk |
+| ----------- | ---------------------------------------------- | --------------------------- | ----------------------------- | ---------------- | -------------- | --------------------- |
+| exact claim | constructor, transition, protocol, or evidence | privacy/authority mechanism | decoding and persistence path | privileged paths | excluded facts | failure/uncertainty   |
 
 The auditor rejects rows whose claim is broader than establishment evidence.
 External mutable facts state observation time and reconciliation. Passing tests

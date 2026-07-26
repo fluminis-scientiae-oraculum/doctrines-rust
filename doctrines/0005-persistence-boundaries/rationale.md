@@ -123,12 +123,12 @@ or degraded read model contains the uncertainty.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| decoded email satisfies syntax policy | checked row conversion | private newtype field | all readers use `TryFrom` | audited internal import | ownership or deliverability | policy changes, corrupt row |
-| update used current aggregate version | version predicate affected one row | repository API | conflict preserved | administrative repair | absence of all business races | retry conflict, isolation anomaly |
-| outbox intent shares domain commit | same local transaction | repository operation | publisher reads durable row | direct DB write | single delivery or consumer success | duplicate, delay, poison message |
-| transaction handle cannot be reused locally | consuming commit/rollback | private fields | API lifecycle | driver internals | definite remote commit result | connection loss ambiguity |
+| Claim                                       | Established by                     | Protected construction | Boundary preservation       | Escape hatches          | Does not prove                      | Residual runtime risk             |
+| ------------------------------------------- | ---------------------------------- | ---------------------- | --------------------------- | ----------------------- | ----------------------------------- | --------------------------------- |
+| decoded email satisfies syntax policy       | checked row conversion             | private newtype field  | all readers use `TryFrom`   | audited internal import | ownership or deliverability         | policy changes, corrupt row       |
+| update used current aggregate version       | version predicate affected one row | repository API         | conflict preserved          | administrative repair   | absence of all business races       | retry conflict, isolation anomaly |
+| outbox intent shares domain commit          | same local transaction             | repository operation   | publisher reads durable row | direct DB write         | single delivery or consumer success | duplicate, delay, poison message  |
+| transaction handle cannot be reused locally | consuming commit/rollback          | private fields         | API lifecycle               | driver internals        | definite remote commit result       | connection loss ambiguity         |
 
 ## Cost of overapplication
 

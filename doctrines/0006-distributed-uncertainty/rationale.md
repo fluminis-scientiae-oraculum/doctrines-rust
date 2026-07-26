@@ -146,13 +146,13 @@ Access and retention should match the evidence's sensitivity.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| operation has stable identity | generated once and persisted | private operation constructor | reused across attempts | administrative replay | effect executed once | identity collision, misuse |
-| provider confirmed capture | authenticated response or reconciled event | outcome transition | evidence retained | operator override | later settlement | provider reversal, stale event |
-| capture is unknown | timeout after possible dispatch | explicit variant | token persists | destructive manual edit | success or rejection | delayed observation |
-| duplicate local DB effect is suppressed | unique inbox plus atomic mutation | repository transaction | durable identity | retention expiry | remote side effect uniqueness | late replay |
-| worker currently holds local lease handle | checked acquisition | non-clone authority | fencing sent with writes | raw backend access | exclusive remote action forever | pause, partition, expiry |
+| Claim                                     | Established by                             | Protected construction        | Boundary preservation    | Escape hatches          | Does not prove                  | Residual runtime risk          |
+| ----------------------------------------- | ------------------------------------------ | ----------------------------- | ------------------------ | ----------------------- | ------------------------------- | ------------------------------ |
+| operation has stable identity             | generated once and persisted               | private operation constructor | reused across attempts   | administrative replay   | effect executed once            | identity collision, misuse     |
+| provider confirmed capture                | authenticated response or reconciled event | outcome transition            | evidence retained        | operator override       | later settlement                | provider reversal, stale event |
+| capture is unknown                        | timeout after possible dispatch            | explicit variant              | token persists           | destructive manual edit | success or rejection            | delayed observation            |
+| duplicate local DB effect is suppressed   | unique inbox plus atomic mutation          | repository transaction        | durable identity         | retention expiry        | remote side effect uniqueness   | late replay                    |
+| worker currently holds local lease handle | checked acquisition                        | non-clone authority           | fencing sent with writes | raw backend access      | exclusive remote action forever | pause, partition, expiry       |
 
 ## Proportionality
 

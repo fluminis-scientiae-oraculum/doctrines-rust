@@ -23,18 +23,18 @@ unknown.
 
 ## Invariants
 
-| ID | Statement | Enforcement |
-|---|---|---|
-| PAY-01 | Amount is nonzero minor units in one supported currency. | private value constructor |
-| PAY-02 | Validation precedes authorization. | local workflow transition |
-| PAY-03 | Capture requires authorization evidence scoped to payment and amount. | capability/transition |
-| PAY-04 | One logical authorization or capture reuses one operation identity. | durable operation record |
-| PAY-05 | Persisted status has one legal variant with required evidence. | runtime enum and checked row conversion |
-| PAY-06 | Concurrent workers cannot silently capture the same payment as separate intents. | optimistic claim and provider idempotency |
-| PAY-07 | Capture timeout can become unknown and blocks blind new capture. | explicit persisted state |
-| PAY-08 | Settlement and reversal are observations/effects after capture, not local compile-time facts. | runtime events and services |
-| PAY-09 | Compensation is a fallible reversal with its own identity. | separate operation |
-| PAY-10 | Audit preserves request, actor, attempt, provider, and resolution causality. | durable event trail |
+| ID     | Statement                                                                                     | Enforcement                               |
+| ------ | --------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| PAY-01 | Amount is nonzero minor units in one supported currency.                                      | private value constructor                 |
+| PAY-02 | Validation precedes authorization.                                                            | local workflow transition                 |
+| PAY-03 | Capture requires authorization evidence scoped to payment and amount.                         | capability/transition                     |
+| PAY-04 | One logical authorization or capture reuses one operation identity.                           | durable operation record                  |
+| PAY-05 | Persisted status has one legal variant with required evidence.                                | runtime enum and checked row conversion   |
+| PAY-06 | Concurrent workers cannot silently capture the same payment as separate intents.              | optimistic claim and provider idempotency |
+| PAY-07 | Capture timeout can become unknown and blocks blind new capture.                              | explicit persisted state                  |
+| PAY-08 | Settlement and reversal are observations/effects after capture, not local compile-time facts. | runtime events and services               |
+| PAY-09 | Compensation is a fallible reversal with its own identity.                                    | separate operation                        |
+| PAY-10 | Audit preserves request, actor, attempt, provider, and resolution causality.                  | durable event trail                       |
 
 ## Required architecture
 

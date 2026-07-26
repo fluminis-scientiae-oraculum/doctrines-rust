@@ -110,16 +110,16 @@ after return.
 
 ## Decision table
 
-| Concern | Boundary mechanism |
-|---|---|
-| request shape | bounded DTO decode |
-| value invariant | smart constructor |
-| identity | credential verification |
-| authority | action/resource authorization capability |
-| concurrent update | version/conflict protocol |
-| repeat mutation | scoped idempotency contract |
-| ambiguous effect | operation ID plus unknown/reconciliation |
-| public failure | stable code and redacted message |
+| Concern           | Boundary mechanism                       |
+| ----------------- | ---------------------------------------- |
+| request shape     | bounded DTO decode                       |
+| value invariant   | smart constructor                        |
+| identity          | credential verification                  |
+| authority         | action/resource authorization capability |
+| concurrent update | version/conflict protocol                |
+| repeat mutation   | scoped idempotency contract              |
+| ambiguous effect  | operation ID plus unknown/reconciliation |
+| public failure    | stable code and redacted message         |
 
 ## Review prompts
 

@@ -34,15 +34,15 @@ constructing the domain entity.
 
 ## Choose invariant enforcement
 
-| Invariant | Primary mechanism | Reinforcement |
-|---|---|---|
-| positive scalar | private newtype constructor | SQL check constraint |
-| unique business key | domain conflict type | unique constraint |
-| valid foreign reference | repository/domain rule | foreign key |
-| state-associated fields | sum-type conversion | discriminator checks |
-| cross-row balance | transactional service | isolation, locks, constraints |
-| current-write version | optimistic predicate | version column |
-| volatile eligibility policy | transactional domain service | audit record |
+| Invariant                   | Primary mechanism            | Reinforcement                 |
+| --------------------------- | ---------------------------- | ----------------------------- |
+| positive scalar             | private newtype constructor  | SQL check constraint          |
+| unique business key         | domain conflict type         | unique constraint             |
+| valid foreign reference     | repository/domain rule       | foreign key                   |
+| state-associated fields     | sum-type conversion          | discriminator checks          |
+| cross-row balance           | transactional service        | isolation, locks, constraints |
+| current-write version       | optimistic predicate         | version column                |
+| volatile eligibility policy | transactional domain service | audit record                  |
 
 If the database cannot enforce an invariant, state the race and repair model.
 

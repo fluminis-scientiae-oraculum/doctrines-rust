@@ -31,5 +31,8 @@ compatible normative requirements, and major releases may change doctrine contra
   authoring templates, and source-provenance packages.
 - Generated full, compact, and role-specific distributions with drift detection.
 - Read-only GitHub workflows for doctrine validation, stable/MSRV example testing, and
-  Markdown link checking; structured issue and pull-request forms.
+  Markdown formatting, linting, and link checking; structured issue and pull-request forms.
+- Reproducible Markdown quality tooling with pinned Node.js, Prettier, and markdownlint-cli2
+  versions, a patched transitive override, deterministic formatting policy, advisory audit,
+  and a distinct pull-request gate.
 - Dual licensing: CC BY 4.0 for documentation and MIT OR Apache-2.0 for code.

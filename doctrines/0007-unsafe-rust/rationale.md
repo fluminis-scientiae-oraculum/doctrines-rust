@@ -131,12 +131,12 @@ maintenance costs dominate.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| slice references initialized allocation | bounds, alignment, lifetime proof | private wrapper | raw input checked before slice | unsafe internal helper | business validity of bytes | allocator or FFI contract breach |
-| FFI handle is released once | ownership wrapper and `Drop` | private field | constructor accepts only owned handle | raw binding layer | remote resource cleanup succeeded | foreign destructor failure |
-| wrapper is safe to transfer | complete `Send` proof | no aliasing escape | foreign thread contract checked | direct bindings | external library bug | upstream version change |
-| array is fully initialized | progress guard then conversion | `MaybeUninit` remains private | errors drop initialized prefix | manual raw access | element semantic validity | panicking foreign destructor |
+| Claim                                   | Established by                    | Protected construction        | Boundary preservation                 | Escape hatches         | Does not prove                    | Residual runtime risk            |
+| --------------------------------------- | --------------------------------- | ----------------------------- | ------------------------------------- | ---------------------- | --------------------------------- | -------------------------------- |
+| slice references initialized allocation | bounds, alignment, lifetime proof | private wrapper               | raw input checked before slice        | unsafe internal helper | business validity of bytes        | allocator or FFI contract breach |
+| FFI handle is released once             | ownership wrapper and `Drop`      | private field                 | constructor accepts only owned handle | raw binding layer      | remote resource cleanup succeeded | foreign destructor failure       |
+| wrapper is safe to transfer             | complete `Send` proof             | no aliasing escape            | foreign thread contract checked       | direct bindings        | external library bug              | upstream version change          |
+| array is fully initialized              | progress guard then conversion    | `MaybeUninit` remains private | errors drop initialized prefix        | manual raw access      | element semantic validity         | panicking foreign destructor     |
 
 ## Cost of overapplication
 

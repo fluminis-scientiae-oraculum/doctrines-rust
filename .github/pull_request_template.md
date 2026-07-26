@@ -17,20 +17,25 @@
 - [ ] Examples include positive and negative evidence proportionate to the claim.
 - [ ] Compiler `.stderr` changes were inspected for semantic cause, not accepted mechanically.
 - [ ] Canonical sources were changed before generated bundles.
+- [ ] Canonical and governance Markdown passes the pinned formatter and linter.
 - [ ] `cargo run -p bundle-agent-context -- generate` regenerated `dist/`.
 - [ ] No file under `dist/` was edited directly.
 
 ## Guarantee ledger
 
 | Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
+| ----- | -------------- | ---------------------- | --------------------- | -------------- | -------------- | --------------------- |
+|       |                |                        |                       |                |                |                       |
 
 ## Local validation
 
 Record exact commands and observed outcomes.
 
 ```text
+npm ci --ignore-scripts --no-audit
+npm audit --audit-level=high
+npm run check:markdown-format
+npm run lint:markdown
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features

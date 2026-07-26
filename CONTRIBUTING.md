@@ -75,6 +75,30 @@ Confirm that direct construction, wrong-state method use, or reuse after a consu
 transition remains the rejected behavior. If the failure moved to an incidental error, repair
 the test.
 
+## Markdown formatting and linting
+
+Install the exact documentation toolchain from the committed lockfile, then format and lint
+before generating distributions:
+
+```bash
+npm ci --ignore-scripts --no-audit
+npm audit --audit-level=high
+npm run format:markdown
+npm run lint:markdown
+```
+
+Prettier preserves prose wrapping and excludes `dist/`, dependency trees, and Rust build
+output. Do not format generated bundles directly. After formatting canonical Markdown,
+regenerate `dist/` so its bytes remain a deterministic projection. Configuration exceptions
+must describe a repository structure that cannot satisfy the default rule; do not suppress a
+rule solely to avoid repairing content.
+
+`package.json` contains a narrow `js-yaml` override because the selected markdownlint-cli2
+release declares an affected exact transitive version while a patched compatible release is
+available. Dependency updates must inspect `npm ls js-yaml markdownlint-cli2 --all`, rerun the
+audit and Markdown gate, and remove the override only after the upstream dependency declaration
+resolves to a patched version without it.
+
 ## Generated content
 
 `dist/` is generated. Edit canonical sources or bundler behavior, then run:
@@ -113,8 +137,9 @@ idempotency, duplicate, and reconciliation review.
 ## Validation
 
 Run the complete command set in the root README and record exact successful commands in the
-pull request. CI uses read-only permissions and confirms those checks. Do not push work whose
-first formatter, compiler, test, or linter run will be CI.
+pull request. The distinct Markdown CI gate checks both formatting drift and lint. CI uses
+read-only permissions and also rejects high-severity npm advisories. It confirms local checks.
+Do not push work whose first formatter, compiler, test, linter, or dependency audit will be CI.
 
 ## Reporting a guarantee overclaim
 

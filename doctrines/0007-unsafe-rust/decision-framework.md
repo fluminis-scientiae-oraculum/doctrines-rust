@@ -19,18 +19,18 @@ If the need is only to silence a borrow error, redesign ownership first.
 
 For every unsafe operation record:
 
-| Obligation | Evidence |
-|---|---|
-| allocation/provenance | originating allocation or foreign contract |
-| bounds | checked range and overflow handling |
-| alignment | type/layout contract or runtime check |
-| initialization | construction state and exact initialized region |
-| validity | bit-pattern validation before typed observation |
-| aliasing | all references and mutation authority |
-| lifetime | owner and destruction order |
-| concurrency | synchronization and thread contract |
-| panic/drop | every partial state and destructor path |
-| target/ABI | supported platforms and primary specification |
+| Obligation            | Evidence                                        |
+| --------------------- | ----------------------------------------------- |
+| allocation/provenance | originating allocation or foreign contract      |
+| bounds                | checked range and overflow handling             |
+| alignment             | type/layout contract or runtime check           |
+| initialization        | construction state and exact initialized region |
+| validity              | bit-pattern validation before typed observation |
+| aliasing              | all references and mutation authority           |
+| lifetime              | owner and destruction order                     |
+| concurrency           | synchronization and thread contract             |
+| panic/drop            | every partial state and destructor path         |
+| target/ABI            | supported platforms and primary specification   |
 
 Any unanswered applicable row blocks implementation.
 
@@ -85,16 +85,16 @@ non-`Sync`.
 
 ## Evidence matrix
 
-| Risk | Useful evidence |
-|---|---|
-| pointer validity and aliasing | Miri, fuzzing, targeted tests |
-| address and bounds defects | AddressSanitizer |
-| data races | ThreadSanitizer, Loom for modeled code |
-| uninitialized reads | MemorySanitizer where supported, Miri |
-| FFI layout | bindgen/layout tests, C-side assertions |
-| panic safety | injected panics and drop counters |
-| target assumptions | cross-target CI or hardware tests |
-| performance justification | benchmark and profiler under RUST-DOC-0009 |
+| Risk                          | Useful evidence                            |
+| ----------------------------- | ------------------------------------------ |
+| pointer validity and aliasing | Miri, fuzzing, targeted tests              |
+| address and bounds defects    | AddressSanitizer                           |
+| data races                    | ThreadSanitizer, Loom for modeled code     |
+| uninitialized reads           | MemorySanitizer where supported, Miri      |
+| FFI layout                    | bindgen/layout tests, C-side assertions    |
+| panic safety                  | injected panics and drop counters          |
+| target assumptions            | cross-target CI or hardware tests          |
+| performance justification     | benchmark and profiler under RUST-DOC-0009 |
 
 Tool limitations must be recorded.
 

@@ -23,15 +23,15 @@ these evidence levels.
 
 ## Guides
 
-| Boundary | Primary concerns |
-|---|---|
-| [Serde](serde.md) | checked deserialization, versioning, allocation limits |
-| [Database decoding](database-decoding.md) | raw rows, domain conversion, migration, concurrency |
-| [HTTP and RPC](http-and-rpc.md) | DTOs, authentication/authorization, idempotency, error mapping |
-| [Messaging](messaging.md) | duplicates, ordering, acknowledgement, replay, schema evolution |
-| [Configuration](configuration.md) | startup validation, secrets, defaults, reload |
-| [Filesystem](filesystem.md) | path trust, symlinks, TOCTOU, atomic replacement, durability |
-| [FFI](ffi.md) | ABI, representation, ownership, unwind, allocator and error boundaries |
+| Boundary                                  | Primary concerns                                                       |
+| ----------------------------------------- | ---------------------------------------------------------------------- |
+| [Serde](serde.md)                         | checked deserialization, versioning, allocation limits                 |
+| [Database decoding](database-decoding.md) | raw rows, domain conversion, migration, concurrency                    |
+| [HTTP and RPC](http-and-rpc.md)           | DTOs, authentication/authorization, idempotency, error mapping         |
+| [Messaging](messaging.md)                 | duplicates, ordering, acknowledgement, replay, schema evolution        |
+| [Configuration](configuration.md)         | startup validation, secrets, defaults, reload                          |
+| [Filesystem](filesystem.md)               | path trust, symlinks, TOCTOU, atomic replacement, durability           |
+| [FFI](ffi.md)                             | ABI, representation, ownership, unwind, allocator and error boundaries |
 
 ## Required boundary record
 

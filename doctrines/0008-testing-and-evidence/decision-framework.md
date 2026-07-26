@@ -16,18 +16,18 @@ For every invariant record:
 
 ## Select test classes
 
-| Claim shape | Primary evidence |
-|---|---|
-| public API cannot express misuse | compile-fail test |
-| constructor accepts/rejects specified values | unit/table tests |
-| law holds across broad generated values | property test |
-| parser and serializer agree with format | fixtures, properties, contract tests |
-| database conversion preserves invariant | real integration test |
-| consumer tolerates replay | duplicate/fault-injection test |
-| small concurrent protocol preserves state | model checking plus unit tests |
-| unsafe operation respects memory rules | proof plus Miri/sanitizers/fuzzing |
-| end-to-end workflow recovers from crash | fault-injected system test |
-| deployed workload meets expectation | telemetry plus performance evidence |
+| Claim shape                                  | Primary evidence                     |
+| -------------------------------------------- | ------------------------------------ |
+| public API cannot express misuse             | compile-fail test                    |
+| constructor accepts/rejects specified values | unit/table tests                     |
+| law holds across broad generated values      | property test                        |
+| parser and serializer agree with format      | fixtures, properties, contract tests |
+| database conversion preserves invariant      | real integration test                |
+| consumer tolerates replay                    | duplicate/fault-injection test       |
+| small concurrent protocol preserves state    | model checking plus unit tests       |
+| unsafe operation respects memory rules       | proof plus Miri/sanitizers/fuzzing   |
+| end-to-end workflow recovers from crash      | fault-injected system test           |
+| deployed workload meets expectation          | telemetry plus performance evidence  |
 
 Use more than one layer when a claim crosses layers.
 
@@ -75,14 +75,14 @@ rule. Update expected output only after semantic review on the pinned toolchain.
 
 For each double, compare:
 
-| Real behavior | Double behavior | Gap owner |
-|---|---|---|
-| latency/cancellation | controlled delay or instant | named integration suite |
-| capacity/backpressure | bounded or unlimited | overload suite |
-| transaction/isolation | real or simplified | database tests |
-| duplicate/order | configurable or perfect | messaging fault tests |
-| unknown outcome | representable or binary | distributed suite |
-| schema/version | actual codec or hand-built values | contract suite |
+| Real behavior         | Double behavior                   | Gap owner               |
+| --------------------- | --------------------------------- | ----------------------- |
+| latency/cancellation  | controlled delay or instant       | named integration suite |
+| capacity/backpressure | bounded or unlimited              | overload suite          |
+| transaction/isolation | real or simplified                | database tests          |
+| duplicate/order       | configurable or perfect           | messaging fault tests   |
+| unknown outcome       | representable or binary           | distributed suite       |
+| schema/version        | actual codec or hand-built values | contract suite          |
 
 If the double erases the very risk under test, replace it.
 

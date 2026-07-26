@@ -18,17 +18,17 @@ If no decision changes with the result, do not optimize yet.
 
 ## Choose observation
 
-| Question | Observation |
-|---|---|
-| Where is CPU spent? | sampled/instrumented CPU profile |
-| What waits? | async trace, span timing, syscall trace |
-| What allocates? | allocation count/bytes and heap profile |
-| Why are tails slow? | percentile trace correlated with inputs/queues |
-| Is a lock saturated? | lock wait/hold profile and concurrency sweep |
-| Is storage dominant? | query plan, round-trips, I/O and durability timing |
-| Is network dominant? | request trace, payload size, retransmit/rate limits |
-| What grows the binary? | section/symbol/generic analysis |
-| What slows builds? | clean/incremental timing and compiler timings |
+| Question               | Observation                                         |
+| ---------------------- | --------------------------------------------------- |
+| Where is CPU spent?    | sampled/instrumented CPU profile                    |
+| What waits?            | async trace, span timing, syscall trace             |
+| What allocates?        | allocation count/bytes and heap profile             |
+| Why are tails slow?    | percentile trace correlated with inputs/queues      |
+| Is a lock saturated?   | lock wait/hold profile and concurrency sweep        |
+| Is storage dominant?   | query plan, round-trips, I/O and durability timing  |
+| Is network dominant?   | request trace, payload size, retransmit/rate limits |
+| What grows the binary? | section/symbol/generic analysis                     |
+| What slows builds?     | clean/incremental timing and compiler timings       |
 
 Collect a baseline before modifying code.
 
@@ -78,16 +78,16 @@ operational margin.
 
 ## Optimization choice
 
-| Measured bottleneck | Candidate direction | Correctness check |
-|---|---|---|
-| algorithmic complexity | better data structure/algorithm | ordering, limits, worst case |
-| allocation churn | reuse, ownership change, compact representation | retention, aliasing |
-| serialization | format/configuration/buffering | compatibility, validation |
-| syscall/round-trip | batching or pipelining | partial failure, latency |
-| lock contention | ownership partitioning or shorter scope | invariant atomicity |
-| cache misses | layout/locality change | representation validity |
-| monomorphization | dispatch/API simplification | behavior and object safety |
-| compile time | dependency/features/generic reduction | runtime and diagnostics |
+| Measured bottleneck    | Candidate direction                             | Correctness check            |
+| ---------------------- | ----------------------------------------------- | ---------------------------- |
+| algorithmic complexity | better data structure/algorithm                 | ordering, limits, worst case |
+| allocation churn       | reuse, ownership change, compact representation | retention, aliasing          |
+| serialization          | format/configuration/buffering                  | compatibility, validation    |
+| syscall/round-trip     | batching or pipelining                          | partial failure, latency     |
+| lock contention        | ownership partitioning or shorter scope         | invariant atomicity          |
+| cache misses           | layout/locality change                          | representation validity      |
+| monomorphization       | dispatch/API simplification                     | behavior and object safety   |
+| compile time           | dependency/features/generic reduction           | runtime and diagnostics      |
 
 ## Unsafe gate
 

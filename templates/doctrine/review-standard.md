@@ -3,10 +3,10 @@
 Record every gate as **pass**, **fail**, **not applicable**, or **waiver
 reference**.
 
-| Gate | Question | Pass evidence | Failure example | Severity | Remediation |
-|---|---|---|---|---|---|
+| Gate    | Question             | Pass evidence       | Failure example           | Severity               | Remediation                    |
+| ------- | -------------------- | ------------------- | ------------------------- | ---------------------- | ------------------------------ |
 | NNNN-01 | <Auditable question> | <Concrete artifact> | <Specific counterexample> | <critical/high/medium> | <Direction, not vague request> |
-| NNNN-02 | <Next question> | <Evidence> | <Failure> | <Severity> | <Remediation> |
+| NNNN-02 | <Next question>      | <Evidence>          | <Failure>                 | <Severity>             | <Remediation>                  |
 
 ## Required gate groups
 

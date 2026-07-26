@@ -13,18 +13,18 @@ external-effect status, durable progress, and broker acknowledgement.
 
 ## Invariants
 
-| ID | Statement | Classification |
-|---|---|---|
-| MSG-01 | Message identity is stable and scoped to producer/source. | boundary/distributed |
-| MSG-02 | Same identity with different payload is a conflict. | authority/integrity |
-| MSG-03 | Local durable effect and processed identity are atomic. | persistence |
-| MSG-04 | Redelivery does not repeat the protected local effect. | distributed |
-| MSG-05 | External effects use their own stable operation identity. | distributed |
-| MSG-06 | Acknowledgement loss is not treated as processing failure. | distributed |
-| MSG-07 | Required per-aggregate order uses explicit version/gap policy. | transition |
-| MSG-08 | Poison messages are isolated, bounded, and auditable. | lifecycle |
-| MSG-09 | Schema/unknown-value behavior is versioned. | boundary |
-| MSG-10 | Consumer concurrency and queues are bounded. | environmental/concurrency |
+| ID     | Statement                                                      | Classification            |
+| ------ | -------------------------------------------------------------- | ------------------------- |
+| MSG-01 | Message identity is stable and scoped to producer/source.      | boundary/distributed      |
+| MSG-02 | Same identity with different payload is a conflict.            | authority/integrity       |
+| MSG-03 | Local durable effect and processed identity are atomic.        | persistence               |
+| MSG-04 | Redelivery does not repeat the protected local effect.         | distributed               |
+| MSG-05 | External effects use their own stable operation identity.      | distributed               |
+| MSG-06 | Acknowledgement loss is not treated as processing failure.     | distributed               |
+| MSG-07 | Required per-aggregate order uses explicit version/gap policy. | transition                |
+| MSG-08 | Poison messages are isolated, bounded, and auditable.          | lifecycle                 |
+| MSG-09 | Schema/unknown-value behavior is versioned.                    | boundary                  |
+| MSG-10 | Consumer concurrency and queues are bounded.                   | environmental/concurrency |
 
 ## Boundaries
 

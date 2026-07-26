@@ -111,15 +111,15 @@ Readiness checks are observations at a time.
 
 ## Reload contract
 
-| Phase | Required behavior |
-|---|---|
-| acquire | bounded read with source/version |
-| parse | raw snapshot, no mutation of active state |
-| validate | all per-field and cross-field rules |
-| prepare | create dependent resources without exposing partial state |
-| swap | atomic publication of complete valid snapshot |
-| retire | bounded cleanup of old resources |
-| fail | retain prior snapshot and report redacted diagnostics |
+| Phase    | Required behavior                                         |
+| -------- | --------------------------------------------------------- |
+| acquire  | bounded read with source/version                          |
+| parse    | raw snapshot, no mutation of active state                 |
+| validate | all per-field and cross-field rules                       |
+| prepare  | create dependent resources without exposing partial state |
+| swap     | atomic publication of complete valid snapshot             |
+| retire   | bounded cleanup of old resources                          |
+| fail     | retain prior snapshot and report redacted diagnostics     |
 
 ## Review prompts
 

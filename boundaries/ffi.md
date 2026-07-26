@@ -108,14 +108,14 @@ changes, and target ABIs can invalidate premises and trigger re-audit.
 
 ## FFI contract table
 
-| Dimension | Required record |
-|---|---|
-| ABI/layout | calling convention, `repr`, widths, alignment, targets |
-| pointer | nullability, bounds, mutability, provenance |
-| ownership | borrow/take/give, lifetime, matching release |
-| strings | encoding, length, terminator, interior null |
-| errors | status/out-param rules, unknown code |
-| callbacks | retention, thread, reentrancy, unregister |
-| unwind | catch, abort, or supported unwind ABI |
-| concurrency | affinity, synchronization, `Send`/`Sync` proof |
-| allocation | allocator of origin and cleanup |
+| Dimension   | Required record                                        |
+| ----------- | ------------------------------------------------------ |
+| ABI/layout  | calling convention, `repr`, widths, alignment, targets |
+| pointer     | nullability, bounds, mutability, provenance            |
+| ownership   | borrow/take/give, lifetime, matching release           |
+| strings     | encoding, length, terminator, interior null            |
+| errors      | status/out-param rules, unknown code                   |
+| callbacks   | retention, thread, reentrancy, unregister              |
+| unwind      | catch, abort, or supported unwind ABI                  |
+| concurrency | affinity, synchronization, `Send`/`Sync` proof         |
+| allocation  | allocator of origin and cleanup                        |

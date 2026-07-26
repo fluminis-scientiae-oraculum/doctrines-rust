@@ -65,15 +65,15 @@ is gated until reconciliation or explicit new-intent confirmation.
 
 ## Server outcomes
 
-| Server evidence | Client transition |
-|---|---|
-| structured validation rejection | `Rejected` with original draft and field mapping |
-| authorization denial | safe rejection without leaking protected resource detail |
-| optimistic version conflict | `Rejected` with current version/refetch action |
-| confirmed command rejection | `Rejected` with domain-safe reason |
-| confirmed completion | `Submitted` with receipt |
-| accepted asynchronous processing | `Submitting` with operation status, not submitted |
-| timeout after possible dispatch | `Unknown` |
+| Server evidence                  | Client transition                                        |
+| -------------------------------- | -------------------------------------------------------- |
+| structured validation rejection  | `Rejected` with original draft and field mapping         |
+| authorization denial             | safe rejection without leaking protected resource detail |
+| optimistic version conflict      | `Rejected` with current version/refetch action           |
+| confirmed command rejection      | `Rejected` with domain-safe reason                       |
+| confirmed completion             | `Submitted` with receipt                                 |
+| accepted asynchronous processing | `Submitting` with operation status, not submitted        |
+| timeout after possible dispatch  | `Unknown`                                                |
 
 The status endpoint authenticates and authorizes access to the operation. It
 returns confirmed terminal, still processing, or still unknown. It does not
@@ -126,12 +126,12 @@ check state meaning.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| local workflow has one represented state | client enum | state update module | persisted draft decodes raw then validates | browser devtools can alter client | server domain validity/authority | client bug/tampering |
-| validated form passed client policy | client constructor | private local type | server ignores claim and revalidates | direct JS mutation | server acceptance | policy drift |
-| one submission intent has stable identity | ID created once entering submitting | state transition | server binds fingerprint | expiry/manual new intent | effect executed once everywhere | retention/provider behavior |
-| submitted has confirmed server receipt | response/status evidence | no dispatch-only constructor | receipt decoded/authorized | mocked/dev build path | irreversible external finality | later reversal |
-| unknown retains safe reconciliation | explicit state and operation ID | required payload | status endpoint | user authorizes new intent | success/failure | status outage |
-| draft survives rejection | state carries `FormDraft` | rejection transition | scoped local storage | browser data clearing | durable server storage | quota/device loss |
-| hash route deep-link works on configured static host | client route plus entry-file hosting | deployment config | browser integration test | host rewrite change | authorization/security | host/cache drift |
+| Claim                                                | Established by                       | Protected construction       | Boundary preservation                      | Escape hatches                    | Does not prove                   | Residual runtime risk       |
+| ---------------------------------------------------- | ------------------------------------ | ---------------------------- | ------------------------------------------ | --------------------------------- | -------------------------------- | --------------------------- |
+| local workflow has one represented state             | client enum                          | state update module          | persisted draft decodes raw then validates | browser devtools can alter client | server domain validity/authority | client bug/tampering        |
+| validated form passed client policy                  | client constructor                   | private local type           | server ignores claim and revalidates       | direct JS mutation                | server acceptance                | policy drift                |
+| one submission intent has stable identity            | ID created once entering submitting  | state transition             | server binds fingerprint                   | expiry/manual new intent          | effect executed once everywhere  | retention/provider behavior |
+| submitted has confirmed server receipt               | response/status evidence             | no dispatch-only constructor | receipt decoded/authorized                 | mocked/dev build path             | irreversible external finality   | later reversal              |
+| unknown retains safe reconciliation                  | explicit state and operation ID      | required payload             | status endpoint                            | user authorizes new intent        | success/failure                  | status outage               |
+| draft survives rejection                             | state carries `FormDraft`            | rejection transition         | scoped local storage                       | browser data clearing             | durable server storage           | quota/device loss           |
+| hash route deep-link works on configured static host | client route plus entry-file hosting | deployment config            | browser integration test                   | host rewrite change               | authorization/security           | host/cache drift            |

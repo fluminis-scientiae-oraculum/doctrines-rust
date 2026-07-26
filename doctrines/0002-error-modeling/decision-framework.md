@@ -4,14 +4,14 @@
 
 Ask who receives the error and what decisions remain:
 
-| Boundary | Preferred form | Reason |
-|---|---|---|
-| Reusable library | structured domain enum or stable opaque typed error | callers need action and compatibility |
-| Internal domain service | structured enum | preserves business outcomes |
-| Application orchestration | typed errors until final decision, then opaque report | combines action with rich context |
-| CLI/process entry | formatted report and exit code after classification | no upstream Rust caller |
-| HTTP/RPC | internal typed error mapped to stable public status/code/body | separates protocol recipient from internals |
-| Background job | typed retry/reconcile decision plus correlated report | scheduler action must be safe |
+| Boundary                  | Preferred form                                                | Reason                                      |
+| ------------------------- | ------------------------------------------------------------- | ------------------------------------------- |
+| Reusable library          | structured domain enum or stable opaque typed error           | callers need action and compatibility       |
+| Internal domain service   | structured enum                                               | preserves business outcomes                 |
+| Application orchestration | typed errors until final decision, then opaque report         | combines action with rich context           |
+| CLI/process entry         | formatted report and exit code after classification           | no upstream Rust caller                     |
+| HTTP/RPC                  | internal typed error mapped to stable public status/code/body | separates protocol recipient from internals |
+| Background job            | typed retry/reconcile decision plus correlated report         | scheduler action must be safe               |
 
 Use `thiserror` or equivalent when derivation reduces mechanical implementations without
 changing the model. Use an `anyhow`-style report where control decisions are already complete

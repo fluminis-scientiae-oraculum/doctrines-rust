@@ -4,19 +4,19 @@
 
 The following layers are complementary rather than a strict ranking:
 
-| Evidence | Supports | Does not establish |
-|---|---|---|
-| compiler rejection | a specific program cannot type-check under tested API/toolchain | runtime correctness or all prohibited programs |
-| type checking | accepted code satisfies language and trait constraints | domain truth or external behavior |
-| unit test | local behavior for selected inputs | boundary integration or full input space |
-| property test | a property over generated cases | mathematical universality outside generation/model |
-| compile-fail test | important misuse remains rejected | runtime failure handling |
-| integration test | behavior across instantiated components | every deployment or failure |
-| contract test | agreed protocol examples and compatibility | provider implementation correctness everywhere |
-| fault injection | recovery at selected failure points | all timing and correlated failures |
-| model checking | modeled schedules within stated bounds | unmodeled code, inputs, or unbounded executions |
-| production telemetry | observed deployed behavior | invisible failures or workloads not seen |
-| incident evidence | a real failure mechanism and consequence | absence of other mechanisms |
+| Evidence             | Supports                                                        | Does not establish                                 |
+| -------------------- | --------------------------------------------------------------- | -------------------------------------------------- |
+| compiler rejection   | a specific program cannot type-check under tested API/toolchain | runtime correctness or all prohibited programs     |
+| type checking        | accepted code satisfies language and trait constraints          | domain truth or external behavior                  |
+| unit test            | local behavior for selected inputs                              | boundary integration or full input space           |
+| property test        | a property over generated cases                                 | mathematical universality outside generation/model |
+| compile-fail test    | important misuse remains rejected                               | runtime failure handling                           |
+| integration test     | behavior across instantiated components                         | every deployment or failure                        |
+| contract test        | agreed protocol examples and compatibility                      | provider implementation correctness everywhere     |
+| fault injection      | recovery at selected failure points                             | all timing and correlated failures                 |
+| model checking       | modeled schedules within stated bounds                          | unmodeled code, inputs, or unbounded executions    |
+| production telemetry | observed deployed behavior                                      | invisible failures or workloads not seen           |
+| incident evidence    | a real failure mechanism and consequence                        | absence of other mechanisms                        |
 
 Tests become persuasive when their scope matches the claim and independent
 layers agree.
@@ -145,13 +145,13 @@ or doctrine correction where appropriate.
 
 ## Evidence ledger example
 
-| Claim | Evidence | Scope | Does not prove | Residual risk |
-|---|---|---|---|---|
-| direct verified-email construction is blocked | compile-fail test | public API on pinned compiler | verifier truth | unsafe/internal future escape |
-| raw DB email is validated | integration fixtures plus constructor tests | tested schema/driver versions | all historical rows valid | alternate writer or corruption |
-| duplicate command does not repeat local effect | transactional integration test | local database boundary | remote effect uniqueness | retention expiry |
-| atomic protocol preserves one-owner state | Loom model plus reasoning | modeled bounds and primitives | unsupported target behavior | model mismatch |
-| timeout remains unknown | fault injection after dispatch | selected protocol points | provider final state | reconciliation outage |
+| Claim                                          | Evidence                                    | Scope                         | Does not prove              | Residual risk                  |
+| ---------------------------------------------- | ------------------------------------------- | ----------------------------- | --------------------------- | ------------------------------ |
+| direct verified-email construction is blocked  | compile-fail test                           | public API on pinned compiler | verifier truth              | unsafe/internal future escape  |
+| raw DB email is validated                      | integration fixtures plus constructor tests | tested schema/driver versions | all historical rows valid   | alternate writer or corruption |
+| duplicate command does not repeat local effect | transactional integration test              | local database boundary       | remote effect uniqueness    | retention expiry               |
+| atomic protocol preserves one-owner state      | Loom model plus reasoning                   | modeled bounds and primitives | unsupported target behavior | model mismatch                 |
+| timeout remains unknown                        | fault injection after dispatch              | selected protocol points      | provider final state        | reconciliation outage          |
 
 ## Proportionality
 

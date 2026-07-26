@@ -71,12 +71,12 @@ transport attempt records an attempt ID under the logical operation.
 
 Provider outcomes map as follows:
 
-| Observation | State |
-|---|---|
-| authenticated accepted response | `ConfirmedAccepted` |
-| authenticated permanent rejection | `Rejected` |
-| failure proven before dispatch | queued with bounded retry guidance |
-| timeout/disconnect after possible dispatch | `Unknown` |
+| Observation                                | State                              |
+| ------------------------------------------ | ---------------------------------- |
+| authenticated accepted response            | `ConfirmedAccepted`                |
+| authenticated permanent rejection          | `Rejected`                         |
+| failure proven before dispatch             | queued with bounded retry guidance |
+| timeout/disconnect after possible dispatch | `Unknown`                          |
 
 The worker persists the observed outcome and acknowledgement progress. Repeated
 outbox delivery reuses the same provider key. The provider idempotency contract
@@ -126,11 +126,11 @@ structured result, not generic internal failure.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| `PositiveMoney` is nonzero in one currency | `NonZeroU64` plus `Currency` constructor | private fields | DTO/row `TryFrom` | audited migration repair | tax, FX, allocation, sufficient funds | overflow and policy changes |
-| `EmailAddress` satisfies syntax policy | checked parser | private string | every DTO/row decode calls parser | quarantine tool cannot issue trusted value | ownership, future deliverability | policy evolution |
-| invoice has one legal state shape | enum | private aggregate construction | row truth-table conversion | privileged repair | transition authorization/history | concurrent persisted change |
-| delivery intent is durable with invoice update | outbox and state in one DB transaction | repository API | publisher consumes operation identity | direct DB administration | provider execution | DB availability |
-| provider acceptance was confirmed | authenticated provider response/reconciled event | checked outcome transition | receipt persisted | audited operator resolution | inbox delivery or future bounce | provider reversal/event lag |
-| unknown has reconciliation identity | explicit state constructor | required fields | durable row conversion | destructive raw DB edit | whether email was accepted | provider observation outage |
+| Claim                                          | Established by                                   | Protected construction         | Boundary preservation                 | Escape hatches                             | Does not prove                        | Residual runtime risk       |
+| ---------------------------------------------- | ------------------------------------------------ | ------------------------------ | ------------------------------------- | ------------------------------------------ | ------------------------------------- | --------------------------- |
+| `PositiveMoney` is nonzero in one currency     | `NonZeroU64` plus `Currency` constructor         | private fields                 | DTO/row `TryFrom`                     | audited migration repair                   | tax, FX, allocation, sufficient funds | overflow and policy changes |
+| `EmailAddress` satisfies syntax policy         | checked parser                                   | private string                 | every DTO/row decode calls parser     | quarantine tool cannot issue trusted value | ownership, future deliverability      | policy evolution            |
+| invoice has one legal state shape              | enum                                             | private aggregate construction | row truth-table conversion            | privileged repair                          | transition authorization/history      | concurrent persisted change |
+| delivery intent is durable with invoice update | outbox and state in one DB transaction           | repository API                 | publisher consumes operation identity | direct DB administration                   | provider execution                    | DB availability             |
+| provider acceptance was confirmed              | authenticated provider response/reconciled event | checked outcome transition     | receipt persisted                     | audited operator resolution                | inbox delivery or future bounce       | provider reversal/event lag |
+| unknown has reconciliation identity            | explicit state constructor                       | required fields                | durable row conversion                | destructive raw DB edit                    | whether email was accepted            | provider observation outage |

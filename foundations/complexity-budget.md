@@ -104,17 +104,17 @@ ladder prompts an explanation for skipping simpler options.
 
 For a representation choice, record:
 
-| Dimension | Observation | Cost or risk | Evidence |
-|---|---|---|---|
-| Invalid action | Which misuse is prevented | Consequence and frequency | incidents, threat model, review |
-| State graph | State and transition count | explosion or clarity | state diagram |
-| Control | local, external, or shared | stale proof and runtime need | boundary map |
-| Persistence | format and migration | conversion and compatibility | schema tests |
-| API | caller count and stability | semver and diagnostics | compile-fail tests |
-| Runtime | dispatch, allocation, synchronization | latency and contention | benchmarks or profiles |
-| Build | generics and macros | compile time and binary size | measured builds |
-| Team | familiarity and support | maintenance and incident cost | review exercise |
-| Alternative | simpler mechanism | residual invalidity | comparative prototype |
+| Dimension      | Observation                           | Cost or risk                  | Evidence                        |
+| -------------- | ------------------------------------- | ----------------------------- | ------------------------------- |
+| Invalid action | Which misuse is prevented             | Consequence and frequency     | incidents, threat model, review |
+| State graph    | State and transition count            | explosion or clarity          | state diagram                   |
+| Control        | local, external, or shared            | stale proof and runtime need  | boundary map                    |
+| Persistence    | format and migration                  | conversion and compatibility  | schema tests                    |
+| API            | caller count and stability            | semver and diagnostics        | compile-fail tests              |
+| Runtime        | dispatch, allocation, synchronization | latency and contention        | benchmarks or profiles          |
+| Build          | generics and macros                   | compile time and binary size  | measured builds                 |
+| Team           | familiarity and support               | maintenance and incident cost | review exercise                 |
+| Alternative    | simpler mechanism                     | residual invalidity           | comparative prototype           |
 
 The decision also states a removal trigger. If state count grows beyond the usable limit,
 persistence becomes necessary, diagnostics degrade, or measurement shows material cost, the

@@ -172,17 +172,17 @@ material in stable order.
 This index is synchronized with `manifest/doctrines.yaml`, which is the machine-readable
 discovery source.
 
-| ID | Active doctrine | Principal concern |
-|---|---|---|
-| RUST-DOC-0001 | [Making Invalid States Unrepresentable](doctrines/0001-invalid-states/README.md) | Invariant discovery, representation, construction, transitions, honest uncertainty |
-| RUST-DOC-0002 | [Error Modeling as Domain Design](doctrines/0002-error-modeling/README.md) | Structured failure, recoverability, retryability, panic boundaries |
-| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](doctrines/0003-ownership-and-capabilities/README.md) | Exclusive custody, capabilities, transfer, revocation, secrets |
-| RUST-DOC-0004 | [Concurrency and Async Correctness](doctrines/0004-concurrency-and-async/README.md) | Cancellation, backpressure, task ownership, synchronization |
-| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](doctrines/0005-persistence-boundaries/README.md) | Decoding, migrations, transactions, historical data |
-| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](doctrines/0006-distributed-uncertainty/README.md) | Idempotency, ambiguity, duplicates, reconciliation |
-| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](doctrines/0007-unsafe-rust/README.md) | Safety invariants, encapsulation, FFI, validation tooling |
-| RUST-DOC-0008 | [Testing as Layered Evidence](doctrines/0008-testing-and-evidence/README.md) | Evidence scope, forbidden programs, faults, model checking |
-| RUST-DOC-0009 | [Performance Claims Require Measurement](doctrines/0009-performance-and-measurement/README.md) | Workloads, profiling, distributions, regressions |
+| ID            | Active doctrine                                                                                          | Principal concern                                                                  |
+| ------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| RUST-DOC-0001 | [Making Invalid States Unrepresentable](doctrines/0001-invalid-states/README.md)                         | Invariant discovery, representation, construction, transitions, honest uncertainty |
+| RUST-DOC-0002 | [Error Modeling as Domain Design](doctrines/0002-error-modeling/README.md)                               | Structured failure, recoverability, retryability, panic boundaries                 |
+| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](doctrines/0003-ownership-and-capabilities/README.md)              | Exclusive custody, capabilities, transfer, revocation, secrets                     |
+| RUST-DOC-0004 | [Concurrency and Async Correctness](doctrines/0004-concurrency-and-async/README.md)                      | Cancellation, backpressure, task ownership, synchronization                        |
+| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](doctrines/0005-persistence-boundaries/README.md)           | Decoding, migrations, transactions, historical data                                |
+| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](doctrines/0006-distributed-uncertainty/README.md) | Idempotency, ambiguity, duplicates, reconciliation                                 |
+| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](doctrines/0007-unsafe-rust/README.md)                                | Safety invariants, encapsulation, FFI, validation tooling                          |
+| RUST-DOC-0008 | [Testing as Layered Evidence](doctrines/0008-testing-and-evidence/README.md)                             | Evidence scope, forbidden programs, faults, model checking                         |
+| RUST-DOC-0009 | [Performance Claims Require Measurement](doctrines/0009-performance-and-measurement/README.md)           | Workloads, profiling, distributions, regressions                                   |
 
 All doctrines begin at version `0.1.0`. Repository `0.1.0` establishes the initial corpus but
 does not claim `1.0` semantic stability. Patch releases clarify without changing normative
@@ -194,9 +194,14 @@ independently.
 
 The pinned development toolchain is Rust 1.97.1. The workspace MSRV is Rust 1.85.0, the first
 stable release supporting Edition 2024; selected dependencies declare compatibility with that
-floor. Run from the repository root:
+floor. Markdown tooling uses the exact Node.js, Prettier, and markdownlint-cli2 versions pinned
+by `.node-version` and `package-lock.json`. Run from the repository root:
 
 ```bash
+npm ci --ignore-scripts --no-audit
+npm audit --audit-level=high
+npm run check:markdown-format
+npm run lint:markdown
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
@@ -209,10 +214,13 @@ lychee --no-progress '**/*.md'
 git diff --check
 ```
 
-The workspace test command includes the `trybuild` compile-fail suite. CI repeats formatting,
-linting, tests, schema validation, bundle drift detection, and link checks with read-only
-repository permissions. CI confirms locally discovered behavior; it is not the first compiler
-or formatter.
+Run `npm run format:markdown` to format canonical and repository-governance Markdown before
+regenerating bundles. Prettier deliberately ignores `dist/`; generated Markdown changes only
+through `bundle-agent-context`. The workspace test command includes the `trybuild` compile-fail
+suite. CI exposes Markdown dependency audit, format, and lint as a distinct pull-request gate,
+then repeats Rust formatting, Clippy, tests, schema validation, bundle drift detection,
+dependency policy, and link checks with read-only repository permissions. CI confirms locally
+discovered behavior; it is not the first compiler, linter, or formatter.
 
 ## Contributing and evolution
 

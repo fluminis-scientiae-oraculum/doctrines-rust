@@ -1,0 +1,15 @@
+{
+  "MD013": {
+    "line_length": 120,
+    "heading_line_length": 120,
+    "code_blocks": false,
+    "tables": false
+  },
+  "MD033": false,
+  "MD036": false,
+
+  // Authoring templates contain instructional and replacement titles, and some
+  // repeated section names that become unique when the template is instantiated.
+  "MD024": false,
+  "MD025": false
+}

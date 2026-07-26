@@ -116,15 +116,15 @@ Ambiguous commit and persistence-after-external-effect require reconciliation.
 
 ## Decision table
 
-| Invariant | Boundary treatment |
-|---|---|
-| scalar range/format | row field to checked newtype |
-| mutually exclusive columns | raw row truth table to enum |
-| uniqueness | constructor plus database constraint |
-| aggregate version | optimistic update predicate |
-| cross-row balance | transaction plus appropriate isolation/locking |
-| historical invalid data | quarantine or audited migration |
-| state plus publication | transactional outbox, not fictional cross-system atomicity |
+| Invariant                  | Boundary treatment                                         |
+| -------------------------- | ---------------------------------------------------------- |
+| scalar range/format        | row field to checked newtype                               |
+| mutually exclusive columns | raw row truth table to enum                                |
+| uniqueness                 | constructor plus database constraint                       |
+| aggregate version          | optimistic update predicate                                |
+| cross-row balance          | transaction plus appropriate isolation/locking             |
+| historical invalid data    | quarantine or audited migration                            |
+| state plus publication     | transactional outbox, not fictional cross-system atomicity |
 
 ## Review prompts
 

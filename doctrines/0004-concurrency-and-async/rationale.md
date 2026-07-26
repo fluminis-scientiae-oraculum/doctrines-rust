@@ -40,13 +40,13 @@ correctly release local capacity, but it cannot undo an external effect.
 
 Cancellation analysis records:
 
-| Question | Required answer |
-|---|---|
-| What changed before suspension? | local and external mutations |
-| What happens if the future is dropped? | destructor, abandonment, or no action |
-| Who owns recovery? | current task, supervisor, lease expiry, or reconciler |
-| Can the operation resume safely? | cursor, transaction, or idempotency evidence |
-| Can success be unknown? | explicit reconciliation state and identity |
+| Question                               | Required answer                                       |
+| -------------------------------------- | ----------------------------------------------------- |
+| What changed before suspension?        | local and external mutations                          |
+| What happens if the future is dropped? | destructor, abandonment, or no action                 |
+| Who owns recovery?                     | current task, supervisor, lease expiry, or reconciler |
+| Can the operation resume safely?       | cursor, transaction, or idempotency evidence          |
+| Can success be unknown?                | explicit reconciliation state and identity            |
 
 Cancellation-safe does not mean infallible. It means that dropping the future
 at the specified point does not violate its documented protocol.

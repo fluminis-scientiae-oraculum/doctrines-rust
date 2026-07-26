@@ -17,14 +17,14 @@ If these artifacts cannot be stated, implementation is premature.
 
 ## Choose the state model
 
-| Need | Initial choice | Main checks |
-|---|---|---|
-| One sequential owner, many commands | actor or owner task | mailbox bound, response cancellation, supervision |
-| Short shared reads and updates | lock-protected state | complete invariant, lock order, contention |
-| Read-mostly immutable views | snapshot or copy-on-write | update cost, stale reads, retention |
-| Fixed parallel pure work | bounded worker pool | input bound, result order, panic propagation |
-| Narrow flag or counter protocol | atomic | happens-before argument, ordering, model evidence |
-| External durable coordination | runtime protocol | lease, fencing, expiry, split brain, reconciliation |
+| Need                                | Initial choice            | Main checks                                         |
+| ----------------------------------- | ------------------------- | --------------------------------------------------- |
+| One sequential owner, many commands | actor or owner task       | mailbox bound, response cancellation, supervision   |
+| Short shared reads and updates      | lock-protected state      | complete invariant, lock order, contention          |
+| Read-mostly immutable views         | snapshot or copy-on-write | update cost, stale reads, retention                 |
+| Fixed parallel pure work            | bounded worker pool       | input bound, result order, panic propagation        |
+| Narrow flag or counter protocol     | atomic                    | happens-before argument, ordering, model evidence   |
+| External durable coordination       | runtime protocol          | lease, fencing, expiry, split brain, reconciliation |
 
 Prefer one owner when shared mutation is complex. Prefer a lock when operations
 are short and the protected invariant is clear. Prefer ordinary sequential code
@@ -68,13 +68,13 @@ For each producer-consumer boundary, calculate:
 
 Choose among:
 
-| Policy | Use when | Cost |
-|---|---|---|
-| Wait | caller can absorb latency and pressure should propagate | deadline and head-of-line blocking |
-| Reject | caller can retry or degrade safely | visible failure and retry coordination |
-| Shed | work is explicitly disposable | information loss |
-| Coalesce | newest or aggregate value is sufficient | intermediate history lost |
-| Persist | work must survive process loss | storage, replay, deduplication |
+| Policy   | Use when                                                | Cost                                   |
+| -------- | ------------------------------------------------------- | -------------------------------------- |
+| Wait     | caller can absorb latency and pressure should propagate | deadline and head-of-line blocking     |
+| Reject   | caller can retry or degrade safely                      | visible failure and retry coordination |
+| Shed     | work is explicitly disposable                           | information loss                       |
+| Coalesce | newest or aggregate value is sufficient                 | intermediate history lost              |
+| Persist  | work must survive process loss                          | storage, replay, deduplication         |
 
 An open-ended source with an unbounded in-memory queue fails the decision gate.
 
@@ -98,16 +98,16 @@ was not decided.
 
 For every spawn, record:
 
-| Field | Required content |
-|---|---|
-| Task name | stable operational identity |
-| Owner | task or component that observes it |
-| Completion | join, result channel, or supervised state |
-| Failure | propagation, restart, degradation, or process stop |
-| Cancellation | trigger and cleanup behavior |
-| Capacity | maximum instances |
-| Shutdown | admission stop, drain, deadline, abort |
-| Observability | active count, failures, age, queue depth |
+| Field         | Required content                                   |
+| ------------- | -------------------------------------------------- |
+| Task name     | stable operational identity                        |
+| Owner         | task or component that observes it                 |
+| Completion    | join, result channel, or supervised state          |
+| Failure       | propagation, restart, degradation, or process stop |
+| Cancellation  | trigger and cleanup behavior                       |
+| Capacity      | maximum instances                                  |
+| Shutdown      | admission stop, drain, deadline, abort             |
+| Observability | active count, failures, age, queue depth           |
 
 Detach only when loss is acceptable and the work remains bounded and observable.
 

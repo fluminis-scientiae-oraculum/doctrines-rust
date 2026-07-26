@@ -14,17 +14,17 @@ substantial compatible guidance. A major release denotes normative
 incompatibility, removal, or contract change. Status and supersession are
 governed by the manifest and RFC process.
 
-| ID | Doctrine | Primary concern |
-|---|---|---|
-| RUST-DOC-0001 | [Making Invalid States Unrepresentable](0001-invalid-states/) | invariant discovery, representation, construction, transitions |
-| RUST-DOC-0002 | [Error Modeling as Domain Design](0002-error-modeling/) | actionable failures, recovery, source preservation |
-| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](0003-ownership-and-capabilities/) | custody, exclusivity, capability, resource lifecycle |
-| RUST-DOC-0004 | [Concurrency and Async Correctness](0004-concurrency-and-async/) | task ownership, cancellation, backpressure, synchronization |
-| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](0005-persistence-boundaries/) | checked decoding, migration, transactions, durable intent |
-| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](0006-distributed-uncertainty/) | ambiguous outcomes, retries, duplicates, reconciliation |
-| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](0007-unsafe-rust/) | soundness, FFI, initialization, aliasing, dynamic evidence |
-| RUST-DOC-0008 | [Testing as Layered Evidence](0008-testing-and-evidence/) | claim-linked evidence and proof limits |
-| RUST-DOC-0009 | [Performance Claims Require Measurement](0009-performance-and-measurement/) | workloads, profiles, benchmarks, scoped claims |
+| ID            | Doctrine                                                                              | Primary concern                                                |
+| ------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| RUST-DOC-0001 | [Making Invalid States Unrepresentable](0001-invalid-states/)                         | invariant discovery, representation, construction, transitions |
+| RUST-DOC-0002 | [Error Modeling as Domain Design](0002-error-modeling/)                               | actionable failures, recovery, source preservation             |
+| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](0003-ownership-and-capabilities/)              | custody, exclusivity, capability, resource lifecycle           |
+| RUST-DOC-0004 | [Concurrency and Async Correctness](0004-concurrency-and-async/)                      | task ownership, cancellation, backpressure, synchronization    |
+| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](0005-persistence-boundaries/)           | checked decoding, migration, transactions, durable intent      |
+| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](0006-distributed-uncertainty/) | ambiguous outcomes, retries, duplicates, reconciliation        |
+| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](0007-unsafe-rust/)                                | soundness, FFI, initialization, aliasing, dynamic evidence     |
+| RUST-DOC-0008 | [Testing as Layered Evidence](0008-testing-and-evidence/)                             | claim-linked evidence and proof limits                         |
+| RUST-DOC-0009 | [Performance Claims Require Measurement](0009-performance-and-measurement/)           | workloads, profiles, benchmarks, scoped claims                 |
 
 ## Dependency direction
 

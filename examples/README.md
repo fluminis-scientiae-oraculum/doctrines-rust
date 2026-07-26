@@ -2,14 +2,14 @@
 
 The workspace examples demonstrate exact local guarantees and explicit limits:
 
-| Crate | Evidence |
-|---|---|
-| `domain-modeling` | positive currency-tagged money, checked addition, invoice sum type |
-| `validated-newtypes` | private checked values and verifier-owned email evidence |
-| `typestate` | fallible local connection and consuming transaction protocols |
-| `boundary-validation` | checked Serde and database-row conversions |
-| `distributed-outcomes` | confirmed, rejected, and unknown outcomes with retry decisions |
-| `doctrine-compile-fail` | compiler rejection of forged values and illegal sequencing |
+| Crate                   | Evidence                                                           |
+| ----------------------- | ------------------------------------------------------------------ |
+| `domain-modeling`       | positive currency-tagged money, checked addition, invoice sum type |
+| `validated-newtypes`    | private checked values and verifier-owned email evidence           |
+| `typestate`             | fallible local connection and consuming transaction protocols      |
+| `boundary-validation`   | checked Serde and database-row conversions                         |
+| `distributed-outcomes`  | confirmed, rejected, and unknown outcomes with retry decisions     |
+| `doctrine-compile-fail` | compiler rejection of forged values and illegal sequencing         |
 
 Run all examples from the repository root:
 

@@ -6,17 +6,17 @@ representation, and states both guarantees gained and guarantees not gained.
 Boundary, persistence, testing, and complexity sections prevent a local type
 shape from being mistaken for a complete system proof.
 
-| Pattern | Primary fit | Common overapplication |
-|---|---|---|
-| [Sum types](sum-types.md) | mutually exclusive runtime states | variant explosion for independent dimensions |
-| [Opaque newtypes](opaque-newtypes.md) | one value with a stable local invariant | names stronger than construction evidence |
-| [Smart constructors](smart-constructors.md) | checked establishment and normalization | incomplete checks split across callers |
-| [Typestate](typestate.md) | small, locally controlled protocol sequence | persisted or externally determined state |
-| [Capability types](capability-types.md) | possession represents authority | cloneable handles with undefined revocation |
-| [Consuming transitions](consuming-transitions.md) | prevent reuse of prior lifecycle state | losing recovery evidence on fallible transition |
-| [Validated collections](validated-collections.md) | non-empty, bounded, sorted, or unique sets | mutation paths that invalidate the wrapper |
-| [Hybrid state machines](hybrid-state-machines.md) | local typed workflow plus dynamic persistence | duplicated state without conversion contract |
-| [Explicit uncertainty](explicit-uncertainty.md) | external effect may have indeterminate outcome | treating unknown as generic error |
+| Pattern                                           | Primary fit                                    | Common overapplication                          |
+| ------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------- |
+| [Sum types](sum-types.md)                         | mutually exclusive runtime states              | variant explosion for independent dimensions    |
+| [Opaque newtypes](opaque-newtypes.md)             | one value with a stable local invariant        | names stronger than construction evidence       |
+| [Smart constructors](smart-constructors.md)       | checked establishment and normalization        | incomplete checks split across callers          |
+| [Typestate](typestate.md)                         | small, locally controlled protocol sequence    | persisted or externally determined state        |
+| [Capability types](capability-types.md)           | possession represents authority                | cloneable handles with undefined revocation     |
+| [Consuming transitions](consuming-transitions.md) | prevent reuse of prior lifecycle state         | losing recovery evidence on fallible transition |
+| [Validated collections](validated-collections.md) | non-empty, bounded, sorted, or unique sets     | mutation paths that invalidate the wrapper      |
+| [Hybrid state machines](hybrid-state-machines.md) | local typed workflow plus dynamic persistence  | duplicated state without conversion contract    |
+| [Explicit uncertainty](explicit-uncertainty.md)   | external effect may have indeterminate outcome | treating unknown as generic error               |
 
 ## Selection rule
 

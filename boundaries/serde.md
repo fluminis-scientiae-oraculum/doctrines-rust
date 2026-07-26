@@ -115,14 +115,14 @@ service.
 
 ## Decision table
 
-| Situation | Preferred approach |
-|---|---|
-| scalar with local invariant | raw scalar plus `try_from` |
-| cross-field state | raw DTO then domain conversion |
-| untrusted large sequence | streaming visitor with explicit cap |
-| long-lived format | versioned envelope and compatibility fixtures |
-| proxy retaining unknown data | bounded extension map with sensitivity policy |
-| secret-bearing output | dedicated response DTO, no broad domain serialization |
+| Situation                    | Preferred approach                                    |
+| ---------------------------- | ----------------------------------------------------- |
+| scalar with local invariant  | raw scalar plus `try_from`                            |
+| cross-field state            | raw DTO then domain conversion                        |
+| untrusted large sequence     | streaming visitor with explicit cap                   |
+| long-lived format            | versioned envelope and compatibility fixtures         |
+| proxy retaining unknown data | bounded extension map with sensitivity policy         |
+| secret-bearing output        | dedicated response DTO, no broad domain serialization |
 
 ## Review prompts
 

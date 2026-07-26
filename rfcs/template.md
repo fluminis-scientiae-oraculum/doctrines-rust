@@ -23,9 +23,9 @@ Provide evidence and affected audiences.>
 
 List exact rule additions, removals, weakenings, or supersession:
 
-| Doctrine/rule | Current meaning | Proposed meaning | Reason |
-|---|---|---|---|
-| <ID> | <Current> | <Proposed> | <Evidence> |
+| Doctrine/rule | Current meaning | Proposed meaning | Reason     |
+| ------------- | --------------- | ---------------- | ---------- |
+| <ID>          | <Current>       | <Proposed>       | <Evidence> |
 
 ## Affected doctrine IDs and artifacts
 
@@ -34,9 +34,9 @@ studies, examples, manifests, schemas, generated bundles, and governance.>
 
 ## Guarantee ledger impact
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| <Changed claim> | <Evidence> | <Protection> | <Boundary> | <Escape> | <Non-proof> | <Risk> |
+| Claim           | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
+| --------------- | -------------- | ---------------------- | --------------------- | -------------- | -------------- | --------------------- |
+| <Changed claim> | <Evidence>     | <Protection>           | <Boundary>            | <Escape>       | <Non-proof>    | <Risk>                |
 
 ## Compatibility
 

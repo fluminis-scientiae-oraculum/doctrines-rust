@@ -8,14 +8,14 @@ sources according to [`../manifest/agents.yaml`](../manifest/agents.yaml).
 
 ## Roles
 
-| Role | Primary output |
-|---|---|
-| [Shared](shared.md) | common invariant, boundary, evidence, and honesty obligations |
-| [Planner](planner.md) | invariant inventory, maps, state graph, complexity and evidence plan |
-| [Implementer](implementer.md) | protected construction, fallible effects, executable evidence |
-| [Reviewer](reviewer.md) | claim-versus-evidence decision and remediation |
-| [Auditor](auditor.md) | adversarial bypass and overclaim findings |
-| [Maintainer](maintainer.md) | governed doctrine evolution and reproducible generation |
+| Role                          | Primary output                                                       |
+| ----------------------------- | -------------------------------------------------------------------- |
+| [Shared](shared.md)           | common invariant, boundary, evidence, and honesty obligations        |
+| [Planner](planner.md)         | invariant inventory, maps, state graph, complexity and evidence plan |
+| [Implementer](implementer.md) | protected construction, fallible effects, executable evidence        |
+| [Reviewer](reviewer.md)       | claim-versus-evidence decision and remediation                       |
+| [Auditor](auditor.md)         | adversarial bypass and overclaim findings                            |
+| [Maintainer](maintainer.md)   | governed doctrine evolution and reproducible generation              |
 
 ## Hydration model
 

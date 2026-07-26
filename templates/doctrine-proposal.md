@@ -20,9 +20,9 @@ unchanged.>
 
 ## Proposed normative rules
 
-| Rule ID | Normative statement | Intent | Applicability | Exceptions | Review evidence |
-|---|---|---|---|---|---|
-| RUST-DOC-NNNN-R001 | <MUST/SHOULD statement> | <Risk> | <Scope> | <Narrow policy> | <Evidence> |
+| Rule ID            | Normative statement     | Intent | Applicability | Exceptions      | Review evidence |
+| ------------------ | ----------------------- | ------ | ------------- | --------------- | --------------- |
+| RUST-DOC-NNNN-R001 | <MUST/SHOULD statement> | <Risk> | <Scope>       | <Narrow policy> | <Evidence>      |
 
 ## Guarantee and boundary impact
 

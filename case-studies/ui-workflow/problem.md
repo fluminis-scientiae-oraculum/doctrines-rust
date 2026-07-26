@@ -21,18 +21,18 @@ and hash-routed deployment must preserve or deliberately discard local input.
 
 ## Invariants
 
-| ID | Statement | Classification |
-|---|---|---|
-| UI-01 | User input remains available after local/server rejection unless policy requires removal. | lifecycle |
-| UI-02 | Local validation never replaces server validation. | boundary |
-| UI-03 | UI state never grants backend authorization. | authority |
-| UI-04 | One submission intent has one stable operation/idempotency identity. | distributed |
-| UI-05 | Double-click and concurrent tab submissions are coordinated. | concurrency/distributed |
-| UI-06 | Timeout after dispatch becomes unknown, not automatic rejection. | distributed |
-| UI-07 | Submitted means confirmed server evidence, not merely request dispatch. | evidence |
-| UI-08 | Browser persistence and URLs do not expose secrets. | security |
-| UI-09 | Route restoration works under the deployed hash/path routing contract. | environmental |
-| UI-10 | Server conflicts preserve current version and safe next action. | persistence |
+| ID    | Statement                                                                                 | Classification          |
+| ----- | ----------------------------------------------------------------------------------------- | ----------------------- |
+| UI-01 | User input remains available after local/server rejection unless policy requires removal. | lifecycle               |
+| UI-02 | Local validation never replaces server validation.                                        | boundary                |
+| UI-03 | UI state never grants backend authorization.                                              | authority               |
+| UI-04 | One submission intent has one stable operation/idempotency identity.                      | distributed             |
+| UI-05 | Double-click and concurrent tab submissions are coordinated.                              | concurrency/distributed |
+| UI-06 | Timeout after dispatch becomes unknown, not automatic rejection.                          | distributed             |
+| UI-07 | Submitted means confirmed server evidence, not merely request dispatch.                   | evidence                |
+| UI-08 | Browser persistence and URLs do not expose secrets.                                       | security                |
+| UI-09 | Route restoration works under the deployed hash/path routing contract.                    | environmental           |
+| UI-10 | Server conflicts preserve current version and safe next action.                           | persistence             |
 
 ## Boundaries
 

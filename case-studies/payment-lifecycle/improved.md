@@ -126,11 +126,11 @@ without new evidence.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| amount is positive and currency-tagged | `PositiveMoney` constructor | private fields | DTO/row conversion | audited repair | balance, FX, fraud decision | overflow/policy change |
-| local capture handle follows authorization | checked provider response plus repository claim | restricted typed constructor | handle not deserialized | privileged provider adapter | authorization still valid later | expiry/revocation/provider outage |
-| capture operation has stable identity | durable creation before dispatch | repository API | reused across attempts | manual operations | provider honors idempotency | retention expiry |
-| capture is unknown rather than failed | ambiguous failure mapping | explicit variant | persisted reconciliation | operator risk decision | success or rejection | provider evidence missing |
-| settled state has provider evidence | authenticated deduplicated event | checked transition | inbox and row transaction | audited backfill | irrevocability | dispute/reversal |
-| reversal confirmed | authenticated reversal receipt | separate operation state | durable outcome conversion | manual provider action | history erased | later provider correction |
+| Claim                                      | Established by                                  | Protected construction       | Boundary preservation      | Escape hatches              | Does not prove                  | Residual runtime risk             |
+| ------------------------------------------ | ----------------------------------------------- | ---------------------------- | -------------------------- | --------------------------- | ------------------------------- | --------------------------------- |
+| amount is positive and currency-tagged     | `PositiveMoney` constructor                     | private fields               | DTO/row conversion         | audited repair              | balance, FX, fraud decision     | overflow/policy change            |
+| local capture handle follows authorization | checked provider response plus repository claim | restricted typed constructor | handle not deserialized    | privileged provider adapter | authorization still valid later | expiry/revocation/provider outage |
+| capture operation has stable identity      | durable creation before dispatch                | repository API               | reused across attempts     | manual operations           | provider honors idempotency     | retention expiry                  |
+| capture is unknown rather than failed      | ambiguous failure mapping                       | explicit variant             | persisted reconciliation   | operator risk decision      | success or rejection            | provider evidence missing         |
+| settled state has provider evidence        | authenticated deduplicated event                | checked transition           | inbox and row transaction  | audited backfill            | irrevocability                  | dispute/reversal                  |
+| reversal confirmed                         | authenticated reversal receipt                  | separate operation state     | durable outcome conversion | manual provider action      | history erased                  | later provider correction         |

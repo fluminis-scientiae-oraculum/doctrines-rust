@@ -17,16 +17,16 @@ different evidence.
 
 ## Invariants
 
-| ID | Statement | Classification | Consequence |
-|---|---|---|---|
-| INV-01 | Invoice state is exactly pending, paid-with-receipt, or failed-with-reason. | state | contradictory business decisions |
-| INV-02 | Amount is nonzero minor units with an explicit currency. | value | zero invoice or currency mixing |
-| INV-03 | Same-currency checked arithmetic is required for totals. | transition/value | overflow or invalid total |
-| INV-04 | Recipient passes the documented syntax policy. | boundary/value | malformed provider request |
-| INV-05 | Only pending invoices may begin ordinary delivery. | transition | duplicate or misleading notification |
-| INV-06 | Delivery operation identity remains stable across retries. | distributed | duplicate external effect |
-| INV-07 | Timeout after dispatch becomes unknown, not confirmed failure. | distributed | unsafe repeat |
-| INV-08 | Invoice state change and durable delivery intent cannot be silently separated. | persistence | forgotten or fictional send |
+| ID     | Statement                                                                      | Classification   | Consequence                          |
+| ------ | ------------------------------------------------------------------------------ | ---------------- | ------------------------------------ |
+| INV-01 | Invoice state is exactly pending, paid-with-receipt, or failed-with-reason.    | state            | contradictory business decisions     |
+| INV-02 | Amount is nonzero minor units with an explicit currency.                       | value            | zero invoice or currency mixing      |
+| INV-03 | Same-currency checked arithmetic is required for totals.                       | transition/value | overflow or invalid total            |
+| INV-04 | Recipient passes the documented syntax policy.                                 | boundary/value   | malformed provider request           |
+| INV-05 | Only pending invoices may begin ordinary delivery.                             | transition       | duplicate or misleading notification |
+| INV-06 | Delivery operation identity remains stable across retries.                     | distributed      | duplicate external effect            |
+| INV-07 | Timeout after dispatch becomes unknown, not confirmed failure.                 | distributed      | unsafe repeat                        |
+| INV-08 | Invoice state change and durable delivery intent cannot be silently separated. | persistence      | forgotten or fictional send          |
 
 Tax calculation, currency conversion, allocation, legal issuance requirements,
 account balance, mailbox ownership, and remote deliverability are outside the

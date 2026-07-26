@@ -119,11 +119,11 @@ conflict.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| credential is structurally parsed | bounded parser | private parsed type | adapter only | authenticator internals | identity | parser/library defect |
-| principal authenticated under stated evidence | verified signature/introspection and claims | authenticator-only constructor | session row checked on load | audited migration | continued account control or current authorization | key compromise/revocation lag |
-| delete permit was authorized for one account | current policy decision | authorizer-only fields | account/version bound | privileged break-glass | future policy or operation success | revocation race |
-| session is not expired at check time | trusted-clock comparison | session service | rechecked on use | clock administration | future validity | skew/pause |
-| token is not emitted by normal debug | redacted secret wrapper | no derived formatting | dedicated DTOs | raw framework access | absence from all memory/dumps | copies/crash dump |
-| IdP result is unavailable, not authenticated | explicit failure category | no principal constructor | preserved through adapter | fallback policy | credential invalid | prolonged outage |
+| Claim                                         | Established by                              | Protected construction         | Boundary preservation       | Escape hatches          | Does not prove                                     | Residual runtime risk         |
+| --------------------------------------------- | ------------------------------------------- | ------------------------------ | --------------------------- | ----------------------- | -------------------------------------------------- | ----------------------------- |
+| credential is structurally parsed             | bounded parser                              | private parsed type            | adapter only                | authenticator internals | identity                                           | parser/library defect         |
+| principal authenticated under stated evidence | verified signature/introspection and claims | authenticator-only constructor | session row checked on load | audited migration       | continued account control or current authorization | key compromise/revocation lag |
+| delete permit was authorized for one account  | current policy decision                     | authorizer-only fields         | account/version bound       | privileged break-glass  | future policy or operation success                 | revocation race               |
+| session is not expired at check time          | trusted-clock comparison                    | session service                | rechecked on use            | clock administration    | future validity                                    | skew/pause                    |
+| token is not emitted by normal debug          | redacted secret wrapper                     | no derived formatting          | dedicated DTOs              | raw framework access    | absence from all memory/dumps                      | copies/crash dump             |
+| IdP result is unavailable, not authenticated  | explicit failure category                   | no principal constructor       | preserved through adapter   | fallback policy         | credential invalid                                 | prolonged outage              |

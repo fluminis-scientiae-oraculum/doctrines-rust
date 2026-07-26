@@ -97,6 +97,10 @@ diagnostic.
 Before handing off a change, run:
 
 ```bash
+npm ci --ignore-scripts --no-audit
+npm audit --audit-level=high
+npm run check:markdown-format
+npm run lint:markdown
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
@@ -108,6 +112,11 @@ cargo deny check
 lychee --no-progress '**/*.md'
 git diff --check
 ```
+
+Before bundle generation, run `npm run format:markdown` after editing canonical or governance
+Markdown. Prettier deliberately excludes `dist/`; never use a formatter to rewrite generated
+bundles directly. The Markdown lint configuration uses narrow documented structural
+exceptions and MUST NOT be weakened merely to make a change pass.
 
 Run checks on both the pinned toolchain and MSRV when changing dependencies, public example
 APIs, or compiler evidence. Confirm manifest schemas validate actual YAML. Inspect

@@ -1,0 +1,23 @@
+{
+  "config": {
+    "default": true,
+
+    // Prose and headings stay reviewable; code and evidence tables may contain
+    // indivisible identifiers or syntax.
+    "MD013": {
+      "line_length": 120,
+      "heading_line_length": 120,
+      "code_blocks": false,
+      "tables": false
+    },
+
+    // YAML metadata is machine discovery, not a rendered document heading.
+    "MD025": {
+      "front_matter_title": ""
+    },
+
+    // Glossaries deliberately render terms as bold labels followed by prose.
+    "MD036": false
+  },
+  "noProgress": true
+}

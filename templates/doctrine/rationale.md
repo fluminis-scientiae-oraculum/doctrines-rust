@@ -27,8 +27,8 @@ or a runtime enum is better.>
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
+| Claim         | Established by                                   | Protected construction | Boundary preservation     | Escape hatches    | Does not prove   | Residual runtime risk |
+| ------------- | ------------------------------------------------ | ---------------------- | ------------------------- | ----------------- | ---------------- | --------------------- |
 | <Exact claim> | <Constructor, transition, protocol, or evidence> | <Visibility/authority> | <Decode/persistence path> | <Privileged path> | <Excluded facts> | <Failure/uncertainty> |
 
 Add enough rows to cover each major type, transition, authority, persisted fact,

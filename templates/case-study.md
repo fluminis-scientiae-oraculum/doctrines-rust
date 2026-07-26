@@ -8,9 +8,9 @@ When materializing a case, split this structure into `problem.md`, `naive.md`,
 Define domain vocabulary, actors, lifecycle, trust boundaries, persistence,
 external effects, and at least one invariant table:
 
-| ID | Statement | Classification | Enforcement candidate | Failure consequence |
-|---|---|---|---|---|
-| <CASE-01> | <Exact invariant> | <value/state/etc.> | <mechanism> | <consequence> |
+| ID        | Statement         | Classification     | Enforcement candidate | Failure consequence |
+| --------- | ----------------- | ------------------ | --------------------- | ------------------- |
+| <CASE-01> | <Exact invariant> | <value/state/etc.> | <mechanism>           | <consequence>       |
 
 List failure points before, between, and after durable/external steps.
 
@@ -37,9 +37,9 @@ Provide:
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| <Claim> | <Evidence> | <Protection> | <Boundary> | <Escape> | <Non-proof> | <Risk> |
+| Claim   | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
+| ------- | -------------- | ---------------------- | --------------------- | -------------- | -------------- | --------------------- |
+| <Claim> | <Evidence>     | <Protection>           | <Boundary>            | <Escape>       | <Non-proof>    | <Risk>                |
 
 ## Remaining uncertainty
 

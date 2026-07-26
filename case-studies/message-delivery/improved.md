@@ -115,11 +115,11 @@ outbox publisher.
 
 ## Guarantee ledger
 
-| Claim | Established by | Protected construction | Boundary preservation | Escape hatches | Does not prove | Residual runtime risk |
-|---|---|---|---|---|---|---|
-| trusted command passed current validation | envelope/source/DTO/domain pipeline | private command fields | replay uses same pipeline | audited repair tool | producer truth or current authority forever | schema/policy change |
-| local effect occurs once per retained identity | unique inbox claim plus same DB transaction | repository handler | restart/redelivery reads inbox | direct DB edit, retention expiry | one broker delivery or remote effect | database failure |
-| aggregate order is checked per key | expected version transition | repository API | version persisted | administrative override | global order | missing predecessor |
-| notification intent is durable | outbox shares local commit | repository transaction | publisher uses operation ID | direct DB mutation | provider acceptance | publisher outage |
-| notification is unknown after ambiguous timeout | explicit outcome/token | outcome constructor | durable record | operator decision | sent or unsent | provider query unavailable |
-| poison data is isolated | bounded quarantine transition | consumer supervisor | original identity retained | privileged deletion | later repair correctness | backlog/sensitive exposure |
+| Claim                                           | Established by                              | Protected construction | Boundary preservation          | Escape hatches                   | Does not prove                              | Residual runtime risk      |
+| ----------------------------------------------- | ------------------------------------------- | ---------------------- | ------------------------------ | -------------------------------- | ------------------------------------------- | -------------------------- |
+| trusted command passed current validation       | envelope/source/DTO/domain pipeline         | private command fields | replay uses same pipeline      | audited repair tool              | producer truth or current authority forever | schema/policy change       |
+| local effect occurs once per retained identity  | unique inbox claim plus same DB transaction | repository handler     | restart/redelivery reads inbox | direct DB edit, retention expiry | one broker delivery or remote effect        | database failure           |
+| aggregate order is checked per key              | expected version transition                 | repository API         | version persisted              | administrative override          | global order                                | missing predecessor        |
+| notification intent is durable                  | outbox shares local commit                  | repository transaction | publisher uses operation ID    | direct DB mutation               | provider acceptance                         | publisher outage           |
+| notification is unknown after ambiguous timeout | explicit outcome/token                      | outcome constructor    | durable record                 | operator decision                | sent or unsent                              | provider query unavailable |
+| poison data is isolated                         | bounded quarantine transition               | consumer supervisor    | original identity retained     | privileged deletion              | later repair correctness                    | backlog/sensitive exposure |

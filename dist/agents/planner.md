@@ -445,18 +445,18 @@ claim.
 
 An example row:
 
-| Field | Content |
-|---|---|
-| ID | INV-PAY-004 |
-| Statement | A locally requested capture references an accepted authorization for the same payment and amount |
-| Scope | capture command construction |
-| Owner | payment domain |
-| Classification | transition and cross-entity invariant |
-| Enforcement mechanism | verifier-issued capability plus runtime amount comparison |
-| Trust boundary | provider authorization response and persisted reload |
-| Evidence | constructor tests, compiler rejection before authorization, integration contract test |
-| Failure consequence | unauthorized or wrong-amount capture |
-| Residual uncertainty | provider may reject, time out, or accept without returning acknowledgement |
+| Field                 | Content                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------ |
+| ID                    | INV-PAY-004                                                                                      |
+| Statement             | A locally requested capture references an accepted authorization for the same payment and amount |
+| Scope                 | capture command construction                                                                     |
+| Owner                 | payment domain                                                                                   |
+| Classification        | transition and cross-entity invariant                                                            |
+| Enforcement mechanism | verifier-issued capability plus runtime amount comparison                                        |
+| Trust boundary        | provider authorization response and persisted reload                                             |
+| Evidence              | constructor tests, compiler rejection before authorization, integration contract test            |
+| Failure consequence   | unauthorized or wrong-amount capture                                                             |
+| Residual uncertainty  | provider may reject, time out, or accept without returning acknowledgement                       |
 
 ## Discovery method
 
@@ -480,18 +480,18 @@ operational recovery. Negative cases are often more revealing than success paths
 
 Classification narrows choices without making them automatic:
 
-| Invariant shape | Usual first mechanism |
-|---|---|
-| Mutually exclusive state | enum with variant-specific data |
-| Stable local scalar rule | opaque validated newtype |
-| Whole-collection rule | validated collection wrapper |
-| Small locally controlled sequence | consuming transition or typestate |
-| Authority possession | capability type |
-| Dynamic or persisted lifecycle | runtime enum and validated state machine |
-| External input | parse and runtime validation |
-| Cross-entity fact | domain service plus transactional validation |
-| External effect result | structured `Result` |
-| Ambiguous distributed effect | explicit unknown state and reconciliation |
+| Invariant shape                   | Usual first mechanism                        |
+| --------------------------------- | -------------------------------------------- |
+| Mutually exclusive state          | enum with variant-specific data              |
+| Stable local scalar rule          | opaque validated newtype                     |
+| Whole-collection rule             | validated collection wrapper                 |
+| Small locally controlled sequence | consuming transition or typestate            |
+| Authority possession              | capability type                              |
+| Dynamic or persisted lifecycle    | runtime enum and validated state machine     |
+| External input                    | parse and runtime validation                 |
+| Cross-entity fact                 | domain service plus transactional validation |
+| External effect result            | structured `Result`                          |
+| Ambiguous distributed effect      | explicit unknown state and reconciliation    |
 
 These are starting points. A complex system often uses several: a runtime persisted payment
 status, a consuming local authorization capability, an opaque idempotency key, and an
@@ -828,17 +828,17 @@ ladder prompts an explanation for skipping simpler options.
 
 For a representation choice, record:
 
-| Dimension | Observation | Cost or risk | Evidence |
-|---|---|---|---|
-| Invalid action | Which misuse is prevented | Consequence and frequency | incidents, threat model, review |
-| State graph | State and transition count | explosion or clarity | state diagram |
-| Control | local, external, or shared | stale proof and runtime need | boundary map |
-| Persistence | format and migration | conversion and compatibility | schema tests |
-| API | caller count and stability | semver and diagnostics | compile-fail tests |
-| Runtime | dispatch, allocation, synchronization | latency and contention | benchmarks or profiles |
-| Build | generics and macros | compile time and binary size | measured builds |
-| Team | familiarity and support | maintenance and incident cost | review exercise |
-| Alternative | simpler mechanism | residual invalidity | comparative prototype |
+| Dimension      | Observation                           | Cost or risk                  | Evidence                        |
+| -------------- | ------------------------------------- | ----------------------------- | ------------------------------- |
+| Invalid action | Which misuse is prevented             | Consequence and frequency     | incidents, threat model, review |
+| State graph    | State and transition count            | explosion or clarity          | state diagram                   |
+| Control        | local, external, or shared            | stale proof and runtime need  | boundary map                    |
+| Persistence    | format and migration                  | conversion and compatibility  | schema tests                    |
+| API            | caller count and stability            | semver and diagnostics        | compile-fail tests              |
+| Runtime        | dispatch, allocation, synchronization | latency and contention        | benchmarks or profiles          |
+| Build          | generics and macros                   | compile time and binary size  | measured builds                 |
+| Team           | familiarity and support               | maintenance and incident cost | review exercise                 |
+| Alternative    | simpler mechanism                     | residual invalidity           | comparative prototype           |
 
 The decision also states a removal trigger. If state count grows beyond the usable limit,
 persistence becomes necessary, diagnostics degrade, or measurement shows material cost, the
@@ -2703,77 +2703,77 @@ or protocol choices become expensive to reverse.
 
 ## Domain and invariant inventory
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| PRE-01 | Is the domain objective stated without prescribing a Rust mechanism? | outcome and scope |
-| PRE-02 | Is a shared vocabulary defined for values, actors, states, and effects? | vocabulary artifact |
-| PRE-03 | Are ambiguous terms split by evidence level? | definitions such as parsed/verified |
-| PRE-04 | Are non-goals and excluded systems explicit? | bounded scope |
-| PRE-05 | Does every consequential invariant have a stable ID? | invariant inventory |
-| PRE-06 | Is each invariant statement testable or reviewable? | precise predicate |
-| PRE-07 | Is each invariant classified as value, state, transition, authority, lifecycle, boundary, cross-entity, temporal, environmental, or distributed? | classification field |
-| PRE-08 | Is the invariant owner named? | component or role |
-| PRE-09 | Is the enforcement mechanism proposed without claiming more than it proves? | mechanism column |
-| PRE-10 | Is the trust boundary that establishes evidence named? | boundary column |
-| PRE-11 | Is failure consequence recorded? | consequence/severity |
-| PRE-12 | Is residual uncertainty recorded? | uncertainty column |
-| PRE-13 | Are preconditions distinguished from invariants? | separate entries |
-| PRE-14 | Are assumptions and observations distinguished from guarantees? | assumption ledger |
-| PRE-15 | Are cross-entity rules excluded from pure scalar constructors? | enforcement placement |
-| PRE-16 | Are external mutable facts identified as runtime evidence? | observation policy |
+| ID     | Question                                                                                                                                         | Pass evidence                       |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| PRE-01 | Is the domain objective stated without prescribing a Rust mechanism?                                                                             | outcome and scope                   |
+| PRE-02 | Is a shared vocabulary defined for values, actors, states, and effects?                                                                          | vocabulary artifact                 |
+| PRE-03 | Are ambiguous terms split by evidence level?                                                                                                     | definitions such as parsed/verified |
+| PRE-04 | Are non-goals and excluded systems explicit?                                                                                                     | bounded scope                       |
+| PRE-05 | Does every consequential invariant have a stable ID?                                                                                             | invariant inventory                 |
+| PRE-06 | Is each invariant statement testable or reviewable?                                                                                              | precise predicate                   |
+| PRE-07 | Is each invariant classified as value, state, transition, authority, lifecycle, boundary, cross-entity, temporal, environmental, or distributed? | classification field                |
+| PRE-08 | Is the invariant owner named?                                                                                                                    | component or role                   |
+| PRE-09 | Is the enforcement mechanism proposed without claiming more than it proves?                                                                      | mechanism column                    |
+| PRE-10 | Is the trust boundary that establishes evidence named?                                                                                           | boundary column                     |
+| PRE-11 | Is failure consequence recorded?                                                                                                                 | consequence/severity                |
+| PRE-12 | Is residual uncertainty recorded?                                                                                                                | uncertainty column                  |
+| PRE-13 | Are preconditions distinguished from invariants?                                                                                                 | separate entries                    |
+| PRE-14 | Are assumptions and observations distinguished from guarantees?                                                                                  | assumption ledger                   |
+| PRE-15 | Are cross-entity rules excluded from pure scalar constructors?                                                                                   | enforcement placement               |
+| PRE-16 | Are external mutable facts identified as runtime evidence?                                                                                       | observation policy                  |
 
 ## State and authority
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| PRE-17 | Is a state graph provided for each meaningful lifecycle? | nodes and legal edges |
-| PRE-18 | Does each state list required associated evidence? | state payload table |
-| PRE-19 | Are mutually exclusive and independent dimensions distinguished? | representation rationale |
-| PRE-20 | Does every transition identify actor and authority? | transition table |
-| PRE-21 | Does every transition identify precondition and postcondition? | edge contract |
-| PRE-22 | Are failure and cancellation edges present? | complete graph |
-| PRE-23 | Are unknown or reconciliation states included where execution can be ambiguous? | explicit nodes |
-| PRE-24 | Is an authority map provided for privileged actions? | principal/capability map |
-| PRE-25 | Are capability construction, transfer, clone, expiry, and revocation defined? | authority lifecycle |
-| PRE-26 | Are secret-bearing values and permitted readers identified? | data/authority map |
+| ID     | Question                                                                        | Pass evidence            |
+| ------ | ------------------------------------------------------------------------------- | ------------------------ |
+| PRE-17 | Is a state graph provided for each meaningful lifecycle?                        | nodes and legal edges    |
+| PRE-18 | Does each state list required associated evidence?                              | state payload table      |
+| PRE-19 | Are mutually exclusive and independent dimensions distinguished?                | representation rationale |
+| PRE-20 | Does every transition identify actor and authority?                             | transition table         |
+| PRE-21 | Does every transition identify precondition and postcondition?                  | edge contract            |
+| PRE-22 | Are failure and cancellation edges present?                                     | complete graph           |
+| PRE-23 | Are unknown or reconciliation states included where execution can be ambiguous? | explicit nodes           |
+| PRE-24 | Is an authority map provided for privileged actions?                            | principal/capability map |
+| PRE-25 | Are capability construction, transfer, clone, expiry, and revocation defined?   | authority lifecycle      |
+| PRE-26 | Are secret-bearing values and permitted readers identified?                     | data/authority map       |
 
 ## Trust boundaries and external effects
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| PRE-27 | Is every ingress and egress boundary inventoried? | boundary map |
-| PRE-28 | Does each ingress show raw, structural, and trusted representations? | conversion pipeline |
-| PRE-29 | Are alternate writers and privileged bypass paths listed? | bypass inventory |
-| PRE-30 | Are parsing, validation, authentication, and authorization separated? | layered design |
-| PRE-31 | Are size, nesting, allocation, and concurrency limits proposed? | resource table |
-| PRE-32 | Is version/unknown-value policy stated? | compatibility matrix |
-| PRE-33 | Is every external side effect inventoried? | effect list |
-| PRE-34 | Does each effect identify the point after which execution can be unknown? | protocol timeline |
-| PRE-35 | Are idempotency and retry classifications stated per failure point? | failure matrix |
-| PRE-36 | Is reconciliation evidence and owner identified? | reconciliation plan |
-| PRE-37 | Are compensation actions treated as new fallible effects? | saga contract |
-| PRE-38 | Are ordering claims scoped by key, producer, partition, and failover? | ordering contract |
+| ID     | Question                                                                  | Pass evidence        |
+| ------ | ------------------------------------------------------------------------- | -------------------- |
+| PRE-27 | Is every ingress and egress boundary inventoried?                         | boundary map         |
+| PRE-28 | Does each ingress show raw, structural, and trusted representations?      | conversion pipeline  |
+| PRE-29 | Are alternate writers and privileged bypass paths listed?                 | bypass inventory     |
+| PRE-30 | Are parsing, validation, authentication, and authorization separated?     | layered design       |
+| PRE-31 | Are size, nesting, allocation, and concurrency limits proposed?           | resource table       |
+| PRE-32 | Is version/unknown-value policy stated?                                   | compatibility matrix |
+| PRE-33 | Is every external side effect inventoried?                                | effect list          |
+| PRE-34 | Does each effect identify the point after which execution can be unknown? | protocol timeline    |
+| PRE-35 | Are idempotency and retry classifications stated per failure point?       | failure matrix       |
+| PRE-36 | Is reconciliation evidence and owner identified?                          | reconciliation plan  |
+| PRE-37 | Are compensation actions treated as new fallible effects?                 | saga contract        |
+| PRE-38 | Are ordering claims scoped by key, producer, partition, and failover?     | ordering contract    |
 
 ## Persistence, complexity, and evidence
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| PRE-39 | Is the persistence representation distinct where its contract differs? | row/domain comparison |
-| PRE-40 | Are transaction boundaries aligned with cross-entity invariants? | transaction map |
-| PRE-41 | Is optimistic concurrency or another lost-update strategy selected? | conflict protocol |
-| PRE-42 | Are migration and old-value compatibility needs identified? | version plan |
-| PRE-43 | Is persistence plus messaging coordinated durably where loss matters? | outbox/inbox decision |
-| PRE-44 | Is the concurrency ownership and synchronization model stated? | task/state ownership |
-| PRE-45 | Are queue, pool, and retry capacities bounded? | capacity budget |
-| PRE-46 | Is cancellation cleanup defined for partial operations? | cancellation table |
-| PRE-47 | Is the simplest sufficient representation selected from enum, newtype, runtime validation, typestate, capability, or plain code? | decision record |
-| PRE-48 | Does the complexity budget cover diagnostics, compile time, code size, migration, and team operation? | budget assessment |
-| PRE-49 | Is unsafe code absent or separately justified under RUST-DOC-0007? | unsafe decision |
-| PRE-50 | Does each invariant map to planned compiler, unit, property, compile-fail, integration, fault, model, or operational evidence? | evidence matrix |
-| PRE-51 | Are negative and prohibited paths included? | rejection plan |
-| PRE-52 | Are real boundaries exercised where consequential? | integration plan |
-| PRE-53 | Are evidence limitations stated? | non-proof column |
-| PRE-54 | Does the initial guarantee ledger state claim, establishment, protected construction, boundary preservation, escape hatches, non-proofs, and runtime risk? | ledger |
+| ID     | Question                                                                                                                                                   | Pass evidence         |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| PRE-39 | Is the persistence representation distinct where its contract differs?                                                                                     | row/domain comparison |
+| PRE-40 | Are transaction boundaries aligned with cross-entity invariants?                                                                                           | transaction map       |
+| PRE-41 | Is optimistic concurrency or another lost-update strategy selected?                                                                                        | conflict protocol     |
+| PRE-42 | Are migration and old-value compatibility needs identified?                                                                                                | version plan          |
+| PRE-43 | Is persistence plus messaging coordinated durably where loss matters?                                                                                      | outbox/inbox decision |
+| PRE-44 | Is the concurrency ownership and synchronization model stated?                                                                                             | task/state ownership  |
+| PRE-45 | Are queue, pool, and retry capacities bounded?                                                                                                             | capacity budget       |
+| PRE-46 | Is cancellation cleanup defined for partial operations?                                                                                                    | cancellation table    |
+| PRE-47 | Is the simplest sufficient representation selected from enum, newtype, runtime validation, typestate, capability, or plain code?                           | decision record       |
+| PRE-48 | Does the complexity budget cover diagnostics, compile time, code size, migration, and team operation?                                                      | budget assessment     |
+| PRE-49 | Is unsafe code absent or separately justified under RUST-DOC-0007?                                                                                         | unsafe decision       |
+| PRE-50 | Does each invariant map to planned compiler, unit, property, compile-fail, integration, fault, model, or operational evidence?                             | evidence matrix       |
+| PRE-51 | Are negative and prohibited paths included?                                                                                                                | rejection plan        |
+| PRE-52 | Are real boundaries exercised where consequential?                                                                                                         | integration plan      |
+| PRE-53 | Are evidence limitations stated?                                                                                                                           | non-proof column      |
+| PRE-54 | Does the initial guarantee ledger state claim, establishment, protected construction, boundary preservation, escape hatches, non-proofs, and runtime risk? | ledger                |
 
 ## Exit criteria
 
@@ -2797,88 +2797,88 @@ applicable**, or **waiver reference**.
 
 ## Effect and identity
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-01 | Is each external effect listed separately? | effect inventory |
-| DER-02 | Is one logical operation distinct from transport attempts? | identity model |
-| DER-03 | Is operation identity generated before first dispatch? | lifecycle trace |
-| DER-04 | Do retries reuse the logical identity? | attempt tests |
-| DER-05 | Is the target/resource included in identity scope? | key contract |
-| DER-06 | Is request intent fingerprinted canonically? | fingerprint design |
-| DER-07 | Is identity collision risk proportionate? | generator analysis |
-| DER-08 | Is same identity with different payload rejected? | conflict behavior |
-| DER-09 | Are concurrent same-identity attempts coordinated? | atomic claim |
-| DER-10 | Is identity retained for the full replay horizon? | retention calculation |
+| ID     | Question                                                   | Pass evidence         |
+| ------ | ---------------------------------------------------------- | --------------------- |
+| DER-01 | Is each external effect listed separately?                 | effect inventory      |
+| DER-02 | Is one logical operation distinct from transport attempts? | identity model        |
+| DER-03 | Is operation identity generated before first dispatch?     | lifecycle trace       |
+| DER-04 | Do retries reuse the logical identity?                     | attempt tests         |
+| DER-05 | Is the target/resource included in identity scope?         | key contract          |
+| DER-06 | Is request intent fingerprinted canonically?               | fingerprint design    |
+| DER-07 | Is identity collision risk proportionate?                  | generator analysis    |
+| DER-08 | Is same identity with different payload rejected?          | conflict behavior     |
+| DER-09 | Are concurrent same-identity attempts coordinated?         | atomic claim          |
+| DER-10 | Is identity retained for the full replay horizon?          | retention calculation |
 
 ## Timeout, outcome, and retry
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-11 | Is the point after which execution may have occurred identified? | protocol timeline |
-| DER-12 | Does timeout avoid implying non-execution? | outcome mapping |
-| DER-13 | Is local pre-dispatch failure supported by actual protocol evidence? | transport contract |
-| DER-14 | Are confirmed success and confirmed rejection authenticated? | response verification |
-| DER-15 | Are confirmed, rejected, local-failure, and unknown outcomes distinct as needed? | outcome type |
-| DER-16 | Does unknown carry reconciliation evidence? | stored token |
-| DER-17 | Is retry classified at every failure point? | decision matrix |
-| DER-18 | Are unsafe retries prohibited? | retry policy |
-| DER-19 | Does reconcile-before-retry exist for ambiguity? | transition path |
-| DER-20 | Is one end-to-end deadline propagated? | deadline budget |
-| DER-21 | Is maximum retry multiplication across layers calculated? | attempt equation |
-| DER-22 | Are backoff, jitter, and server guidance applied? | policy |
-| DER-23 | Are retry concurrency and queues bounded? | capacity |
-| DER-24 | Are overload and rate-limit responses preserved? | error/retry handling |
+| ID     | Question                                                                         | Pass evidence         |
+| ------ | -------------------------------------------------------------------------------- | --------------------- |
+| DER-11 | Is the point after which execution may have occurred identified?                 | protocol timeline     |
+| DER-12 | Does timeout avoid implying non-execution?                                       | outcome mapping       |
+| DER-13 | Is local pre-dispatch failure supported by actual protocol evidence?             | transport contract    |
+| DER-14 | Are confirmed success and confirmed rejection authenticated?                     | response verification |
+| DER-15 | Are confirmed, rejected, local-failure, and unknown outcomes distinct as needed? | outcome type          |
+| DER-16 | Does unknown carry reconciliation evidence?                                      | stored token          |
+| DER-17 | Is retry classified at every failure point?                                      | decision matrix       |
+| DER-18 | Are unsafe retries prohibited?                                                   | retry policy          |
+| DER-19 | Does reconcile-before-retry exist for ambiguity?                                 | transition path       |
+| DER-20 | Is one end-to-end deadline propagated?                                           | deadline budget       |
+| DER-21 | Is maximum retry multiplication across layers calculated?                        | attempt equation      |
+| DER-22 | Are backoff, jitter, and server guidance applied?                                | policy                |
+| DER-23 | Are retry concurrency and queues bounded?                                        | capacity              |
+| DER-24 | Are overload and rate-limit responses preserved?                                 | error/retry handling  |
 
 ## Delivery, order, and coordination
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-25 | Are duplicates expected for at-least-once delivery? | consumer contract |
-| DER-26 | Is deduplication durable when protecting durable effects? | inbox/store |
-| DER-27 | Is dedup claim atomic with the local effect? | transaction |
+| ID     | Question                                                    | Pass evidence         |
+| ------ | ----------------------------------------------------------- | --------------------- |
+| DER-25 | Are duplicates expected for at-least-once delivery?         | consumer contract     |
+| DER-26 | Is deduplication durable when protecting durable effects?   | inbox/store           |
+| DER-27 | Is dedup claim atomic with the local effect?                | transaction           |
 | DER-28 | Is dedup retention sufficient and expiry behavior explicit? | retention/replay plan |
-| DER-29 | Is acknowledgement order documented? | crash-point matrix |
-| DER-30 | Is acknowledgement loss handled? | redelivery test |
-| DER-31 | Are poison messages isolated without a hot retry loop? | dead-letter policy |
-| DER-32 | Is administrative replay identity-preserving and audited? | replay runbook |
-| DER-33 | Is ordering scoped to key/partition/producer/consumer? | ordering contract |
-| DER-34 | Are gaps and out-of-order versions handled? | state/version policy |
-| DER-35 | Are failover and retry effects on order stated? | scenario tests |
-| DER-36 | Is every exactly-once claim boundary-specific? | guarantee ledger |
-| DER-37 | Are external effects outside the claimed transaction named? | boundary diagram |
-| DER-38 | Is persistence plus publication coordinated durably? | outbox/event log |
+| DER-29 | Is acknowledgement order documented?                        | crash-point matrix    |
+| DER-30 | Is acknowledgement loss handled?                            | redelivery test       |
+| DER-31 | Are poison messages isolated without a hot retry loop?      | dead-letter policy    |
+| DER-32 | Is administrative replay identity-preserving and audited?   | replay runbook        |
+| DER-33 | Is ordering scoped to key/partition/producer/consumer?      | ordering contract     |
+| DER-34 | Are gaps and out-of-order versions handled?                 | state/version policy  |
+| DER-35 | Are failover and retry effects on order stated?             | scenario tests        |
+| DER-36 | Is every exactly-once claim boundary-specific?              | guarantee ledger      |
+| DER-37 | Are external effects outside the claimed transaction named? | boundary diagram      |
+| DER-38 | Is persistence plus publication coordinated durably?        | outbox/event log      |
 
 ## Reconciliation, compensation, and authority
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-39 | Is every unknown state durable when process loss matters? | persistence model |
-| DER-40 | Is a reconciliation owner named? | service/runbook ownership |
-| DER-41 | Is the observation source authoritative? | provider contract |
-| DER-42 | Are observation freshness and finality defined? | timestamp/version/window |
-| DER-43 | Can reconciliation remain unknown? | repeated state path |
-| DER-44 | Are reconciliation attempts bounded and observable? | age/attempt metrics |
-| DER-45 | Is terminal human escalation defined? | operations procedure |
-| DER-46 | Are operator overrides audited as decisions, not proof? | audit event |
-| DER-47 | Is compensation modeled as a new effect? | saga states |
-| DER-48 | Does compensation have idempotency and unknown handling? | effect contract |
-| DER-49 | Are concurrent coordinators claimed atomically? | lease/CAS |
-| DER-50 | Are stale lease owners fenced at the effect resource? | fencing token |
-| DER-51 | Are clock and process-pause assumptions documented? | lease analysis |
-| DER-52 | Can users safely act while state is unknown? | API/UI behavior |
+| ID     | Question                                                  | Pass evidence             |
+| ------ | --------------------------------------------------------- | ------------------------- |
+| DER-39 | Is every unknown state durable when process loss matters? | persistence model         |
+| DER-40 | Is a reconciliation owner named?                          | service/runbook ownership |
+| DER-41 | Is the observation source authoritative?                  | provider contract         |
+| DER-42 | Are observation freshness and finality defined?           | timestamp/version/window  |
+| DER-43 | Can reconciliation remain unknown?                        | repeated state path       |
+| DER-44 | Are reconciliation attempts bounded and observable?       | age/attempt metrics       |
+| DER-45 | Is terminal human escalation defined?                     | operations procedure      |
+| DER-46 | Are operator overrides audited as decisions, not proof?   | audit event               |
+| DER-47 | Is compensation modeled as a new effect?                  | saga states               |
+| DER-48 | Does compensation have idempotency and unknown handling?  | effect contract           |
+| DER-49 | Are concurrent coordinators claimed atomically?           | lease/CAS                 |
+| DER-50 | Are stale lease owners fenced at the effect resource?     | fencing token             |
+| DER-51 | Are clock and process-pause assumptions documented?       | lease analysis            |
+| DER-52 | Can users safely act while state is unknown?              | API/UI behavior           |
 
 ## Audit, secrecy, and evidence
 
-| ID | Question | Pass evidence |
-|---|---|---|
-| DER-53 | Does audit preserve operation, attempt, parent, trigger, and target? | event schema |
-| DER-54 | Are outcome observations and decisions reconstructible? | incident query |
-| DER-55 | Are credentials and unnecessary personal data excluded? | field classification |
-| DER-56 | Is correlation retained without uncontrolled tracking? | privacy policy |
-| DER-57 | Do tests inject loss before and after dispatch? | fault suite |
-| DER-58 | Do tests inject duplicate, delay, reordering, and crash? | scenario matrix |
-| DER-59 | Do tests cover concurrent identity and reconciler claims? | concurrency suite |
-| DER-60 | Does the ledger state residual unknowns and non-guarantees? | completed ledger |
+| ID     | Question                                                             | Pass evidence        |
+| ------ | -------------------------------------------------------------------- | -------------------- |
+| DER-53 | Does audit preserve operation, attempt, parent, trigger, and target? | event schema         |
+| DER-54 | Are outcome observations and decisions reconstructible?              | incident query       |
+| DER-55 | Are credentials and unnecessary personal data excluded?              | field classification |
+| DER-56 | Is correlation retained without uncontrolled tracking?               | privacy policy       |
+| DER-57 | Do tests inject loss before and after dispatch?                      | fault suite          |
+| DER-58 | Do tests inject duplicate, delay, reordering, and crash?             | scenario matrix      |
+| DER-59 | Do tests cover concurrent identity and reconciler claims?            | concurrency suite    |
+| DER-60 | Does the ledger state residual unknowns and non-guarantees?          | completed ledger     |
 
 ## Exit criteria
 

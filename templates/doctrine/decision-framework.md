@@ -18,9 +18,9 @@ plan as relevant.
 
 ## Decision table
 
-| Situation | Preferred mechanism | Conditions | Stop condition |
-|---|---|---|---|
-| <Problem class> | <Mechanism> | <When it fits> | <When to choose simpler/different design> |
+| Situation       | Preferred mechanism | Conditions     | Stop condition                            |
+| --------------- | ------------------- | -------------- | ----------------------------------------- |
+| <Problem class> | <Mechanism>         | <When it fits> | <When to choose simpler/different design> |
 
 ## Decision tree
 

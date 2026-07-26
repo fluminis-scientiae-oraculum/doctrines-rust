@@ -144,18 +144,18 @@ claim.
 
 An example row:
 
-| Field | Content |
-|---|---|
-| ID | INV-PAY-004 |
-| Statement | A locally requested capture references an accepted authorization for the same payment and amount |
-| Scope | capture command construction |
-| Owner | payment domain |
-| Classification | transition and cross-entity invariant |
-| Enforcement mechanism | verifier-issued capability plus runtime amount comparison |
-| Trust boundary | provider authorization response and persisted reload |
-| Evidence | constructor tests, compiler rejection before authorization, integration contract test |
-| Failure consequence | unauthorized or wrong-amount capture |
-| Residual uncertainty | provider may reject, time out, or accept without returning acknowledgement |
+| Field                 | Content                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------ |
+| ID                    | INV-PAY-004                                                                                      |
+| Statement             | A locally requested capture references an accepted authorization for the same payment and amount |
+| Scope                 | capture command construction                                                                     |
+| Owner                 | payment domain                                                                                   |
+| Classification        | transition and cross-entity invariant                                                            |
+| Enforcement mechanism | verifier-issued capability plus runtime amount comparison                                        |
+| Trust boundary        | provider authorization response and persisted reload                                             |
+| Evidence              | constructor tests, compiler rejection before authorization, integration contract test            |
+| Failure consequence   | unauthorized or wrong-amount capture                                                             |
+| Residual uncertainty  | provider may reject, time out, or accept without returning acknowledgement                       |
 
 ## Discovery method
 
@@ -179,18 +179,18 @@ operational recovery. Negative cases are often more revealing than success paths
 
 Classification narrows choices without making them automatic:
 
-| Invariant shape | Usual first mechanism |
-|---|---|
-| Mutually exclusive state | enum with variant-specific data |
-| Stable local scalar rule | opaque validated newtype |
-| Whole-collection rule | validated collection wrapper |
-| Small locally controlled sequence | consuming transition or typestate |
-| Authority possession | capability type |
-| Dynamic or persisted lifecycle | runtime enum and validated state machine |
-| External input | parse and runtime validation |
-| Cross-entity fact | domain service plus transactional validation |
-| External effect result | structured `Result` |
-| Ambiguous distributed effect | explicit unknown state and reconciliation |
+| Invariant shape                   | Usual first mechanism                        |
+| --------------------------------- | -------------------------------------------- |
+| Mutually exclusive state          | enum with variant-specific data              |
+| Stable local scalar rule          | opaque validated newtype                     |
+| Whole-collection rule             | validated collection wrapper                 |
+| Small locally controlled sequence | consuming transition or typestate            |
+| Authority possession              | capability type                              |
+| Dynamic or persisted lifecycle    | runtime enum and validated state machine     |
+| External input                    | parse and runtime validation                 |
+| Cross-entity fact                 | domain service plus transactional validation |
+| External effect result            | structured `Result`                          |
+| Ambiguous distributed effect      | explicit unknown state and reconciliation    |
 
 These are starting points. A complex system often uses several: a runtime persisted payment
 status, a consuming local authorization capability, an opaque idempotency key, and an

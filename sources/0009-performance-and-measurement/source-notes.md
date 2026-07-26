@@ -71,8 +71,7 @@ environment requirements make results reproducible enough for their decision.
 
 Concurrency and boundary-cost rules connect performance to doctrines 0004–0006:
 removing backpressure or failure handling is not an optimization. Unsafe speed
-work inherits doctrine 0007. Correctness tests remain independent under doctrine
-0008.
+work inherits doctrine 0007. Correctness tests remain independent under doctrine 0008.
 
 ## Maintenance triggers
 

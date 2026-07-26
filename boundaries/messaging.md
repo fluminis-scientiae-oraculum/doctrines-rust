@@ -112,15 +112,15 @@ historical facts may no longer authorize current actions.
 
 ## Delivery decision table
 
-| Scenario | Required behavior |
-|---|---|
-| repeated message ID, completed locally | return/reuse recorded outcome |
-| repeated ID, different fingerprint | reject as conflict/security event |
-| gap in required aggregate sequence | wait, fetch, or reconcile; do not guess |
-| invalid payload | quarantine/dead-letter with bounded diagnostics |
-| effect completed, ack lost | deduplicate on redelivery |
-| external effect response lost | persist unknown and reconcile |
-| newer unsupported schema | reject or retain per compatibility policy |
+| Scenario                               | Required behavior                               |
+| -------------------------------------- | ----------------------------------------------- |
+| repeated message ID, completed locally | return/reuse recorded outcome                   |
+| repeated ID, different fingerprint     | reject as conflict/security event               |
+| gap in required aggregate sequence     | wait, fetch, or reconcile; do not guess         |
+| invalid payload                        | quarantine/dead-letter with bounded diagnostics |
+| effect completed, ack lost             | deduplicate on redelivery                       |
+| external effect response lost          | persist unknown and reconcile                   |
+| newer unsupported schema               | reject or retain per compatibility policy       |
 
 ## Review prompts
 

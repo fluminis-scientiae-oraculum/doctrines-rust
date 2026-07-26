@@ -8,18 +8,18 @@ the fact is stable and local, dynamic and persisted, relational, authoritative, 
 
 The first selection table is:
 
-| Problem | Preferred mechanism |
-|---|---|
-| Mutually exclusive state | `enum` |
-| Validated scalar or identifier | opaque newtype |
-| Non-empty or bounded collection | validated wrapper |
-| Locally controlled operation sequence | typestate or consuming transition |
-| Authority to perform an operation | capability type |
-| Dynamic or persisted state | runtime enum/state machine |
-| External input | runtime parse and validation |
-| Cross-entity business rule | domain service or transactional runtime validation |
-| External success/failure | `Result` |
-| Indeterminate distributed outcome | explicit unknown/reconciliation state |
+| Problem                               | Preferred mechanism                                |
+| ------------------------------------- | -------------------------------------------------- |
+| Mutually exclusive state              | `enum`                                             |
+| Validated scalar or identifier        | opaque newtype                                     |
+| Non-empty or bounded collection       | validated wrapper                                  |
+| Locally controlled operation sequence | typestate or consuming transition                  |
+| Authority to perform an operation     | capability type                                    |
+| Dynamic or persisted state            | runtime enum/state machine                         |
+| External input                        | runtime parse and validation                       |
+| Cross-entity business rule            | domain service or transactional runtime validation |
+| External success/failure              | `Result`                                           |
+| Indeterminate distributed outcome     | explicit unknown/reconciliation state              |
 
 “Preferred” means first candidate, not automatic answer. Multiple mechanisms often compose.
 
@@ -73,16 +73,16 @@ cross-entity invariants transactionally.
 
 Consider typestate when all answers are favorable:
 
-| Question | Favorable evidence |
-|---|---|
-| Is sequencing locally controlled? | Current owner chooses every transition |
-| Is the graph small? | Few states and stable transitions |
-| Is ownership natural? | Prior state can be consumed without harming recovery |
-| Is storage unnecessary? | Value is short-lived or runtime conversion is explicit |
-| Are callers static? | No routine heterogeneous collection or dynamic dispatch |
-| Is failure designed? | Transition returns prior state, error evidence, or unknown state |
-| Are diagnostics usable? | Compile-fail examples point to the domain mistake |
-| Is cost proportionate? | Consequence exceeds API/build/maintenance cost |
+| Question                          | Favorable evidence                                               |
+| --------------------------------- | ---------------------------------------------------------------- |
+| Is sequencing locally controlled? | Current owner chooses every transition                           |
+| Is the graph small?               | Few states and stable transitions                                |
+| Is ownership natural?             | Prior state can be consumed without harming recovery             |
+| Is storage unnecessary?           | Value is short-lived or runtime conversion is explicit           |
+| Are callers static?               | No routine heterogeneous collection or dynamic dispatch          |
+| Is failure designed?              | Transition returns prior state, error evidence, or unknown state |
+| Are diagnostics usable?           | Compile-fail examples point to the domain mistake                |
+| Is cost proportionate?            | Consequence exceeds API/build/maintenance cost                   |
 
 If several answers are unfavorable, stop and use a runtime enum or consuming method.
 
@@ -167,14 +167,14 @@ checked conversion.
 
 Mark the external commitment point. Then classify outcomes:
 
-| Observation | Domain meaning | Retry posture |
-|---|---|---|
-| Request definitely not sent | local failure | retry may be safe after policy check |
-| Definitive accepted response | confirmed success | do not repeat effect |
-| Definitive rejected response | confirmed rejection | retry only if rejection is retriable |
-| Sent, response lost or timed out | unknown | reconcile or use proven idempotency |
-| Cancellation before commitment confirmed | cancelled/non-executed | retry may be safe |
-| Cancellation acknowledgement absent | unknown | reconcile |
+| Observation                              | Domain meaning         | Retry posture                        |
+| ---------------------------------------- | ---------------------- | ------------------------------------ |
+| Request definitely not sent              | local failure          | retry may be safe after policy check |
+| Definitive accepted response             | confirmed success      | do not repeat effect                 |
+| Definitive rejected response             | confirmed rejection    | retry only if rejection is retriable |
+| Sent, response lost or timed out         | unknown                | reconcile or use proven idempotency  |
+| Cancellation before commitment confirmed | cancelled/non-executed | retry may be safe                    |
+| Cancellation acknowledgement absent      | unknown                | reconcile                            |
 
 Define idempotency key scope, uniqueness, retention, and replay response. If those properties
 are unknown, do not label retry safe.

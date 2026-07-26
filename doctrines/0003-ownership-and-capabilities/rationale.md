@@ -73,13 +73,13 @@ guarantee ledger must keep those scopes separate.
 
 ## Guarantee ledger examples
 
-| Claim | Established by | Does not prove |
-|---|---|---|
-| `CommitPermit` has not been consumed through this value | private, non-cloneable ownership and consuming `commit` | database commit will succeed or acknowledgement will arrive |
-| `FileLock` owns one acquired operating-system lock handle | successful acquisition and owned handle | every other process or host honors the same locking protocol |
-| `SessionCapability` was issued for a principal and scope | protected issuer and signed or server-side grant | session remains unexpired, unrevoked, or sufficient for changed policy |
-| `SecretBytes` redacts ordinary formatting | custom trait implementations and absent display | copies never existed or memory is absent from swap and crash dumps |
-| `ShutdownPermit` has one process-local owner | private non-cloneable value | all external workers will acknowledge shutdown |
+| Claim                                                     | Established by                                          | Does not prove                                                         |
+| --------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `CommitPermit` has not been consumed through this value   | private, non-cloneable ownership and consuming `commit` | database commit will succeed or acknowledgement will arrive            |
+| `FileLock` owns one acquired operating-system lock handle | successful acquisition and owned handle                 | every other process or host honors the same locking protocol           |
+| `SessionCapability` was issued for a principal and scope  | protected issuer and signed or server-side grant        | session remains unexpired, unrevoked, or sufficient for changed policy |
+| `SecretBytes` redacts ordinary formatting                 | custom trait implementations and absent display         | copies never existed or memory is absent from swap and crash dumps     |
+| `ShutdownPermit` has one process-local owner              | private non-cloneable value                             | all external workers will acknowledge shutdown                         |
 
 These entries show why a capability's constructor, methods, and documentation must be reviewed
 together. A name such as `ExclusiveLease` is dishonest if the server does not reject stale

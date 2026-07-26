@@ -12,16 +12,16 @@ Ask:
 6. What happens on cancellation, drop, panic, or process loss?
 7. Does completion have a fallible external effect?
 
-| Shape | First mechanism |
-|---|---|
-| Exclusive local custody | owned non-cloneable value |
-| One-time operation | consuming token or capability |
-| Temporary read access | immutable borrow |
-| Temporary exclusive mutation | mutable borrow or scoped guard |
-| Shareable immutable authority | cloneable scoped capability |
-| Mutable external permission | runtime recheck or bounded lease |
-| Single task owns mutable state | actor/task ownership |
-| Shared state with short critical section | documented lock |
+| Shape                                    | First mechanism                  |
+| ---------------------------------------- | -------------------------------- |
+| Exclusive local custody                  | owned non-cloneable value        |
+| One-time operation                       | consuming token or capability    |
+| Temporary read access                    | immutable borrow                 |
+| Temporary exclusive mutation             | mutable borrow or scoped guard   |
+| Shareable immutable authority            | cloneable scoped capability      |
+| Mutable external permission              | runtime recheck or bounded lease |
+| Single task owns mutable state           | actor/task ownership             |
+| Shared state with short critical section | documented lock                  |
 
 ## Capability design
 

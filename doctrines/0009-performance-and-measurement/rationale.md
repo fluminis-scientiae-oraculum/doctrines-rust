@@ -148,13 +148,13 @@ threshold above noise. Trend reports may be better on ordinary CI.
 
 ## Performance guarantee ledger
 
-| Claim | Workload/environment | Established by | Does not prove | Residual risk |
-|---|---|---|---|---|
-| parser reduced allocation bytes | named corpus, allocator, release build | allocation profile and benchmark | lower end-to-end latency | corpus drift |
-| batching raises throughput | concurrency sweep, real database | load test | improved p99 latency | production query mix |
-| async version overlaps I/O | executor trace and utilization | integrated benchmark | parallel CPU speedup | runtime contention |
-| binary shrank | identical features/toolchain/target | artifact measurement | faster startup | compression/deployment variance |
-| unsafe path is materially faster | safe baseline and representative samples | profile plus benchmark | soundness | target and compiler changes |
+| Claim                            | Workload/environment                     | Established by                   | Does not prove           | Residual risk                   |
+| -------------------------------- | ---------------------------------------- | -------------------------------- | ------------------------ | ------------------------------- |
+| parser reduced allocation bytes  | named corpus, allocator, release build   | allocation profile and benchmark | lower end-to-end latency | corpus drift                    |
+| batching raises throughput       | concurrency sweep, real database         | load test                        | improved p99 latency     | production query mix            |
+| async version overlaps I/O       | executor trace and utilization           | integrated benchmark             | parallel CPU speedup     | runtime contention              |
+| binary shrank                    | identical features/toolchain/target      | artifact measurement             | faster startup           | compression/deployment variance |
+| unsafe path is materially faster | safe baseline and representative samples | profile plus benchmark           | soundness                | target and compiler changes     |
 
 ## Proportionality
 
