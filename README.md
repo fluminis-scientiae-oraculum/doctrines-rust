@@ -125,8 +125,8 @@ Canonical doctrine lives under `foundations/`, `doctrines/`, `patterns/`, `bound
 hydration bundles live under `dist/`.
 
 Files in `dist/` are deterministic projections of canonical sources. Every generated file
-contains a warning banner and source-path provenance headings. Contributors MUST NOT edit
-those files directly. After a canonical change, run:
+contains a warning banner and source-path provenance headings. Do not edit those files
+directly. After a canonical change, run:
 
 ```bash
 cargo run -p bundle-agent-context -- generate
@@ -164,8 +164,11 @@ under `dist/agents/` combine those overlays with selected canonical rules.
 
 For constrained context windows, `dist/compact-doctrine.md` contains the shared thesis,
 classification and boundary pipelines, every active doctrine's normative rules, the central
-decision tree, and the core audit gates. `dist/full-doctrine.md` retains complete canonical
-material in stable order.
+decision tree, and the core audit gates. `dist/full-doctrine.md` retains the repository identity,
+foundations, every file in each active doctrine package, patterns, boundary guides, operational
+reviews, and shared agent obligations in stable order. Case studies, source notes, RFCs,
+templates, and role-specific overlays remain canonical but are deliberately outside that
+hydration bundle.
 
 ## Doctrine index
 

@@ -87,8 +87,8 @@ search.
 
 ## Compact doctrine summary
 
-Storage models and domain models SHOULD be distinct when their invariants or
-evolution pressures differ. Every path from storage to a trusted type MUST
+Storage models and domain models should be distinct when their invariants or
+evolution pressures differ. Every path from storage to a trusted type needs to
 validate current invariants. Schema constraints reinforce but do not replace
 domain construction. Transactions protect only operations within their actual
 boundary and isolation semantics. Version checks prevent silent lost updates.

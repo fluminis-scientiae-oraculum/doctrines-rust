@@ -84,7 +84,7 @@ review standard to operation identity, retry, retention, and reconciliation.
 
 ## Compact doctrine summary
 
-A timeout MUST NOT imply non-execution. Retrying an effect requires explicit
+A timeout does not imply non-execution. Retrying an effect requires explicit
 idempotency analysis. An idempotency key needs scope, uniqueness, retention,
 payload-binding, and replay semantics. Outcome models distinguish confirmed
 success, confirmed rejection, local failure before dispatch, and unknown

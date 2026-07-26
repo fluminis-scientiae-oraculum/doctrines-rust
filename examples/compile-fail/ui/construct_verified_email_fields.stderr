@@ -1,0 +1,5 @@
+error[E0451]: field `evidence` of struct `VerifiedEmailAddress` is private
+ --> ui/construct_verified_email_fields.rs:8:28
+  |
+8 |     VerifiedEmailAddress { evidence };
+  |                            ^^^^^^^^ private field

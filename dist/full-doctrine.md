@@ -137,8 +137,8 @@ Canonical doctrine lives under `foundations/`, `doctrines/`, `patterns/`, `bound
 hydration bundles live under `dist/`.
 
 Files in `dist/` are deterministic projections of canonical sources. Every generated file
-contains a warning banner and source-path provenance headings. Contributors MUST NOT edit
-those files directly. After a canonical change, run:
+contains a warning banner and source-path provenance headings. Do not edit those files
+directly. After a canonical change, run:
 
 ```bash
 cargo run -p bundle-agent-context -- generate
@@ -176,8 +176,11 @@ under `dist/agents/` combine those overlays with selected canonical rules.
 
 For constrained context windows, `dist/compact-doctrine.md` contains the shared thesis,
 classification and boundary pipelines, every active doctrine's normative rules, the central
-decision tree, and the core audit gates. `dist/full-doctrine.md` retains complete canonical
-material in stable order.
+decision tree, and the core audit gates. `dist/full-doctrine.md` retains the repository identity,
+foundations, every file in each active doctrine package, patterns, boundary guides, operational
+reviews, and shared agent obligations in stable order. Case studies, source notes, RFCs,
+templates, and role-specific overlays remain canonical but are deliberately outside that
+hydration bundle.
 
 ## Doctrine index
 
@@ -186,15 +189,15 @@ discovery source.
 
 | ID            | Active doctrine                                                                                          | Principal concern                                                                  |
 | ------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| RUST-DOC-0001 | [Making Invalid States Unrepresentable](doctrines/0001-invalid-states/README.md)                         | Invariant discovery, representation, construction, transitions, honest uncertainty |
-| RUST-DOC-0002 | [Error Modeling as Domain Design](doctrines/0002-error-modeling/README.md)                               | Structured failure, recoverability, retryability, panic boundaries                 |
-| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](doctrines/0003-ownership-and-capabilities/README.md)              | Exclusive custody, capabilities, transfer, revocation, secrets                     |
-| RUST-DOC-0004 | [Concurrency and Async Correctness](doctrines/0004-concurrency-and-async/README.md)                      | Cancellation, backpressure, task ownership, synchronization                        |
-| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](doctrines/0005-persistence-boundaries/README.md)           | Decoding, migrations, transactions, historical data                                |
-| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](doctrines/0006-distributed-uncertainty/README.md) | Idempotency, ambiguity, duplicates, reconciliation                                 |
-| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](doctrines/0007-unsafe-rust/README.md)                                | Safety invariants, encapsulation, FFI, validation tooling                          |
-| RUST-DOC-0008 | [Testing as Layered Evidence](doctrines/0008-testing-and-evidence/README.md)                             | Evidence scope, forbidden programs, faults, model checking                         |
-| RUST-DOC-0009 | [Performance Claims Require Measurement](doctrines/0009-performance-and-measurement/README.md)           | Workloads, profiling, distributions, regressions                                   |
+| RUST-DOC-0001 | [Making Invalid States Unrepresentable](../doctrines/0001-invalid-states/README.md)                         | Invariant discovery, representation, construction, transitions, honest uncertainty |
+| RUST-DOC-0002 | [Error Modeling as Domain Design](../doctrines/0002-error-modeling/README.md)                               | Structured failure, recoverability, retryability, panic boundaries                 |
+| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](../doctrines/0003-ownership-and-capabilities/README.md)              | Exclusive custody, capabilities, transfer, revocation, secrets                     |
+| RUST-DOC-0004 | [Concurrency and Async Correctness](../doctrines/0004-concurrency-and-async/README.md)                      | Cancellation, backpressure, task ownership, synchronization                        |
+| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](../doctrines/0005-persistence-boundaries/README.md)           | Decoding, migrations, transactions, historical data                                |
+| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](../doctrines/0006-distributed-uncertainty/README.md) | Idempotency, ambiguity, duplicates, reconciliation                                 |
+| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](../doctrines/0007-unsafe-rust/README.md)                                | Safety invariants, encapsulation, FFI, validation tooling                          |
+| RUST-DOC-0008 | [Testing as Layered Evidence](../doctrines/0008-testing-and-evidence/README.md)                             | Evidence scope, forbidden programs, faults, model checking                         |
+| RUST-DOC-0009 | [Performance Claims Require Measurement](../doctrines/0009-performance-and-measurement/README.md)           | Workloads, profiling, distributions, regressions                                   |
 
 All doctrines begin at version `0.1.0`. Repository `0.1.0` establishes the initial corpus but
 does not claim `1.0` semantic stability. Patch releases clarify without changing normative
@@ -435,6 +438,20 @@ how another control contains it.
 obligations from other rules. A design MAY use typestate in a suitable local protocol, but it
 must still model transition failure honestly and preserve persistence boundaries.
 
+## Vocabulary calibration
+
+Normative vocabulary is selected by meaning, not by a target distribution. A doctrine does
+not need to contain every term. `SHOULD NOT` is appropriate only for a normally prohibited
+choice that can remain conforming after an explicit risk argument; a strict prohibition with
+bounded applicability instead uses `MUST NOT` and its allowed-exceptions field. `MAY` marks a
+permission that would otherwise be unclear. Lowercase “may” can still describe uncertainty or
+possibility without granting a new permission.
+
+Reviewers examine whether each chosen force matches consequence and available exceptions.
+They do not rebalance counts mechanically. Replacing one normative term with another can
+change the set of conforming systems and therefore follows the doctrine-change process unless
+the edit demonstrably preserves meaning.
+
 ## Scope and applicability
 
 Every doctrine rule states applicability. The normative term governs only within that scope,
@@ -457,6 +474,11 @@ interpretation.
 
 Uppercase requirement terms in `doctrine.md` are normative. Stable rule IDs are the citation
 unit. Package metadata records whether the doctrine is normative and its lifecycle state.
+Repository governance contracts such as `AGENTS.md`, `CONTRIBUTING.md`, and `rfcs/README.md`
+may use the same vocabulary for repository operations; those obligations are governance, not
+unnumbered doctrine rules. Definition documents may mention the uppercase terms as terms.
+Other informative material uses ordinary lowercase language or cites the governing doctrine
+rule instead of creating a hidden obligation.
 
 Rationale, glossary entries, source notes, anti-pattern explanation, and ordinary examples are
 informative unless a normative rule explicitly incorporates them. Informative material can
@@ -512,6 +534,10 @@ A normative rule uses one stable ID such as `RUST-DOC-0001-R004` and includes:
 - **Applicability:** the systems, paths, or conditions that trigger it.
 - **Allowed exceptions:** bounded conditions or “none.”
 - **Review evidence:** artifacts and observations sufficient to assess it.
+
+The applicability and review-evidence fields use capitalized noun-phrase lists consistently.
+This register keeps machine extraction predictable while the statement, intent, and exception
+fields carry complete propositions.
 
 Avoid combining unrelated requirements merely to reduce rule count. Avoid vague verbs such as
 “handle appropriately” without defining outcomes. Name owners and failure semantics. A rule
@@ -2713,6 +2739,19 @@ mutation exists.
 
 **Remediation.** Narrow claim or strengthen mechanism and evidence.
 
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0001-R001`, `RUST-DOC-0001-R002`, `RUST-DOC-0001-R003`, `RUST-DOC-0001-R004`
+- `RUST-DOC-0001-R005`, `RUST-DOC-0001-R006`, `RUST-DOC-0001-R007`, `RUST-DOC-0001-R008`
+- `RUST-DOC-0001-R009`, `RUST-DOC-0001-R010`, `RUST-DOC-0001-R011`, `RUST-DOC-0001-R012`
+- `RUST-DOC-0001-R013`, `RUST-DOC-0001-R014`, `RUST-DOC-0001-R015`, `RUST-DOC-0001-R016`
+- `RUST-DOC-0001-R017`, `RUST-DOC-0001-R018`, `RUST-DOC-0001-R019`, `RUST-DOC-0001-R020`
+- `RUST-DOC-0001-R021`, `RUST-DOC-0001-R022`
+
 ---
 
 ## Source: `doctrines/0001-invalid-states/anti-patterns.md`
@@ -3571,6 +3610,17 @@ Record pass, fail, not applicable, or waiver for each gate.
 A critical failure blocks approval unless an explicit doctrine waiver permits it. Redacting a
 public message does not justify erasing protected internal evidence.
 
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0002-R001`, `RUST-DOC-0002-R002`, `RUST-DOC-0002-R003`, `RUST-DOC-0002-R004`
+- `RUST-DOC-0002-R005`, `RUST-DOC-0002-R006`, `RUST-DOC-0002-R007`, `RUST-DOC-0002-R008`
+- `RUST-DOC-0002-R009`, `RUST-DOC-0002-R010`, `RUST-DOC-0002-R011`, `RUST-DOC-0002-R012`
+- `RUST-DOC-0002-R013`, `RUST-DOC-0002-R014`
+
 ---
 
 ## Source: `doctrines/0002-error-modeling/anti-patterns.md`
@@ -3886,7 +3936,7 @@ serialization, logging, and long-lived borrowing; exposure MUST be explicit and 
 **Allowed exceptions.** None for ordinary formatting. Controlled serialization MAY be
 required for a protected secret store under a distinct API.
 
-**Review evidence.** trait implementation audit, redaction tests, exposure call sites, and
+**Review evidence.** Trait implementation audit, redaction tests, exposure call sites, and
 storage contract.
 
 ## RUST-DOC-0003-R009 — Limit zeroization claims
@@ -3901,7 +3951,7 @@ serialization unless those paths are controlled and evidenced.
 
 **Allowed exceptions.** None to claim accuracy.
 
-**Review evidence.** ownership and copy analysis, drop path, memory-locking policy where used,
+**Review evidence.** Ownership and copy analysis, drop path, memory-locking policy where used,
 and explicit non-guarantees.
 
 ## RUST-DOC-0003-R010 — Design before `Arc<Mutex<T>>`
@@ -3916,7 +3966,7 @@ task responsibility, mutation protocol, lock scope, and shutdown.
 **Allowed exceptions.** It MAY be the simplest correct mechanism after the ownership and
 synchronization contract is documented.
 
-**Review evidence.** owner, lock invariant, contention and poisoning policy, alternatives, and
+**Review evidence.** Owner, lock invariant, contention and poisoning policy, alternatives, and
 tests.
 
 ## RUST-DOC-0003-R011 — Justify interior mutability
@@ -3932,7 +3982,7 @@ design.
 **Allowed exceptions.** Local caching or instrumentation MAY use it when invisible to domain
 semantics and reentrancy is safe.
 
-**Review evidence.** aliasing rationale, borrow/panic behavior, synchronization, and reentrancy
+**Review evidence.** Aliasing rationale, borrow/panic behavior, synchronization, and reentrancy
 tests.
 
 ## RUST-DOC-0003-R012 — Use lifetimes for real relationships
@@ -3948,7 +3998,7 @@ liveness.
 **Allowed exceptions.** Internal generic abstraction MAY carry a lifetime required by a
 dependency, with its relationship documented.
 
-**Review evidence.** referent and duration explanation, escape analysis, and simpler owned
+**Review evidence.** Referent and duration explanation, escape analysis, and simpler owned
 alternative.
 
 ## RUST-DOC-0003-R013 — Define cross-task ownership
@@ -3963,7 +4013,7 @@ is dropped or panics.
 
 **Allowed exceptions.** Truly process-lifetime services MAY be owned by the process supervisor.
 
-**Review evidence.** task tree, join/abort contract, channel closure, and shutdown tests.
+**Review evidence.** Task tree, join/abort contract, channel closure, and shutdown tests.
 
 ## RUST-DOC-0003-R014 — Keep external authority revalidation explicit
 
@@ -3978,7 +4028,7 @@ use MUST revalidate or carry a bounded lease.
 **Allowed exceptions.** Immutable operation-scoped grants MAY remain valid for their defined
 commit window.
 
-**Review evidence.** lease or recheck boundary, stale-state handling, and revocation race
+**Review evidence.** Lease or recheck boundary, stale-state handling, and revocation race
 tests.
 
 ---
@@ -4221,6 +4271,17 @@ Record pass, fail, not applicable, or waiver.
 | Task owner          | Who joins, cancels, and closes?                       | supervision tree            | detached resource task          | critical | structure tasks        |
 | External truth      | Are local and external authority claims separated?    | non-guarantees              | local lease implies global lock | critical | revalidate/fence       |
 
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0003-R001`, `RUST-DOC-0003-R002`, `RUST-DOC-0003-R003`, `RUST-DOC-0003-R004`
+- `RUST-DOC-0003-R005`, `RUST-DOC-0003-R006`, `RUST-DOC-0003-R007`, `RUST-DOC-0003-R008`
+- `RUST-DOC-0003-R009`, `RUST-DOC-0003-R010`, `RUST-DOC-0003-R011`, `RUST-DOC-0003-R012`
+- `RUST-DOC-0003-R013`, `RUST-DOC-0003-R014`
+
 ---
 
 ## Source: `doctrines/0003-ownership-and-capabilities/anti-patterns.md`
@@ -4412,7 +4473,7 @@ runtime and version.
 
 ## Normative status
 
-[`doctrine.md`](doctrine.md) is normative. Rule identifiers remain stable within
+[`doctrine.md`](../doctrines/0004-concurrency-and-async/doctrine.md) is normative. Rule identifiers remain stable within
 the doctrine version. Rationale, examples, and decision aids explain intended
 application but become normative only when a rule incorporates them. An
 approved, scoped waiver may document an exception; convenience is not evidence
@@ -4422,15 +4483,15 @@ for one.
 
 Read these documents before applying the rules:
 
-1. [`../../foundations/invariants.md`](../../foundations/invariants.md) for
+1. [`../../foundations/invariants.md`](../foundations/invariants.md) for
    lifecycle, temporal, and authority invariants;
-2. [`../../foundations/trust-boundaries.md`](../../foundations/trust-boundaries.md)
+2. [`../../foundations/trust-boundaries.md`](../foundations/trust-boundaries.md)
    for external observations and effects;
-3. [`../../foundations/guarantee-honesty.md`](../../foundations/guarantee-honesty.md)
+3. [`../../foundations/guarantee-honesty.md`](../foundations/guarantee-honesty.md)
    for exact claims about local and external state;
-4. [`../../foundations/complexity-budget.md`](../../foundations/complexity-budget.md)
+4. [`../../foundations/complexity-budget.md`](../foundations/complexity-budget.md)
    for synchronization and abstraction costs;
-5. [`../../foundations/evidence.md`](../../foundations/evidence.md) for the
+5. [`../../foundations/evidence.md`](../foundations/evidence.md) for the
    evidence represented by handles, guards, and acknowledgements.
 
 ## Related material
@@ -4452,8 +4513,8 @@ the glossary and primary references for disputed terminology.
 
 ## Compact doctrine summary
 
-Every concurrent component MUST define who owns mutable state, tasks, queues,
-and shutdown. Capacity and backpressure MUST be deliberate. Each suspension
+Every concurrent component needs a defined owner for mutable state, tasks, queues,
+and shutdown. Capacity and backpressure are deliberate. Each suspension
 point inside a partial operation requires cancellation analysis. Blocking work
 must be isolated from executor workers. Lock ordering, channel closure, task
 failure, retry layering, and external ordering claims require explicit
@@ -4461,6 +4522,15 @@ contracts. Detached work is exceptional and observable. Atomics require an
 ordering argument tied to a synchronization invariant. Graceful shutdown means
 bounded, observable completion behavior; it does not mean every external effect
 can be rolled back.
+
+## Executable evidence status
+
+The 0.1.0 workspace demonstrates ownership-consuming transitions, a fallible
+connection protocol, and compiler rejection of sending through a locally closed
+connection. It does not include an async-runtime integration, cancellation
+harness, deadlock detector, Loom model, or backpressure load test. Systems
+applying this doctrine supply evidence for those runtime-specific claims; the
+current examples do not establish them.
 
 ---
 
@@ -5202,9 +5272,21 @@ owner, scope, compensating evidence, and removal condition. High-severity
 failures require remediation or explicit risk acceptance. Medium findings may
 be scheduled only when they cannot mask correctness or overload failures.
 
-The reviewer MUST attach or reference the ownership map, task tree, capacity
+The review record attaches or references the ownership map, task tree, capacity
 table, cancellation table, retry inventory, shutdown procedure, and guarantee
 ledger. Code style alone is not sufficient evidence.
+
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0004-R001`, `RUST-DOC-0004-R002`, `RUST-DOC-0004-R003`, `RUST-DOC-0004-R004`
+- `RUST-DOC-0004-R005`, `RUST-DOC-0004-R006`, `RUST-DOC-0004-R007`, `RUST-DOC-0004-R008`
+- `RUST-DOC-0004-R009`, `RUST-DOC-0004-R010`, `RUST-DOC-0004-R011`, `RUST-DOC-0004-R012`
+- `RUST-DOC-0004-R013`, `RUST-DOC-0004-R014`, `RUST-DOC-0004-R015`, `RUST-DOC-0004-R016`
+- `RUST-DOC-0004-R017`, `RUST-DOC-0004-R018`, `RUST-DOC-0004-R019`, `RUST-DOC-0004-R020`
 
 ---
 
@@ -5575,14 +5657,14 @@ behavior.
 
 ## Normative status
 
-[`doctrine.md`](doctrine.md) is normative. Rules use stable identifiers.
+[`doctrine.md`](../doctrines/0005-persistence-boundaries/doctrine.md) is normative. Rules use stable identifiers.
 Rationale and examples clarify application but do not silently create new
 requirements. Waivers require scope, evidence, owner, and expiry.
 
 ## Prerequisite foundations
 
 Read invariant classification, trust boundaries, evidence levels, guarantee
-honesty, and complexity budget under [`../../foundations/`](../../foundations/).
+honesty, and complexity budget under [`../../foundations/`](../foundations/).
 Persistence work particularly depends on the distinction between a parsed
 representation, a policy-accepted value, a persisted fact, and a fact that
 remains true in mutable external reality.
@@ -5606,8 +5688,8 @@ search.
 
 ## Compact doctrine summary
 
-Storage models and domain models SHOULD be distinct when their invariants or
-evolution pressures differ. Every path from storage to a trusted type MUST
+Storage models and domain models should be distinct when their invariants or
+evolution pressures differ. Every path from storage to a trusted type needs to
 validate current invariants. Schema constraints reinforce but do not replace
 domain construction. Transactions protect only operations within their actual
 boundary and isolation semantics. Version checks prevent silent lost updates.
@@ -5682,7 +5764,7 @@ volatile business policy.
 
 **Intent.** Defend against alternate writers and narrow invalid-data ingress.
 
-**Applicability.** nullability, ranges, uniqueness, referential integrity,
+**Applicability.** Nullability, ranges, uniqueness, referential integrity,
 discriminators, and state-related column combinations.
 
 **Allowed exceptions.** A constraint may remain application-only when the
@@ -5701,14 +5783,14 @@ discriminator and a validation rule that rejects contradictory combinations.
 **Intent.** Prevent rows such as "paid without receipt" or "failed with settled
 timestamp."
 
-**Applicability.** lifecycle tables, optional payload columns, and soft-state
+**Applicability.** Lifecycle tables, optional payload columns, and soft-state
 flags.
 
 **Allowed exceptions.** A deliberately incomplete staging record may exist in a
 separate type and table whose lifecycle never exposes it as the completed
 domain entity.
 
-**Review evidence.** row-state truth table, schema checks where feasible, and
+**Review evidence.** Row-state truth table, schema checks where feasible, and
 conversion tests for every invalid combination.
 
 ## RUST-DOC-0005-R006 — Make migrations invariant-aware
@@ -5720,12 +5802,12 @@ not satisfy the target invariant.
 **Intent.** Treat migration as a domain transition rather than only a shape
 change.
 
-**Applicability.** schema, data, index, encoding, and enum migrations.
+**Applicability.** Schema, data, index, encoding, and enum migrations.
 
 **Allowed exceptions.** A metadata-only operation may state that domain
 invariants are unaffected, with evidence.
 
-**Review evidence.** precondition query, transformation, postcondition query,
+**Review evidence.** Precondition query, transformation, postcondition query,
 rollback or forward-repair strategy, and representative migration test.
 
 ## RUST-DOC-0005-R007 — Version durable representations
@@ -5741,7 +5823,7 @@ that survive deployment, and database schemas.
 **Allowed exceptions.** Ephemeral caches may be invalidated atomically when
 version changes, if stale values cannot be interpreted.
 
-**Review evidence.** version field or schema version, supported-reader matrix,
+**Review evidence.** Version field or schema version, supported-reader matrix,
 unknown-version behavior, and fixture tests.
 
 ## RUST-DOC-0005-R008 — Plan enum evolution
@@ -5758,7 +5840,7 @@ sum types.
 **Allowed exceptions.** A closed, disposable dataset may reject unknown values
 and rebuild from canonical input.
 
-**Review evidence.** stable encoding table, unknown-value path, migration plan,
+**Review evidence.** Stable encoding table, unknown-value path, migration plan,
 and old/new reader tests.
 
 ## RUST-DOC-0005-R009 — Align transactions with cross-entity invariants
@@ -5770,13 +5852,13 @@ coordination protocol.
 
 **Intent.** Prevent application prechecks from racing concurrent writers.
 
-**Applicability.** balances, uniqueness, inventory, state transitions,
+**Applicability.** Balances, uniqueness, inventory, state transitions,
 aggregate versions, and paired records.
 
 **Allowed exceptions.** Eventual convergence is permitted when temporary
 violation is a documented domain state with bounded detection and repair.
 
-**Review evidence.** transaction scope, isolation analysis, locking or
+**Review evidence.** Transaction scope, isolation analysis, locking or
 constraint mechanism, concurrent test, and residual anomaly statement.
 
 ## RUST-DOC-0005-R010 — Prevent lost updates
@@ -5788,14 +5870,14 @@ lost-update prevention strategy.
 **Intent.** Stop later writes from silently erasing changes based on stale
 state.
 
-**Applicability.** mutable entities, counters with derived fields, and
+**Applicability.** Mutable entities, counters with derived fields, and
 administrative edits.
 
 **Allowed exceptions.** Last-write-wins is allowed only when it is the explicit
 business policy and discarded updates are acceptable and observable where
 needed.
 
-**Review evidence.** version predicate or locking query, conflict error,
+**Review evidence.** Version predicate or locking query, conflict error,
 concurrency test, and caller conflict policy.
 
 ## RUST-DOC-0005-R011 — Preserve transaction-handle lifecycle
@@ -5807,14 +5889,14 @@ commit, and ambiguous outcome when the driver or protocol permits ambiguity.
 
 **Intent.** Prevent stale transaction reuse and dishonest commit status.
 
-**Applicability.** database clients, unit-of-work abstractions, and transactional
+**Applicability.** Database clients, unit-of-work abstractions, and transactional
 repositories.
 
 **Allowed exceptions.** A library-owned mutable transaction handle may enforce
 the same lifecycle at runtime when consuming APIs are incompatible with the
 driver.
 
-**Review evidence.** handle transition tests, compile-fail evidence where
+**Review evidence.** Handle transition tests, compile-fail evidence where
 useful, and connection-loss behavior.
 
 ## RUST-DOC-0005-R012 — Do not extend database atomicity to external effects
@@ -5825,12 +5907,12 @@ resource boundary.
 
 **Intent.** Prevent fictional atomicity across independent systems.
 
-**Applicability.** state changes coupled to publishing or external calls.
+**Applicability.** State changes coupled to publishing or external calls.
 
 **Allowed exceptions.** A documented distributed transaction mechanism may
 state only the boundary and failure model it actually provides.
 
-**Review evidence.** effect inventory, atomic boundary diagram, failure matrix,
+**Review evidence.** Effect inventory, atomic boundary diagram, failure matrix,
 and reconciliation path.
 
 ## RUST-DOC-0005-R013 — Coordinate persistence and messaging durably
@@ -5841,12 +5923,12 @@ log, or equivalent durable coordination protocol.
 
 **Intent.** Make retry and recovery possible after process or network failure.
 
-**Applicability.** event publication, job enqueueing, and integration messages.
+**Applicability.** Event publication, job enqueueing, and integration messages.
 
 **Allowed exceptions.** A best-effort notification may remain outside durable
 coordination when loss is an accepted, documented outcome.
 
-**Review evidence.** atomic write, publisher retry, deduplication identity,
+**Review evidence.** Atomic write, publisher retry, deduplication identity,
 retention, ordering scope, and operational lag metrics.
 
 ## RUST-DOC-0005-R014 — Quarantine invalid historical data
@@ -5858,11 +5940,11 @@ as an explicit invalid-record type. It MUST NOT be forged into the trusted type.
 **Intent.** Preserve the meaning of trusted domain values while allowing
 operational recovery.
 
-**Applicability.** production reads, imports, restores, and migration scans.
+**Applicability.** Production reads, imports, restores, and migration scans.
 
 **Allowed exceptions.** None for trusted construction.
 
-**Review evidence.** diagnostic classification, record identity, sensitive-data
+**Review evidence.** Diagnostic classification, record identity, sensitive-data
 handling, repair workflow, and metrics.
 
 ## RUST-DOC-0005-R015 — Preserve unknown fields and values deliberately
@@ -5872,12 +5954,12 @@ are rejected, ignored, retained, or mapped to an explicit unknown variant.
 
 **Intent.** Make forward compatibility and security posture deliberate.
 
-**Applicability.** flexible records, events, snapshots, and rolling upgrades.
+**Applicability.** Flexible records, events, snapshots, and rolling upgrades.
 
 **Allowed exceptions.** None; the chosen policy may be implicit in a format only
 if documented and tested.
 
-**Review evidence.** compatibility matrix and tests for extra fields, missing
+**Review evidence.** Compatibility matrix and tests for extra fields, missing
 fields, and unknown discriminators.
 
 ## RUST-DOC-0005-R016 — Bound stored-input resource use
@@ -5889,13 +5971,13 @@ trusted in-memory state.
 **Intent.** Prevent validly encoded but hostile or corrupted records from
 exhausting resources.
 
-**Applicability.** blobs, arrays, compressed payloads, large text, and batch
+**Applicability.** Blobs, arrays, compressed payloads, large text, and batch
 queries.
 
 **Allowed exceptions.** A format with a proven small physical bound may rely on
 that bound and document it.
 
-**Review evidence.** limits, streaming behavior, oversized fixtures, and failure
+**Review evidence.** Limits, streaming behavior, oversized fixtures, and failure
 mapping.
 
 ## RUST-DOC-0005-R017 — Record persistence guarantees and non-guarantees
@@ -5907,11 +5989,11 @@ including configuration assumptions.
 **Intent.** Prevent product names or successful calls from implying stronger
 guarantees than deployed behavior.
 
-**Applicability.** every durable domain component.
+**Applicability.** Every durable domain component.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** guarantee ledger linked to database documentation,
+**Review evidence.** Guarantee ledger linked to database documentation,
 configuration, tests, monitoring, and residual failure modes.
 
 ---
@@ -6267,6 +6349,18 @@ Mark every gate **pass**, **fail**, **not applicable**, or with an approved
 Critical failures block merge. A waiver must identify owner, affected paths,
 compensating controls, monitoring, expiry, and a condition for removal.
 
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0005-R001`, `RUST-DOC-0005-R002`, `RUST-DOC-0005-R003`, `RUST-DOC-0005-R004`
+- `RUST-DOC-0005-R005`, `RUST-DOC-0005-R006`, `RUST-DOC-0005-R007`, `RUST-DOC-0005-R008`
+- `RUST-DOC-0005-R009`, `RUST-DOC-0005-R010`, `RUST-DOC-0005-R011`, `RUST-DOC-0005-R012`
+- `RUST-DOC-0005-R013`, `RUST-DOC-0005-R014`, `RUST-DOC-0005-R015`, `RUST-DOC-0005-R016`
+- `RUST-DOC-0005-R017`
+
 ---
 
 ## Source: `doctrines/0005-persistence-boundaries/anti-patterns.md`
@@ -6596,7 +6690,7 @@ are in RUST-DOC-0002.
 
 ## Normative status
 
-[`doctrine.md`](doctrine.md) is normative. Rule identifiers are stable within
+[`doctrine.md`](../doctrines/0006-distributed-uncertainty/doctrine.md) is normative. Rule identifiers are stable within
 this version. Examples provide possible representations, not mandatory generic
 shapes. Approved waivers must preserve operational visibility and carry a
 bounded risk decision.
@@ -6604,7 +6698,7 @@ bounded risk decision.
 ## Prerequisite foundations
 
 Read trust boundaries, evidence levels, guarantee honesty, invariants, and
-complexity budget under [`../../foundations/`](../../foundations/). An
+complexity budget under [`../../foundations/`](../foundations/). An
 externally acknowledged value and a reconciled external outcome are distinct
 evidence levels.
 
@@ -6625,7 +6719,7 @@ review standard to operation identity, retry, retention, and reconciliation.
 
 ## Compact doctrine summary
 
-A timeout MUST NOT imply non-execution. Retrying an effect requires explicit
+A timeout does not imply non-execution. Retrying an effect requires explicit
 idempotency analysis. An idempotency key needs scope, uniqueness, retention,
 payload-binding, and replay semantics. Outcome models distinguish confirmed
 success, confirmed rejection, local failure before dispatch, and unknown
@@ -6649,13 +6743,13 @@ remote operation may have executed.
 **Intent.** Preserve the distinction between stopping local waiting and learning
 remote outcome.
 
-**Applicability.** network requests, database commit, broker acknowledgement,
+**Applicability.** Network requests, database commit, broker acknowledgement,
 filesystem operations over remote mounts, and subprocess protocols.
 
 **Allowed exceptions.** A timeout may be definitive only when protocol evidence
 establishes that execution could not have begun or was atomically cancelled.
 
-**Review evidence.** protocol timeline, cancellation semantics, and explicit
+**Review evidence.** Protocol timeline, cancellation semantics, and explicit
 unknown-outcome path.
 
 ## RUST-DOC-0006-R002 — Model operationally distinct outcomes
@@ -6666,12 +6760,12 @@ require different recovery.
 
 **Intent.** Prevent transport symptoms from erasing domain knowledge.
 
-**Applicability.** consequential external operations.
+**Applicability.** Consequential external operations.
 
 **Allowed exceptions.** Categories may combine when no caller action, audit
 meaning, security consequence, or reconciliation path differs.
 
-**Review evidence.** outcome decision table and exhaustive caller handling.
+**Review evidence.** Outcome decision table and exhaustive caller handling.
 
 ## RUST-DOC-0006-R003 — Carry reconciliation evidence
 
@@ -6680,13 +6774,13 @@ to reconcile it, including stable operation identity and the external target.
 
 **Intent.** Make uncertainty actionable and auditable.
 
-**Applicability.** payments, messages, provisioning, commits, and any effect that
+**Applicability.** Payments, messages, provisioning, commits, and any effect that
 cannot safely be repeated blindly.
 
 **Allowed exceptions.** An explicitly irreconcilable best-effort action may
 retain only audit evidence if business policy accepts permanent uncertainty.
 
-**Review evidence.** reconciliation token, operation ID, request fingerprint,
+**Review evidence.** Reconciliation token, operation ID, request fingerprint,
 target, attempt history, and observation method.
 
 ## RUST-DOC-0006-R004 — Analyze before retry
@@ -6696,13 +6790,13 @@ unsafe to retry, or reconcile-before-retry for each relevant failure point.
 
 **Intent.** Prevent duplicate effects and unsafe assumptions.
 
-**Applicability.** clients, consumers, publishers, schedulers, and operator
+**Applicability.** Clients, consumers, publishers, schedulers, and operator
 runbooks.
 
 **Allowed exceptions.** Pure reads may use a simpler safe-retry classification
 when staleness and load remain documented.
 
-**Review evidence.** failure-point matrix, idempotency mechanism, deadline, and
+**Review evidence.** Failure-point matrix, idempotency mechanism, deadline, and
 attempt budget.
 
 ## RUST-DOC-0006-R005 — Define idempotency-key semantics
@@ -6713,12 +6807,12 @@ semantics.
 
 **Intent.** Prevent a string field from being mistaken for idempotent behavior.
 
-**Applicability.** mutable external APIs and durable commands.
+**Applicability.** Mutable external APIs and durable commands.
 
 **Allowed exceptions.** Naturally idempotent operations may omit keys when their
 semantic identity and repeated-result behavior are established independently.
 
-**Review evidence.** key contract, storage constraint, same-key/same-payload and
+**Review evidence.** Key contract, storage constraint, same-key/same-payload and
 same-key/different-payload tests, and expiry policy.
 
 ## RUST-DOC-0006-R006 — Reuse operation identity across attempts
@@ -6729,12 +6823,12 @@ idempotency identity. A new identity MUST mean a new requested effect.
 **Intent.** Allow receivers and reconcilers to distinguish replay from new
 intent.
 
-**Applicability.** external API requests, published commands, and repair tools.
+**Applicability.** External API requests, published commands, and repair tools.
 
 **Allowed exceptions.** A protocol-mandated new transport attempt identifier may
 be added, but it MUST remain correlated to the stable logical operation.
 
-**Review evidence.** identity lifecycle and attempt log.
+**Review evidence.** Identity lifecycle and attempt log.
 
 ## RUST-DOC-0006-R007 — Expect duplicate delivery
 
@@ -6744,13 +6838,13 @@ idempotent, commutative, or safely rejected.
 
 **Intent.** Make acknowledgement loss and redelivery ordinary protocol paths.
 
-**Applicability.** brokers, job queues, webhook delivery, change feeds, and
+**Applicability.** Brokers, job queues, webhook delivery, change feeds, and
 replayed logs.
 
 **Allowed exceptions.** A verified at-most-once boundary may accept loss instead
 of duplicates, with that loss documented.
 
-**Review evidence.** duplicate test, stable message identity, and effect-level
+**Review evidence.** Duplicate test, stable message identity, and effect-level
 handling.
 
 ## RUST-DOC-0006-R008 — Persist deduplication durably
@@ -6761,12 +6855,12 @@ retention.
 
 **Intent.** Prevent process restart or pruning from reopening duplicate effects.
 
-**Applicability.** consumer inboxes, payment commands, and webhook handlers.
+**Applicability.** Consumer inboxes, payment commands, and webhook handlers.
 
 **Allowed exceptions.** In-memory deduplication may protect only ephemeral
 best-effort work whose duplicate cost is accepted.
 
-**Review evidence.** unique key, transaction boundary, retention calculation,
+**Review evidence.** Unique key, transaction boundary, retention calculation,
 and replay-after-restart test.
 
 ## RUST-DOC-0006-R009 — State ordering scope
@@ -6777,11 +6871,11 @@ consumer concurrency, retry behavior, failover behavior, and observation point.
 **Intent.** Prevent partition-local or producer-local order from becoming a
 false global guarantee.
 
-**Applicability.** brokers, streams, event logs, RPC sequencing, and replication.
+**Applicability.** Brokers, streams, event logs, RPC sequencing, and replication.
 
 **Allowed exceptions.** None when business behavior relies on order.
 
-**Review evidence.** ordering contract and tests for retries, multiple
+**Review evidence.** Ordering contract and tests for retries, multiple
 producers, and failover.
 
 ## RUST-DOC-0006-R010 — Qualify exactly-once claims
@@ -6792,11 +6886,11 @@ included. It MUST NOT imply exactly-once behavior beyond that boundary.
 
 **Intent.** Replace a broad slogan with an auditable scoped guarantee.
 
-**Applicability.** messaging, stream processing, payments, jobs, and APIs.
+**Applicability.** Messaging, stream processing, payments, jobs, and APIs.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** guarantee ledger, protocol documentation, duplicate tests,
+**Review evidence.** Guarantee ledger, protocol documentation, duplicate tests,
 and excluded effects.
 
 ## RUST-DOC-0006-R011 — Coordinate acknowledgement with effect
@@ -6806,12 +6900,12 @@ effect execution, durable progress, and acknowledgement.
 
 **Intent.** Make the duplicate-versus-loss tradeoff visible.
 
-**Applicability.** message and job consumers.
+**Applicability.** Message and job consumers.
 
 **Allowed exceptions.** Best-effort consumers may acknowledge early only when
 loss is accepted and measured.
 
-**Review evidence.** crash-point matrix and tests before and after each durable
+**Review evidence.** Crash-point matrix and tests before and after each durable
 step.
 
 ## RUST-DOC-0006-R012 — Treat compensation as a new effect
@@ -6822,13 +6916,13 @@ capable of an unknown outcome.
 
 **Intent.** Preserve real-world irreversibility and changed conditions.
 
-**Applicability.** distributed workflows, reservations, payments, and
+**Applicability.** Distributed workflows, reservations, payments, and
 provisioning.
 
 **Allowed exceptions.** A local database rollback may be called rollback within
 its actual transaction boundary.
 
-**Review evidence.** forward/compensation pairs, business non-equivalence,
+**Review evidence.** Forward/compensation pairs, business non-equivalence,
 failure handling, and reconciliation.
 
 ## RUST-DOC-0006-R013 — Treat observations as time-scoped evidence
@@ -6839,13 +6933,13 @@ state can change.
 
 **Intent.** Prevent stale reads from becoming permanent authority.
 
-**Applicability.** status queries, authorization, inventory, leases, and
+**Applicability.** Status queries, authorization, inventory, leases, and
 reconciliation.
 
 **Allowed exceptions.** Immutable append-only facts may remain stable when the
 source contract establishes immutability.
 
-**Review evidence.** freshness policy, version or timestamp, cache behavior, and
+**Review evidence.** Freshness policy, version or timestamp, cache behavior, and
 revalidation trigger.
 
 ## RUST-DOC-0006-R014 — Address concurrent execution and split brain
@@ -6858,13 +6952,13 @@ effect-level idempotency mechanism.
 **Intent.** Prevent stale owners and duplicate coordinators from acting with
 equal authority.
 
-**Applicability.** reconciliation workers, schedulers, failover, and distributed
+**Applicability.** Reconciliation workers, schedulers, failover, and distributed
 locks.
 
 **Allowed exceptions.** Concurrent execution is allowed for commutative,
 duplicate-safe operations with evidence.
 
-**Review evidence.** authority protocol, expiry, fencing token use, clock
+**Review evidence.** Authority protocol, expiry, fencing token use, clock
 assumptions, and overlap test.
 
 ## RUST-DOC-0006-R015 — Bound retries and reconciliation
@@ -6876,12 +6970,12 @@ observability.
 **Intent.** Prevent uncertainty from turning into permanent load or hidden
 backlog.
 
-**Applicability.** retry queues, reconcilers, publishers, and operator repair.
+**Applicability.** Retry queues, reconcilers, publishers, and operator repair.
 
 **Allowed exceptions.** A durable obligation may remain pending indefinitely,
 but each execution cycle still requires bounded work and visible age.
 
-**Review evidence.** queue capacity, schedule, age metrics, dead-letter or
+**Review evidence.** Queue capacity, schedule, age metrics, dead-letter or
 manual escalation, and overload test.
 
 ## RUST-DOC-0006-R016 — Preserve correlation and causality
@@ -6892,12 +6986,12 @@ observations, and reconciliation decisions where these affect accountability.
 
 **Intent.** Reconstruct what was requested, attempted, observed, and resolved.
 
-**Applicability.** consequential distributed effects.
+**Applicability.** Consequential distributed effects.
 
 **Allowed exceptions.** Low-risk telemetry may use aggregated correlation when
 individual reconstruction is unnecessary.
 
-**Review evidence.** event schema, trace propagation, redaction, and end-to-end
+**Review evidence.** Event schema, trace propagation, redaction, and end-to-end
 incident query.
 
 ## RUST-DOC-0006-R017 — Protect sensitive reconciliation data
@@ -6908,13 +7002,13 @@ personal data.
 
 **Intent.** Avoid turning operational evidence into a second secret database.
 
-**Applicability.** operation logs, dead-letter records, tracing, and support
+**Applicability.** Operation logs, dead-letter records, tracing, and support
 tools.
 
 **Allowed exceptions.** Required regulated evidence may be retained with
 documented access, encryption, minimization, and deletion policy.
 
-**Review evidence.** field classification, redaction tests, access policy, and
+**Review evidence.** Field classification, redaction tests, access policy, and
 retention.
 
 ## RUST-DOC-0006-R018 — Test failure points, not only final errors
@@ -6925,12 +7019,12 @@ proportion to risk.
 
 **Intent.** Exercise ambiguity and replay paths hidden by happy-path mocks.
 
-**Applicability.** integrations, consumers, publishers, and reconcilers.
+**Applicability.** Integrations, consumers, publishers, and reconcilers.
 
 **Allowed exceptions.** A low-risk pure read may narrow the matrix and state
 why.
 
-**Review evidence.** fault matrix linked to invariants, test results, and
+**Review evidence.** Fault matrix linked to invariants, test results, and
 unexercised assumptions.
 
 ## RUST-DOC-0006-R019 — State residual uncertainty
@@ -6942,11 +7036,11 @@ may safely do meanwhile.
 **Intent.** Make uncertainty an owned lifecycle state rather than an error
 message.
 
-**Applicability.** every consequential effect with ambiguous execution.
+**Applicability.** Every consequential effect with ambiguous execution.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** state machine, service-level target, escalation path, and
+**Review evidence.** State machine, service-level target, escalation path, and
 guarantee ledger.
 
 ---
@@ -7335,6 +7429,18 @@ Critical failures block merge. Waivers need a named owner, affected operations,
 accepted consequence, compensating control, monitoring, expiry, and resolution
 condition.
 
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0006-R001`, `RUST-DOC-0006-R002`, `RUST-DOC-0006-R003`, `RUST-DOC-0006-R004`
+- `RUST-DOC-0006-R005`, `RUST-DOC-0006-R006`, `RUST-DOC-0006-R007`, `RUST-DOC-0006-R008`
+- `RUST-DOC-0006-R009`, `RUST-DOC-0006-R010`, `RUST-DOC-0006-R011`, `RUST-DOC-0006-R012`
+- `RUST-DOC-0006-R013`, `RUST-DOC-0006-R014`, `RUST-DOC-0006-R015`, `RUST-DOC-0006-R016`
+- `RUST-DOC-0006-R017`, `RUST-DOC-0006-R018`, `RUST-DOC-0006-R019`
+
 ---
 
 ## Source: `doctrines/0006-distributed-uncertainty/anti-patterns.md`
@@ -7651,16 +7757,16 @@ grounded in the relevant primary specification and deployed target.
 
 ## Normative status
 
-[`doctrine.md`](doctrine.md) is normative. Safety requirements cannot be waived
+[`doctrine.md`](../doctrines/0007-unsafe-rust/doctrine.md) is normative. Safety requirements cannot be waived
 merely for performance or borrow-checker convenience. Any accepted exception
 must still preserve Rust's safety contract and document evidence.
 
 ## Prerequisite foundations
 
 Read invariants, evidence, trust boundaries, guarantee honesty, and complexity
-budget under [`../../foundations/`](../../foundations/). Unsafe work additionally
+budget under [`../../foundations/`](../foundations/). Unsafe work additionally
 requires the Rust Reference and Rustonomicon material cited in
-[`references.md`](references.md).
+[`references.md`](../doctrines/0007-unsafe-rust/references.md).
 
 ## Related material
 
@@ -7678,7 +7784,7 @@ gate, then use the anti-pattern catalogue as an adversarial second pass.
 
 ## Compact doctrine summary
 
-Every unsafe operation MUST have a safety invariant and a local argument showing
+Every unsafe operation needs a safety invariant and a local argument showing
 why all required preconditions hold. Unsafe surface is minimized and
 encapsulated. A safe public API must be sound for all safe callers. `unsafe fn`
 documents caller obligations; `unsafe impl Send` or `Sync` includes a concurrency
@@ -7687,6 +7793,16 @@ threading, allocator, and unwind behavior. Partial initialization accounts for
 drop. Layout and provenance are never guessed. Miri, sanitizers, model checking,
 fuzzing, and target testing provide complementary evidence but do not replace
 reasoning.
+
+## Executable evidence status
+
+The 0.1.0 workspace forbids unsafe code in its own crates and therefore ships no
+unsafe implementation, Miri run, sanitizer run, FFI target test, or
+provenance-sensitive executable example. The review tables and source notes
+define those evidence obligations, but they are not evidence for a concrete
+unsafe abstraction. A later unsafe example would require its own safety
+argument and specialized tool results rather than inheriting credibility from
+this prose.
 
 ---
 
@@ -7709,8 +7825,8 @@ FFI boundary.
 **Allowed exceptions.** Mechanically generated binding declarations may share
 one reviewed justification for a generated unit.
 
-**Review evidence.** alternatives, benchmark evidence for performance claims,
-and explicit scope.
+**Review evidence.** Required capability, safe alternatives, explicit scope,
+and benchmark evidence when performance justifies the risk.
 
 ## RUST-DOC-0007-R002 — State the safety invariant
 
@@ -7725,8 +7841,9 @@ preconditions hold at that point.
 **Allowed exceptions.** Repeated operations inside one tightly bounded block may
 share one complete argument when their obligations are identical.
 
-**Review evidence.** comment names aliasing, validity, lifetime, alignment,
-provenance, initialization, concurrency, and panic considerations that apply.
+**Review evidence.** The `SAFETY:` comment names the applicable aliasing,
+validity, lifetime, alignment, provenance, initialization, concurrency, and
+panic considerations.
 
 ## RUST-DOC-0007-R003 — Minimize and encapsulate unsafe
 
@@ -7737,13 +7854,13 @@ can use the capability.
 **Intent.** Reduce proof surface and prevent invariant-dependent values from
 escaping unchecked.
 
-**Applicability.** low-level modules, FFI wrappers, containers, and optimized
+**Applicability.** Low-level modules, FFI wrappers, containers, and optimized
 algorithms.
 
 **Allowed exceptions.** A public unsafe primitive may be appropriate when
 callers must supply obligations that cannot be checked.
 
-**Review evidence.** unsafe inventory, module visibility, private fields, and
+**Review evidence.** Unsafe inventory, module visibility, private fields, and
 safe wrapper tests.
 
 ## RUST-DOC-0007-R004 — Make safe APIs sound for every safe caller
@@ -7756,11 +7873,11 @@ by its traits.
 **Intent.** Prevent hidden caller obligations from leaking through a safe
 signature.
 
-**Applicability.** all safe wrappers over unsafe internals.
+**Applicability.** All safe wrappers over unsafe internals.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** adversarial safe-call analysis, invariant ownership,
+**Review evidence.** Adversarial safe-call analysis, invariant ownership,
 panic/drop paths, and executable evidence.
 
 ## RUST-DOC-0007-R005 — Document unsafe caller obligations
@@ -7771,12 +7888,12 @@ non-circular terms.
 
 **Intent.** Define exactly what the compiler no longer checks for the caller.
 
-**Applicability.** unsafe functions, methods, traits, and constructors.
+**Applicability.** Unsafe functions, methods, traits, and constructors.
 
 **Allowed exceptions.** Private functions used once may state obligations at
 the function or call site, but the proof chain MUST remain explicit.
 
-**Review evidence.** obligations name valid ranges, lifetime, ownership,
+**Review evidence.** Caller obligations name valid ranges, lifetime, ownership,
 aliasing, initialization, thread, and provenance constraints as relevant.
 
 ## RUST-DOC-0007-R006 — Protect representation validity
@@ -7788,13 +7905,13 @@ restricted representations.
 
 **Intent.** Avoid undefined behavior before ordinary code can validate.
 
-**Applicability.** casts, reads, transmutation, FFI, serialization shortcuts,
+**Applicability.** Casts, reads, transmutation, FFI, serialization shortcuts,
 and uninitialized memory.
 
 **Allowed exceptions.** Bytes may remain untyped storage until validity is
 established; they MUST NOT be observed through an invalid typed value.
 
-**Review evidence.** representation source, validation, layout reference, and
+**Review evidence.** Representation source, validation, layout reference, and
 invalid-input tests.
 
 ## RUST-DOC-0007-R007 — Prove aliasing and lifetime
@@ -7806,12 +7923,12 @@ and a lifetime no longer than the backing allocation and authority.
 **Intent.** Prevent references from asserting guarantees the pointer does not
 provide.
 
-**Applicability.** raw-pointer dereference, slices from raw parts, FFI pointers,
+**Applicability.** Raw-pointer dereference, slices from raw parts, FFI pointers,
 and self-referential structures.
 
 **Allowed exceptions.** None; only the proof mechanism varies.
 
-**Review evidence.** allocation owner, mutation paths, reallocation analysis,
+**Review evidence.** Allocation owner, mutation paths, reallocation analysis,
 and borrow duration.
 
 ## RUST-DOC-0007-R008 — Respect provenance and bounds
@@ -7823,12 +7940,12 @@ argument consistent with the supported Rust model and target APIs.
 **Intent.** Prevent address arithmetic from being treated as sufficient pointer
 authority.
 
-**Applicability.** allocators, buffers, intrusive structures, memory maps, and
+**Applicability.** Allocators, buffers, intrusive structures, memory maps, and
 FFI.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** originating allocation, range proof, zero-sized-type
+**Review evidence.** Originating allocation, range proof, zero-sized-type
 behavior, overflow handling, and Miri coverage where supported.
 
 ## RUST-DOC-0007-R009 — Handle partial initialization and drop
@@ -7840,13 +7957,13 @@ success, error, and panic paths.
 **Intent.** Prevent reads of uninitialized memory, leaks of owned resources, and
 double drop.
 
-**Applicability.** arrays, FFI output buffers, custom collections, and
+**Applicability.** Arrays, FFI output buffers, custom collections, and
 performance-sensitive construction.
 
 **Allowed exceptions.** Trivially non-dropping byte storage still requires proof
 against uninitialized typed reads.
 
-**Review evidence.** initialization counter or state, guard behavior, panic
+**Review evidence.** Initialization counter or state, guard behavior, panic
 injection, and destructor tests.
 
 ## RUST-DOC-0007-R010 — Require exceptional justification for transmute
@@ -7857,12 +7974,12 @@ layout compatibility MUST be established from authoritative contracts.
 
 **Intent.** Expose the many simultaneous obligations hidden by one operation.
 
-**Applicability.** every transmute or equivalent bit reinterpretation.
+**Applicability.** Every transmute or equivalent bit reinterpretation.
 
 **Allowed exceptions.** None; a narrower cast or conversion SHOULD be used when
 it expresses fewer obligations.
 
-**Review evidence.** primary layout citation, static assertions where possible,
+**Review evidence.** Primary layout citation, static assertions where possible,
 and tests across supported targets.
 
 ## RUST-DOC-0007-R011 — Define FFI representation and ABI
@@ -7874,14 +7991,14 @@ MUST NOT be assumed stable without an applicable representation contract.
 **Intent.** Prevent caller/callee disagreement about call convention and data
 layout.
 
-**Applicability.** foreign functions, callbacks, shared structs, unions, and
+**Applicability.** Foreign functions, callbacks, shared structs, unions, and
 opaque handles.
 
 **Allowed exceptions.** Bindings generated from an authoritative interface may
 derive declarations, but generated output and generator version remain reviewed
 inputs.
 
-**Review evidence.** header/specification match, `repr` choice, target matrix,
+**Review evidence.** Header/specification match, `repr` choice, target matrix,
 and ABI tests.
 
 ## RUST-DOC-0007-R012 — Define FFI ownership and allocation
@@ -7893,12 +8010,12 @@ and the matching release operation.
 **Intent.** Prevent double frees, leaks, allocator mismatch, and dangling
 access.
 
-**Applicability.** buffers, strings, handles, callbacks, and allocated objects.
+**Applicability.** Buffers, strings, handles, callbacks, and allocated objects.
 
 **Allowed exceptions.** None; an opaque handle still requires a lifecycle
 contract.
 
-**Review evidence.** boundary table, constructor/destructor pairs, null and
+**Review evidence.** Boundary table, constructor/destructor pairs, null and
 length tests, and foreign-side documentation.
 
 ## RUST-DOC-0007-R013 — Control unwinding across FFI
@@ -7909,13 +8026,13 @@ runtime contract.
 
 **Intent.** Avoid undefined behavior and uncontrolled process state.
 
-**Applicability.** exported Rust functions, imported callbacks, and foreign
+**Applicability.** Exported Rust functions, imported callbacks, and foreign
 exceptions.
 
 **Allowed exceptions.** An unwind-capable ABI may be used only with documented
 cross-language behavior and target support.
 
-**Review evidence.** catch/abort policy, destructor implications, and panic-path
+**Review evidence.** Catch/abort policy, destructor implications, and panic-path
 test.
 
 ## RUST-DOC-0007-R014 — Prove unsafe `Send` and `Sync`
@@ -7927,12 +8044,12 @@ destruction, callbacks, and foreign-library thread guarantees.
 **Intent.** Ensure marker traits do not grant unsupported cross-thread
 authority.
 
-**Applicability.** custom containers, raw handles, FFI wrappers, and
+**Applicability.** Custom containers, raw handles, FFI wrappers, and
 self-referential values.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** trait invariant, synchronization model, adverse schedule
+**Review evidence.** Trait invariant, synchronization model, adverse schedule
 tests, and upstream thread-safety contract.
 
 ## RUST-DOC-0007-R015 — Preserve panic safety
@@ -7944,13 +8061,13 @@ permitted point.
 **Intent.** Prevent partial mutation from violating assumptions later consumed
 by unsafe code.
 
-**Applicability.** collections, sorting, initialization, callback-based APIs,
+**Applicability.** Collections, sorting, initialization, callback-based APIs,
 and guards.
 
 **Allowed exceptions.** Logical corruption after panic may be allowed only if
 memory safety remains intact and the object cannot be used as though valid.
 
-**Review evidence.** unwind-state analysis, guards, injected panics, and drop
+**Review evidence.** Unwind-state analysis, guards, injected panics, and drop
 accounting.
 
 ## RUST-DOC-0007-R016 — Use complementary dynamic evidence
@@ -7961,12 +8078,12 @@ the tools support its behavior.
 
 **Intent.** Detect violations that code review and ordinary tests can miss.
 
-**Applicability.** pointer, initialization, FFI, and concurrency code.
+**Applicability.** Pointer, initialization, FFI, and concurrency code.
 
 **Allowed exceptions.** Unsupported operations or targets may use alternative
 evidence, with the limitation documented.
 
-**Review evidence.** exact commands, supported targets, findings resolved, and
+**Review evidence.** Exact commands, supported targets, findings resolved, and
 known blind spots.
 
 ## RUST-DOC-0007-R017 — Review unsafe dependencies
@@ -7983,7 +8100,7 @@ highly privileged libraries.
 **Allowed exceptions.** Low-risk unreachable target-specific code may receive a
 documented reduced review.
 
-**Review evidence.** dependency inventory, versions, advisory status, unsafe
+**Review evidence.** Dependency inventory, versions, advisory status, unsafe
 surface, upstream audit evidence, and update policy.
 
 ## RUST-DOC-0007-R018 — Re-audit when assumptions change
@@ -7994,12 +8111,12 @@ assumptions change.
 
 **Intent.** Keep proof obligations synchronized with their premises.
 
-**Applicability.** upgrades, ports, refactors, and feature changes.
+**Applicability.** Upgrades, ports, refactors, and feature changes.
 
 **Allowed exceptions.** A change proven outside the unsafe dependency cone may
 document that conclusion.
 
-**Review evidence.** assumption inventory, changed-premise analysis, repeated
+**Review evidence.** Assumption inventory, changed-premise analysis, repeated
 dynamic evidence, and reviewer approval.
 
 ---
@@ -8345,6 +8462,18 @@ Mark each gate **pass**, **fail**, **not applicable**, or with an approved
 Approval requires a reviewer competent in the relevant unsafe domain. Tool
 success cannot compensate for an incomplete safety argument.
 
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0007-R001`, `RUST-DOC-0007-R002`, `RUST-DOC-0007-R003`, `RUST-DOC-0007-R004`
+- `RUST-DOC-0007-R005`, `RUST-DOC-0007-R006`, `RUST-DOC-0007-R007`, `RUST-DOC-0007-R008`
+- `RUST-DOC-0007-R009`, `RUST-DOC-0007-R010`, `RUST-DOC-0007-R011`, `RUST-DOC-0007-R012`
+- `RUST-DOC-0007-R013`, `RUST-DOC-0007-R014`, `RUST-DOC-0007-R015`, `RUST-DOC-0007-R016`
+- `RUST-DOC-0007-R017`, `RUST-DOC-0007-R018`
+
 ---
 
 ## Source: `doctrines/0007-unsafe-rust/anti-patterns.md`
@@ -8661,15 +8790,15 @@ proof obligations belong to RUST-DOC-0007.
 
 ## Normative status
 
-[`doctrine.md`](doctrine.md) is normative. Rules require proportionate evidence,
+[`doctrine.md`](../doctrines/0008-testing-and-evidence/doctrine.md) is normative. Rules require proportionate evidence,
 not mechanical use of every test class. Waivers state the uncovered risk,
 alternative evidence, owner, and review date.
 
 ## Prerequisite foundations
 
-Read [`../../foundations/evidence.md`](../../foundations/evidence.md),
-[`../../foundations/invariants.md`](../../foundations/invariants.md), and
-[`../../foundations/guarantee-honesty.md`](../../foundations/guarantee-honesty.md).
+Read [`../../foundations/evidence.md`](../foundations/evidence.md),
+[`../../foundations/invariants.md`](../foundations/invariants.md), and
+[`../../foundations/guarantee-honesty.md`](../foundations/guarantee-honesty.md).
 Evidence strength depends on the claim, scope, environment, and completeness of
 the observed set.
 
@@ -8698,6 +8827,16 @@ critical failure semantics. Snapshots receive semantic review. Flakiness is
 evidence of uncontrolled behavior, not noise to retry away. Coverage supports
 gap discovery but does not replace invariant coverage.
 
+## Executable evidence status
+
+The 0.1.0 workspace includes positive and negative unit tests, checked boundary
+conversion, deterministic generator tests, and compiler-rejection cases through
+`trybuild`. It does not include property-based generation, fault injection,
+schedule exploration, contract testing against a deployed service, Miri, or
+production telemetry. Those classes remain conditional tools whose value
+depends on the claim; the existing suite establishes only the behaviors it
+executes.
+
 ---
 
 ## Source: `doctrines/0008-testing-and-evidence/doctrine.md`
@@ -8712,12 +8851,12 @@ regression risk they support.
 **Intent.** Make suites evidence-oriented rather than collections of incidental
 examples.
 
-**Applicability.** all canonical tests and verification jobs.
+**Applicability.** All canonical tests and verification jobs.
 
 **Allowed exceptions.** A compact regression test may reference an issue,
 incident, or neighboring test module rather than repeat the full invariant.
 
-**Review evidence.** names, documentation, or manifest mapping from claim to
+**Review evidence.** Names, documentation, or manifest mapping from claim to
 test.
 
 ## RUST-DOC-0008-R002 — Test constructor acceptance and rejection
@@ -8727,13 +8866,13 @@ meaningful boundaries, including normalization and error categories.
 
 **Intent.** Demonstrate both admitted and excluded value sets.
 
-**Applicability.** parsers, smart constructors, newtypes, collections, and
+**Applicability.** Parsers, smart constructors, newtypes, collections, and
 configuration.
 
 **Allowed exceptions.** A constructor delegated entirely to a separately tested
 primitive may cite that evidence and test its integration.
 
-**Review evidence.** boundary-value table and assertions on structured errors.
+**Review evidence.** Boundary-value table and assertions on structured errors.
 
 ## RUST-DOC-0008-R003 — Use properties for generative invariants
 
@@ -8743,13 +8882,13 @@ examples leaves substantial input space.
 
 **Intent.** Explore classes of inputs and produce minimized counterexamples.
 
-**Applicability.** serialization, arithmetic, state-machine commands, parsers,
+**Applicability.** Serialization, arithmetic, state-machine commands, parsers,
 and collection operations.
 
 **Allowed exceptions.** Exhaustive finite domains or directly proven simple
 functions may use table tests.
 
-**Review evidence.** generator domain, shrinking behavior, seed retention, and
+**Review evidence.** Generator domain, shrinking behavior, seed retention, and
 property statement.
 
 ## RUST-DOC-0008-R004 — Prove prohibited programs where valuable
@@ -8759,13 +8898,13 @@ whose guarantee depends on privacy, ownership, traits, or typestate.
 
 **Intent.** Detect accidental widening of legal programs.
 
-**Applicability.** trusted construction, capability forgery, consumed handles,
+**Applicability.** Trusted construction, capability forgery, consumed handles,
 state-specific operations, and trait bounds.
 
 **Allowed exceptions.** Fragile diagnostics may be avoided when a stable API
 surface check or compile test provides clearer evidence.
 
-**Review evidence.** minimal failing programs and reviewed compiler diagnostics.
+**Review evidence.** Minimal failing programs and reviewed compiler diagnostics.
 
 ## RUST-DOC-0008-R005 — Inspect compiler-diagnostic changes
 
@@ -8776,12 +8915,12 @@ still fails for the intended reason.
 **Intent.** Prevent snapshot acceptance from hiding weakened construction or
 transition rules.
 
-**Applicability.** trybuild and other UI test suites.
+**Applicability.** UI test suites implemented with `trybuild` or equivalent harnesses.
 
 **Allowed exceptions.** Pure path, line, or diagnostic wording changes may be
 accepted after semantic inspection.
 
-**Review evidence.** diff review and assertion that the intended error remains.
+**Review evidence.** Diff review and assertion that the intended error remains.
 
 ## RUST-DOC-0008-R006 — Cross real boundaries
 
@@ -8790,12 +8929,12 @@ database, filesystem, or process boundary when practical and consequential.
 
 **Intent.** Exercise adapters and assumptions that unit tests omit.
 
-**Applicability.** boundary conversions and external integrations.
+**Applicability.** Boundary conversions and external integrations.
 
 **Allowed exceptions.** Unavailable or costly systems may use faithful
 emulators plus scheduled real-system evidence, with gaps documented.
 
-**Review evidence.** environment description, real components, setup isolation,
+**Review evidence.** Environment description, real components, setup isolation,
 and cleanup.
 
 ## RUST-DOC-0008-R007 — Protect protocol contracts
@@ -8811,7 +8950,7 @@ behavior relied on across independently deployed components.
 **Allowed exceptions.** One jointly released private component may rely on
 end-to-end integration evidence when independent compatibility is irrelevant.
 
-**Review evidence.** provider/consumer contract, version matrix, and failure
+**Review evidence.** Provider/consumer contract, version matrix, and failure
 fixtures.
 
 ## RUST-DOC-0008-R008 — Control concurrency evidence
@@ -8822,12 +8961,12 @@ means of establishing an interleaving.
 
 **Intent.** Avoid flaky timing guesses and unexercised schedules.
 
-**Applicability.** locks, channels, atomics, cancellation, and shutdown.
+**Applicability.** Locks, channels, atomics, cancellation, and shutdown.
 
 **Allowed exceptions.** A sleep may enforce an outer deadline but MUST NOT be
 the evidence that an ordering occurred.
 
-**Review evidence.** barriers, controlled clock, Loom model, event trace, or
+**Review evidence.** Barriers, controlled clock, Loom model, event trace, or
 equivalent mechanism.
 
 ## RUST-DOC-0008-R009 — Test cancellation and cleanup
@@ -8838,13 +8977,13 @@ external-outcome handling.
 
 **Intent.** Exercise future-drop control flow.
 
-**Applicability.** partial writes, permits, transactions, external calls, and
+**Applicability.** Partial writes, permits, transactions, external calls, and
 task supervision.
 
 **Allowed exceptions.** Pure cancellation-safe reads may share representative
 evidence when the reasoning applies identically.
 
-**Review evidence.** controlled cancellation and postcondition assertions.
+**Review evidence.** Controlled cancellation and postcondition assertions.
 
 ## RUST-DOC-0008-R010 — Inject partial failure
 
@@ -8853,13 +8992,13 @@ and after durable or external steps in proportion to consequence.
 
 **Intent.** Verify recovery rather than only returned errors.
 
-**Applicability.** persistence, messaging, payments, filesystems, and
+**Applicability.** Persistence, messaging, payments, filesystems, and
 multi-stage operations.
 
 **Allowed exceptions.** Low-risk pure transformations may not need fault
 injection.
 
-**Review evidence.** crash-point matrix, injected faults, resulting state, and
+**Review evidence.** Crash-point matrix, injected faults, resulting state, and
 recovery.
 
 ## RUST-DOC-0008-R011 — Exercise distributed uncertainty
@@ -8870,12 +9009,12 @@ permits them.
 
 **Intent.** Prevent perfect-network doubles from defining false behavior.
 
-**Applicability.** brokers, remote APIs, reconcilers, and distributed workflows.
+**Applicability.** Brokers, remote APIs, reconcilers, and distributed workflows.
 
 **Allowed exceptions.** A protocol may exclude a scenario only with
 authoritative evidence.
 
-**Review evidence.** scenario matrix and explicit terminal or unknown states.
+**Review evidence.** Scenario matrix and explicit terminal or unknown states.
 
 ## RUST-DOC-0008-R012 — Preserve failure modes in test doubles
 
@@ -8885,12 +9024,12 @@ material to the tested claim.
 
 **Intent.** Keep tests faithful to the risk being evaluated.
 
-**Applicability.** mocks, fakes, emulators, in-memory repositories, and clocks.
+**Applicability.** Mocks, fakes, emulators, in-memory repositories, and clocks.
 
 **Allowed exceptions.** A narrow unit test may use a simpler double when the
 omitted behavior is outside its claim and covered elsewhere.
 
-**Review evidence.** double-to-real contract comparison and gap ownership.
+**Review evidence.** Double-to-real contract comparison and gap ownership.
 
 ## RUST-DOC-0008-R013 — Review snapshots semantically
 
@@ -8900,13 +9039,13 @@ correct.
 
 **Intent.** Prevent expected-output updates from blessing regressions.
 
-**Applicability.** serialized output, diagnostics, UI, plans, and compiler UI
+**Applicability.** Serialized output, diagnostics, UI, plans, and compiler UI
 tests.
 
 **Allowed exceptions.** Deterministic formatting-only migrations may group
 equivalent changes with one documented rationale.
 
-**Review evidence.** focused diff, invariant impact, and reviewer sign-off.
+**Review evidence.** Focused diff, invariant impact, and reviewer sign-off.
 
 ## RUST-DOC-0008-R014 — Treat flakiness as evidence
 
@@ -8916,12 +9055,12 @@ MUST NOT be the sole resolution.
 
 **Intent.** Prevent nondeterminism from being normalized.
 
-**Applicability.** all test and benchmark automation.
+**Applicability.** All test and benchmark automation.
 
 **Allowed exceptions.** A temporary bounded retry may gather diagnostics while
 the issue is owned and visible.
 
-**Review evidence.** failure signatures, root cause, deterministic fix, or
+**Review evidence.** Failure signatures, root cause, deterministic fix, or
 time-bounded quarantine with owner.
 
 ## RUST-DOC-0008-R015 — Do not substitute coverage for invariant evidence
@@ -8931,12 +9070,12 @@ behavior or invariants are adequately tested.
 
 **Intent.** Distinguish executed lines from asserted semantics and input space.
 
-**Applicability.** coverage gates and quality reports.
+**Applicability.** Coverage gates and quality reports.
 
 **Allowed exceptions.** Coverage may serve as a supplemental regression and gap
 discovery metric.
 
-**Review evidence.** invariant-to-evidence matrix in addition to coverage.
+**Review evidence.** Invariant-to-evidence matrix in addition to coverage.
 
 ## RUST-DOC-0008-R016 — Separate benchmarks from correctness
 
@@ -8946,12 +9085,12 @@ executable where feasible.
 
 **Intent.** Prevent performance samples from becoming weak semantic evidence.
 
-**Applicability.** microbenchmarks, load tests, and profiling harnesses.
+**Applicability.** Microbenchmarks, load tests, and profiling harnesses.
 
 **Allowed exceptions.** A benchmark may validate setup defensively, but the
 invariant still needs appropriate tests.
 
-**Review evidence.** corresponding correctness suite and benchmark methodology.
+**Review evidence.** Corresponding correctness suite and benchmark methodology.
 
 ## RUST-DOC-0008-R017 — Use model checking proportionally
 
@@ -8961,13 +9100,13 @@ documented.
 
 **Intent.** Explore scheduler interleavings ordinary runs rarely reach.
 
-**Applicability.** atomics, locks, channels, once initialization, and ownership
+**Applicability.** Atomics, locks, channels, once initialization, and ownership
 handoff.
 
 **Allowed exceptions.** Unsupported primitives or state explosion may use a
 simplified model plus stress and reasoning.
 
-**Review evidence.** modeled invariant, bounds, results, and mismatch from
+**Review evidence.** Modeled invariant, bounds, results, and mismatch from
 production code.
 
 ## RUST-DOC-0008-R018 — Exercise unsafe code with specialized tools
@@ -8977,12 +9116,12 @@ fuzzing, or target-specific tests as required by RUST-DOC-0007.
 
 **Intent.** Add dynamic evidence for memory-model and boundary violations.
 
-**Applicability.** unsafe internals and FFI wrappers.
+**Applicability.** Unsafe internals and FFI wrappers.
 
 **Allowed exceptions.** Tool incompatibility must be documented with
 alternative evidence.
 
-**Review evidence.** commands, results, supported targets, and blind spots.
+**Review evidence.** Commands, results, supported targets, and blind spots.
 
 ## RUST-DOC-0008-R019 — Use production evidence carefully
 
@@ -8992,11 +9131,11 @@ models, but MUST NOT be treated as proof that unobserved failures cannot occur.
 **Intent.** Learn from real workloads without confusing absence of observation
 with absence of defects.
 
-**Applicability.** operational services and libraries with field data.
+**Applicability.** Operational services and libraries with field data.
 
 **Allowed exceptions.** None for universal claims.
 
-**Review evidence.** telemetry coverage, detection limits, incident-derived
+**Review evidence.** Telemetry coverage, detection limits, incident-derived
 regressions, and residual uncertainty.
 
 ## RUST-DOC-0008-R020 — Keep tests deterministic and isolated
@@ -9007,12 +9146,12 @@ claim.
 
 **Intent.** Make failures reproducible and parallel execution safe.
 
-**Applicability.** workspace tests and CI.
+**Applicability.** Workspace tests and CI.
 
 **Allowed exceptions.** Deliberate randomized or stress tests may vary inputs
 but MUST record reproducible seeds and isolate effects.
 
-**Review evidence.** temporary resource strategy, seed capture, controlled
+**Review evidence.** Temporary resource strategy, seed capture, controlled
 clock, and parallel-run results.
 
 ## RUST-DOC-0008-R021 — State evidence limits
@@ -9023,12 +9162,12 @@ in production or external systems.
 
 **Intent.** Preserve guarantee honesty.
 
-**Applicability.** feature plans, reviews, and release audits.
+**Applicability.** Feature plans, reviews, and release audits.
 
 **Allowed exceptions.** Trivial local changes may reference an existing suite
 contract.
 
-**Review evidence.** evidence ledger tied to invariant inventory.
+**Review evidence.** Evidence ledger tied to invariant inventory.
 
 ---
 
@@ -9390,6 +9529,19 @@ reference** for every gate.
 Critical gaps block merge. Waivers identify the uncovered invariant, alternative
 evidence, consequence, owner, expiry, and removal condition.
 
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0008-R001`, `RUST-DOC-0008-R002`, `RUST-DOC-0008-R003`, `RUST-DOC-0008-R004`
+- `RUST-DOC-0008-R005`, `RUST-DOC-0008-R006`, `RUST-DOC-0008-R007`, `RUST-DOC-0008-R008`
+- `RUST-DOC-0008-R009`, `RUST-DOC-0008-R010`, `RUST-DOC-0008-R011`, `RUST-DOC-0008-R012`
+- `RUST-DOC-0008-R013`, `RUST-DOC-0008-R014`, `RUST-DOC-0008-R015`, `RUST-DOC-0008-R016`
+- `RUST-DOC-0008-R017`, `RUST-DOC-0008-R018`, `RUST-DOC-0008-R019`, `RUST-DOC-0008-R020`
+- `RUST-DOC-0008-R021`
+
 ---
 
 ## Source: `doctrines/0008-testing-and-evidence/anti-patterns.md`
@@ -9700,7 +9852,7 @@ default performance technique.
 
 ## Normative status
 
-[`doctrine.md`](doctrine.md) is normative. A performance statement in code,
+[`doctrine.md`](../doctrines/0009-performance-and-measurement/doctrine.md) is normative. A performance statement in code,
 documentation, review, or release notes is a claim subject to these rules.
 Waivers may accept an unmeasured low-risk cleanup, but cannot convert intuition
 into a measured claim.
@@ -9708,7 +9860,7 @@ into a measured claim.
 ## Prerequisite foundations
 
 Read complexity budget, guarantee honesty, invariants, and evidence under
-[`../../foundations/`](../../foundations/). Also apply RUST-DOC-0004 to
+[`../../foundations/`](../foundations/). Also apply RUST-DOC-0004 to
 concurrency, RUST-DOC-0007 to unsafe optimization, and RUST-DOC-0008 to the
 difference between benchmark and correctness evidence.
 
@@ -9740,6 +9892,14 @@ parallel speedup. Zero-copy claims identify exactly which copies are removed and
 which lifetime or retention costs are introduced. Regression thresholds are
 automated only for sufficiently stable signals. All changes preserve invariants.
 
+## Executable evidence status
+
+The 0.1.0 workspace contains no benchmark harness, retained measurement,
+allocation profile, flamegraph, or performance-regression threshold. It
+therefore makes no measured claim about example speed, latency, allocation, or
+binary size. This doctrine specifies the evidence required when such a claim is
+introduced; it does not convert unmeasured examples into performance evidence.
+
 ---
 
 ## Source: `doctrines/0009-performance-and-measurement/doctrine.md`
@@ -9754,12 +9914,12 @@ that matter.
 
 **Intent.** Prevent work on irrelevant micro-costs.
 
-**Applicability.** performance changes, capacity plans, and regression gates.
+**Applicability.** Performance changes, capacity plans, and regression gates.
 
 **Allowed exceptions.** Removing an obviously unnecessary operation may proceed
 as ordinary cleanup if no performance claim is made.
 
-**Review evidence.** metric, target, baseline, workload, and correctness
+**Review evidence.** Metric, target, baseline, workload, and correctness
 constraints.
 
 ## RUST-DOC-0009-R002 — Scope every performance claim
@@ -9770,12 +9930,12 @@ method, and comparison baseline sufficient for reproduction.
 
 **Intent.** Make numbers interpretable and falsifiable.
 
-**Applicability.** documentation, pull requests, releases, and design decisions.
+**Applicability.** Documentation, pull requests, releases, and design decisions.
 
 **Allowed exceptions.** A local exploratory note may be labeled preliminary and
 must not support a merge claim.
 
-**Review evidence.** reproducible command, environment manifest, raw or
+**Review evidence.** Reproducible command, environment manifest, raw or
 summarized samples, and commit identities.
 
 ## RUST-DOC-0009-R003 — Profile before optimizing
@@ -9785,12 +9945,12 @@ claims about a dominant bottleneck.
 
 **Intent.** Direct effort to measured cost centers.
 
-**Applicability.** latency, CPU, allocation, contention, I/O, and size work.
+**Applicability.** Latency, CPU, allocation, contention, I/O, and size work.
 
 **Allowed exceptions.** Algorithmic complexity defects apparent from complete
 input bounds may be corrected without a profile, while still measuring outcome.
 
-**Review evidence.** flamegraph, trace, allocation profile, system metrics, or
+**Review evidence.** Flamegraph, trace, allocation profile, system metrics, or
 equivalent relevant evidence.
 
 ## RUST-DOC-0009-R004 — Preserve correctness independently
@@ -9801,12 +9961,12 @@ correctness evidence independent of the benchmark.
 
 **Intent.** Reject faster incorrect behavior.
 
-**Applicability.** all optimizations.
+**Applicability.** All optimizations.
 
 **Allowed exceptions.** An explicit product tradeoff may change semantics only
 as a separately reviewed normative or API change, not as hidden optimization.
 
-**Review evidence.** invariant-linked tests and guarantee-ledger diff.
+**Review evidence.** Invariant-linked tests and guarantee-ledger diff.
 
 ## RUST-DOC-0009-R005 — Defend benchmark execution
 
@@ -9816,11 +9976,11 @@ the intended workload.
 
 **Intent.** Ensure measured work corresponds to the claim.
 
-**Applicability.** microbenchmarks and component benchmarks.
+**Applicability.** Microbenchmarks and component benchmarks.
 
 **Allowed exceptions.** None; framework facilities may provide the mechanism.
 
-**Review evidence.** input generation, black-boxing where appropriate,
+**Review evidence.** Input generation, black-boxing where appropriate,
 setup/measurement separation, and result consumption.
 
 ## RUST-DOC-0009-R006 — Separate wall-clock and CPU claims
@@ -9831,12 +9991,12 @@ aggregate CPU consumption when their interpretations differ.
 **Intent.** Prevent waiting and parallel work from being described as reduced
 compute cost.
 
-**Applicability.** async, parallel, I/O-bound, and multi-process workloads.
+**Applicability.** Async, parallel, I/O-bound, and multi-process workloads.
 
 **Allowed exceptions.** A single-threaded CPU-bound benchmark may report one
 measure with its assumption stated.
 
-**Review evidence.** metric definition and collection method.
+**Review evidence.** Metric definition and collection method.
 
 ## RUST-DOC-0009-R007 — Report distributions
 
@@ -9845,12 +10005,12 @@ distributions such as p50, p95, and p99 rather than only arithmetic averages.
 
 **Intent.** Reveal tail behavior and multimodal workloads.
 
-**Applicability.** requests, queues, storage, and batch completion.
+**Applicability.** Requests, queues, storage, and batch completion.
 
 **Allowed exceptions.** Deterministic fixed-cost operations may use a narrow
 summary after showing low variance.
 
-**Review evidence.** sample count, percentile method, confidence or variability,
+**Review evidence.** Sample count, percentile method, confidence or variability,
 and outlier policy.
 
 ## RUST-DOC-0009-R008 — Document warmup and cache state
@@ -9861,12 +10021,12 @@ and dataset residency relevant to the claim.
 
 **Intent.** Prevent cold and warm behavior from being mixed invisibly.
 
-**Applicability.** storage, network, serialization, and repeated services.
+**Applicability.** Storage, network, serialization, and repeated services.
 
 **Allowed exceptions.** A test may deliberately mix states only if the workload
 distribution matches production and is documented.
 
-**Review evidence.** preparation sequence and separate cold/warm results where
+**Review evidence.** Preparation sequence and separate cold/warm results where
 both matter.
 
 ## RUST-DOC-0009-R009 — Measure allocation claims
@@ -9877,12 +10037,12 @@ identify retained as well as peak memory where relevant.
 
 **Intent.** Avoid inferring allocation from syntax or clone count.
 
-**Applicability.** buffering, parsing, collections, async boxing, and caching.
+**Applicability.** Buffering, parsing, collections, async boxing, and caching.
 
 **Allowed exceptions.** A direct removal of the only allocation call may be
 noted structurally, but broader runtime claims still require measurement.
 
-**Review evidence.** allocation count/bytes, allocator, peak/resident set, and
+**Review evidence.** Allocation count/bytes, allocator, peak/resident set, and
 workload.
 
 ## RUST-DOC-0009-R010 — Scope zero-copy claims
@@ -9893,11 +10053,11 @@ ownership costs introduced.
 
 **Intent.** Prevent one avoided copy from becoming a broad slogan.
 
-**Applicability.** parsers, networking, serialization, buffers, and FFI.
+**Applicability.** Parsers, networking, serialization, buffers, and FFI.
 
 **Allowed exceptions.** None for the phrase "zero-copy."
 
-**Review evidence.** data-flow diagram, measured copy/allocation evidence, and
+**Review evidence.** Data-flow diagram, measured copy/allocation evidence, and
 non-guarantees.
 
 ## RUST-DOC-0009-R011 — Do not equate async with speedup
@@ -9907,12 +10067,12 @@ without evidence of parallel execution and a workload that benefits.
 
 **Intent.** Distinguish overlap of waiting from reduced compute time.
 
-**Applicability.** runtime migrations, fan-out, and worker design.
+**Applicability.** Runtime migrations, fan-out, and worker design.
 
 **Allowed exceptions.** None for the claim; async may still improve resource
 efficiency or concurrent latency.
 
-**Review evidence.** executor configuration, CPU utilization, throughput,
+**Review evidence.** Executor configuration, CPU utilization, throughput,
 latency, and contention.
 
 ## RUST-DOC-0009-R012 — Make throughput/latency tradeoffs explicit
@@ -9922,12 +10082,12 @@ report both throughput and relevant latency/queue consequences.
 
 **Intent.** Prevent aggregate gains from hiding worse tails or freshness.
 
-**Applicability.** brokers, databases, serializers, and service queues.
+**Applicability.** Brokers, databases, serializers, and service queues.
 
 **Allowed exceptions.** Offline throughput-only jobs may state that latency has
 no objective while still bounding resource use.
 
-**Review evidence.** batch/concurrency sweep and distribution results.
+**Review evidence.** Batch/concurrency sweep and distribution results.
 
 ## RUST-DOC-0009-R013 — Measure contention and backpressure
 
@@ -9937,12 +10097,12 @@ where relevant.
 
 **Intent.** Reveal whether local throughput shifts cost elsewhere.
 
-**Applicability.** shared state, pools, channels, and fan-out.
+**Applicability.** Shared state, pools, channels, and fan-out.
 
 **Allowed exceptions.** Pure independent parallel work may document absence of
 shared contention.
 
-**Review evidence.** contention profile, load curve, and overload behavior.
+**Review evidence.** Contention profile, load curve, and overload behavior.
 
 ## RUST-DOC-0009-R014 — Count boundary costs
 
@@ -9953,12 +10113,12 @@ source constructs.
 
 **Intent.** Optimize the actual end-to-end path.
 
-**Applicability.** integrated and service workloads.
+**Applicability.** Integrated and service workloads.
 
 **Allowed exceptions.** A deliberately isolated microbenchmark may narrow scope
 and state that it excludes boundary cost.
 
-**Review evidence.** trace or component budget.
+**Review evidence.** Trace or component budget.
 
 ## RUST-DOC-0009-R015 — Review clone removal architecturally
 
@@ -9968,12 +10128,12 @@ measurement and ownership analysis.
 
 **Intent.** Prevent syntax-focused optimization from degrading architecture.
 
-**Applicability.** buffers, collections, async tasks, and shared state.
+**Applicability.** Buffers, collections, async tasks, and shared state.
 
 **Allowed exceptions.** Removal of a proven redundant clone with unchanged
 ownership shape may be a local cleanup.
 
-**Review evidence.** data ownership, allocation profile, complexity, and
+**Review evidence.** Data ownership, allocation profile, complexity, and
 contention.
 
 ## RUST-DOC-0009-R016 — Govern unsafe optimization
@@ -9983,13 +10143,13 @@ show a material measured benefit under the target workload.
 
 **Intent.** Charge proof risk to the benefit it buys.
 
-**Applicability.** unchecked indexing, custom allocation, SIMD, FFI, and
+**Applicability.** Unchecked indexing, custom allocation, SIMD, FFI, and
 lock-free code.
 
 **Allowed exceptions.** Unsafe may be necessary for an external API even when
 performance is not its justification; that case is not an optimization claim.
 
-**Review evidence.** safe baseline, benchmark, profile, safety proof, and
+**Review evidence.** Safe baseline, benchmark, profile, safety proof, and
 specialized tests.
 
 ## RUST-DOC-0009-R017 — Automate stable regressions
@@ -10006,7 +10166,7 @@ time.
 **Allowed exceptions.** Noisy metrics may run as trend reports or on controlled
 dedicated hosts.
 
-**Review evidence.** baseline history, variance, threshold, hardware stability,
+**Review evidence.** Baseline history, variance, threshold, hardware stability,
 and rerun policy.
 
 ## RUST-DOC-0009-R018 — Do not generalize microbenchmarks
@@ -10017,12 +10177,12 @@ workload contribution.
 
 **Intent.** Prevent large local ratios from masking tiny system impact.
 
-**Applicability.** library and application optimization claims.
+**Applicability.** Library and application optimization claims.
 
 **Allowed exceptions.** A microbenchmark may establish the cost of the exact
 isolated primitive it measures.
 
-**Review evidence.** profile share, integrated benchmark, or component budget.
+**Review evidence.** Profile share, integrated benchmark, or component budget.
 
 ## RUST-DOC-0009-R019 — Account for build and binary cost
 
@@ -10032,13 +10192,13 @@ incremental behavior, and diagnostic cost when material.
 
 **Intent.** Treat developer and deployment resources as performance dimensions.
 
-**Applicability.** public generic APIs, macro-heavy code, and constrained
+**Applicability.** Public generic APIs, macro-heavy code, and constrained
 artifacts.
 
 **Allowed exceptions.** Small local code with immaterial measured impact may
 document no concern.
 
-**Review evidence.** build timing, artifact sections, generic instantiations, or
+**Review evidence.** Build timing, artifact sections, generic instantiations, or
 dependency analysis.
 
 ## RUST-DOC-0009-R020 — Retain reproducible evidence
@@ -10049,12 +10209,12 @@ repeat or challenge the result.
 
 **Intent.** Make optimization decisions durable and auditable.
 
-**Applicability.** merged performance changes and release claims.
+**Applicability.** Merged performance changes and release claims.
 
 **Allowed exceptions.** Sensitive production traces may be retained in
 controlled storage with a sanitized reproducible summary.
 
-**Review evidence.** benchmark record and provenance.
+**Review evidence.** Benchmark record and provenance.
 
 ---
 
@@ -10433,6 +10593,18 @@ reference**.
 Critical failures block the performance claim and any complexity justified by
 it. Correctness failures block the change itself.
 
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0009-R001`, `RUST-DOC-0009-R002`, `RUST-DOC-0009-R003`, `RUST-DOC-0009-R004`
+- `RUST-DOC-0009-R005`, `RUST-DOC-0009-R006`, `RUST-DOC-0009-R007`, `RUST-DOC-0009-R008`
+- `RUST-DOC-0009-R009`, `RUST-DOC-0009-R010`, `RUST-DOC-0009-R011`, `RUST-DOC-0009-R012`
+- `RUST-DOC-0009-R013`, `RUST-DOC-0009-R014`, `RUST-DOC-0009-R015`, `RUST-DOC-0009-R016`
+- `RUST-DOC-0009-R017`, `RUST-DOC-0009-R018`, `RUST-DOC-0009-R019`, `RUST-DOC-0009-R020`
+
 ---
 
 ## Source: `doctrines/0009-performance-and-measurement/anti-patterns.md`
@@ -10698,15 +10870,15 @@ shape from being mistaken for a complete system proof.
 
 | Pattern                                           | Primary fit                                    | Common overapplication                          |
 | ------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------- |
-| [Sum types](sum-types.md)                         | mutually exclusive runtime states              | variant explosion for independent dimensions    |
-| [Opaque newtypes](opaque-newtypes.md)             | one value with a stable local invariant        | names stronger than construction evidence       |
-| [Smart constructors](smart-constructors.md)       | checked establishment and normalization        | incomplete checks split across callers          |
-| [Typestate](typestate.md)                         | small, locally controlled protocol sequence    | persisted or externally determined state        |
-| [Capability types](capability-types.md)           | possession represents authority                | cloneable handles with undefined revocation     |
-| [Consuming transitions](consuming-transitions.md) | prevent reuse of prior lifecycle state         | losing recovery evidence on fallible transition |
-| [Validated collections](validated-collections.md) | non-empty, bounded, sorted, or unique sets     | mutation paths that invalidate the wrapper      |
-| [Hybrid state machines](hybrid-state-machines.md) | local typed workflow plus dynamic persistence  | duplicated state without conversion contract    |
-| [Explicit uncertainty](explicit-uncertainty.md)   | external effect may have indeterminate outcome | treating unknown as generic error               |
+| [Sum types](../patterns/sum-types.md)                         | mutually exclusive runtime states              | variant explosion for independent dimensions    |
+| [Opaque newtypes](../patterns/opaque-newtypes.md)             | one value with a stable local invariant        | names stronger than construction evidence       |
+| [Smart constructors](../patterns/smart-constructors.md)       | checked establishment and normalization        | incomplete checks split across callers          |
+| [Typestate](../patterns/typestate.md)                         | small, locally controlled protocol sequence    | persisted or externally determined state        |
+| [Capability types](../patterns/capability-types.md)           | possession represents authority                | cloneable handles with undefined revocation     |
+| [Consuming transitions](../patterns/consuming-transitions.md) | prevent reuse of prior lifecycle state         | losing recovery evidence on fallible transition |
+| [Validated collections](../patterns/validated-collections.md) | non-empty, bounded, sorted, or unique sets     | mutation paths that invalidate the wrapper      |
+| [Hybrid state machines](../patterns/hybrid-state-machines.md) | local typed workflow plus dynamic persistence  | duplicated state without conversion contract    |
+| [Explicit uncertainty](../patterns/explicit-uncertainty.md)   | external effect may have indeterminate outcome | treating unknown as generic error               |
 
 ## Selection rule
 
@@ -12081,13 +12253,13 @@ these evidence levels.
 
 | Boundary                                  | Primary concerns                                                       |
 | ----------------------------------------- | ---------------------------------------------------------------------- |
-| [Serde](serde.md)                         | checked deserialization, versioning, allocation limits                 |
-| [Database decoding](database-decoding.md) | raw rows, domain conversion, migration, concurrency                    |
-| [HTTP and RPC](http-and-rpc.md)           | DTOs, authentication/authorization, idempotency, error mapping         |
-| [Messaging](messaging.md)                 | duplicates, ordering, acknowledgement, replay, schema evolution        |
-| [Configuration](configuration.md)         | startup validation, secrets, defaults, reload                          |
-| [Filesystem](filesystem.md)               | path trust, symlinks, TOCTOU, atomic replacement, durability           |
-| [FFI](ffi.md)                             | ABI, representation, ownership, unwind, allocator and error boundaries |
+| [Serde](../boundaries/serde.md)                         | checked deserialization, versioning, allocation limits                 |
+| [Database decoding](../boundaries/database-decoding.md) | raw rows, domain conversion, migration, concurrency                    |
+| [HTTP and RPC](../boundaries/http-and-rpc.md)           | DTOs, authentication/authorization, idempotency, error mapping         |
+| [Messaging](../boundaries/messaging.md)                 | duplicates, ordering, acknowledgement, replay, schema evolution        |
+| [Configuration](../boundaries/configuration.md)         | startup validation, secrets, defaults, reload                          |
+| [Filesystem](../boundaries/filesystem.md)               | path trust, symlinks, TOCTOU, atomic replacement, durability           |
+| [FFI](../boundaries/ffi.md)                             | ABI, representation, ownership, unwind, allocator and error boundaries |
 
 ## Required boundary record
 
@@ -12439,8 +12611,10 @@ to obtain a principal. Authorize that principal for the specific action and
 resource, producing a scoped capability or explicit decision. Validate
 cross-entity business rules transactionally where needed.
 
-Authentication MUST NOT be treated as universal authorization. Frontend state
-or client-provided role data is never authority.
+Authentication establishes identity evidence, not universal authorization. Under
+[RUST-DOC-0003-R004](../doctrines/0003-ownership-and-capabilities/doctrine.md#rust-doc-0003-r004--restrict-capability-issuance-and-surface),
+an authorization decision or capability grants only its documented action and resource scope.
+Frontend state or client-provided role data is never authority.
 
 ## 4. How is a trusted type constructed?
 
@@ -13112,12 +13286,12 @@ residual risk only where governance permits it.
 
 | Procedure                                                   | Use                                                    |
 | ----------------------------------------------------------- | ------------------------------------------------------ |
-| [Pre-implementation](pre-implementation.md)                 | before representation and API commitments              |
-| [Domain model review](domain-model-review.md)               | values, states, construction, transition, authority    |
-| [Boundary review](boundary-review.md)                       | DTO, Serde, database, protocol, size, version, secrecy |
-| [Typestate review](typestate-review.md)                     | proportional use of type-level sequencing              |
-| [Distributed-effects review](distributed-effects-review.md) | timeout, retry, duplicate, reconciliation, ordering    |
-| [Final correctness audit](final-correctness-audit.md)       | release/merge guarantee ledger and aggregate gates     |
+| [Pre-implementation](../reviews/pre-implementation.md)                 | before representation and API commitments              |
+| [Domain model review](../reviews/domain-model-review.md)               | values, states, construction, transition, authority    |
+| [Boundary review](../reviews/boundary-review.md)                       | DTO, Serde, database, protocol, size, version, secrecy |
+| [Typestate review](../reviews/typestate-review.md)                     | proportional use of type-level sequencing              |
+| [Distributed-effects review](../reviews/distributed-effects-review.md) | timeout, retry, duplicate, reconciliation, ordering    |
+| [Final correctness audit](../reviews/final-correctness-audit.md)       | release/merge guarantee ledger and aggregate gates     |
 
 ## Evidence rule
 

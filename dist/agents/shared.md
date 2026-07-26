@@ -26,7 +26,7 @@ read applicable canonical doctrine before changing code or doctrine.
 
 1. State domain vocabulary and desired outcome.
 2. Inventory invariants using
-   [`../foundations/invariants.md`](../foundations/invariants.md).
+   [`../foundations/invariants.md`](../../foundations/invariants.md).
 3. Classify values, states, transitions, authority, boundaries, cross-entity
    rules, temporal assumptions, and distributed facts.
 4. Map every ingress, durable representation, external effect, and observation.
@@ -1765,13 +1765,13 @@ remote operation may have executed.
 **Intent.** Preserve the distinction between stopping local waiting and learning
 remote outcome.
 
-**Applicability.** network requests, database commit, broker acknowledgement,
+**Applicability.** Network requests, database commit, broker acknowledgement,
 filesystem operations over remote mounts, and subprocess protocols.
 
 **Allowed exceptions.** A timeout may be definitive only when protocol evidence
 establishes that execution could not have begun or was atomically cancelled.
 
-**Review evidence.** protocol timeline, cancellation semantics, and explicit
+**Review evidence.** Protocol timeline, cancellation semantics, and explicit
 unknown-outcome path.
 
 ## RUST-DOC-0006-R002 — Model operationally distinct outcomes
@@ -1782,12 +1782,12 @@ require different recovery.
 
 **Intent.** Prevent transport symptoms from erasing domain knowledge.
 
-**Applicability.** consequential external operations.
+**Applicability.** Consequential external operations.
 
 **Allowed exceptions.** Categories may combine when no caller action, audit
 meaning, security consequence, or reconciliation path differs.
 
-**Review evidence.** outcome decision table and exhaustive caller handling.
+**Review evidence.** Outcome decision table and exhaustive caller handling.
 
 ## RUST-DOC-0006-R003 — Carry reconciliation evidence
 
@@ -1796,13 +1796,13 @@ to reconcile it, including stable operation identity and the external target.
 
 **Intent.** Make uncertainty actionable and auditable.
 
-**Applicability.** payments, messages, provisioning, commits, and any effect that
+**Applicability.** Payments, messages, provisioning, commits, and any effect that
 cannot safely be repeated blindly.
 
 **Allowed exceptions.** An explicitly irreconcilable best-effort action may
 retain only audit evidence if business policy accepts permanent uncertainty.
 
-**Review evidence.** reconciliation token, operation ID, request fingerprint,
+**Review evidence.** Reconciliation token, operation ID, request fingerprint,
 target, attempt history, and observation method.
 
 ## RUST-DOC-0006-R004 — Analyze before retry
@@ -1812,13 +1812,13 @@ unsafe to retry, or reconcile-before-retry for each relevant failure point.
 
 **Intent.** Prevent duplicate effects and unsafe assumptions.
 
-**Applicability.** clients, consumers, publishers, schedulers, and operator
+**Applicability.** Clients, consumers, publishers, schedulers, and operator
 runbooks.
 
 **Allowed exceptions.** Pure reads may use a simpler safe-retry classification
 when staleness and load remain documented.
 
-**Review evidence.** failure-point matrix, idempotency mechanism, deadline, and
+**Review evidence.** Failure-point matrix, idempotency mechanism, deadline, and
 attempt budget.
 
 ## RUST-DOC-0006-R005 — Define idempotency-key semantics
@@ -1829,12 +1829,12 @@ semantics.
 
 **Intent.** Prevent a string field from being mistaken for idempotent behavior.
 
-**Applicability.** mutable external APIs and durable commands.
+**Applicability.** Mutable external APIs and durable commands.
 
 **Allowed exceptions.** Naturally idempotent operations may omit keys when their
 semantic identity and repeated-result behavior are established independently.
 
-**Review evidence.** key contract, storage constraint, same-key/same-payload and
+**Review evidence.** Key contract, storage constraint, same-key/same-payload and
 same-key/different-payload tests, and expiry policy.
 
 ## RUST-DOC-0006-R006 — Reuse operation identity across attempts
@@ -1845,12 +1845,12 @@ idempotency identity. A new identity MUST mean a new requested effect.
 **Intent.** Allow receivers and reconcilers to distinguish replay from new
 intent.
 
-**Applicability.** external API requests, published commands, and repair tools.
+**Applicability.** External API requests, published commands, and repair tools.
 
 **Allowed exceptions.** A protocol-mandated new transport attempt identifier may
 be added, but it MUST remain correlated to the stable logical operation.
 
-**Review evidence.** identity lifecycle and attempt log.
+**Review evidence.** Identity lifecycle and attempt log.
 
 ## RUST-DOC-0006-R007 — Expect duplicate delivery
 
@@ -1860,13 +1860,13 @@ idempotent, commutative, or safely rejected.
 
 **Intent.** Make acknowledgement loss and redelivery ordinary protocol paths.
 
-**Applicability.** brokers, job queues, webhook delivery, change feeds, and
+**Applicability.** Brokers, job queues, webhook delivery, change feeds, and
 replayed logs.
 
 **Allowed exceptions.** A verified at-most-once boundary may accept loss instead
 of duplicates, with that loss documented.
 
-**Review evidence.** duplicate test, stable message identity, and effect-level
+**Review evidence.** Duplicate test, stable message identity, and effect-level
 handling.
 
 ## RUST-DOC-0006-R008 — Persist deduplication durably
@@ -1877,12 +1877,12 @@ retention.
 
 **Intent.** Prevent process restart or pruning from reopening duplicate effects.
 
-**Applicability.** consumer inboxes, payment commands, and webhook handlers.
+**Applicability.** Consumer inboxes, payment commands, and webhook handlers.
 
 **Allowed exceptions.** In-memory deduplication may protect only ephemeral
 best-effort work whose duplicate cost is accepted.
 
-**Review evidence.** unique key, transaction boundary, retention calculation,
+**Review evidence.** Unique key, transaction boundary, retention calculation,
 and replay-after-restart test.
 
 ## RUST-DOC-0006-R009 — State ordering scope
@@ -1893,11 +1893,11 @@ consumer concurrency, retry behavior, failover behavior, and observation point.
 **Intent.** Prevent partition-local or producer-local order from becoming a
 false global guarantee.
 
-**Applicability.** brokers, streams, event logs, RPC sequencing, and replication.
+**Applicability.** Brokers, streams, event logs, RPC sequencing, and replication.
 
 **Allowed exceptions.** None when business behavior relies on order.
 
-**Review evidence.** ordering contract and tests for retries, multiple
+**Review evidence.** Ordering contract and tests for retries, multiple
 producers, and failover.
 
 ## RUST-DOC-0006-R010 — Qualify exactly-once claims
@@ -1908,11 +1908,11 @@ included. It MUST NOT imply exactly-once behavior beyond that boundary.
 
 **Intent.** Replace a broad slogan with an auditable scoped guarantee.
 
-**Applicability.** messaging, stream processing, payments, jobs, and APIs.
+**Applicability.** Messaging, stream processing, payments, jobs, and APIs.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** guarantee ledger, protocol documentation, duplicate tests,
+**Review evidence.** Guarantee ledger, protocol documentation, duplicate tests,
 and excluded effects.
 
 ## RUST-DOC-0006-R011 — Coordinate acknowledgement with effect
@@ -1922,12 +1922,12 @@ effect execution, durable progress, and acknowledgement.
 
 **Intent.** Make the duplicate-versus-loss tradeoff visible.
 
-**Applicability.** message and job consumers.
+**Applicability.** Message and job consumers.
 
 **Allowed exceptions.** Best-effort consumers may acknowledge early only when
 loss is accepted and measured.
 
-**Review evidence.** crash-point matrix and tests before and after each durable
+**Review evidence.** Crash-point matrix and tests before and after each durable
 step.
 
 ## RUST-DOC-0006-R012 — Treat compensation as a new effect
@@ -1938,13 +1938,13 @@ capable of an unknown outcome.
 
 **Intent.** Preserve real-world irreversibility and changed conditions.
 
-**Applicability.** distributed workflows, reservations, payments, and
+**Applicability.** Distributed workflows, reservations, payments, and
 provisioning.
 
 **Allowed exceptions.** A local database rollback may be called rollback within
 its actual transaction boundary.
 
-**Review evidence.** forward/compensation pairs, business non-equivalence,
+**Review evidence.** Forward/compensation pairs, business non-equivalence,
 failure handling, and reconciliation.
 
 ## RUST-DOC-0006-R013 — Treat observations as time-scoped evidence
@@ -1955,13 +1955,13 @@ state can change.
 
 **Intent.** Prevent stale reads from becoming permanent authority.
 
-**Applicability.** status queries, authorization, inventory, leases, and
+**Applicability.** Status queries, authorization, inventory, leases, and
 reconciliation.
 
 **Allowed exceptions.** Immutable append-only facts may remain stable when the
 source contract establishes immutability.
 
-**Review evidence.** freshness policy, version or timestamp, cache behavior, and
+**Review evidence.** Freshness policy, version or timestamp, cache behavior, and
 revalidation trigger.
 
 ## RUST-DOC-0006-R014 — Address concurrent execution and split brain
@@ -1974,13 +1974,13 @@ effect-level idempotency mechanism.
 **Intent.** Prevent stale owners and duplicate coordinators from acting with
 equal authority.
 
-**Applicability.** reconciliation workers, schedulers, failover, and distributed
+**Applicability.** Reconciliation workers, schedulers, failover, and distributed
 locks.
 
 **Allowed exceptions.** Concurrent execution is allowed for commutative,
 duplicate-safe operations with evidence.
 
-**Review evidence.** authority protocol, expiry, fencing token use, clock
+**Review evidence.** Authority protocol, expiry, fencing token use, clock
 assumptions, and overlap test.
 
 ## RUST-DOC-0006-R015 — Bound retries and reconciliation
@@ -1992,12 +1992,12 @@ observability.
 **Intent.** Prevent uncertainty from turning into permanent load or hidden
 backlog.
 
-**Applicability.** retry queues, reconcilers, publishers, and operator repair.
+**Applicability.** Retry queues, reconcilers, publishers, and operator repair.
 
 **Allowed exceptions.** A durable obligation may remain pending indefinitely,
 but each execution cycle still requires bounded work and visible age.
 
-**Review evidence.** queue capacity, schedule, age metrics, dead-letter or
+**Review evidence.** Queue capacity, schedule, age metrics, dead-letter or
 manual escalation, and overload test.
 
 ## RUST-DOC-0006-R016 — Preserve correlation and causality
@@ -2008,12 +2008,12 @@ observations, and reconciliation decisions where these affect accountability.
 
 **Intent.** Reconstruct what was requested, attempted, observed, and resolved.
 
-**Applicability.** consequential distributed effects.
+**Applicability.** Consequential distributed effects.
 
 **Allowed exceptions.** Low-risk telemetry may use aggregated correlation when
 individual reconstruction is unnecessary.
 
-**Review evidence.** event schema, trace propagation, redaction, and end-to-end
+**Review evidence.** Event schema, trace propagation, redaction, and end-to-end
 incident query.
 
 ## RUST-DOC-0006-R017 — Protect sensitive reconciliation data
@@ -2024,13 +2024,13 @@ personal data.
 
 **Intent.** Avoid turning operational evidence into a second secret database.
 
-**Applicability.** operation logs, dead-letter records, tracing, and support
+**Applicability.** Operation logs, dead-letter records, tracing, and support
 tools.
 
 **Allowed exceptions.** Required regulated evidence may be retained with
 documented access, encryption, minimization, and deletion policy.
 
-**Review evidence.** field classification, redaction tests, access policy, and
+**Review evidence.** Field classification, redaction tests, access policy, and
 retention.
 
 ## RUST-DOC-0006-R018 — Test failure points, not only final errors
@@ -2041,12 +2041,12 @@ proportion to risk.
 
 **Intent.** Exercise ambiguity and replay paths hidden by happy-path mocks.
 
-**Applicability.** integrations, consumers, publishers, and reconcilers.
+**Applicability.** Integrations, consumers, publishers, and reconcilers.
 
 **Allowed exceptions.** A low-risk pure read may narrow the matrix and state
 why.
 
-**Review evidence.** fault matrix linked to invariants, test results, and
+**Review evidence.** Fault matrix linked to invariants, test results, and
 unexercised assumptions.
 
 ## RUST-DOC-0006-R019 — State residual uncertainty
@@ -2058,11 +2058,11 @@ may safely do meanwhile.
 **Intent.** Make uncertainty an owned lifecycle state rather than an error
 message.
 
-**Applicability.** every consequential effect with ambiguous execution.
+**Applicability.** Every consequential effect with ambiguous execution.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** state machine, service-level target, escalation path, and
+**Review evidence.** State machine, service-level target, escalation path, and
 guarantee ledger.
 
 ---
@@ -2079,12 +2079,12 @@ regression risk they support.
 **Intent.** Make suites evidence-oriented rather than collections of incidental
 examples.
 
-**Applicability.** all canonical tests and verification jobs.
+**Applicability.** All canonical tests and verification jobs.
 
 **Allowed exceptions.** A compact regression test may reference an issue,
 incident, or neighboring test module rather than repeat the full invariant.
 
-**Review evidence.** names, documentation, or manifest mapping from claim to
+**Review evidence.** Names, documentation, or manifest mapping from claim to
 test.
 
 ## RUST-DOC-0008-R002 — Test constructor acceptance and rejection
@@ -2094,13 +2094,13 @@ meaningful boundaries, including normalization and error categories.
 
 **Intent.** Demonstrate both admitted and excluded value sets.
 
-**Applicability.** parsers, smart constructors, newtypes, collections, and
+**Applicability.** Parsers, smart constructors, newtypes, collections, and
 configuration.
 
 **Allowed exceptions.** A constructor delegated entirely to a separately tested
 primitive may cite that evidence and test its integration.
 
-**Review evidence.** boundary-value table and assertions on structured errors.
+**Review evidence.** Boundary-value table and assertions on structured errors.
 
 ## RUST-DOC-0008-R003 — Use properties for generative invariants
 
@@ -2110,13 +2110,13 @@ examples leaves substantial input space.
 
 **Intent.** Explore classes of inputs and produce minimized counterexamples.
 
-**Applicability.** serialization, arithmetic, state-machine commands, parsers,
+**Applicability.** Serialization, arithmetic, state-machine commands, parsers,
 and collection operations.
 
 **Allowed exceptions.** Exhaustive finite domains or directly proven simple
 functions may use table tests.
 
-**Review evidence.** generator domain, shrinking behavior, seed retention, and
+**Review evidence.** Generator domain, shrinking behavior, seed retention, and
 property statement.
 
 ## RUST-DOC-0008-R004 — Prove prohibited programs where valuable
@@ -2126,13 +2126,13 @@ whose guarantee depends on privacy, ownership, traits, or typestate.
 
 **Intent.** Detect accidental widening of legal programs.
 
-**Applicability.** trusted construction, capability forgery, consumed handles,
+**Applicability.** Trusted construction, capability forgery, consumed handles,
 state-specific operations, and trait bounds.
 
 **Allowed exceptions.** Fragile diagnostics may be avoided when a stable API
 surface check or compile test provides clearer evidence.
 
-**Review evidence.** minimal failing programs and reviewed compiler diagnostics.
+**Review evidence.** Minimal failing programs and reviewed compiler diagnostics.
 
 ## RUST-DOC-0008-R005 — Inspect compiler-diagnostic changes
 
@@ -2143,12 +2143,12 @@ still fails for the intended reason.
 **Intent.** Prevent snapshot acceptance from hiding weakened construction or
 transition rules.
 
-**Applicability.** trybuild and other UI test suites.
+**Applicability.** UI test suites implemented with `trybuild` or equivalent harnesses.
 
 **Allowed exceptions.** Pure path, line, or diagnostic wording changes may be
 accepted after semantic inspection.
 
-**Review evidence.** diff review and assertion that the intended error remains.
+**Review evidence.** Diff review and assertion that the intended error remains.
 
 ## RUST-DOC-0008-R006 — Cross real boundaries
 
@@ -2157,12 +2157,12 @@ database, filesystem, or process boundary when practical and consequential.
 
 **Intent.** Exercise adapters and assumptions that unit tests omit.
 
-**Applicability.** boundary conversions and external integrations.
+**Applicability.** Boundary conversions and external integrations.
 
 **Allowed exceptions.** Unavailable or costly systems may use faithful
 emulators plus scheduled real-system evidence, with gaps documented.
 
-**Review evidence.** environment description, real components, setup isolation,
+**Review evidence.** Environment description, real components, setup isolation,
 and cleanup.
 
 ## RUST-DOC-0008-R007 — Protect protocol contracts
@@ -2178,7 +2178,7 @@ behavior relied on across independently deployed components.
 **Allowed exceptions.** One jointly released private component may rely on
 end-to-end integration evidence when independent compatibility is irrelevant.
 
-**Review evidence.** provider/consumer contract, version matrix, and failure
+**Review evidence.** Provider/consumer contract, version matrix, and failure
 fixtures.
 
 ## RUST-DOC-0008-R008 — Control concurrency evidence
@@ -2189,12 +2189,12 @@ means of establishing an interleaving.
 
 **Intent.** Avoid flaky timing guesses and unexercised schedules.
 
-**Applicability.** locks, channels, atomics, cancellation, and shutdown.
+**Applicability.** Locks, channels, atomics, cancellation, and shutdown.
 
 **Allowed exceptions.** A sleep may enforce an outer deadline but MUST NOT be
 the evidence that an ordering occurred.
 
-**Review evidence.** barriers, controlled clock, Loom model, event trace, or
+**Review evidence.** Barriers, controlled clock, Loom model, event trace, or
 equivalent mechanism.
 
 ## RUST-DOC-0008-R009 — Test cancellation and cleanup
@@ -2205,13 +2205,13 @@ external-outcome handling.
 
 **Intent.** Exercise future-drop control flow.
 
-**Applicability.** partial writes, permits, transactions, external calls, and
+**Applicability.** Partial writes, permits, transactions, external calls, and
 task supervision.
 
 **Allowed exceptions.** Pure cancellation-safe reads may share representative
 evidence when the reasoning applies identically.
 
-**Review evidence.** controlled cancellation and postcondition assertions.
+**Review evidence.** Controlled cancellation and postcondition assertions.
 
 ## RUST-DOC-0008-R010 — Inject partial failure
 
@@ -2220,13 +2220,13 @@ and after durable or external steps in proportion to consequence.
 
 **Intent.** Verify recovery rather than only returned errors.
 
-**Applicability.** persistence, messaging, payments, filesystems, and
+**Applicability.** Persistence, messaging, payments, filesystems, and
 multi-stage operations.
 
 **Allowed exceptions.** Low-risk pure transformations may not need fault
 injection.
 
-**Review evidence.** crash-point matrix, injected faults, resulting state, and
+**Review evidence.** Crash-point matrix, injected faults, resulting state, and
 recovery.
 
 ## RUST-DOC-0008-R011 — Exercise distributed uncertainty
@@ -2237,12 +2237,12 @@ permits them.
 
 **Intent.** Prevent perfect-network doubles from defining false behavior.
 
-**Applicability.** brokers, remote APIs, reconcilers, and distributed workflows.
+**Applicability.** Brokers, remote APIs, reconcilers, and distributed workflows.
 
 **Allowed exceptions.** A protocol may exclude a scenario only with
 authoritative evidence.
 
-**Review evidence.** scenario matrix and explicit terminal or unknown states.
+**Review evidence.** Scenario matrix and explicit terminal or unknown states.
 
 ## RUST-DOC-0008-R012 — Preserve failure modes in test doubles
 
@@ -2252,12 +2252,12 @@ material to the tested claim.
 
 **Intent.** Keep tests faithful to the risk being evaluated.
 
-**Applicability.** mocks, fakes, emulators, in-memory repositories, and clocks.
+**Applicability.** Mocks, fakes, emulators, in-memory repositories, and clocks.
 
 **Allowed exceptions.** A narrow unit test may use a simpler double when the
 omitted behavior is outside its claim and covered elsewhere.
 
-**Review evidence.** double-to-real contract comparison and gap ownership.
+**Review evidence.** Double-to-real contract comparison and gap ownership.
 
 ## RUST-DOC-0008-R013 — Review snapshots semantically
 
@@ -2267,13 +2267,13 @@ correct.
 
 **Intent.** Prevent expected-output updates from blessing regressions.
 
-**Applicability.** serialized output, diagnostics, UI, plans, and compiler UI
+**Applicability.** Serialized output, diagnostics, UI, plans, and compiler UI
 tests.
 
 **Allowed exceptions.** Deterministic formatting-only migrations may group
 equivalent changes with one documented rationale.
 
-**Review evidence.** focused diff, invariant impact, and reviewer sign-off.
+**Review evidence.** Focused diff, invariant impact, and reviewer sign-off.
 
 ## RUST-DOC-0008-R014 — Treat flakiness as evidence
 
@@ -2283,12 +2283,12 @@ MUST NOT be the sole resolution.
 
 **Intent.** Prevent nondeterminism from being normalized.
 
-**Applicability.** all test and benchmark automation.
+**Applicability.** All test and benchmark automation.
 
 **Allowed exceptions.** A temporary bounded retry may gather diagnostics while
 the issue is owned and visible.
 
-**Review evidence.** failure signatures, root cause, deterministic fix, or
+**Review evidence.** Failure signatures, root cause, deterministic fix, or
 time-bounded quarantine with owner.
 
 ## RUST-DOC-0008-R015 — Do not substitute coverage for invariant evidence
@@ -2298,12 +2298,12 @@ behavior or invariants are adequately tested.
 
 **Intent.** Distinguish executed lines from asserted semantics and input space.
 
-**Applicability.** coverage gates and quality reports.
+**Applicability.** Coverage gates and quality reports.
 
 **Allowed exceptions.** Coverage may serve as a supplemental regression and gap
 discovery metric.
 
-**Review evidence.** invariant-to-evidence matrix in addition to coverage.
+**Review evidence.** Invariant-to-evidence matrix in addition to coverage.
 
 ## RUST-DOC-0008-R016 — Separate benchmarks from correctness
 
@@ -2313,12 +2313,12 @@ executable where feasible.
 
 **Intent.** Prevent performance samples from becoming weak semantic evidence.
 
-**Applicability.** microbenchmarks, load tests, and profiling harnesses.
+**Applicability.** Microbenchmarks, load tests, and profiling harnesses.
 
 **Allowed exceptions.** A benchmark may validate setup defensively, but the
 invariant still needs appropriate tests.
 
-**Review evidence.** corresponding correctness suite and benchmark methodology.
+**Review evidence.** Corresponding correctness suite and benchmark methodology.
 
 ## RUST-DOC-0008-R017 — Use model checking proportionally
 
@@ -2328,13 +2328,13 @@ documented.
 
 **Intent.** Explore scheduler interleavings ordinary runs rarely reach.
 
-**Applicability.** atomics, locks, channels, once initialization, and ownership
+**Applicability.** Atomics, locks, channels, once initialization, and ownership
 handoff.
 
 **Allowed exceptions.** Unsupported primitives or state explosion may use a
 simplified model plus stress and reasoning.
 
-**Review evidence.** modeled invariant, bounds, results, and mismatch from
+**Review evidence.** Modeled invariant, bounds, results, and mismatch from
 production code.
 
 ## RUST-DOC-0008-R018 — Exercise unsafe code with specialized tools
@@ -2344,12 +2344,12 @@ fuzzing, or target-specific tests as required by RUST-DOC-0007.
 
 **Intent.** Add dynamic evidence for memory-model and boundary violations.
 
-**Applicability.** unsafe internals and FFI wrappers.
+**Applicability.** Unsafe internals and FFI wrappers.
 
 **Allowed exceptions.** Tool incompatibility must be documented with
 alternative evidence.
 
-**Review evidence.** commands, results, supported targets, and blind spots.
+**Review evidence.** Commands, results, supported targets, and blind spots.
 
 ## RUST-DOC-0008-R019 — Use production evidence carefully
 
@@ -2359,11 +2359,11 @@ models, but MUST NOT be treated as proof that unobserved failures cannot occur.
 **Intent.** Learn from real workloads without confusing absence of observation
 with absence of defects.
 
-**Applicability.** operational services and libraries with field data.
+**Applicability.** Operational services and libraries with field data.
 
 **Allowed exceptions.** None for universal claims.
 
-**Review evidence.** telemetry coverage, detection limits, incident-derived
+**Review evidence.** Telemetry coverage, detection limits, incident-derived
 regressions, and residual uncertainty.
 
 ## RUST-DOC-0008-R020 — Keep tests deterministic and isolated
@@ -2374,12 +2374,12 @@ claim.
 
 **Intent.** Make failures reproducible and parallel execution safe.
 
-**Applicability.** workspace tests and CI.
+**Applicability.** Workspace tests and CI.
 
 **Allowed exceptions.** Deliberate randomized or stress tests may vary inputs
 but MUST record reproducible seeds and isolate effects.
 
-**Review evidence.** temporary resource strategy, seed capture, controlled
+**Review evidence.** Temporary resource strategy, seed capture, controlled
 clock, and parallel-run results.
 
 ## RUST-DOC-0008-R021 — State evidence limits
@@ -2390,12 +2390,12 @@ in production or external systems.
 
 **Intent.** Preserve guarantee honesty.
 
-**Applicability.** feature plans, reviews, and release audits.
+**Applicability.** Feature plans, reviews, and release audits.
 
 **Allowed exceptions.** Trivial local changes may reference an existing suite
 contract.
 
-**Review evidence.** evidence ledger tied to invariant inventory.
+**Review evidence.** Evidence ledger tied to invariant inventory.
 
 ---
 

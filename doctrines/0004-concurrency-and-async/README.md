@@ -95,8 +95,8 @@ the glossary and primary references for disputed terminology.
 
 ## Compact doctrine summary
 
-Every concurrent component MUST define who owns mutable state, tasks, queues,
-and shutdown. Capacity and backpressure MUST be deliberate. Each suspension
+Every concurrent component needs a defined owner for mutable state, tasks, queues,
+and shutdown. Capacity and backpressure are deliberate. Each suspension
 point inside a partial operation requires cancellation analysis. Blocking work
 must be isolated from executor workers. Lock ordering, channel closure, task
 failure, retry layering, and external ordering claims require explicit
@@ -104,3 +104,12 @@ contracts. Detached work is exceptional and observable. Atomics require an
 ordering argument tied to a synchronization invariant. Graceful shutdown means
 bounded, observable completion behavior; it does not mean every external effect
 can be rolled back.
+
+## Executable evidence status
+
+The 0.1.0 workspace demonstrates ownership-consuming transitions, a fallible
+connection protocol, and compiler rejection of sending through a locally closed
+connection. It does not include an async-runtime integration, cancellation
+harness, deadlock detector, Loom model, or backpressure load test. Systems
+applying this doctrine supply evidence for those runtime-specific claims; the
+current examples do not establish them.

@@ -2,7 +2,7 @@ use serde::Deserialize;
 use std::collections::BTreeSet;
 use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::process;
 
 const GENERATED_BANNER: &str = "<!--\nGENERATED FILE. DO NOT EDIT DIRECTLY.\nCanonical sources \
@@ -62,6 +62,10 @@ const REVIEW_FILES: &[&str] = &[
     "reviews/distributed-effects-review.md",
     "reviews/final-correctness-audit.md",
 ];
+
+const DIST_README: &str = "dist/README.md";
+const DIST_FULL: &str = "dist/full-doctrine.md";
+const DIST_COMPACT: &str = "dist/compact-doctrine.md";
 
 #[derive(Debug, Deserialize)]
 struct DoctrineManifest {
@@ -135,30 +139,49 @@ fn main() {
 fn build_outputs(root: &Path) -> Result<Vec<GeneratedFile>, String> {
     let doctrine_manifest: DoctrineManifest = read_yaml(root, "manifest/doctrines.yaml")?;
     let mut agent_manifest: AgentManifest = read_yaml(root, "manifest/agents.yaml")?;
+    validate_manifest_paths(&doctrine_manifest, &agent_manifest)?;
+    validate_curated_inventory(root)?;
     agent_manifest.packs.sort_by_key(|pack| pack.ordering);
 
     let mut outputs = Vec::new();
 
     let mut distribution = generated_document("Generated doctrine distributions");
-    append_source(root, "agents/distribution.md", &mut distribution)?;
+    append_source(
+        root,
+        "agents/distribution.md",
+        Path::new(DIST_README),
+        &mut distribution,
+    )?;
     outputs.push(GeneratedFile {
-        path: PathBuf::from("dist/README.md"),
+        path: PathBuf::from(DIST_README),
         content: distribution,
     });
 
     outputs.push(GeneratedFile {
-        path: PathBuf::from("dist/full-doctrine.md"),
-        content: build_full(root, &doctrine_manifest)?,
+        path: PathBuf::from(DIST_FULL),
+        content: build_full(root, &doctrine_manifest, Path::new(DIST_FULL))?,
     });
     outputs.push(GeneratedFile {
-        path: PathBuf::from("dist/compact-doctrine.md"),
-        content: build_compact(root, &doctrine_manifest)?,
+        path: PathBuf::from(DIST_COMPACT),
+        content: build_compact(root, &doctrine_manifest, Path::new(DIST_COMPACT))?,
     });
 
+    let mut output_paths = BTreeSet::from([
+        PathBuf::from(DIST_README),
+        PathBuf::from(DIST_FULL),
+        PathBuf::from(DIST_COMPACT),
+    ]);
     for pack in &agent_manifest.packs {
+        let output_path = PathBuf::from(&pack.output_path);
+        if !output_paths.insert(output_path.clone()) {
+            return Err(format!(
+                "generated output path is duplicated: {}",
+                output_path.display()
+            ));
+        }
         outputs.push(GeneratedFile {
-            path: PathBuf::from(&pack.output_path),
-            content: build_role_pack(root, pack, &doctrine_manifest)?,
+            path: output_path.clone(),
+            content: build_role_pack(root, pack, &doctrine_manifest, &output_path)?,
         });
     }
 
@@ -166,10 +189,14 @@ fn build_outputs(root: &Path) -> Result<Vec<GeneratedFile>, String> {
     Ok(outputs)
 }
 
-fn build_full(root: &Path, doctrines: &DoctrineManifest) -> Result<String, String> {
+fn build_full(
+    root: &Path,
+    doctrines: &DoctrineManifest,
+    output_path: &Path,
+) -> Result<String, String> {
     let mut output = generated_document("Full Rust doctrine corpus");
-    append_source(root, "README.md", &mut output)?;
-    append_sources(root, FOUNDATION_FILES, &mut output)?;
+    append_source(root, "README.md", output_path, &mut output)?;
+    append_sources(root, FOUNDATION_FILES, output_path, &mut output)?;
 
     for doctrine in doctrines
         .doctrines
@@ -178,25 +205,35 @@ fn build_full(root: &Path, doctrines: &DoctrineManifest) -> Result<String, Strin
     {
         for file in DOCTRINE_PACKAGE_FILES {
             let path = format!("{}/{}", doctrine.package_path, file);
-            append_source(root, &path, &mut output)?;
+            append_source(root, &path, output_path, &mut output)?;
         }
     }
 
-    append_sources(root, PATTERN_FILES, &mut output)?;
-    append_sources(root, BOUNDARY_FILES, &mut output)?;
-    append_sources(root, REVIEW_FILES, &mut output)?;
-    append_source(root, "agents/shared.md", &mut output)?;
+    append_sources(root, PATTERN_FILES, output_path, &mut output)?;
+    append_sources(root, BOUNDARY_FILES, output_path, &mut output)?;
+    append_sources(root, REVIEW_FILES, output_path, &mut output)?;
+    append_source(root, "agents/shared.md", output_path, &mut output)?;
     Ok(normalize_final_newline(output))
 }
 
-fn build_compact(root: &Path, doctrines: &DoctrineManifest) -> Result<String, String> {
+fn build_compact(
+    root: &Path,
+    doctrines: &DoctrineManifest,
+    output_path: &Path,
+) -> Result<String, String> {
     let mut output = generated_document("Compact Rust doctrine hydration");
-    append_source(root, "agents/compact-core.md", &mut output)?;
-    append_source(root, "foundations/README.md", &mut output)?;
-    append_source(root, "foundations/guarantee-honesty.md", &mut output)?;
+    append_source(root, "agents/compact-core.md", output_path, &mut output)?;
+    append_source(root, "foundations/README.md", output_path, &mut output)?;
+    append_source(
+        root,
+        "foundations/guarantee-honesty.md",
+        output_path,
+        &mut output,
+    )?;
     append_source(
         root,
         "doctrines/0001-invalid-states/decision-framework.md",
+        output_path,
         &mut output,
     )?;
 
@@ -205,12 +242,17 @@ fn build_compact(root: &Path, doctrines: &DoctrineManifest) -> Result<String, St
         .iter()
         .filter(|entry| entry.status == "active")
     {
-        append_source(root, &doctrine.normative_path, &mut output)?;
+        append_source(root, &doctrine.normative_path, output_path, &mut output)?;
     }
 
-    append_source(root, "patterns/README.md", &mut output)?;
-    append_source(root, "reviews/final-correctness-audit.md", &mut output)?;
-    append_source(root, "agents/shared.md", &mut output)?;
+    append_source(root, "patterns/README.md", output_path, &mut output)?;
+    append_source(
+        root,
+        "reviews/final-correctness-audit.md",
+        output_path,
+        &mut output,
+    )?;
+    append_source(root, "agents/shared.md", output_path, &mut output)?;
     Ok(normalize_final_newline(output))
 }
 
@@ -218,6 +260,7 @@ fn build_role_pack(
     root: &Path,
     pack: &AgentPack,
     doctrines: &DoctrineManifest,
+    output_path: &Path,
 ) -> Result<String, String> {
     let mut output = generated_document(&format!("{} agent doctrine pack", title_case(&pack.id)));
     output.push('\n');
@@ -226,7 +269,7 @@ fn build_role_pack(
 
     let mut included = BTreeSet::new();
     for path in &pack.canonical_sources {
-        append_unique_source(root, path, &mut included, &mut output)?;
+        append_unique_source(root, path, output_path, &mut included, &mut output)?;
     }
     for doctrine_id in &pack.doctrine_selections {
         let doctrine = doctrines
@@ -234,17 +277,28 @@ fn build_role_pack(
             .iter()
             .find(|entry| entry.id == *doctrine_id)
             .ok_or_else(|| format!("agent {} selects unknown doctrine {doctrine_id}", pack.id))?;
-        append_unique_source(root, &doctrine.normative_path, &mut included, &mut output)?;
+        append_unique_source(
+            root,
+            &doctrine.normative_path,
+            output_path,
+            &mut included,
+            &mut output,
+        )?;
     }
     for path in &pack.review_checklists {
-        append_unique_source(root, path, &mut included, &mut output)?;
+        append_unique_source(root, path, output_path, &mut included, &mut output)?;
     }
     Ok(normalize_final_newline(output))
 }
 
-fn append_sources(root: &Path, paths: &[&str], output: &mut String) -> Result<(), String> {
+fn append_sources(
+    root: &Path,
+    paths: &[&str],
+    output_path: &Path,
+    output: &mut String,
+) -> Result<(), String> {
     for path in paths {
-        append_source(root, path, output)?;
+        append_source(root, path, output_path, output)?;
     }
     Ok(())
 }
@@ -252,25 +306,312 @@ fn append_sources(root: &Path, paths: &[&str], output: &mut String) -> Result<()
 fn append_unique_source(
     root: &Path,
     path: &str,
+    output_path: &Path,
     included: &mut BTreeSet<String>,
     output: &mut String,
 ) -> Result<(), String> {
     if included.insert(path.to_owned()) {
-        append_source(root, path, output)?;
+        append_source(root, path, output_path, output)?;
     }
     Ok(())
 }
 
-fn append_source(root: &Path, relative: &str, output: &mut String) -> Result<(), String> {
-    let path = root.join(relative);
+fn append_source(
+    root: &Path,
+    relative: &str,
+    output_path: &Path,
+    output: &mut String,
+) -> Result<(), String> {
+    let relative_path = validate_relative_path(relative, "canonical source")?;
+    let path = root.join(&relative_path);
     let content =
         fs::read_to_string(&path).map_err(|error| format!("cannot read {relative}: {error}"))?;
+    let content = rewrite_relative_links(root, &relative_path, output_path, &content)?;
     output.push_str("\n---\n\n## Source: `");
     output.push_str(relative);
     output.push_str("`\n\n");
     output.push_str(content.trim_end());
     output.push('\n');
     Ok(())
+}
+
+fn validate_manifest_paths(
+    doctrines: &DoctrineManifest,
+    agents: &AgentManifest,
+) -> Result<(), String> {
+    for doctrine in &doctrines.doctrines {
+        validate_relative_path(&doctrine.package_path, "doctrine package_path")?;
+        validate_relative_path(&doctrine.normative_path, "doctrine normative_path")?;
+    }
+
+    for pack in &agents.packs {
+        for source in pack.canonical_sources.iter().chain(&pack.review_checklists) {
+            validate_relative_path(source, "agent canonical source")?;
+        }
+
+        let output = validate_relative_path(&pack.output_path, "agent output_path")?;
+        if !output.starts_with("dist/agents")
+            || output.extension().and_then(|extension| extension.to_str()) != Some("md")
+        {
+            return Err(format!(
+                "agent output_path must name a Markdown file under dist/agents: {}",
+                pack.output_path
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_relative_path(value: &str, field: &str) -> Result<PathBuf, String> {
+    if value.is_empty()
+        || value.starts_with('/')
+        || value.ends_with('/')
+        || value.contains('\\')
+        || value
+            .split('/')
+            .any(|component| component.is_empty() || matches!(component, "." | ".."))
+        || !value.bytes().all(|byte| {
+            byte.is_ascii_alphabetic()
+                || byte.is_ascii_digit()
+                || matches!(byte, b'.' | b'_' | b'-' | b'/')
+        })
+    {
+        return Err(format!(
+            "{field} is not a normalized repository-relative path: {value:?}"
+        ));
+    }
+
+    let path = PathBuf::from(value);
+    if path
+        .components()
+        .any(|component| !matches!(component, Component::Normal(_)))
+    {
+        return Err(format!(
+            "{field} contains a non-normal path component: {value:?}"
+        ));
+    }
+    Ok(path)
+}
+
+fn validate_curated_inventory(root: &Path) -> Result<(), String> {
+    for (directory, expected) in [
+        ("foundations", FOUNDATION_FILES),
+        ("patterns", PATTERN_FILES),
+        ("boundaries", BOUNDARY_FILES),
+        ("reviews", REVIEW_FILES),
+    ] {
+        let expected: BTreeSet<PathBuf> = expected.iter().map(PathBuf::from).collect();
+        let actual: BTreeSet<PathBuf> = all_files(&root.join(directory))
+            .into_iter()
+            .filter(|path| path.extension().and_then(|extension| extension.to_str()) == Some("md"))
+            .map(|path| {
+                path.strip_prefix(root)
+                    .map(Path::to_path_buf)
+                    .map_err(|error| {
+                        format!(
+                            "cannot relativize inventory path {}: {error}",
+                            path.display()
+                        )
+                    })
+            })
+            .collect::<Result<_, _>>()?;
+
+        if actual != expected {
+            let missing = expected
+                .difference(&actual)
+                .map(|path| path.display().to_string())
+                .collect::<Vec<_>>();
+            let unbundled = actual
+                .difference(&expected)
+                .map(|path| path.display().to_string())
+                .collect::<Vec<_>>();
+            return Err(format!(
+                "{directory} bundle inventory differs from disk; missing [{}], unbundled [{}]",
+                missing.join(", "),
+                unbundled.join(", ")
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn rewrite_relative_links(
+    root: &Path,
+    source_path: &Path,
+    output_path: &Path,
+    content: &str,
+) -> Result<String, String> {
+    let mut rewritten = String::with_capacity(content.len());
+    let mut in_fence = false;
+
+    for line in content.split_inclusive('\n') {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            in_fence = !in_fence;
+            rewritten.push_str(line);
+        } else if in_fence {
+            rewritten.push_str(line);
+        } else {
+            rewritten.push_str(&rewrite_inline_links(root, source_path, output_path, line)?);
+        }
+    }
+
+    Ok(rewritten)
+}
+
+fn rewrite_inline_links(
+    root: &Path,
+    source_path: &Path,
+    output_path: &Path,
+    line: &str,
+) -> Result<String, String> {
+    let mut rewritten = String::with_capacity(line.len());
+    let mut cursor = 0;
+
+    while let Some(offset) = line[cursor..].find("](") {
+        let destination_start = cursor + offset + 2;
+        rewritten.push_str(&line[cursor..destination_start]);
+        let Some(close_offset) = line[destination_start..].find(')') else {
+            rewritten.push_str(&line[destination_start..]);
+            return Ok(rewritten);
+        };
+        let destination_end = destination_start + close_offset;
+        let destination = &line[destination_start..destination_end];
+        rewritten.push_str(&rewrite_destination(
+            root,
+            source_path,
+            output_path,
+            destination,
+        )?);
+        rewritten.push(')');
+        cursor = destination_end + 1;
+    }
+
+    rewritten.push_str(&line[cursor..]);
+    Ok(rewritten)
+}
+
+fn rewrite_destination(
+    root: &Path,
+    source_path: &Path,
+    output_path: &Path,
+    destination: &str,
+) -> Result<String, String> {
+    let leading = destination.len() - destination.trim_start().len();
+    let trimmed = destination.trim_start();
+    let (bracketed, target_start, target_end) = if let Some(rest) = trimmed.strip_prefix('<') {
+        let Some(end) = rest.find('>') else {
+            return Ok(destination.to_owned());
+        };
+        (true, 1, end + 1)
+    } else {
+        let end = trimmed.find(char::is_whitespace).unwrap_or(trimmed.len());
+        (false, 0, end)
+    };
+    let target = &trimmed[target_start..target_end];
+
+    if !is_relative_link(target) {
+        return Ok(destination.to_owned());
+    }
+
+    let suffix_index = target.find(['#', '?']).unwrap_or(target.len());
+    let path_part = &target[..suffix_index];
+    let suffix = &target[suffix_index..];
+    if path_part.is_empty() {
+        return Ok(destination.to_owned());
+    }
+
+    let resolved = resolve_link_target(source_path, path_part)?;
+    let absolute_target = root.join(&resolved);
+    if !absolute_target.exists() {
+        return Err(format!(
+            "{} links to missing repository path {path_part:?}",
+            source_path.display()
+        ));
+    }
+    let output_parent = output_path
+        .parent()
+        .ok_or_else(|| format!("generated output {} has no parent", output_path.display()))?;
+    let relative = relative_path(output_parent, &resolved);
+    let mut replacement = relative.to_string_lossy().replace('\\', "/");
+    if path_part.ends_with('/') {
+        replacement.push('/');
+    }
+    replacement.push_str(suffix);
+
+    let mut result = String::with_capacity(destination.len() + replacement.len());
+    result.push_str(&destination[..leading]);
+    if bracketed {
+        result.push('<');
+    }
+    result.push_str(&replacement);
+    if bracketed {
+        result.push('>');
+    }
+    result.push_str(&trimmed[target_end + usize::from(bracketed)..]);
+    Ok(result)
+}
+
+fn is_relative_link(target: &str) -> bool {
+    if target.is_empty() || target.starts_with(['#', '/', '?']) || target.starts_with("//") {
+        return false;
+    }
+    let path_end = target.find(['/', '#', '?']).unwrap_or(target.len());
+    !target[..path_end].contains(':')
+}
+
+fn resolve_link_target(source_path: &Path, target: &str) -> Result<PathBuf, String> {
+    let mut components: Vec<PathBuf> = source_path
+        .parent()
+        .into_iter()
+        .flat_map(Path::components)
+        .filter_map(|component| match component {
+            Component::Normal(value) => Some(PathBuf::from(value)),
+            _ => None,
+        })
+        .collect();
+
+    for component in Path::new(target).components() {
+        match component {
+            Component::Normal(value) => components.push(PathBuf::from(value)),
+            Component::CurDir => {}
+            Component::ParentDir => {
+                if components.pop().is_none() {
+                    return Err(format!(
+                        "{} link {target:?} escapes the repository",
+                        source_path.display()
+                    ));
+                }
+            }
+            Component::RootDir | Component::Prefix(_) => {
+                return Err(format!(
+                    "{} link {target:?} is not repository-relative",
+                    source_path.display()
+                ));
+            }
+        }
+    }
+
+    Ok(components.into_iter().collect())
+}
+
+fn relative_path(from_directory: &Path, to: &Path) -> PathBuf {
+    let from = from_directory.components().collect::<Vec<_>>();
+    let to = to.components().collect::<Vec<_>>();
+    let shared = from
+        .iter()
+        .zip(&to)
+        .take_while(|(left, right)| left == right)
+        .count();
+
+    let mut relative = PathBuf::new();
+    for _ in shared..from.len() {
+        relative.push("..");
+    }
+    for component in &to[shared..] {
+        relative.push(component.as_os_str());
+    }
+    relative
 }
 
 fn generated_document(title: &str) -> String {
@@ -304,6 +645,7 @@ fn title_case(value: &str) -> String {
 }
 
 fn generate(root: &Path, outputs: &[GeneratedFile]) -> Result<(), String> {
+    let mut updated = 0;
     for output in outputs {
         let path = root.join(&output.path);
         let parent = path
@@ -315,9 +657,13 @@ fn generate(root: &Path, outputs: &[GeneratedFile]) -> Result<(), String> {
         if current.as_deref() != Some(output.content.as_str()) {
             fs::write(&path, &output.content)
                 .map_err(|error| format!("cannot write {}: {error}", output.path.display()))?;
+            updated += 1;
         }
     }
-    println!("bundle-agent-context: generated {} file(s)", outputs.len());
+    println!(
+        "bundle-agent-context: updated {updated} of {} generated file(s)",
+        outputs.len()
+    );
     Ok(())
 }
 
@@ -334,7 +680,7 @@ fn check(root: &Path, outputs: &[GeneratedFile]) -> Result<(), String> {
         }
     }
 
-    for path in markdown_files(&root.join("dist")) {
+    for path in all_files(&root.join("dist")) {
         let relative = path
             .strip_prefix(root)
             .map_err(|error| format!("cannot relativize {}: {error}", path.display()))?
@@ -353,22 +699,22 @@ fn check(root: &Path, outputs: &[GeneratedFile]) -> Result<(), String> {
     }
 }
 
-fn markdown_files(directory: &Path) -> Vec<PathBuf> {
+fn all_files(directory: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
-    collect_markdown(directory, &mut files);
+    collect_files(directory, &mut files);
     files.sort();
     files
 }
 
-fn collect_markdown(directory: &Path, files: &mut Vec<PathBuf>) {
+fn collect_files(directory: &Path, files: &mut Vec<PathBuf>) {
     let Ok(entries) = fs::read_dir(directory) else {
         return;
     };
     for entry in entries.filter_map(Result::ok) {
         let path = entry.path();
         if path.is_dir() {
-            collect_markdown(&path, files);
-        } else if path.extension().and_then(|extension| extension.to_str()) == Some("md") {
+            collect_files(&path, files);
+        } else if path.is_file() {
             files.push(path);
         }
     }
@@ -377,9 +723,11 @@ fn collect_markdown(directory: &Path, files: &mut Vec<PathBuf>) {
 #[cfg(test)]
 mod tests {
     use super::{
-        GENERATED_BANNER, append_source, generated_document, normalize_final_newline, title_case,
+        GENERATED_BANNER, GeneratedFile, append_source, check, generated_document,
+        normalize_final_newline, rewrite_relative_links, title_case, validate_relative_path,
     };
     use std::fs;
+    use std::path::Path;
 
     #[test]
     fn generated_document_starts_with_required_banner() {
@@ -398,7 +746,13 @@ mod tests {
         fs::write(temporary.join("source.md"), "# Source\n\nBody\n\n").expect("write test source");
 
         let mut output = String::new();
-        append_source(&temporary, "source.md", &mut output).expect("append source");
+        append_source(
+            &temporary,
+            "source.md",
+            Path::new("dist/output.md"),
+            &mut output,
+        )
+        .expect("append source");
         let output = normalize_final_newline(output);
 
         assert!(output.contains("## Source: `source.md`"));
@@ -410,5 +764,62 @@ mod tests {
     fn role_title_is_stable() {
         assert_eq!(title_case("planner"), "Planner");
         assert_eq!(title_case(""), "");
+    }
+
+    #[test]
+    fn relocated_sources_link_back_to_canonical_files() {
+        let temporary = std::env::temp_dir().join(format!(
+            "doctrines-rust-bundler-links-{}",
+            std::process::id()
+        ));
+        fs::create_dir_all(temporary.join("foundations")).expect("create foundation directory");
+        fs::create_dir_all(temporary.join("agents")).expect("create agent directory");
+        fs::write(
+            temporary.join("foundations/invariants.md"),
+            "# Invariants\n",
+        )
+        .expect("write target");
+        let source = "Read [invariants](../foundations/invariants.md#inventory).\n";
+
+        let rewritten = rewrite_relative_links(
+            &temporary,
+            Path::new("agents/shared.md"),
+            Path::new("dist/agents/shared.md"),
+            source,
+        )
+        .expect("rewrite relative link");
+
+        assert_eq!(
+            rewritten,
+            "Read [invariants](../../foundations/invariants.md#inventory).\n"
+        );
+        fs::remove_dir_all(temporary).expect("remove temporary test directory");
+    }
+
+    #[test]
+    fn manifest_paths_cannot_escape_repository() {
+        assert!(validate_relative_path("agents/shared.md", "test").is_ok());
+        assert!(validate_relative_path("../outside.md", "test").is_err());
+        assert!(validate_relative_path("agents/../outside.md", "test").is_err());
+        assert!(validate_relative_path("/outside.md", "test").is_err());
+    }
+
+    #[test]
+    fn check_rejects_non_markdown_orphans_in_dist() {
+        let temporary = std::env::temp_dir().join(format!(
+            "doctrines-rust-bundler-orphans-{}",
+            std::process::id()
+        ));
+        fs::create_dir_all(temporary.join("dist")).expect("create dist directory");
+        fs::write(temporary.join("dist/expected.md"), "expected\n").expect("write expected file");
+        fs::write(temporary.join("dist/orphan.bin"), [0_u8, 1, 2]).expect("write orphan file");
+        let outputs = [GeneratedFile {
+            path: Path::new("dist/expected.md").to_path_buf(),
+            content: "expected\n".to_owned(),
+        }];
+
+        let error = check(&temporary, &outputs).expect_err("orphan must fail check mode");
+        assert!(error.contains("unexpected: dist/orphan.bin"));
+        fs::remove_dir_all(temporary).expect("remove temporary test directory");
     }
 }

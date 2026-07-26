@@ -63,6 +63,18 @@ owner, scope, compensating evidence, and removal condition. High-severity
 failures require remediation or explicit risk acceptance. Medium findings may
 be scheduled only when they cannot mask correctness or overload failures.
 
-The reviewer MUST attach or reference the ownership map, task tree, capacity
+The review record attaches or references the ownership map, task tree, capacity
 table, cancellation table, retry inventory, shutdown procedure, and guarantee
 ledger. Code style alone is not sufficient evidence.
+
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0004-R001`, `RUST-DOC-0004-R002`, `RUST-DOC-0004-R003`, `RUST-DOC-0004-R004`
+- `RUST-DOC-0004-R005`, `RUST-DOC-0004-R006`, `RUST-DOC-0004-R007`, `RUST-DOC-0004-R008`
+- `RUST-DOC-0004-R009`, `RUST-DOC-0004-R010`, `RUST-DOC-0004-R011`, `RUST-DOC-0004-R012`
+- `RUST-DOC-0004-R013`, `RUST-DOC-0004-R014`, `RUST-DOC-0004-R015`, `RUST-DOC-0004-R016`
+- `RUST-DOC-0004-R017`, `RUST-DOC-0004-R018`, `RUST-DOC-0004-R019`, `RUST-DOC-0004-R020`

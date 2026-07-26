@@ -22,3 +22,14 @@ Record pass, fail, not applicable, or waiver.
 | Lifetime            | Does each lifetime express a real referent relation?  | signature explanation       | ornamental generics             | minor    | simplify               |
 | Task owner          | Who joins, cancels, and closes?                       | supervision tree            | detached resource task          | critical | structure tasks        |
 | External truth      | Are local and external authority claims separated?    | non-guarantees              | local lease implies global lock | critical | revalidate/fence       |
+
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0003-R001`, `RUST-DOC-0003-R002`, `RUST-DOC-0003-R003`, `RUST-DOC-0003-R004`
+- `RUST-DOC-0003-R005`, `RUST-DOC-0003-R006`, `RUST-DOC-0003-R007`, `RUST-DOC-0003-R008`
+- `RUST-DOC-0003-R009`, `RUST-DOC-0003-R010`, `RUST-DOC-0003-R011`, `RUST-DOC-0003-R012`
+- `RUST-DOC-0003-R013`, `RUST-DOC-0003-R014`

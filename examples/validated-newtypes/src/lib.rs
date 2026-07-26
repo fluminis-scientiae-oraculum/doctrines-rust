@@ -209,6 +209,12 @@ pub struct EmailVerifier;
 
 impl EmailVerifier {
     /// Converts verifier-owned evidence into a stronger email type.
+    ///
+    /// `OwnershipProof` deliberately has no public constructor in this
+    /// standalone crate. A production provider adapter in this crate would
+    /// construct it only after authenticating external verification evidence;
+    /// unit tests exercise that construction topology without claiming a
+    /// provider integration exists here.
     pub fn accept(proof: OwnershipProof) -> VerifiedEmailAddress {
         VerifiedEmailAddress {
             address: proof.address,

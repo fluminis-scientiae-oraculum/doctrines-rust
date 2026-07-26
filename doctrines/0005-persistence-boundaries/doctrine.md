@@ -61,7 +61,7 @@ volatile business policy.
 
 **Intent.** Defend against alternate writers and narrow invalid-data ingress.
 
-**Applicability.** nullability, ranges, uniqueness, referential integrity,
+**Applicability.** Nullability, ranges, uniqueness, referential integrity,
 discriminators, and state-related column combinations.
 
 **Allowed exceptions.** A constraint may remain application-only when the
@@ -80,14 +80,14 @@ discriminator and a validation rule that rejects contradictory combinations.
 **Intent.** Prevent rows such as "paid without receipt" or "failed with settled
 timestamp."
 
-**Applicability.** lifecycle tables, optional payload columns, and soft-state
+**Applicability.** Lifecycle tables, optional payload columns, and soft-state
 flags.
 
 **Allowed exceptions.** A deliberately incomplete staging record may exist in a
 separate type and table whose lifecycle never exposes it as the completed
 domain entity.
 
-**Review evidence.** row-state truth table, schema checks where feasible, and
+**Review evidence.** Row-state truth table, schema checks where feasible, and
 conversion tests for every invalid combination.
 
 ## RUST-DOC-0005-R006 — Make migrations invariant-aware
@@ -99,12 +99,12 @@ not satisfy the target invariant.
 **Intent.** Treat migration as a domain transition rather than only a shape
 change.
 
-**Applicability.** schema, data, index, encoding, and enum migrations.
+**Applicability.** Schema, data, index, encoding, and enum migrations.
 
 **Allowed exceptions.** A metadata-only operation may state that domain
 invariants are unaffected, with evidence.
 
-**Review evidence.** precondition query, transformation, postcondition query,
+**Review evidence.** Precondition query, transformation, postcondition query,
 rollback or forward-repair strategy, and representative migration test.
 
 ## RUST-DOC-0005-R007 — Version durable representations
@@ -120,7 +120,7 @@ that survive deployment, and database schemas.
 **Allowed exceptions.** Ephemeral caches may be invalidated atomically when
 version changes, if stale values cannot be interpreted.
 
-**Review evidence.** version field or schema version, supported-reader matrix,
+**Review evidence.** Version field or schema version, supported-reader matrix,
 unknown-version behavior, and fixture tests.
 
 ## RUST-DOC-0005-R008 — Plan enum evolution
@@ -137,7 +137,7 @@ sum types.
 **Allowed exceptions.** A closed, disposable dataset may reject unknown values
 and rebuild from canonical input.
 
-**Review evidence.** stable encoding table, unknown-value path, migration plan,
+**Review evidence.** Stable encoding table, unknown-value path, migration plan,
 and old/new reader tests.
 
 ## RUST-DOC-0005-R009 — Align transactions with cross-entity invariants
@@ -149,13 +149,13 @@ coordination protocol.
 
 **Intent.** Prevent application prechecks from racing concurrent writers.
 
-**Applicability.** balances, uniqueness, inventory, state transitions,
+**Applicability.** Balances, uniqueness, inventory, state transitions,
 aggregate versions, and paired records.
 
 **Allowed exceptions.** Eventual convergence is permitted when temporary
 violation is a documented domain state with bounded detection and repair.
 
-**Review evidence.** transaction scope, isolation analysis, locking or
+**Review evidence.** Transaction scope, isolation analysis, locking or
 constraint mechanism, concurrent test, and residual anomaly statement.
 
 ## RUST-DOC-0005-R010 — Prevent lost updates
@@ -167,14 +167,14 @@ lost-update prevention strategy.
 **Intent.** Stop later writes from silently erasing changes based on stale
 state.
 
-**Applicability.** mutable entities, counters with derived fields, and
+**Applicability.** Mutable entities, counters with derived fields, and
 administrative edits.
 
 **Allowed exceptions.** Last-write-wins is allowed only when it is the explicit
 business policy and discarded updates are acceptable and observable where
 needed.
 
-**Review evidence.** version predicate or locking query, conflict error,
+**Review evidence.** Version predicate or locking query, conflict error,
 concurrency test, and caller conflict policy.
 
 ## RUST-DOC-0005-R011 — Preserve transaction-handle lifecycle
@@ -186,14 +186,14 @@ commit, and ambiguous outcome when the driver or protocol permits ambiguity.
 
 **Intent.** Prevent stale transaction reuse and dishonest commit status.
 
-**Applicability.** database clients, unit-of-work abstractions, and transactional
+**Applicability.** Database clients, unit-of-work abstractions, and transactional
 repositories.
 
 **Allowed exceptions.** A library-owned mutable transaction handle may enforce
 the same lifecycle at runtime when consuming APIs are incompatible with the
 driver.
 
-**Review evidence.** handle transition tests, compile-fail evidence where
+**Review evidence.** Handle transition tests, compile-fail evidence where
 useful, and connection-loss behavior.
 
 ## RUST-DOC-0005-R012 — Do not extend database atomicity to external effects
@@ -204,12 +204,12 @@ resource boundary.
 
 **Intent.** Prevent fictional atomicity across independent systems.
 
-**Applicability.** state changes coupled to publishing or external calls.
+**Applicability.** State changes coupled to publishing or external calls.
 
 **Allowed exceptions.** A documented distributed transaction mechanism may
 state only the boundary and failure model it actually provides.
 
-**Review evidence.** effect inventory, atomic boundary diagram, failure matrix,
+**Review evidence.** Effect inventory, atomic boundary diagram, failure matrix,
 and reconciliation path.
 
 ## RUST-DOC-0005-R013 — Coordinate persistence and messaging durably
@@ -220,12 +220,12 @@ log, or equivalent durable coordination protocol.
 
 **Intent.** Make retry and recovery possible after process or network failure.
 
-**Applicability.** event publication, job enqueueing, and integration messages.
+**Applicability.** Event publication, job enqueueing, and integration messages.
 
 **Allowed exceptions.** A best-effort notification may remain outside durable
 coordination when loss is an accepted, documented outcome.
 
-**Review evidence.** atomic write, publisher retry, deduplication identity,
+**Review evidence.** Atomic write, publisher retry, deduplication identity,
 retention, ordering scope, and operational lag metrics.
 
 ## RUST-DOC-0005-R014 — Quarantine invalid historical data
@@ -237,11 +237,11 @@ as an explicit invalid-record type. It MUST NOT be forged into the trusted type.
 **Intent.** Preserve the meaning of trusted domain values while allowing
 operational recovery.
 
-**Applicability.** production reads, imports, restores, and migration scans.
+**Applicability.** Production reads, imports, restores, and migration scans.
 
 **Allowed exceptions.** None for trusted construction.
 
-**Review evidence.** diagnostic classification, record identity, sensitive-data
+**Review evidence.** Diagnostic classification, record identity, sensitive-data
 handling, repair workflow, and metrics.
 
 ## RUST-DOC-0005-R015 — Preserve unknown fields and values deliberately
@@ -251,12 +251,12 @@ are rejected, ignored, retained, or mapped to an explicit unknown variant.
 
 **Intent.** Make forward compatibility and security posture deliberate.
 
-**Applicability.** flexible records, events, snapshots, and rolling upgrades.
+**Applicability.** Flexible records, events, snapshots, and rolling upgrades.
 
 **Allowed exceptions.** None; the chosen policy may be implicit in a format only
 if documented and tested.
 
-**Review evidence.** compatibility matrix and tests for extra fields, missing
+**Review evidence.** Compatibility matrix and tests for extra fields, missing
 fields, and unknown discriminators.
 
 ## RUST-DOC-0005-R016 — Bound stored-input resource use
@@ -268,13 +268,13 @@ trusted in-memory state.
 **Intent.** Prevent validly encoded but hostile or corrupted records from
 exhausting resources.
 
-**Applicability.** blobs, arrays, compressed payloads, large text, and batch
+**Applicability.** Blobs, arrays, compressed payloads, large text, and batch
 queries.
 
 **Allowed exceptions.** A format with a proven small physical bound may rely on
 that bound and document it.
 
-**Review evidence.** limits, streaming behavior, oversized fixtures, and failure
+**Review evidence.** Limits, streaming behavior, oversized fixtures, and failure
 mapping.
 
 ## RUST-DOC-0005-R017 — Record persistence guarantees and non-guarantees
@@ -286,9 +286,9 @@ including configuration assumptions.
 **Intent.** Prevent product names or successful calls from implying stronger
 guarantees than deployed behavior.
 
-**Applicability.** every durable domain component.
+**Applicability.** Every durable domain component.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** guarantee ledger linked to database documentation,
+**Review evidence.** Guarantee ledger linked to database documentation,
 configuration, tests, monitoring, and residual failure modes.

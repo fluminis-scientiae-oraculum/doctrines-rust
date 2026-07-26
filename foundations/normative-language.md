@@ -34,6 +34,20 @@ how another control contains it.
 obligations from other rules. A design MAY use typestate in a suitable local protocol, but it
 must still model transition failure honestly and preserve persistence boundaries.
 
+## Vocabulary calibration
+
+Normative vocabulary is selected by meaning, not by a target distribution. A doctrine does
+not need to contain every term. `SHOULD NOT` is appropriate only for a normally prohibited
+choice that can remain conforming after an explicit risk argument; a strict prohibition with
+bounded applicability instead uses `MUST NOT` and its allowed-exceptions field. `MAY` marks a
+permission that would otherwise be unclear. Lowercase “may” can still describe uncertainty or
+possibility without granting a new permission.
+
+Reviewers examine whether each chosen force matches consequence and available exceptions.
+They do not rebalance counts mechanically. Replacing one normative term with another can
+change the set of conforming systems and therefore follows the doctrine-change process unless
+the edit demonstrably preserves meaning.
+
 ## Scope and applicability
 
 Every doctrine rule states applicability. The normative term governs only within that scope,
@@ -56,6 +70,11 @@ interpretation.
 
 Uppercase requirement terms in `doctrine.md` are normative. Stable rule IDs are the citation
 unit. Package metadata records whether the doctrine is normative and its lifecycle state.
+Repository governance contracts such as `AGENTS.md`, `CONTRIBUTING.md`, and `rfcs/README.md`
+may use the same vocabulary for repository operations; those obligations are governance, not
+unnumbered doctrine rules. Definition documents may mention the uppercase terms as terms.
+Other informative material uses ordinary lowercase language or cites the governing doctrine
+rule instead of creating a hidden obligation.
 
 Rationale, glossary entries, source notes, anti-pattern explanation, and ordinary examples are
 informative unless a normative rule explicitly incorporates them. Informative material can
@@ -111,6 +130,10 @@ A normative rule uses one stable ID such as `RUST-DOC-0001-R004` and includes:
 - **Applicability:** the systems, paths, or conditions that trigger it.
 - **Allowed exceptions:** bounded conditions or “none.”
 - **Review evidence:** artifacts and observations sufficient to assess it.
+
+The applicability and review-evidence fields use capitalized noun-phrase lists consistently.
+This register keeps machine extraction predictable while the statement, intent, and exception
+fields carry complete propositions.
 
 Avoid combining unrelated requirements merely to reduce rule count. Avoid vague verbs such as
 “handle appropriately” without defining outcomes. Name owners and failure semantics. A rule

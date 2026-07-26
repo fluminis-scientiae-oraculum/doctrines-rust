@@ -15,8 +15,8 @@ FFI boundary.
 **Allowed exceptions.** Mechanically generated binding declarations may share
 one reviewed justification for a generated unit.
 
-**Review evidence.** alternatives, benchmark evidence for performance claims,
-and explicit scope.
+**Review evidence.** Required capability, safe alternatives, explicit scope,
+and benchmark evidence when performance justifies the risk.
 
 ## RUST-DOC-0007-R002 — State the safety invariant
 
@@ -31,8 +31,9 @@ preconditions hold at that point.
 **Allowed exceptions.** Repeated operations inside one tightly bounded block may
 share one complete argument when their obligations are identical.
 
-**Review evidence.** comment names aliasing, validity, lifetime, alignment,
-provenance, initialization, concurrency, and panic considerations that apply.
+**Review evidence.** The `SAFETY:` comment names the applicable aliasing,
+validity, lifetime, alignment, provenance, initialization, concurrency, and
+panic considerations.
 
 ## RUST-DOC-0007-R003 — Minimize and encapsulate unsafe
 
@@ -43,13 +44,13 @@ can use the capability.
 **Intent.** Reduce proof surface and prevent invariant-dependent values from
 escaping unchecked.
 
-**Applicability.** low-level modules, FFI wrappers, containers, and optimized
+**Applicability.** Low-level modules, FFI wrappers, containers, and optimized
 algorithms.
 
 **Allowed exceptions.** A public unsafe primitive may be appropriate when
 callers must supply obligations that cannot be checked.
 
-**Review evidence.** unsafe inventory, module visibility, private fields, and
+**Review evidence.** Unsafe inventory, module visibility, private fields, and
 safe wrapper tests.
 
 ## RUST-DOC-0007-R004 — Make safe APIs sound for every safe caller
@@ -62,11 +63,11 @@ by its traits.
 **Intent.** Prevent hidden caller obligations from leaking through a safe
 signature.
 
-**Applicability.** all safe wrappers over unsafe internals.
+**Applicability.** All safe wrappers over unsafe internals.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** adversarial safe-call analysis, invariant ownership,
+**Review evidence.** Adversarial safe-call analysis, invariant ownership,
 panic/drop paths, and executable evidence.
 
 ## RUST-DOC-0007-R005 — Document unsafe caller obligations
@@ -77,12 +78,12 @@ non-circular terms.
 
 **Intent.** Define exactly what the compiler no longer checks for the caller.
 
-**Applicability.** unsafe functions, methods, traits, and constructors.
+**Applicability.** Unsafe functions, methods, traits, and constructors.
 
 **Allowed exceptions.** Private functions used once may state obligations at
 the function or call site, but the proof chain MUST remain explicit.
 
-**Review evidence.** obligations name valid ranges, lifetime, ownership,
+**Review evidence.** Caller obligations name valid ranges, lifetime, ownership,
 aliasing, initialization, thread, and provenance constraints as relevant.
 
 ## RUST-DOC-0007-R006 — Protect representation validity
@@ -94,13 +95,13 @@ restricted representations.
 
 **Intent.** Avoid undefined behavior before ordinary code can validate.
 
-**Applicability.** casts, reads, transmutation, FFI, serialization shortcuts,
+**Applicability.** Casts, reads, transmutation, FFI, serialization shortcuts,
 and uninitialized memory.
 
 **Allowed exceptions.** Bytes may remain untyped storage until validity is
 established; they MUST NOT be observed through an invalid typed value.
 
-**Review evidence.** representation source, validation, layout reference, and
+**Review evidence.** Representation source, validation, layout reference, and
 invalid-input tests.
 
 ## RUST-DOC-0007-R007 — Prove aliasing and lifetime
@@ -112,12 +113,12 @@ and a lifetime no longer than the backing allocation and authority.
 **Intent.** Prevent references from asserting guarantees the pointer does not
 provide.
 
-**Applicability.** raw-pointer dereference, slices from raw parts, FFI pointers,
+**Applicability.** Raw-pointer dereference, slices from raw parts, FFI pointers,
 and self-referential structures.
 
 **Allowed exceptions.** None; only the proof mechanism varies.
 
-**Review evidence.** allocation owner, mutation paths, reallocation analysis,
+**Review evidence.** Allocation owner, mutation paths, reallocation analysis,
 and borrow duration.
 
 ## RUST-DOC-0007-R008 — Respect provenance and bounds
@@ -129,12 +130,12 @@ argument consistent with the supported Rust model and target APIs.
 **Intent.** Prevent address arithmetic from being treated as sufficient pointer
 authority.
 
-**Applicability.** allocators, buffers, intrusive structures, memory maps, and
+**Applicability.** Allocators, buffers, intrusive structures, memory maps, and
 FFI.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** originating allocation, range proof, zero-sized-type
+**Review evidence.** Originating allocation, range proof, zero-sized-type
 behavior, overflow handling, and Miri coverage where supported.
 
 ## RUST-DOC-0007-R009 — Handle partial initialization and drop
@@ -146,13 +147,13 @@ success, error, and panic paths.
 **Intent.** Prevent reads of uninitialized memory, leaks of owned resources, and
 double drop.
 
-**Applicability.** arrays, FFI output buffers, custom collections, and
+**Applicability.** Arrays, FFI output buffers, custom collections, and
 performance-sensitive construction.
 
 **Allowed exceptions.** Trivially non-dropping byte storage still requires proof
 against uninitialized typed reads.
 
-**Review evidence.** initialization counter or state, guard behavior, panic
+**Review evidence.** Initialization counter or state, guard behavior, panic
 injection, and destructor tests.
 
 ## RUST-DOC-0007-R010 — Require exceptional justification for transmute
@@ -163,12 +164,12 @@ layout compatibility MUST be established from authoritative contracts.
 
 **Intent.** Expose the many simultaneous obligations hidden by one operation.
 
-**Applicability.** every transmute or equivalent bit reinterpretation.
+**Applicability.** Every transmute or equivalent bit reinterpretation.
 
 **Allowed exceptions.** None; a narrower cast or conversion SHOULD be used when
 it expresses fewer obligations.
 
-**Review evidence.** primary layout citation, static assertions where possible,
+**Review evidence.** Primary layout citation, static assertions where possible,
 and tests across supported targets.
 
 ## RUST-DOC-0007-R011 — Define FFI representation and ABI
@@ -180,14 +181,14 @@ MUST NOT be assumed stable without an applicable representation contract.
 **Intent.** Prevent caller/callee disagreement about call convention and data
 layout.
 
-**Applicability.** foreign functions, callbacks, shared structs, unions, and
+**Applicability.** Foreign functions, callbacks, shared structs, unions, and
 opaque handles.
 
 **Allowed exceptions.** Bindings generated from an authoritative interface may
 derive declarations, but generated output and generator version remain reviewed
 inputs.
 
-**Review evidence.** header/specification match, `repr` choice, target matrix,
+**Review evidence.** Header/specification match, `repr` choice, target matrix,
 and ABI tests.
 
 ## RUST-DOC-0007-R012 — Define FFI ownership and allocation
@@ -199,12 +200,12 @@ and the matching release operation.
 **Intent.** Prevent double frees, leaks, allocator mismatch, and dangling
 access.
 
-**Applicability.** buffers, strings, handles, callbacks, and allocated objects.
+**Applicability.** Buffers, strings, handles, callbacks, and allocated objects.
 
 **Allowed exceptions.** None; an opaque handle still requires a lifecycle
 contract.
 
-**Review evidence.** boundary table, constructor/destructor pairs, null and
+**Review evidence.** Boundary table, constructor/destructor pairs, null and
 length tests, and foreign-side documentation.
 
 ## RUST-DOC-0007-R013 — Control unwinding across FFI
@@ -215,13 +216,13 @@ runtime contract.
 
 **Intent.** Avoid undefined behavior and uncontrolled process state.
 
-**Applicability.** exported Rust functions, imported callbacks, and foreign
+**Applicability.** Exported Rust functions, imported callbacks, and foreign
 exceptions.
 
 **Allowed exceptions.** An unwind-capable ABI may be used only with documented
 cross-language behavior and target support.
 
-**Review evidence.** catch/abort policy, destructor implications, and panic-path
+**Review evidence.** Catch/abort policy, destructor implications, and panic-path
 test.
 
 ## RUST-DOC-0007-R014 — Prove unsafe `Send` and `Sync`
@@ -233,12 +234,12 @@ destruction, callbacks, and foreign-library thread guarantees.
 **Intent.** Ensure marker traits do not grant unsupported cross-thread
 authority.
 
-**Applicability.** custom containers, raw handles, FFI wrappers, and
+**Applicability.** Custom containers, raw handles, FFI wrappers, and
 self-referential values.
 
 **Allowed exceptions.** None.
 
-**Review evidence.** trait invariant, synchronization model, adverse schedule
+**Review evidence.** Trait invariant, synchronization model, adverse schedule
 tests, and upstream thread-safety contract.
 
 ## RUST-DOC-0007-R015 — Preserve panic safety
@@ -250,13 +251,13 @@ permitted point.
 **Intent.** Prevent partial mutation from violating assumptions later consumed
 by unsafe code.
 
-**Applicability.** collections, sorting, initialization, callback-based APIs,
+**Applicability.** Collections, sorting, initialization, callback-based APIs,
 and guards.
 
 **Allowed exceptions.** Logical corruption after panic may be allowed only if
 memory safety remains intact and the object cannot be used as though valid.
 
-**Review evidence.** unwind-state analysis, guards, injected panics, and drop
+**Review evidence.** Unwind-state analysis, guards, injected panics, and drop
 accounting.
 
 ## RUST-DOC-0007-R016 — Use complementary dynamic evidence
@@ -267,12 +268,12 @@ the tools support its behavior.
 
 **Intent.** Detect violations that code review and ordinary tests can miss.
 
-**Applicability.** pointer, initialization, FFI, and concurrency code.
+**Applicability.** Pointer, initialization, FFI, and concurrency code.
 
 **Allowed exceptions.** Unsupported operations or targets may use alternative
 evidence, with the limitation documented.
 
-**Review evidence.** exact commands, supported targets, findings resolved, and
+**Review evidence.** Exact commands, supported targets, findings resolved, and
 known blind spots.
 
 ## RUST-DOC-0007-R017 — Review unsafe dependencies
@@ -289,7 +290,7 @@ highly privileged libraries.
 **Allowed exceptions.** Low-risk unreachable target-specific code may receive a
 documented reduced review.
 
-**Review evidence.** dependency inventory, versions, advisory status, unsafe
+**Review evidence.** Dependency inventory, versions, advisory status, unsafe
 surface, upstream audit evidence, and update policy.
 
 ## RUST-DOC-0007-R018 — Re-audit when assumptions change
@@ -300,10 +301,10 @@ assumptions change.
 
 **Intent.** Keep proof obligations synchronized with their premises.
 
-**Applicability.** upgrades, ports, refactors, and feature changes.
+**Applicability.** Upgrades, ports, refactors, and feature changes.
 
 **Allowed exceptions.** A change proven outside the unsafe dependency cone may
 document that conclusion.
 
-**Review evidence.** assumption inventory, changed-premise analysis, repeated
+**Review evidence.** Assumption inventory, changed-premise analysis, repeated
 dynamic evidence, and reviewer approval.

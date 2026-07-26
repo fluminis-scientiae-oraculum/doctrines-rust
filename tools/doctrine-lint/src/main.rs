@@ -41,6 +41,14 @@ const ROOT_DOCUMENTS: &[&str] = &[
     "SECURITY.md",
 ];
 
+const NORMATIVE_SCOPE_EXCEPTIONS: &[&str] = &[
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "foundations/README.md",
+    "foundations/normative-language.md",
+    "rfcs/README.md",
+];
+
 const FORBIDDEN_MARKERS: &[&str] = &[
     concat!("to", "do"),
     concat!("t", "bd"),
@@ -57,6 +65,13 @@ const FORBIDDEN_MARKERS: &[&str] = &[
 struct Diagnostic {
     path: PathBuf,
     message: String,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+struct RuleHeading {
+    id: String,
+    level: usize,
+    line: usize,
 }
 
 impl Diagnostic {
@@ -206,8 +221,10 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     };
 
     check_doctrines(root, &doctrine_manifest, &mut diagnostics);
+    check_repository_version(root, &doctrine_manifest, &mut diagnostics);
     check_agents(root, &agent_manifest, &doctrine_manifest, &mut diagnostics);
     check_forbidden_markers(root, &mut diagnostics);
+    check_normative_scope(root, &mut diagnostics);
     check_generated_files(root, &mut diagnostics);
     diagnostics
 }
@@ -270,13 +287,6 @@ fn check_doctrines(root: &Path, manifest: &DoctrineManifest, diagnostics: &mut V
             "schema_version must be 1.0",
         ));
     }
-    if manifest.repository_version != "0.1.0" {
-        diagnostics.push(Diagnostic::new(
-            root.join("manifest/doctrines.yaml"),
-            "repository_version must match the initial 0.1.0 release",
-        ));
-    }
-
     let known_ids: BTreeSet<&str> = manifest
         .doctrines
         .iter()
@@ -302,6 +312,10 @@ fn check_doctrine_entry(
     global_rule_ids: &mut BTreeSet<String>,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
+    if !check_doctrine_paths(root, entry, diagnostics) {
+        return;
+    }
+
     let expected_number = entry.id.strip_prefix("RUST-DOC-").unwrap_or("");
     let expected_folder = format!("{expected_number}-{}", entry.slug);
     let package_path = root.join(&entry.package_path);
@@ -332,7 +346,39 @@ fn check_doctrine_entry(
 
     check_front_matter(root, entry, diagnostics);
     check_related_paths(root, entry, diagnostics);
+    check_supersession(root, entry, known_ids, diagnostics);
+    check_doctrine_rules(root, entry, global_rule_ids, diagnostics);
+}
 
+fn check_doctrine_paths(
+    root: &Path,
+    entry: &DoctrineEntry,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> bool {
+    for (field, value) in [
+        ("package_path", entry.package_path.as_str()),
+        ("normative_path", entry.normative_path.as_str()),
+    ] {
+        if !valid_manifest_path(value) {
+            diagnostics.push(Diagnostic::new(
+                root.join("manifest/doctrines.yaml"),
+                format!(
+                    "{} {field} is not a normalized repository-relative path",
+                    entry.id
+                ),
+            ));
+            return false;
+        }
+    }
+    true
+}
+
+fn check_supersession(
+    root: &Path,
+    entry: &DoctrineEntry,
+    known_ids: &BTreeSet<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
     for superseded in &entry.supersedes {
         if !known_ids.contains(superseded.as_str()) {
             diagnostics.push(Diagnostic::new(
@@ -358,20 +404,39 @@ fn check_doctrine_entry(
             format!("active doctrine {} cannot set superseded_by", entry.id),
         ));
     }
+}
 
+fn check_doctrine_rules(
+    root: &Path,
+    entry: &DoctrineEntry,
+    global_rule_ids: &mut BTreeSet<String>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
     let normative_path = root.join(&entry.normative_path);
     let Some(normative) = read_text(&normative_path, diagnostics) else {
         return;
     };
-    let rule_ids = extract_rule_ids(&normative);
-    if rule_ids.is_empty() {
+    check_structured_field_register(&normative_path, &normative, diagnostics);
+    let rule_headings = extract_rule_headings(&normative);
+    if rule_headings.is_empty() {
         diagnostics.push(Diagnostic::new(
             &normative_path,
             format!("{} has no normative rule IDs", entry.id),
         ));
     }
     let expected_prefix = format!("{}-R", entry.id);
-    for rule_id in rule_ids {
+    let mut rule_ids = Vec::new();
+    for heading in rule_headings {
+        let rule_id = heading.id;
+        if heading.level != 2 {
+            diagnostics.push(Diagnostic::new(
+                &normative_path,
+                format!(
+                    "rule ID {rule_id} must use a level-2 heading; found level {} at line {}",
+                    heading.level, heading.line
+                ),
+            ));
+        }
         if !rule_id.starts_with(&expected_prefix) || !valid_rule_id(&rule_id) {
             diagnostics.push(Diagnostic::new(
                 &normative_path,
@@ -384,7 +449,89 @@ fn check_doctrine_entry(
                 format!("duplicate rule ID {rule_id}"),
             ));
         }
+        rule_ids.push(rule_id);
     }
+
+    let review_path = root.join(&entry.package_path).join("review-standard.md");
+    if let Some(review) = read_text(&review_path, diagnostics) {
+        for rule_id in rule_ids {
+            if !review.contains(&rule_id) {
+                diagnostics.push(Diagnostic::new(
+                    &review_path,
+                    format!("review standard does not cite normative rule {rule_id}"),
+                ));
+            }
+        }
+    }
+}
+
+fn check_structured_field_register(
+    path: &Path,
+    normative: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    for (line_index, line) in normative.lines().enumerate() {
+        let value = ["**Applicability.** ", "**Review evidence.** "]
+            .iter()
+            .find_map(|prefix| line.strip_prefix(prefix));
+        let Some(value) = value else {
+            continue;
+        };
+        if value.starts_with(|character: char| character.is_ascii_lowercase()) {
+            diagnostics.push(Diagnostic::new(
+                path,
+                format!(
+                    "structured rule field must use the capitalized noun-phrase register at line {}",
+                    line_index + 1
+                ),
+            ));
+        }
+    }
+}
+
+fn check_repository_version(
+    root: &Path,
+    manifest: &DoctrineManifest,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    let cargo_path = root.join("Cargo.toml");
+    let Some(cargo) = read_text(&cargo_path, diagnostics) else {
+        return;
+    };
+    let Some(workspace_version) = workspace_package_version(&cargo) else {
+        diagnostics.push(Diagnostic::new(
+            &cargo_path,
+            "workspace.package version is missing or is not a quoted string",
+        ));
+        return;
+    };
+    if manifest.repository_version != workspace_version {
+        diagnostics.push(Diagnostic::new(
+            root.join("manifest/doctrines.yaml"),
+            format!(
+                "repository_version {} does not match workspace.package version {workspace_version}",
+                manifest.repository_version
+            ),
+        ));
+    }
+}
+
+fn workspace_package_version(cargo: &str) -> Option<&str> {
+    let mut in_workspace_package = false;
+    for line in cargo.lines() {
+        let line = line.trim();
+        if line.starts_with('[') {
+            in_workspace_package = line == "[workspace.package]";
+            continue;
+        }
+        if !in_workspace_package {
+            continue;
+        }
+        if let Some(value) = line.strip_prefix("version = \"") {
+            return value.strip_suffix('"');
+        }
+    }
+    None
 }
 
 fn check_front_matter(root: &Path, entry: &DoctrineEntry, diagnostics: &mut Vec<Diagnostic>) {
@@ -488,6 +635,16 @@ fn check_related_paths(root: &Path, entry: &DoctrineEntry, diagnostics: &mut Vec
         .chain(&entry.related_boundaries)
         .chain(&entry.related_case_studies);
     for path in paths {
+        if !valid_manifest_path(path) {
+            diagnostics.push(Diagnostic::new(
+                root.join("manifest/doctrines.yaml"),
+                format!(
+                    "related path referenced by {} is not a normalized repository-relative path: {path}",
+                    entry.id
+                ),
+            ));
+            continue;
+        }
         if !root.join(path).exists() {
             diagnostics.push(Diagnostic::new(
                 root.join(path),
@@ -543,86 +700,138 @@ fn check_agents(
     let mut orderings = BTreeSet::new();
     let mut outputs = BTreeSet::new();
     for pack in &manifest.packs {
-        if pack.purpose.trim().len() < 20 {
-            diagnostics.push(Diagnostic::new(
-                &manifest_path,
-                format!("agent {} purpose is too short", pack.id),
-            ));
-        }
-        if !matches!(
-            pack.maximum_verbosity.as_str(),
-            "focused" | "operational" | "detailed" | "exhaustive"
-        ) {
-            diagnostics.push(Diagnostic::new(
-                &manifest_path,
-                format!(
-                    "agent {} has invalid maximum_verbosity {}",
-                    pack.id, pack.maximum_verbosity
-                ),
-            ));
-        }
-        if !orderings.insert(pack.ordering) {
-            diagnostics.push(Diagnostic::new(
-                &manifest_path,
-                format!("agent ordering {} is duplicated", pack.ordering),
-            ));
-        }
-        if !outputs.insert(pack.output_path.as_str()) {
-            diagnostics.push(Diagnostic::new(
-                &manifest_path,
-                format!("agent output {} is duplicated", pack.output_path),
-            ));
-        }
-        if !pack.output_path.starts_with("dist/agents/") {
-            diagnostics.push(Diagnostic::new(
-                &manifest_path,
-                format!(
-                    "agent output {} must be under dist/agents",
-                    pack.output_path
-                ),
-            ));
-        }
+        check_agent_pack(
+            root,
+            &manifest_path,
+            pack,
+            &doctrine_ids,
+            &mut orderings,
+            &mut outputs,
+            diagnostics,
+        );
+    }
+}
 
-        for path in pack.canonical_sources.iter().chain(&pack.review_checklists) {
-            if !root.join(path).is_file() {
-                diagnostics.push(Diagnostic::new(
-                    root.join(path),
-                    format!("agent {} references a missing canonical file", pack.id),
-                ));
-            }
-        }
-        for doctrine in &pack.doctrine_selections {
-            if !doctrine_ids.contains(doctrine.as_str()) {
-                diagnostics.push(Diagnostic::new(
-                    &manifest_path,
-                    format!("agent {} selects unknown doctrine {doctrine}", pack.id),
-                ));
-            }
-        }
-        if !root.join(&pack.output_path).is_file() {
+fn check_agent_pack<'a>(
+    root: &Path,
+    manifest_path: &Path,
+    pack: &'a AgentPack,
+    doctrine_ids: &BTreeSet<&str>,
+    orderings: &mut BTreeSet<u16>,
+    outputs: &mut BTreeSet<&'a str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if pack.purpose.trim().len() < 20 {
+        diagnostics.push(Diagnostic::new(
+            manifest_path,
+            format!("agent {} purpose is too short", pack.id),
+        ));
+    }
+    if !matches!(
+        pack.maximum_verbosity.as_str(),
+        "focused" | "operational" | "detailed" | "exhaustive"
+    ) {
+        diagnostics.push(Diagnostic::new(
+            manifest_path,
+            format!(
+                "agent {} has invalid maximum_verbosity {}",
+                pack.id, pack.maximum_verbosity
+            ),
+        ));
+    }
+    if !orderings.insert(pack.ordering) {
+        diagnostics.push(Diagnostic::new(
+            manifest_path,
+            format!("agent ordering {} is duplicated", pack.ordering),
+        ));
+    }
+    if !outputs.insert(pack.output_path.as_str()) {
+        diagnostics.push(Diagnostic::new(
+            manifest_path,
+            format!("agent output {} is duplicated", pack.output_path),
+        ));
+    }
+    if !pack.output_path.starts_with("dist/agents/") {
+        diagnostics.push(Diagnostic::new(
+            manifest_path,
+            format!(
+                "agent output {} must be under dist/agents",
+                pack.output_path
+            ),
+        ));
+    }
+
+    for path in pack.canonical_sources.iter().chain(&pack.review_checklists) {
+        check_agent_source(root, manifest_path, pack, path, diagnostics);
+    }
+    for doctrine in &pack.doctrine_selections {
+        if !doctrine_ids.contains(doctrine.as_str()) {
             diagnostics.push(Diagnostic::new(
-                root.join(&pack.output_path),
-                format!("generated output for agent {} is missing", pack.id),
+                manifest_path,
+                format!("agent {} selects unknown doctrine {doctrine}", pack.id),
             ));
         }
+    }
+    if !valid_manifest_path(&pack.output_path) {
+        diagnostics.push(Diagnostic::new(
+            manifest_path,
+            format!(
+                "agent {} output path is not normalized and repository-relative",
+                pack.id
+            ),
+        ));
+    } else if !root.join(&pack.output_path).is_file() {
+        diagnostics.push(Diagnostic::new(
+            root.join(&pack.output_path),
+            format!("generated output for agent {} is missing", pack.id),
+        ));
+    }
+}
+
+fn check_agent_source(
+    root: &Path,
+    manifest_path: &Path,
+    pack: &AgentPack,
+    path: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if !valid_manifest_path(path) {
+        diagnostics.push(Diagnostic::new(
+            manifest_path,
+            format!(
+                "agent {} path is not normalized and repository-relative: {path}",
+                pack.id
+            ),
+        ));
+    } else if !root.join(path).is_file() {
+        diagnostics.push(Diagnostic::new(
+            root.join(path),
+            format!("agent {} references a missing canonical file", pack.id),
+        ));
     }
 }
 
 fn check_forbidden_markers(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
+    collect_repository_files(root, root, &mut |path| {
+        scan_marker_file(path, diagnostics);
+    });
+}
+
+fn check_normative_scope(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     for path in ROOT_DOCUMENTS {
-        scan_marker_file(&root.join(path), diagnostics);
+        scan_normative_scope(root, &root.join(path), diagnostics);
     }
     for directory in CANONICAL_ROOTS {
         collect_files(&root.join(directory), &mut |path| {
             if path.extension().and_then(|extension| extension.to_str()) == Some("md") {
-                scan_marker_file(path, diagnostics);
+                scan_normative_scope(root, path, diagnostics);
             }
         });
     }
 }
 
 fn scan_marker_file(path: &Path, diagnostics: &mut Vec<Diagnostic>) {
-    let Some(text) = read_text(path, diagnostics) else {
+    let Ok(text) = fs::read_to_string(path) else {
         return;
     };
     for (line_index, line) in text.lines().enumerate() {
@@ -639,6 +848,42 @@ fn scan_marker_file(path: &Path, diagnostics: &mut Vec<Diagnostic>) {
             }
         }
     }
+}
+
+fn scan_normative_scope(root: &Path, path: &Path, diagnostics: &mut Vec<Diagnostic>) {
+    let relative = path.strip_prefix(root).unwrap_or(path);
+    let relative_text = relative.to_string_lossy().replace('\\', "/");
+    if NORMATIVE_SCOPE_EXCEPTIONS.contains(&relative_text.as_str())
+        || relative.file_name().and_then(|name| name.to_str()) == Some("doctrine.md")
+    {
+        return;
+    }
+
+    let Some(text) = read_text(path, diagnostics) else {
+        return;
+    };
+    let mut in_fence = false;
+    for (line_index, line) in text.lines().enumerate() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            in_fence = !in_fence;
+            continue;
+        }
+        if !in_fence && contains_normative_term(line) {
+            diagnostics.push(Diagnostic::new(
+                path,
+                format!(
+                    "uppercase normative term outside doctrine.md or an explicit governance contract at line {}",
+                    line_index + 1
+                ),
+            ));
+        }
+    }
+}
+
+fn contains_normative_term(line: &str) -> bool {
+    line.split(|character: char| !character.is_ascii_alphabetic())
+        .any(|word| matches!(word, "MUST" | "SHOULD" | "MAY"))
 }
 
 fn check_generated_files(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
@@ -685,6 +930,36 @@ fn collect_files(directory: &Path, visit: &mut impl FnMut(&Path)) {
     }
 }
 
+fn collect_repository_files(root: &Path, directory: &Path, visit: &mut impl FnMut(&Path)) {
+    let Ok(entries) = fs::read_dir(directory) else {
+        return;
+    };
+    let mut paths = entries
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .collect::<Vec<_>>();
+    paths.sort();
+
+    for path in paths {
+        if path.is_dir() {
+            let relative = path.strip_prefix(root).unwrap_or(&path);
+            let top = relative
+                .components()
+                .next()
+                .and_then(|component| match component {
+                    std::path::Component::Normal(value) => value.to_str(),
+                    _ => None,
+                });
+            if matches!(top, Some(".git" | "node_modules" | "target" | "templates")) {
+                continue;
+            }
+            collect_repository_files(root, &path, visit);
+        } else if path.is_file() {
+            visit(&path);
+        }
+    }
+}
+
 fn read_text(path: &Path, diagnostics: &mut Vec<Diagnostic>) -> Option<String> {
     match fs::read_to_string(path) {
         Ok(text) => Some(text),
@@ -708,13 +983,39 @@ fn front_matter(text: &str) -> Result<&str, &'static str> {
     Ok(&body[..end])
 }
 
-fn extract_rule_ids(text: &str) -> Vec<String> {
+fn extract_rule_headings(text: &str) -> Vec<RuleHeading> {
     text.lines()
-        .filter_map(|line| line.strip_prefix("## "))
-        .filter_map(|heading| heading.split_whitespace().next())
-        .filter(|token| token.starts_with("RUST-DOC-"))
-        .map(str::to_owned)
+        .enumerate()
+        .filter_map(|(line_index, line)| {
+            let line = line.trim_start_matches(' ');
+            let level = line.bytes().take_while(|byte| *byte == b'#').count();
+            if !(1..=6).contains(&level) || line.as_bytes().get(level) != Some(&b' ') {
+                return None;
+            }
+            let heading = &line[level + 1..];
+            let token = heading.split_whitespace().next()?;
+            token.starts_with("RUST-DOC-").then(|| RuleHeading {
+                id: token.to_owned(),
+                level,
+                line: line_index + 1,
+            })
+        })
         .collect()
+}
+
+fn valid_manifest_path(value: &str) -> bool {
+    !value.is_empty()
+        && !value.starts_with('/')
+        && !value.ends_with('/')
+        && !value.contains('\\')
+        && value
+            .split('/')
+            .all(|component| !component.is_empty() && !matches!(component, "." | ".."))
+        && value.bytes().all(|byte| {
+            byte.is_ascii_lowercase()
+                || byte.is_ascii_digit()
+                || matches!(byte, b'.' | b'_' | b'-' | b'/')
+        })
 }
 
 fn valid_rule_id(rule_id: &str) -> bool {
@@ -739,12 +1040,31 @@ fn display_path(root: &Path, path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{extract_rule_ids, front_matter, valid_rule_id};
+    use super::{
+        RuleHeading, check_structured_field_register, contains_normative_term,
+        extract_rule_headings, front_matter, valid_manifest_path, valid_rule_id,
+        workspace_package_version,
+    };
 
     #[test]
-    fn extracts_only_doctrine_rule_headings() {
-        let text = "# Title\n\n## RUST-DOC-0001-R001 — Rule\n\n## Rationale\n";
-        assert_eq!(extract_rule_ids(text), ["RUST-DOC-0001-R001"]);
+    fn extracts_rule_headings_at_every_depth() {
+        let text =
+            "# Title\n\n## RUST-DOC-0001-R001 — Rule\n\n### RUST-DOC-0001-R002 — Wrong depth\n";
+        assert_eq!(
+            extract_rule_headings(text),
+            [
+                RuleHeading {
+                    id: "RUST-DOC-0001-R001".to_owned(),
+                    level: 2,
+                    line: 3,
+                },
+                RuleHeading {
+                    id: "RUST-DOC-0001-R002".to_owned(),
+                    level: 3,
+                    line: 5,
+                },
+            ]
+        );
     }
 
     #[test]
@@ -761,5 +1081,37 @@ mod tests {
             front_matter(text).expect("valid front matter"),
             "id: RUST-DOC-0001"
         );
+    }
+
+    #[test]
+    fn workspace_version_comes_from_workspace_package_section() {
+        let cargo = "[package]\nversion = \"9.9.9\"\n\n[workspace.package]\nversion = \"0.2.0\"\n";
+        assert_eq!(workspace_package_version(cargo), Some("0.2.0"));
+    }
+
+    #[test]
+    fn manifest_paths_reject_parent_components() {
+        assert!(valid_manifest_path("agents/shared.md"));
+        assert!(!valid_manifest_path("../shared.md"));
+        assert!(!valid_manifest_path("agents/../shared.md"));
+    }
+
+    #[test]
+    fn normative_terms_require_whole_uppercase_words() {
+        assert!(contains_normative_term("Callers MUST validate."));
+        assert!(!contains_normative_term("Callers must validate."));
+        assert!(!contains_normative_term("MAYBE is not a normative term."));
+    }
+
+    #[test]
+    fn structured_fields_reject_lowercase_register() {
+        let mut diagnostics = Vec::new();
+        check_structured_field_register(
+            std::path::Path::new("doctrine.md"),
+            "**Applicability.** lower-case fragment.\n**Review evidence.** Capitalized artifact.\n",
+            &mut diagnostics,
+        );
+        assert_eq!(diagnostics.len(), 1);
+        assert!(diagnostics[0].message.contains("capitalized noun-phrase"));
     }
 }

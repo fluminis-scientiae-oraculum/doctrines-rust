@@ -79,7 +79,7 @@ gate, then use the anti-pattern catalogue as an adversarial second pass.
 
 ## Compact doctrine summary
 
-Every unsafe operation MUST have a safety invariant and a local argument showing
+Every unsafe operation needs a safety invariant and a local argument showing
 why all required preconditions hold. Unsafe surface is minimized and
 encapsulated. A safe public API must be sound for all safe callers. `unsafe fn`
 documents caller obligations; `unsafe impl Send` or `Sync` includes a concurrency
@@ -88,3 +88,13 @@ threading, allocator, and unwind behavior. Partial initialization accounts for
 drop. Layout and provenance are never guessed. Miri, sanitizers, model checking,
 fuzzing, and target testing provide complementary evidence but do not replace
 reasoning.
+
+## Executable evidence status
+
+The 0.1.0 workspace forbids unsafe code in its own crates and therefore ships no
+unsafe implementation, Miri run, sanitizer run, FFI target test, or
+provenance-sensitive executable example. The review tables and source notes
+define those evidence obligations, but they are not evidence for a concrete
+unsafe abstraction. A later unsafe example would require its own safety
+argument and specialized tool results rather than inheriting credibility from
+this prose.

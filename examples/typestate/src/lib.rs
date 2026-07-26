@@ -19,7 +19,7 @@ pub struct Open;
 #[derive(Debug)]
 pub struct Connection<State> {
     endpoint: String,
-    next_sequence: u64,
+    next_sequence: Option<u64>,
     state: PhantomData<State>,
 }
 
@@ -99,7 +99,7 @@ impl Connection<Closed> {
     pub fn new(endpoint: impl Into<String>) -> Self {
         Self {
             endpoint: endpoint.into(),
-            next_sequence: 1,
+            next_sequence: Some(1),
             state: PhantomData,
         }
     }
@@ -141,13 +141,9 @@ impl Connection<Open> {
             return Err(SendError::RemoteUnavailable);
         }
 
-        let receipt = SendReceipt {
-            sequence: self.next_sequence,
-        };
-        self.next_sequence = self
-            .next_sequence
-            .checked_add(1)
-            .ok_or(SendError::SequenceExhausted)?;
+        let sequence = self.next_sequence.ok_or(SendError::SequenceExhausted)?;
+        let receipt = SendReceipt { sequence };
+        self.next_sequence = sequence.checked_add(1);
         Ok(receipt)
     }
 
@@ -308,5 +304,28 @@ mod tests {
     fn transaction_rejects_empty_mutation() {
         let mut transaction = ActiveTransaction::begin();
         assert_eq!(transaction.stage(" "), Err(StageError::EmptyMutation));
+    }
+
+    #[test]
+    fn final_receipt_sequence_is_issued_before_exhaustion() {
+        let mut connection = Connection::<Closed> {
+            endpoint: "service:443".to_owned(),
+            next_sequence: Some(u64::MAX),
+            state: std::marker::PhantomData,
+        }
+        .connect()
+        .expect("example endpoint connects");
+
+        assert_eq!(
+            connection
+                .send(b"final")
+                .expect("maximum sequence remains issuable")
+                .sequence(),
+            u64::MAX
+        );
+        assert_eq!(
+            connection.send(b"exhausted"),
+            Err(SendError::SequenceExhausted)
+        );
     }
 }

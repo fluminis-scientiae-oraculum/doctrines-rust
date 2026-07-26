@@ -106,10 +106,9 @@ impl PositiveMoney {
         }
 
         let minor_units = self
-            .minor_units()
-            .checked_add(other.minor_units())
+            .minor_units
+            .checked_add(other.minor_units.get())
             .ok_or(AdditionError::Overflow)?;
-        let minor_units = NonZeroU64::new(minor_units).ok_or(AdditionError::Overflow)?;
 
         Ok(Self {
             minor_units,
@@ -130,10 +129,11 @@ impl ReceiptId {
     /// Returns [`IdentifierError`] for empty or whitespace-only input.
     pub fn new(value: impl Into<String>) -> Result<Self, IdentifierError> {
         let value = value.into();
-        if value.trim().is_empty() {
+        let value = value.trim();
+        if value.is_empty() {
             return Err(IdentifierError);
         }
-        Ok(Self(value))
+        Ok(Self(value.to_owned()))
     }
 
     /// Returns the identifier.
@@ -215,7 +215,8 @@ mod tests {
 
     #[test]
     fn paid_state_requires_a_receipt() {
-        let receipt = ReceiptId::new("receipt-42").expect("nonempty identifier");
+        let receipt = ReceiptId::new("  receipt-42  ").expect("nonempty identifier");
+        assert_eq!(receipt.as_str(), "receipt-42");
         let state = InvoiceState::Paid {
             receipt: receipt.clone(),
         };

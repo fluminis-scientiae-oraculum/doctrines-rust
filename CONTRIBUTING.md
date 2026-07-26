@@ -35,10 +35,11 @@ its IDs, cross-links, or assumptions unchanged.
 
 ## Normative language
 
-Read `foundations/normative-language.md`. Uppercase MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY
-carry their defined normative meanings. Each rule has one stable
-`RUST-DOC-####-R###` identifier and records statement, intent, applicability, allowed
-exceptions, and expected review evidence.
+Read `foundations/normative-language.md`. Uppercase requirement terms in a doctrine's
+`doctrine.md` carry their defined normative meanings. Repository governance contracts can also
+use those terms for contributor obligations, but they do not create unnumbered doctrine rules.
+Each doctrine rule has one stable `RUST-DOC-####-R###` identifier and records statement, intent,
+applicability, allowed exceptions, and expected review evidence.
 
 Rationale is informative unless a rule incorporates it. Examples illustrate a mechanism
 unless marked required. A waiver is explicit, scoped, reviewed, owned, risk-assessed, and

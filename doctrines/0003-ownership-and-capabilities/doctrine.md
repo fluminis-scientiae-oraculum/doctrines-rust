@@ -115,7 +115,7 @@ serialization, logging, and long-lived borrowing; exposure MUST be explicit and 
 **Allowed exceptions.** None for ordinary formatting. Controlled serialization MAY be
 required for a protected secret store under a distinct API.
 
-**Review evidence.** trait implementation audit, redaction tests, exposure call sites, and
+**Review evidence.** Trait implementation audit, redaction tests, exposure call sites, and
 storage contract.
 
 ## RUST-DOC-0003-R009 — Limit zeroization claims
@@ -130,7 +130,7 @@ serialization unless those paths are controlled and evidenced.
 
 **Allowed exceptions.** None to claim accuracy.
 
-**Review evidence.** ownership and copy analysis, drop path, memory-locking policy where used,
+**Review evidence.** Ownership and copy analysis, drop path, memory-locking policy where used,
 and explicit non-guarantees.
 
 ## RUST-DOC-0003-R010 — Design before `Arc<Mutex<T>>`
@@ -145,7 +145,7 @@ task responsibility, mutation protocol, lock scope, and shutdown.
 **Allowed exceptions.** It MAY be the simplest correct mechanism after the ownership and
 synchronization contract is documented.
 
-**Review evidence.** owner, lock invariant, contention and poisoning policy, alternatives, and
+**Review evidence.** Owner, lock invariant, contention and poisoning policy, alternatives, and
 tests.
 
 ## RUST-DOC-0003-R011 — Justify interior mutability
@@ -161,7 +161,7 @@ design.
 **Allowed exceptions.** Local caching or instrumentation MAY use it when invisible to domain
 semantics and reentrancy is safe.
 
-**Review evidence.** aliasing rationale, borrow/panic behavior, synchronization, and reentrancy
+**Review evidence.** Aliasing rationale, borrow/panic behavior, synchronization, and reentrancy
 tests.
 
 ## RUST-DOC-0003-R012 — Use lifetimes for real relationships
@@ -177,7 +177,7 @@ liveness.
 **Allowed exceptions.** Internal generic abstraction MAY carry a lifetime required by a
 dependency, with its relationship documented.
 
-**Review evidence.** referent and duration explanation, escape analysis, and simpler owned
+**Review evidence.** Referent and duration explanation, escape analysis, and simpler owned
 alternative.
 
 ## RUST-DOC-0003-R013 — Define cross-task ownership
@@ -192,7 +192,7 @@ is dropped or panics.
 
 **Allowed exceptions.** Truly process-lifetime services MAY be owned by the process supervisor.
 
-**Review evidence.** task tree, join/abort contract, channel closure, and shutdown tests.
+**Review evidence.** Task tree, join/abort contract, channel closure, and shutdown tests.
 
 ## RUST-DOC-0003-R014 — Keep external authority revalidation explicit
 
@@ -207,5 +207,5 @@ use MUST revalidate or carry a bounded lease.
 **Allowed exceptions.** Immutable operation-scoped grants MAY remain valid for their defined
 commit window.
 
-**Review evidence.** lease or recheck boundary, stale-state handling, and revocation race
+**Review evidence.** Lease or recheck boundary, stale-state handling, and revocation race
 tests.

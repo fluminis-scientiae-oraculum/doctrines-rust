@@ -28,8 +28,10 @@ to obtain a principal. Authorize that principal for the specific action and
 resource, producing a scoped capability or explicit decision. Validate
 cross-entity business rules transactionally where needed.
 
-Authentication MUST NOT be treated as universal authorization. Frontend state
-or client-provided role data is never authority.
+Authentication establishes identity evidence, not universal authorization. Under
+[RUST-DOC-0003-R004](../doctrines/0003-ownership-and-capabilities/doctrine.md#rust-doc-0003-r004--restrict-capability-issuance-and-surface),
+an authorization decision or capability grants only its documented action and resource scope.
+Frontend state or client-provided role data is never authority.
 
 ## 4. How is a trusted type constructed?
 

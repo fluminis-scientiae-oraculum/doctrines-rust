@@ -93,3 +93,11 @@ contention, and size rather than inferring them. Async concurrency is not
 parallel speedup. Zero-copy claims identify exactly which copies are removed and
 which lifetime or retention costs are introduced. Regression thresholds are
 automated only for sufficiently stable signals. All changes preserve invariants.
+
+## Executable evidence status
+
+The 0.1.0 workspace contains no benchmark harness, retained measurement,
+allocation profile, flamegraph, or performance-regression threshold. It
+therefore makes no measured claim about example speed, latency, allocation, or
+binary size. This doctrine specifies the evidence required when such a claim is
+introduced; it does not convert unmeasured examples into performance evidence.

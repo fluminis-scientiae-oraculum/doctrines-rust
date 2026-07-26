@@ -25,3 +25,14 @@ Record pass, fail, not applicable, or waiver for each gate.
 
 A critical failure blocks approval unless an explicit doctrine waiver permits it. Redacting a
 public message does not justify erasing protected internal evidence.
+
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0002-R001`, `RUST-DOC-0002-R002`, `RUST-DOC-0002-R003`, `RUST-DOC-0002-R004`
+- `RUST-DOC-0002-R005`, `RUST-DOC-0002-R006`, `RUST-DOC-0002-R007`, `RUST-DOC-0002-R008`
+- `RUST-DOC-0002-R009`, `RUST-DOC-0002-R010`, `RUST-DOC-0002-R011`, `RUST-DOC-0002-R012`
+- `RUST-DOC-0002-R013`, `RUST-DOC-0002-R014`

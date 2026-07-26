@@ -6,26 +6,24 @@ use std::num::NonZeroU64;
 /// Email address whose ownership proof was accepted by this example verifier.
 #[derive(Debug, Eq, PartialEq)]
 pub struct VerifiedEmailAddress {
-    address: String,
-    verification_id: String,
+    evidence: (String, String),
 }
 
 impl VerifiedEmailAddress {
     fn from_accepted_evidence(address: String, verification_id: String) -> Self {
         Self {
-            address,
-            verification_id,
+            evidence: (address, verification_id),
         }
     }
 
     /// Returns the address associated with provider evidence.
     pub fn address(&self) -> &str {
-        &self.address
+        &self.evidence.0
     }
 
     /// Returns the example verification event identity.
     pub fn verification_id(&self) -> &str {
-        &self.verification_id
+        &self.evidence.1
     }
 }
 
@@ -101,10 +99,24 @@ impl Default for Connection<Closed> {
 
 impl Connection<Open> {
     /// Sends only through a locally open handle.
-    pub fn send(&mut self, _payload: &[u8]) -> SendReceipt {
-        self.sequence += 1;
-        SendReceipt(self.sequence)
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SendError`] when the receipt sequence is exhausted.
+    pub fn send(&mut self, _payload: &[u8]) -> Result<SendReceipt, SendError> {
+        self.sequence = self
+            .sequence
+            .checked_add(1)
+            .ok_or(SendError::SequenceExhausted)?;
+        Ok(SendReceipt(self.sequence))
     }
+}
+
+/// Failure to issue a local receipt.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SendError {
+    /// No later receipt sequence can be represented.
+    SequenceExhausted,
 }
 
 /// Local receipt for compile-fail API evidence.
@@ -218,7 +230,10 @@ mod tests {
         assert_eq!(verified.address(), "owner@example.com");
 
         let mut open = Connection::new().connect();
-        assert_eq!(open.send(b"data").sequence(), 1);
+        assert_eq!(
+            open.send(b"data").expect("first receipt fits").sequence(),
+            1
+        );
 
         let amount = NonZeroU64::new(1).expect("one is nonzero");
         assert_eq!(Payment::new(amount).authorize().capture().amount(), 1);

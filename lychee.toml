@@ -4,9 +4,9 @@ max_concurrency = 32
 timeout = 30
 retry_wait_time = 2
 
-# Generated bundles repeat links already checked in their canonical sources.
+# Generated bundles are checked because link rewriting can fail only after
+# canonical sources are relocated into dist.
 exclude_path = [
-    "(^|/)dist/",
     "(^|/)node_modules/",
     "(^|/)target/",
     "(^|/)templates/",

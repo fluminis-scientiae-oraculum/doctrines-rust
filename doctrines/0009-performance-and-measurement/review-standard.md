@@ -68,3 +68,15 @@ reference**.
 
 Critical failures block the performance claim and any complexity justified by
 it. Correctness failures block the change itself.
+
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0009-R001`, `RUST-DOC-0009-R002`, `RUST-DOC-0009-R003`, `RUST-DOC-0009-R004`
+- `RUST-DOC-0009-R005`, `RUST-DOC-0009-R006`, `RUST-DOC-0009-R007`, `RUST-DOC-0009-R008`
+- `RUST-DOC-0009-R009`, `RUST-DOC-0009-R010`, `RUST-DOC-0009-R011`, `RUST-DOC-0009-R012`
+- `RUST-DOC-0009-R013`, `RUST-DOC-0009-R014`, `RUST-DOC-0009-R015`, `RUST-DOC-0009-R016`
+- `RUST-DOC-0009-R017`, `RUST-DOC-0009-R018`, `RUST-DOC-0009-R019`, `RUST-DOC-0009-R020`

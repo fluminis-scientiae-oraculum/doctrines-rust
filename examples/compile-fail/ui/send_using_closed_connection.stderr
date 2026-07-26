@@ -11,5 +11,5 @@ error[E0308]: mismatched types
 note: method defined here
  --> src/lib.rs
   |
-  |     pub fn send(&mut self, _payload: &[u8]) -> SendReceipt {
+  |     pub fn send(&mut self, _payload: &[u8]) -> Result<SendReceipt, SendError> {
   |            ^^^^

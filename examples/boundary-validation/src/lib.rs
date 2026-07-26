@@ -3,15 +3,15 @@
 use serde::Deserialize;
 use std::error::Error;
 use std::fmt;
+use validated_newtypes::{EmailAddress, EmailError};
 
-const MAX_EMAIL_BYTES: usize = 254;
 const MAX_NAME_CHARS: usize = 80;
 
 /// Domain conversion failure shared by request and row adapters.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ContactError {
     /// Email violates the example syntax policy.
-    InvalidEmail,
+    InvalidEmail(EmailError),
     /// Display name is empty, too long, or contains controls.
     InvalidDisplayName,
     /// Persistence status tag is unsupported.
@@ -21,7 +21,7 @@ pub enum ContactError {
 impl fmt::Display for ContactError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
-            Self::InvalidEmail => "contact email is invalid",
+            Self::InvalidEmail(_) => "contact email is invalid",
             Self::InvalidDisplayName => "contact display name is invalid",
             Self::UnsupportedStatus => "contact status is unsupported",
         };
@@ -29,35 +29,12 @@ impl fmt::Display for ContactError {
     }
 }
 
-impl Error for ContactError {}
-
-/// Syntax-validated contact email.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ContactEmail(String);
-
-impl ContactEmail {
-    fn parse(value: &str) -> Result<Self, ContactError> {
-        let value = value.trim();
-        if value.is_empty() || value.len() > MAX_EMAIL_BYTES || value.chars().any(char::is_control)
-        {
-            return Err(ContactError::InvalidEmail);
+impl Error for ContactError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::InvalidEmail(source) => Some(source),
+            Self::InvalidDisplayName | Self::UnsupportedStatus => None,
         }
-
-        let (local, domain) = value.split_once('@').ok_or(ContactError::InvalidEmail)?;
-        if local.is_empty()
-            || domain.contains('@')
-            || !domain.contains('.')
-            || domain.split('.').any(str::is_empty)
-        {
-            return Err(ContactError::InvalidEmail);
-        }
-
-        Ok(Self(value.to_owned()))
-    }
-
-    /// Returns the normalized address.
-    pub fn as_str(&self) -> &str {
-        &self.0
     }
 }
 
@@ -93,13 +70,13 @@ struct RawContactDto {
 #[derive(Debug, Deserialize, Eq, PartialEq)]
 #[serde(try_from = "RawContactDto")]
 pub struct Contact {
-    email: ContactEmail,
+    email: EmailAddress,
     display_name: DisplayName,
 }
 
 impl Contact {
     /// Returns the validated email.
-    pub const fn email(&self) -> &ContactEmail {
+    pub const fn email(&self) -> &EmailAddress {
         &self.email
     }
 
@@ -114,7 +91,7 @@ impl TryFrom<RawContactDto> for Contact {
 
     fn try_from(raw: RawContactDto) -> Result<Self, Self::Error> {
         Ok(Self {
-            email: ContactEmail::parse(&raw.email)?,
+            email: EmailAddress::try_from(raw.email).map_err(ContactError::InvalidEmail)?,
             display_name: DisplayName::parse(&raw.display_name)?,
         })
     }
@@ -139,7 +116,7 @@ impl TryFrom<ContactRow> for Contact {
             return Err(ContactError::UnsupportedStatus);
         }
         Ok(Self {
-            email: ContactEmail::parse(&row.email)?,
+            email: EmailAddress::try_from(row.email).map_err(ContactError::InvalidEmail)?,
             display_name: DisplayName::parse(&row.display_name)?,
         })
     }
@@ -148,6 +125,7 @@ impl TryFrom<ContactRow> for Contact {
 #[cfg(test)]
 mod tests {
     use super::{Contact, ContactError, ContactRow};
+    use validated_newtypes::EmailError;
 
     #[test]
     fn serde_uses_checked_domain_conversion() {
@@ -176,7 +154,10 @@ mod tests {
             status: "active".to_owned(),
         };
 
-        assert_eq!(Contact::try_from(row), Err(ContactError::InvalidEmail));
+        assert_eq!(
+            Contact::try_from(row),
+            Err(ContactError::InvalidEmail(EmailError::Separator))
+        );
     }
 
     #[test]
@@ -188,5 +169,14 @@ mod tests {
         };
 
         assert_eq!(Contact::try_from(row), Err(ContactError::UnsupportedStatus));
+    }
+
+    #[test]
+    fn boundary_preserves_canonical_email_policy() {
+        let invalid_domain = r#"{"email":"user@ex ample.com","display_name":"Ada"}"#;
+        let error = serde_json::from_str::<Contact>(invalid_domain)
+            .expect_err("boundary must reuse the canonical email constructor");
+
+        assert!(error.to_string().contains("contact email is invalid"));
     }
 }

@@ -5,7 +5,7 @@ without personal degradation.
 
 ## Expected conduct
 
-Contributors MUST:
+Contributors are expected to:
 
 - discuss claims, evidence, risks, and tradeoffs rather than speculate about a person's
   motives or competence;

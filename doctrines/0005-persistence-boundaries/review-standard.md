@@ -58,3 +58,15 @@ Mark every gate **pass**, **fail**, **not applicable**, or with an approved
 
 Critical failures block merge. A waiver must identify owner, affected paths,
 compensating controls, monitoring, expiry, and a condition for removal.
+
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0005-R001`, `RUST-DOC-0005-R002`, `RUST-DOC-0005-R003`, `RUST-DOC-0005-R004`
+- `RUST-DOC-0005-R005`, `RUST-DOC-0005-R006`, `RUST-DOC-0005-R007`, `RUST-DOC-0005-R008`
+- `RUST-DOC-0005-R009`, `RUST-DOC-0005-R010`, `RUST-DOC-0005-R011`, `RUST-DOC-0005-R012`
+- `RUST-DOC-0005-R013`, `RUST-DOC-0005-R014`, `RUST-DOC-0005-R015`, `RUST-DOC-0005-R016`
+- `RUST-DOC-0005-R017`

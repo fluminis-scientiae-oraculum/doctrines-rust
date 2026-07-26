@@ -64,3 +64,15 @@ Mark each gate **pass**, **fail**, **not applicable**, or with an approved
 
 Approval requires a reviewer competent in the relevant unsafe domain. Tool
 success cannot compensate for an incomplete safety argument.
+
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0007-R001`, `RUST-DOC-0007-R002`, `RUST-DOC-0007-R003`, `RUST-DOC-0007-R004`
+- `RUST-DOC-0007-R005`, `RUST-DOC-0007-R006`, `RUST-DOC-0007-R007`, `RUST-DOC-0007-R008`
+- `RUST-DOC-0007-R009`, `RUST-DOC-0007-R010`, `RUST-DOC-0007-R011`, `RUST-DOC-0007-R012`
+- `RUST-DOC-0007-R013`, `RUST-DOC-0007-R014`, `RUST-DOC-0007-R015`, `RUST-DOC-0007-R016`
+- `RUST-DOC-0007-R017`, `RUST-DOC-0007-R018`

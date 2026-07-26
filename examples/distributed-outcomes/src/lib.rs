@@ -55,6 +55,33 @@ impl IdempotencyKey {
     }
 }
 
+/// Stable identities carried by every attempt of one logical operation.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AttemptIdentity {
+    operation_id: OperationId,
+    idempotency_key: IdempotencyKey,
+}
+
+impl AttemptIdentity {
+    /// Associates one logical operation with its receiver-scoped idempotency key.
+    pub const fn new(operation_id: OperationId, idempotency_key: IdempotencyKey) -> Self {
+        Self {
+            operation_id,
+            idempotency_key,
+        }
+    }
+
+    /// Returns the logical operation identity.
+    pub const fn operation_id(&self) -> &OperationId {
+        &self.operation_id
+    }
+
+    /// Returns the key that every retry of this logical operation must reuse.
+    pub const fn idempotency_key(&self) -> &IdempotencyKey {
+        &self.idempotency_key
+    }
+}
+
 /// Evidence required to observe an ambiguous external operation later.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReconciliationToken {
@@ -115,59 +142,94 @@ pub enum AttemptObservation {
 }
 
 /// Safe next action for one logical operation.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RetryDecision {
-    /// Reuse the same operation and idempotency identity within its budget.
-    RetrySameIdentity,
+    /// Retry while preserving both identities from the prior attempt.
+    RetrySameIdentity {
+        /// Identity that the next attempt must carry unchanged.
+        attempt: AttemptIdentity,
+    },
     /// Observe authoritative external state before another attempt.
-    ReconcileBeforeRetry,
+    ReconcileBeforeRetry {
+        /// Logical operation whose external state must be reconciled.
+        operation_id: OperationId,
+    },
     /// Do not repeat the operation automatically.
     DoNotRetry,
 }
 
 /// Chooses retry behavior from failure-point evidence and receiver semantics.
-pub const fn decide_retry(
+pub fn decide_retry(
+    attempt: &AttemptIdentity,
     observation: AttemptObservation,
     receiver_is_idempotent: bool,
 ) -> RetryDecision {
     match observation {
-        AttemptObservation::NotDispatched => RetryDecision::RetrySameIdentity,
+        AttemptObservation::NotDispatched => RetryDecision::RetrySameIdentity {
+            attempt: attempt.clone(),
+        },
         AttemptObservation::ConfirmedRejection => RetryDecision::DoNotRetry,
         AttemptObservation::ExecutionAmbiguous if receiver_is_idempotent => {
-            RetryDecision::RetrySameIdentity
+            RetryDecision::RetrySameIdentity {
+                attempt: attempt.clone(),
+            }
         }
-        AttemptObservation::ExecutionAmbiguous => RetryDecision::ReconcileBeforeRetry,
+        AttemptObservation::ExecutionAmbiguous => RetryDecision::ReconcileBeforeRetry {
+            operation_id: attempt.operation_id.clone(),
+        },
     }
 }
 
 fn nonempty(value: impl Into<String>) -> Result<String, IdentityError> {
     let value = value.into();
-    if value.trim().is_empty() {
+    let value = value.trim();
+    if value.is_empty() {
         return Err(IdentityError);
     }
-    Ok(value)
+    Ok(value.to_owned())
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        AttemptObservation, OperationId, OperationOutcome, ReconciliationToken, RetryDecision,
-        decide_retry,
+        AttemptIdentity, AttemptObservation, IdempotencyKey, OperationId, OperationOutcome,
+        ReconciliationToken, RetryDecision, decide_retry,
     };
+
+    fn attempt(operation: &str, key: &str) -> AttemptIdentity {
+        AttemptIdentity::new(
+            OperationId::new(operation).expect("nonempty operation"),
+            IdempotencyKey::new(key).expect("nonempty idempotency key"),
+        )
+    }
 
     #[test]
     fn ambiguous_non_idempotent_attempt_requires_reconciliation() {
+        let attempt = attempt("capture-42", "capture-key-42");
         assert_eq!(
-            decide_retry(AttemptObservation::ExecutionAmbiguous, false),
-            RetryDecision::ReconcileBeforeRetry
+            decide_retry(&attempt, AttemptObservation::ExecutionAmbiguous, false),
+            RetryDecision::ReconcileBeforeRetry {
+                operation_id: attempt.operation_id().clone(),
+            }
         );
     }
 
     #[test]
-    fn pre_dispatch_failure_reuses_logical_identity() {
-        assert_eq!(
-            decide_retry(AttemptObservation::NotDispatched, false),
-            RetryDecision::RetrySameIdentity
+    fn retries_reuse_the_same_operation_and_idempotency_key() {
+        let first_attempt = attempt("capture-42", "capture-key-42");
+        let decision = decide_retry(&first_attempt, AttemptObservation::NotDispatched, false);
+        let RetryDecision::RetrySameIdentity { attempt: retry } = decision else {
+            panic!("pre-dispatch failure should permit retry");
+        };
+
+        assert_eq!(retry, first_attempt);
+        assert_eq!(retry.idempotency_key().as_str(), "capture-key-42");
+
+        let different_operation = attempt("capture-43", "capture-key-43");
+        assert_ne!(retry, different_operation);
+        assert_ne!(
+            retry.idempotency_key(),
+            different_operation.idempotency_key()
         );
     }
 
@@ -182,5 +244,17 @@ mod tests {
 
         assert_eq!(outcome, OperationOutcome::Unknown { reconciliation });
         assert_eq!(operation.as_str(), "capture-42");
+    }
+
+    #[test]
+    fn identities_normalize_surrounding_whitespace() {
+        let operation = OperationId::new("  capture-42  ").expect("nonempty operation");
+        let key = IdempotencyKey::new("  capture-key-42  ").expect("nonempty key");
+        let reconciliation = ReconciliationToken::new(operation.clone(), "  provider-capture-7  ")
+            .expect("nonempty provider reference");
+
+        assert_eq!(operation.as_str(), "capture-42");
+        assert_eq!(key.as_str(), "capture-key-42");
+        assert_eq!(reconciliation.provider_reference(), "provider-capture-7");
     }
 }
