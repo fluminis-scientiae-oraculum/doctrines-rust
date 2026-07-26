@@ -1,0 +1,53 @@
+name: Rust Examples
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rust-examples-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  examples:
+    name: Examples (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: MSRV 1.85.0
+            toolchain: "1.85.0"
+          - name: stable 1.97.1
+            toolchain: "1.97.1"
+    env:
+      RUSTUP_TOOLCHAIN: ${{ matrix.toolchain }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install matrix toolchain
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable, 2026-07-16
+        with:
+          toolchain: ${{ matrix.toolchain }}
+
+      - name: Test executable examples and compiler rejection evidence
+        run: >-
+          cargo test --locked
+          -p doctrine-examples
+          -p domain-modeling
+          -p validated-newtypes
+          -p typestate
+          -p boundary-validation
+          -p distributed-outcomes
+          -p doctrine-compile-fail

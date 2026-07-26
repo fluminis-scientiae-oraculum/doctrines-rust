@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fluminis-scientiae-oraculum/doctrines-rust/raw/main/manifest/schema/doctrine.schema.json",
+  "title": "doctrines-rust doctrine manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "repository_version", "doctrines"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "repository_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "doctrines": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/doctrine"
+      }
+    }
+  },
+  "$defs": {
+    "path": {
+      "type": "string",
+      "minLength": 3,
+      "pattern": "^[a-z0-9_-]+(?:\\.[a-z0-9_-]+)*(?:/[a-z0-9_-]+(?:\\.[a-z0-9_-]+)*)*$"
+    },
+    "nonEmptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 2
+      }
+    },
+    "doctrine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "slug",
+        "title",
+        "status",
+        "version",
+        "package_path",
+        "normative_path",
+        "applies_to",
+        "risk_domains",
+        "foundation_dependencies",
+        "related_patterns",
+        "related_boundaries",
+        "related_case_studies",
+        "supersedes",
+        "superseded_by"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^RUST-DOC-[0-9]{4}$"
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 8
+        },
+        "status": {
+          "enum": ["draft", "active", "deprecated", "superseded"]
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "package_path": {
+          "$ref": "#/$defs/path"
+        },
+        "normative_path": {
+          "$ref": "#/$defs/path"
+        },
+        "applies_to": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        },
+        "risk_domains": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        },
+        "foundation_dependencies": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/path"
+          }
+        },
+        "related_patterns": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/path"
+          }
+        },
+        "related_boundaries": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/path"
+          }
+        },
+        "related_case_studies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/path"
+          }
+        },
+        "supersedes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^RUST-DOC-[0-9]{4}$"
+          }
+        },
+        "superseded_by": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^RUST-DOC-[0-9]{4}$"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

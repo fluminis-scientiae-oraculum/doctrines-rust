@@ -1,0 +1,7 @@
+/target/
+**/wip/
+node_modules/
+.lycheecache
+*.swp
+*.tmp
+.DS_Store

@@ -1,0 +1,134 @@
+schema_version: "1.0"
+packs:
+  - id: shared
+    purpose: Common obligations and doctrine navigation for every agent role.
+    maximum_verbosity: operational
+    ordering: 10
+    canonical_sources:
+      - agents/shared.md
+      - foundations/invariants.md
+      - foundations/evidence.md
+      - foundations/trust-boundaries.md
+      - foundations/guarantee-honesty.md
+      - foundations/complexity-budget.md
+    doctrine_selections:
+      - RUST-DOC-0001
+      - RUST-DOC-0002
+      - RUST-DOC-0006
+      - RUST-DOC-0008
+    review_checklists:
+      - reviews/final-correctness-audit.md
+    output_path: dist/agents/shared.md
+  - id: planner
+    purpose: Produce invariant-first designs, boundary maps, and evidence plans before implementation.
+    maximum_verbosity: focused
+    ordering: 20
+    canonical_sources:
+      - agents/shared.md
+      - agents/planner.md
+      - foundations/invariants.md
+      - foundations/trust-boundaries.md
+      - foundations/complexity-budget.md
+    doctrine_selections:
+      - RUST-DOC-0001
+      - RUST-DOC-0002
+      - RUST-DOC-0003
+      - RUST-DOC-0005
+      - RUST-DOC-0006
+      - RUST-DOC-0008
+    review_checklists:
+      - reviews/pre-implementation.md
+      - reviews/distributed-effects-review.md
+    output_path: dist/agents/planner.md
+  - id: implementer
+    purpose: Build protected construction paths, honest failure models, and executable evidence.
+    maximum_verbosity: detailed
+    ordering: 30
+    canonical_sources:
+      - agents/shared.md
+      - agents/implementer.md
+      - foundations/evidence.md
+      - foundations/trust-boundaries.md
+      - foundations/guarantee-honesty.md
+    doctrine_selections:
+      - RUST-DOC-0001
+      - RUST-DOC-0002
+      - RUST-DOC-0003
+      - RUST-DOC-0004
+      - RUST-DOC-0005
+      - RUST-DOC-0006
+      - RUST-DOC-0007
+      - RUST-DOC-0008
+    review_checklists:
+      - reviews/domain-model-review.md
+      - reviews/boundary-review.md
+      - reviews/typestate-review.md
+    output_path: dist/agents/implementer.md
+  - id: reviewer
+    purpose: Test construction, transition, boundary, failure, and complexity claims against evidence.
+    maximum_verbosity: detailed
+    ordering: 40
+    canonical_sources:
+      - agents/shared.md
+      - agents/reviewer.md
+      - foundations/guarantee-honesty.md
+      - foundations/complexity-budget.md
+    doctrine_selections:
+      - RUST-DOC-0001
+      - RUST-DOC-0002
+      - RUST-DOC-0003
+      - RUST-DOC-0004
+      - RUST-DOC-0005
+      - RUST-DOC-0006
+      - RUST-DOC-0007
+      - RUST-DOC-0008
+      - RUST-DOC-0009
+    review_checklists:
+      - reviews/domain-model-review.md
+      - reviews/boundary-review.md
+      - reviews/typestate-review.md
+      - reviews/distributed-effects-review.md
+      - reviews/final-correctness-audit.md
+    output_path: dist/agents/reviewer.md
+  - id: auditor
+    purpose: Adversarially locate invariant bypasses, dishonest certainty, and ungoverned authority.
+    maximum_verbosity: exhaustive
+    ordering: 50
+    canonical_sources:
+      - agents/shared.md
+      - agents/auditor.md
+      - foundations/trust-boundaries.md
+      - foundations/guarantee-honesty.md
+    doctrine_selections:
+      - RUST-DOC-0001
+      - RUST-DOC-0002
+      - RUST-DOC-0003
+      - RUST-DOC-0004
+      - RUST-DOC-0005
+      - RUST-DOC-0006
+      - RUST-DOC-0007
+      - RUST-DOC-0008
+      - RUST-DOC-0009
+    review_checklists:
+      - reviews/boundary-review.md
+      - reviews/distributed-effects-review.md
+      - reviews/final-correctness-audit.md
+    output_path: dist/agents/auditor.md
+  - id: maintainer
+    purpose: Evolve doctrine versions and generated artifacts without eroding guarantees or provenance.
+    maximum_verbosity: operational
+    ordering: 60
+    canonical_sources:
+      - agents/shared.md
+      - agents/maintainer.md
+      - foundations/normative-language.md
+      - foundations/guarantee-honesty.md
+    doctrine_selections:
+      - RUST-DOC-0001
+      - RUST-DOC-0005
+      - RUST-DOC-0007
+      - RUST-DOC-0008
+      - RUST-DOC-0009
+    review_checklists:
+      - reviews/final-correctness-audit.md
+    output_path: dist/agents/maintainer.md

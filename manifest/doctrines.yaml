@@ -1,0 +1,238 @@
+schema_version: "1.0"
+repository_version: "0.1.0"
+doctrines:
+  - id: RUST-DOC-0001
+    slug: invalid-states
+    title: Making Invalid States Unrepresentable
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0001-invalid-states
+    normative_path: doctrines/0001-invalid-states/doctrine.md
+    applies_to: [planning, implementation, review, audit]
+    risk_domains: [domain-modeling, state-machines, trust-boundaries, distributed-effects]
+    foundation_dependencies:
+      - foundations/invariants.md
+      - foundations/evidence.md
+      - foundations/trust-boundaries.md
+      - foundations/guarantee-honesty.md
+      - foundations/complexity-budget.md
+    related_patterns:
+      - patterns/sum-types.md
+      - patterns/opaque-newtypes.md
+      - patterns/smart-constructors.md
+      - patterns/typestate.md
+      - patterns/explicit-uncertainty.md
+    related_boundaries:
+      - boundaries/serde.md
+      - boundaries/database-decoding.md
+      - boundaries/http-and-rpc.md
+    related_case_studies:
+      - case-studies/invoice
+      - case-studies/payment-lifecycle
+      - case-studies/ui-workflow
+    supersedes: []
+    superseded_by: null
+  - id: RUST-DOC-0002
+    slug: error-modeling
+    title: Error Modeling as Domain Design
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0002-error-modeling
+    normative_path: doctrines/0002-error-modeling/doctrine.md
+    applies_to: [planning, implementation, review, audit, maintenance]
+    risk_domains: [api-design, failure-semantics, operations, security]
+    foundation_dependencies:
+      - foundations/invariants.md
+      - foundations/evidence.md
+      - foundations/guarantee-honesty.md
+    related_patterns:
+      - patterns/sum-types.md
+      - patterns/explicit-uncertainty.md
+    related_boundaries:
+      - boundaries/http-and-rpc.md
+      - boundaries/messaging.md
+    related_case_studies:
+      - case-studies/invoice
+      - case-studies/payment-lifecycle
+    supersedes: []
+    superseded_by: null
+  - id: RUST-DOC-0003
+    slug: ownership-and-capabilities
+    title: Ownership as Authority and Lifecycle
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0003-ownership-and-capabilities
+    normative_path: doctrines/0003-ownership-and-capabilities/doctrine.md
+    applies_to: [planning, implementation, review, audit]
+    risk_domains: [authority, resource-lifecycle, secrets, concurrency]
+    foundation_dependencies:
+      - foundations/invariants.md
+      - foundations/evidence.md
+      - foundations/complexity-budget.md
+    related_patterns:
+      - patterns/capability-types.md
+      - patterns/consuming-transitions.md
+      - patterns/typestate.md
+    related_boundaries:
+      - boundaries/filesystem.md
+      - boundaries/ffi.md
+    related_case_studies:
+      - case-studies/authenticated-session
+      - case-studies/database-transaction
+    supersedes: []
+    superseded_by: null
+  - id: RUST-DOC-0004
+    slug: concurrency-and-async
+    title: Concurrency and Async Correctness
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0004-concurrency-and-async
+    normative_path: doctrines/0004-concurrency-and-async/doctrine.md
+    applies_to: [planning, implementation, review, audit]
+    risk_domains: [concurrency, async, cancellation, resource-management]
+    foundation_dependencies:
+      - foundations/invariants.md
+      - foundations/trust-boundaries.md
+      - foundations/guarantee-honesty.md
+      - foundations/complexity-budget.md
+    related_patterns:
+      - patterns/capability-types.md
+      - patterns/consuming-transitions.md
+      - patterns/hybrid-state-machines.md
+    related_boundaries:
+      - boundaries/http-and-rpc.md
+      - boundaries/messaging.md
+    related_case_studies:
+      - case-studies/message-delivery
+      - case-studies/database-transaction
+    supersedes: []
+    superseded_by: null
+  - id: RUST-DOC-0005
+    slug: persistence-boundaries
+    title: Persistence Boundaries and Domain Integrity
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0005-persistence-boundaries
+    normative_path: doctrines/0005-persistence-boundaries/doctrine.md
+    applies_to: [planning, implementation, review, audit, maintenance]
+    risk_domains: [persistence, migrations, transactions, serialization]
+    foundation_dependencies:
+      - foundations/invariants.md
+      - foundations/evidence.md
+      - foundations/trust-boundaries.md
+      - foundations/guarantee-honesty.md
+    related_patterns:
+      - patterns/sum-types.md
+      - patterns/opaque-newtypes.md
+      - patterns/hybrid-state-machines.md
+    related_boundaries:
+      - boundaries/database-decoding.md
+      - boundaries/serde.md
+      - boundaries/messaging.md
+    related_case_studies:
+      - case-studies/database-transaction
+      - case-studies/payment-lifecycle
+    supersedes: []
+    superseded_by: null
+  - id: RUST-DOC-0006
+    slug: distributed-uncertainty
+    title: Distributed Effects, Uncertainty, and Reconciliation
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0006-distributed-uncertainty
+    normative_path: doctrines/0006-distributed-uncertainty/doctrine.md
+    applies_to: [planning, implementation, review, audit, maintenance]
+    risk_domains: [distributed-systems, retries, idempotency, reconciliation]
+    foundation_dependencies:
+      - foundations/evidence.md
+      - foundations/trust-boundaries.md
+      - foundations/guarantee-honesty.md
+    related_patterns:
+      - patterns/explicit-uncertainty.md
+      - patterns/hybrid-state-machines.md
+      - patterns/capability-types.md
+    related_boundaries:
+      - boundaries/http-and-rpc.md
+      - boundaries/messaging.md
+      - boundaries/database-decoding.md
+    related_case_studies:
+      - case-studies/payment-lifecycle
+      - case-studies/message-delivery
+      - case-studies/database-transaction
+    supersedes: []
+    superseded_by: null
+  - id: RUST-DOC-0007
+    slug: unsafe-rust
+    title: Unsafe Rust as a Proof Obligation
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0007-unsafe-rust
+    normative_path: doctrines/0007-unsafe-rust/doctrine.md
+    applies_to: [planning, implementation, review, audit, maintenance]
+    risk_domains: [memory-safety, ffi, concurrency, dependency-risk]
+    foundation_dependencies:
+      - foundations/invariants.md
+      - foundations/evidence.md
+      - foundations/guarantee-honesty.md
+      - foundations/complexity-budget.md
+    related_patterns:
+      - patterns/opaque-newtypes.md
+      - patterns/capability-types.md
+    related_boundaries:
+      - boundaries/ffi.md
+      - boundaries/filesystem.md
+    related_case_studies:
+      - case-studies/authenticated-session
+    supersedes: []
+    superseded_by: null
+  - id: RUST-DOC-0008
+    slug: testing-and-evidence
+    title: Testing as Layered Evidence
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0008-testing-and-evidence
+    normative_path: doctrines/0008-testing-and-evidence/doctrine.md
+    applies_to: [planning, implementation, review, audit, maintenance]
+    risk_domains: [testing, verification, concurrency, distributed-systems]
+    foundation_dependencies:
+      - foundations/invariants.md
+      - foundations/evidence.md
+      - foundations/guarantee-honesty.md
+    related_patterns:
+      - patterns/smart-constructors.md
+      - patterns/typestate.md
+      - patterns/explicit-uncertainty.md
+    related_boundaries:
+      - boundaries/serde.md
+      - boundaries/database-decoding.md
+      - boundaries/messaging.md
+    related_case_studies:
+      - case-studies/invoice
+      - case-studies/message-delivery
+    supersedes: []
+    superseded_by: null
+  - id: RUST-DOC-0009
+    slug: performance-and-measurement
+    title: Performance Claims Require Measurement
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0009-performance-and-measurement
+    normative_path: doctrines/0009-performance-and-measurement/doctrine.md
+    applies_to: [planning, implementation, review, audit, maintenance]
+    risk_domains: [performance, capacity, latency, resource-cost]
+    foundation_dependencies:
+      - foundations/evidence.md
+      - foundations/guarantee-honesty.md
+      - foundations/complexity-budget.md
+    related_patterns:
+      - patterns/validated-collections.md
+      - patterns/consuming-transitions.md
+    related_boundaries:
+      - boundaries/http-and-rpc.md
+      - boundaries/messaging.md
+      - boundaries/database-decoding.md
+    related_case_studies:
+      - case-studies/message-delivery
+      - case-studies/ui-workflow
+    supersedes: []
+    superseded_by: null

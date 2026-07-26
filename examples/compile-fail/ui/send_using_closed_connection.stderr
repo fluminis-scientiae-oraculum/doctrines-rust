@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+ --> ui/send_using_closed_connection.rs:5:45
+  |
+5 |     let _receipt = Connection::<Open>::send(&mut connection, b"must not compile");
+  |                    ------------------------ ^^^^^^^^^^^^^^^ expected `&mut Connection<Open>`, found `&mut Connection<Closed>`
+  |                    |
+  |                    arguments to this function are incorrect
+  |
+  = note: expected mutable reference `&mut Connection<Open>`
+             found mutable reference `&mut Connection<Closed>`
+note: method defined here
+ --> src/lib.rs
+  |
+  |     pub fn send(&mut self, _payload: &[u8]) -> Result<SendReceipt, SendError> {
+  |            ^^^^

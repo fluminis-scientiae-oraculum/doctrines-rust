@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+ --> ui/capture_before_authorize.rs:7:51
+  |
+7 |     let _receipt = Payment::<Authorized>::capture(payment);
+  |                    ------------------------------ ^^^^^^^ expected `Payment<Authorized>`, found `Payment<Draft>`
+  |                    |
+  |                    arguments to this function are incorrect
+  |
+  = note: expected struct `Payment<Authorized>`
+             found struct `Payment<Draft>`
+note: method defined here
+ --> src/lib.rs
+  |
+  |     pub const fn capture(self) -> CaptureReceipt {
+  |                  ^^^^^^^

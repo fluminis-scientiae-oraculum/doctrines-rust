@@ -1,0 +1,17 @@
+[package]
+name = "boundary-validation"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+serde.workspace = true
+validated-newtypes = { version = "0.1.0", path = "../validated-newtypes" }
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true
