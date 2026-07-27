@@ -1136,7 +1136,9 @@ and old/new reader tests.
 **Statement.** A cross-entity invariant that requires atomic observation and
 mutation MUST be enforced within a transaction boundary and isolation mechanism
 capable of protecting that invariant, or through an explicit alternative
-coordination protocol.
+coordination protocol. The design MUST name the concurrency anomaly being
+controlled and the residual anomaly set permitted by the selected mechanism,
+database, and configuration.
 
 **Intent.** Prevent application prechecks from racing concurrent writers.
 
@@ -1146,8 +1148,9 @@ aggregate versions, and paired records.
 **Allowed exceptions.** Eventual convergence is permitted when temporary
 violation is a documented domain state with bounded detection and repair.
 
-**Review evidence.** Transaction scope, isolation analysis, locking or
-constraint mechanism, concurrent test, and residual anomaly statement.
+**Review evidence.** Transaction scope, isolation analysis against the package
+taxonomy, locking or constraint mechanism, concurrent test, and named residual
+anomaly set.
 
 ## RUST-DOC-0005-R010 — Prevent lost updates
 

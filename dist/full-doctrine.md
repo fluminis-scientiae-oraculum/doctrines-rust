@@ -118,7 +118,8 @@ Canonical content has distinct responsibilities:
   duplicating it.
 - `case-studies/` follows complete problems from weak representations through improved
   designs and residual uncertainty.
-- `examples/` provides positive tests and compiler-rejection evidence.
+- `examples/` provides positive tests, compiler-rejection evidence, and an
+  isolated unsafe abstraction checked under Miri.
 - `sources/` records provenance, accepted ideas, refinements, and doctrine additions.
 - `templates/` and `rfcs/` govern future doctrine work.
 - `manifest/` exposes doctrine and agent-pack discovery through YAML validated against Draft
@@ -129,6 +130,9 @@ Definitions flow into doctrine; doctrine constrains patterns, boundary guides, r
 agent work. A case study may demonstrate doctrine but cannot silently redefine it. Source
 notes explain provenance but are non-normative. Executable examples provide evidence for
 specific claims without becoming the only expression of a rule.
+
+[`EVIDENCE.md`](../EVIDENCE.md) inventories the repository's current executable
+evidence by doctrine and names the material gaps that remain.
 
 ## Canonical and generated content
 
@@ -199,10 +203,11 @@ discovery source.
 | RUST-DOC-0008 | [Testing as Layered Evidence](../doctrines/0008-testing-and-evidence/README.md)                             | Evidence scope, forbidden programs, faults, model checking                         |
 | RUST-DOC-0009 | [Performance Claims Require Measurement](../doctrines/0009-performance-and-measurement/README.md)           | Workloads, profiling, distributions, regressions                                   |
 
-All doctrines begin at version `0.1.0`. Repository `0.1.0` establishes the initial corpus but
-does not claim `1.0` semantic stability. Patch releases clarify without changing normative
-meaning; minor releases add normative requirements or substantial compatible material; major
-releases may make normative contracts incompatible. Individual doctrines may later version
+All doctrines began at version `0.1.0`. Repository `0.2.0` adds compatible
+normative requirements but does not claim `1.0` semantic stability. Patch
+releases clarify without changing normative meaning; minor releases add
+normative requirements or substantial compatible material; major releases may
+make normative contracts incompatible. Individual doctrines version
 independently.
 
 ## Local validation
@@ -4421,7 +4426,7 @@ id: RUST-DOC-0004
 slug: concurrency-and-async
 title: Concurrency and Async Correctness
 status: active
-version: 0.1.0
+version: 0.1.1
 normative: true
 applies_to:
   - planning
@@ -4602,7 +4607,8 @@ behavior MUST be chosen consciously rather than inherited without review.
 
 **Intent.** Make cyclic waits and post-panic state handling explicit.
 
-**Applicability.** Nested locks, callbacks under locks, standard-library mutexes,
+**Applicability.** Nested locks, callbacks under locks, standard-library
+poisoning locks, version-appropriate `std::sync::nonpoison` APIs when available,
 and libraries with different poisoning semantics.
 
 **Allowed exceptions.** A proof that locks cannot overlap may replace a global
@@ -4987,6 +4993,14 @@ Poisoning is also policy, not proof. A panic while holding a standard-library
 mutex marks possible invariant damage. Blind recovery may expose corrupt state;
 blind termination may be excessive when state can be rebuilt. The component
 must choose.
+
+Choosing a non-poisoning lock removes the poison signal, not the possibility
+that a panic interrupted a multi-step invariant update. The same review must
+therefore define whether unwinding can expose partial state and how the
+component repairs or abandons it. In the pinned Rust 1.97.1 documentation,
+`std::sync::nonpoison` is present but nightly-only and experimental; consumers
+must check the documentation for their actual toolchain rather than infer
+stability from the namespace.
 
 ## Blocking isolation is bounded too
 
@@ -5571,6 +5585,10 @@ Primary and authoritative material:
   application-level deadlock or protocol correctness.
 - [Rust standard library: `std::sync::Mutex`](https://doc.rust-lang.org/std/sync/struct.Mutex.html)
   documents locking and poisoning behavior used by the review rules.
+- [Rust 1.97.1 standard library:
+  `std::sync::nonpoison`](https://doc.rust-lang.org/1.97.1/std/sync/nonpoison/index.html)
+  documents the pinned toolchain's nightly-only experimental non-poisoning lock
+  namespace. Its API status must be rechecked for each selected toolchain.
 - [Rust standard library: atomic memory ordering](https://doc.rust-lang.org/std/sync/atomic/enum.Ordering.html)
   defines the available orderings. The doctrine adds the requirement to connect
   every selection to an application invariant.
@@ -5604,7 +5622,7 @@ id: RUST-DOC-0005
 slug: persistence-boundaries
 title: Persistence Boundaries and Domain Integrity
 status: active
-version: 0.1.0
+version: 0.2.0
 normative: true
 applies_to:
   - planning
@@ -5692,10 +5710,12 @@ Storage models and domain models should be distinct when their invariants or
 evolution pressures differ. Every path from storage to a trusted type needs to
 validate current invariants. Schema constraints reinforce but do not replace
 domain construction. Transactions protect only operations within their actual
-boundary and isolation semantics. Version checks prevent silent lost updates.
-Persistence plus messaging requires durable coordination such as an outbox or
-an explicit reconciliation design. Historical invalid data is quarantined or
-migrated; it is never forged into a trusted value for convenience.
+boundary and isolation semantics. Concurrency designs name the anomaly they
+prevent and any anomaly they still permit; a per-row version check can prevent
+lost updates while leaving cross-row write skew possible. Persistence plus
+messaging requires durable coordination such as an outbox or an explicit
+reconciliation design. Historical invalid data is quarantined or migrated; it
+is never forged into a trusted value for convenience.
 
 ---
 
@@ -5848,7 +5868,9 @@ and old/new reader tests.
 **Statement.** A cross-entity invariant that requires atomic observation and
 mutation MUST be enforced within a transaction boundary and isolation mechanism
 capable of protecting that invariant, or through an explicit alternative
-coordination protocol.
+coordination protocol. The design MUST name the concurrency anomaly being
+controlled and the residual anomaly set permitted by the selected mechanism,
+database, and configuration.
 
 **Intent.** Prevent application prechecks from racing concurrent writers.
 
@@ -5858,8 +5880,9 @@ aggregate versions, and paired records.
 **Allowed exceptions.** Eventual convergence is permitted when temporary
 violation is a documented domain state with bounded detection and repair.
 
-**Review evidence.** Transaction scope, isolation analysis, locking or
-constraint mechanism, concurrent test, and residual anomaly statement.
+**Review evidence.** Transaction scope, isolation analysis against the package
+taxonomy, locking or constraint mechanism, concurrent test, and named residual
+anomaly set.
 
 ## RUST-DOC-0005-R010 — Prevent lost updates
 
@@ -6080,9 +6103,19 @@ Pessimistic locking can serialize access but affects contention and deadlock.
 Commutative database updates can avoid read-modify-write races for suitable
 operations.
 
+Lost-update protection is not a complete isolation argument. Suppose two
+transactions each read that at least one of two operators remains on duty, then
+each marks a different operator off duty. Per-row version predicates both
+succeed because the writes are disjoint, yet the cross-row invariant is false
+after both commits. This is write skew. Snapshot isolation can permit it;
+serializable isolation, a predicate-level lock, an invariant-enforcing
+constraint, or another coordination protocol may prevent it, subject to the
+selected product's exact contract.
+
 No generic statement such as "inside a transaction" establishes serializable
 business behavior. Review must connect the invariant to actual queries,
-constraints, locks, and configured isolation.
+constraints, locks, configured isolation, prevented anomaly, and residual
+anomaly set.
 
 ## Commit can be ambiguous
 
@@ -6232,12 +6265,13 @@ incorrectly.
 For each read-modify-write:
 
 1. identify concurrent writers;
-2. name the anomaly that matters;
+2. name the anomaly that matters using the package glossary;
 3. choose a constraint, atomic update, optimistic version, lock, or isolation
    level;
-4. preserve conflict as a structured result;
-5. test at least two competing operations;
-6. define caller retry and deadline.
+4. name the residual anomaly set for the selected product and configuration;
+5. preserve conflict as a structured result;
+6. test at least two competing operations;
+7. define caller retry and deadline.
 
 Last-write-wins requires explicit business acceptance, not absence of a version
 column.
@@ -6293,58 +6327,59 @@ Stop the design if:
 Mark every gate **pass**, **fail**, **not applicable**, or with an approved
 **waiver reference**.
 
-| Gate | Question                                              | Pass evidence            | Failure example                         | Severity | Remediation               |
-| ---- | ----------------------------------------------------- | ------------------------ | --------------------------------------- | -------- | ------------------------- |
-| P01  | Are all durable representations inventoried?          | storage map              | cache snapshot omitted                  | high     | enumerate sources         |
-| P02  | Are alternate writers known?                          | writer list              | admin tool bypasses service             | high     | constrain or validate     |
-| P03  | Is persisted data treated as boundary input?          | fallible conversion      | row directly becomes trusted type       | critical | add raw model             |
-| P04  | Are private newtype constructors preserved?           | checked constructor call | ORM writes field internally             | critical | route through `TryFrom`   |
-| P05  | Do invalid rows fail explicitly?                      | structured error         | invalid value normalized silently       | critical | reject or quarantine      |
-| P06  | Are conversion diagnostics actionable?                | record ID and category   | opaque decode error                     | medium   | add safe context          |
-| P07  | Are sensitive values absent from diagnostics?         | redaction tests          | token printed with row error            | critical | redact                    |
-| P08  | Are storage and domain models separated where needed? | contract comparison      | nullable row leaks into domain          | high     | split models              |
-| P09  | Are null combinations validated?                      | truth table              | paid row has no receipt                 | critical | sum conversion and checks |
-| P10  | Are defaults evidence-honest?                         | provenance               | migration invents verification time     | critical | derive or keep unknown    |
-| P11  | Does schema reinforce stable invariants?              | constraint map           | alternate writer can store zero         | high     | add constraint            |
-| P12  | Are constraint failures structured?                   | conflict mapping         | all become internal error               | high     | preserve category         |
-| P13  | Are cross-row rules transactionally protected?        | isolation proof          | check then update races                 | critical | lock/constraint/protocol  |
-| P14  | Is isolation tied to the anomaly?                     | documented analysis      | transaction assumed sufficient          | critical | choose mechanism          |
-| P15  | Are concurrent writers tested?                        | competing-operation test | only sequential test                    | high     | add concurrency evidence  |
-| P16  | Are lost updates prevented?                           | version or atomic update | blind overwrite                         | critical | add concurrency control   |
-| P17  | Is version conflict visible?                          | typed conflict           | zero rows treated as success            | critical | return conflict           |
-| P18  | Is last-write-wins explicit if used?                  | policy approval          | accidental overwrite                    | high     | document or prevent       |
-| P19  | Is enum encoding stable?                              | encoding table           | source variant name persisted casually  | high     | define tags               |
-| P20  | Are unknown enum values handled?                      | explicit branch          | decoder panics                          | high     | reject/retain/unknown     |
-| P21  | Is downgrade behavior considered?                     | compatibility matrix     | old reader misinterprets new state      | high     | stage rollout             |
-| P22  | Are durable formats versioned?                        | version strategy         | old snapshot silently decoded anew      | critical | add version/migration     |
-| P23  | Are unknown versions rejected safely?                 | fixture test             | version ignored                         | high     | preserve incompatibility  |
-| P24  | Does migration name invariant effects?                | migration contract       | shape-only description                  | high     | add domain analysis       |
-| P25  | Does strengthening scan old rows?                     | precondition query       | constraint fails mid-rollout            | critical | scan and repair           |
-| P26  | Is postcondition verified completely?                 | authoritative query      | sampled rows only                       | critical | query full affected set   |
-| P27  | Is rollback semantically safe?                        | compatibility reasoning  | old binary corrupts new meaning         | high     | prefer forward repair     |
-| P28  | Is rollout order explicit?                            | expand/contract sequence | writer deploys before readers           | critical | stage compatibility       |
-| P29  | Are decoding resource limits set?                     | limits and tests         | huge blob allocated blindly             | high     | bound or stream           |
-| P30  | Are batches bounded?                                  | pagination policy        | full table loaded                       | high     | page and cap              |
-| P31  | Is transaction handle lifecycle guarded?              | consuming/runtime state  | reused after commit                     | high     | consume or reject         |
-| P32  | Is commit ambiguity considered?                       | driver/protocol analysis | any error means rollback                | critical | reconcile unknown         |
-| P33  | Are rollback errors preserved?                        | cleanup result           | rollback failure discarded              | high     | report residual state     |
-| P34  | Is connection loss behavior documented?               | failure matrix           | retry assumes no commit                 | critical | identify outcome          |
-| P35  | Are external effects outside DB atomicity?            | boundary diagram         | email called transactionally            | critical | add durable protocol      |
-| P36  | Is durable intent used when loss matters?             | outbox/inbox design      | commit then best-effort publish         | critical | couple intent             |
-| P37  | Is outbox write in the same transaction?              | query evidence           | separate connection writes              | critical | make atomic               |
-| P38  | Is publisher retry idempotent?                        | operation identity       | duplicate external effect               | critical | deduplicate/reconcile     |
-| P39  | Is outbox lag observable?                             | metrics/alerts           | stuck events invisible                  | high     | instrument                |
-| P40  | Is retention defined?                                 | cleanup policy           | dedup/outbox grows forever              | medium   | bound safely              |
-| P41  | Is ordering scope documented?                         | aggregate/partition rule | insertion order called global           | high     | narrow claim              |
-| P42  | Is invalid history quarantined?                       | explicit path            | unchecked constructor used              | critical | contain invalid evidence  |
-| P43  | Is repair audited?                                    | before/after evidence    | manual edit unrecorded                  | high     | record repair             |
-| P44  | Are backup/restores validated?                        | restore test             | stale schema restored blindly           | high     | migrate and check         |
-| P45  | Are replicas/freshness claims accurate?               | read-routing contract    | replica read called current             | high     | state staleness           |
-| P46  | Are durability settings identified?                   | configuration evidence   | product default assumed                 | critical | document and monitor      |
-| P47  | Are schema and domain tests linked?                   | invariant matrix         | tests cover only model                  | medium   | add boundary cases        |
-| P48  | Are administrative escape paths reviewed?             | access and audit policy  | direct SQL silently allowed             | high     | restrict and validate     |
-| P49  | Does guarantee ledger state non-guarantees?           | completed ledger         | persisted implies externally complete   | critical | narrow claim              |
-| P50  | Are evidence limits stated?                           | residual risks           | tests presented as proof of all history | high     | document limits           |
+| Gate | Question                                              | Pass evidence            | Failure example                          | Severity | Remediation               |
+| ---- | ----------------------------------------------------- | ------------------------ | ---------------------------------------- | -------- | ------------------------- |
+| P01  | Are all durable representations inventoried?          | storage map              | cache snapshot omitted                   | high     | enumerate sources         |
+| P02  | Are alternate writers known?                          | writer list              | admin tool bypasses service              | high     | constrain or validate     |
+| P03  | Is persisted data treated as boundary input?          | fallible conversion      | row directly becomes trusted type        | critical | add raw model             |
+| P04  | Are private newtype constructors preserved?           | checked constructor call | ORM writes field internally              | critical | route through `TryFrom`   |
+| P05  | Do invalid rows fail explicitly?                      | structured error         | invalid value normalized silently        | critical | reject or quarantine      |
+| P06  | Are conversion diagnostics actionable?                | record ID and category   | opaque decode error                      | medium   | add safe context          |
+| P07  | Are sensitive values absent from diagnostics?         | redaction tests          | token printed with row error             | critical | redact                    |
+| P08  | Are storage and domain models separated where needed? | contract comparison      | nullable row leaks into domain           | high     | split models              |
+| P09  | Are null combinations validated?                      | truth table              | paid row has no receipt                  | critical | sum conversion and checks |
+| P10  | Are defaults evidence-honest?                         | provenance               | migration invents verification time      | critical | derive or keep unknown    |
+| P11  | Does schema reinforce stable invariants?              | constraint map           | alternate writer can store zero          | high     | add constraint            |
+| P12  | Are constraint failures structured?                   | conflict mapping         | all become internal error                | high     | preserve category         |
+| P13  | Are cross-row rules transactionally protected?        | isolation proof          | check then update races                  | critical | lock/constraint/protocol  |
+| P14  | Is isolation tied to the anomaly?                     | documented analysis      | transaction assumed sufficient           | critical | choose mechanism          |
+| P15  | Are concurrent writers tested?                        | competing-operation test | only sequential test                     | high     | add concurrency evidence  |
+| P16  | Are lost updates prevented?                           | version or atomic update | blind overwrite                          | critical | add concurrency control   |
+| P17  | Is version conflict visible?                          | typed conflict           | zero rows treated as success             | critical | return conflict           |
+| P18  | Is last-write-wins explicit if used?                  | policy approval          | accidental overwrite                     | high     | document or prevent       |
+| P19  | Is enum encoding stable?                              | encoding table           | source variant name persisted casually   | high     | define tags               |
+| P20  | Are unknown enum values handled?                      | explicit branch          | decoder panics                           | high     | reject/retain/unknown     |
+| P21  | Is downgrade behavior considered?                     | compatibility matrix     | old reader misinterprets new state       | high     | stage rollout             |
+| P22  | Are durable formats versioned?                        | version strategy         | old snapshot silently decoded anew       | critical | add version/migration     |
+| P23  | Are unknown versions rejected safely?                 | fixture test             | version ignored                          | high     | preserve incompatibility  |
+| P24  | Does migration name invariant effects?                | migration contract       | shape-only description                   | high     | add domain analysis       |
+| P25  | Does strengthening scan old rows?                     | precondition query       | constraint fails mid-rollout             | critical | scan and repair           |
+| P26  | Is postcondition verified completely?                 | authoritative query      | sampled rows only                        | critical | query full affected set   |
+| P27  | Is rollback semantically safe?                        | compatibility reasoning  | old binary corrupts new meaning          | high     | prefer forward repair     |
+| P28  | Is rollout order explicit?                            | expand/contract sequence | writer deploys before readers            | critical | stage compatibility       |
+| P29  | Are decoding resource limits set?                     | limits and tests         | huge blob allocated blindly              | high     | bound or stream           |
+| P30  | Are batches bounded?                                  | pagination policy        | full table loaded                        | high     | page and cap              |
+| P31  | Is transaction handle lifecycle guarded?              | consuming/runtime state  | reused after commit                      | high     | consume or reject         |
+| P32  | Is commit ambiguity considered?                       | driver/protocol analysis | any error means rollback                 | critical | reconcile unknown         |
+| P33  | Are rollback errors preserved?                        | cleanup result           | rollback failure discarded               | high     | report residual state     |
+| P34  | Is connection loss behavior documented?               | failure matrix           | retry assumes no commit                  | critical | identify outcome          |
+| P35  | Are external effects outside DB atomicity?            | boundary diagram         | email called transactionally             | critical | add durable protocol      |
+| P36  | Is durable intent used when loss matters?             | outbox/inbox design      | commit then best-effort publish          | critical | couple intent             |
+| P37  | Is outbox write in the same transaction?              | query evidence           | separate connection writes               | critical | make atomic               |
+| P38  | Is publisher retry idempotent?                        | operation identity       | duplicate external effect                | critical | deduplicate/reconcile     |
+| P39  | Is outbox lag observable?                             | metrics/alerts           | stuck events invisible                   | high     | instrument                |
+| P40  | Is retention defined?                                 | cleanup policy           | dedup/outbox grows forever               | medium   | bound safely              |
+| P41  | Is ordering scope documented?                         | aggregate/partition rule | insertion order called global            | high     | narrow claim              |
+| P42  | Is invalid history quarantined?                       | explicit path            | unchecked constructor used               | critical | contain invalid evidence  |
+| P43  | Is repair audited?                                    | before/after evidence    | manual edit unrecorded                   | high     | record repair             |
+| P44  | Are backup/restores validated?                        | restore test             | stale schema restored blindly            | high     | migrate and check         |
+| P45  | Are replicas/freshness claims accurate?               | read-routing contract    | replica read called current              | high     | state staleness           |
+| P46  | Are durability settings identified?                   | configuration evidence   | product default assumed                  | critical | document and monitor      |
+| P47  | Are schema and domain tests linked?                   | invariant matrix         | tests cover only model                   | medium   | add boundary cases        |
+| P48  | Are administrative escape paths reviewed?             | access and audit policy  | direct SQL silently allowed              | high     | restrict and validate     |
+| P49  | Does guarantee ledger state non-guarantees?           | completed ledger         | persisted implies externally complete    | critical | narrow claim              |
+| P50  | Are evidence limits stated?                           | residual risks           | tests presented as proof of all history  | high     | document limits           |
+| P51  | Is residual anomaly set named against the taxonomy?   | product-qualified set    | version check assumed to stop write skew | critical | define and test residuals |
 
 Critical failures block merge. A waiver must identify owner, affected paths,
 compensating controls, monitoring, expiry, and a condition for removal.
@@ -6576,6 +6611,10 @@ domain invariants.
 : Durable consumer-side recording used to recognize and coordinate repeated
 message delivery.
 
+**Lost update**
+: An anomaly in which concurrent operations derive writes from overlapping
+state and one committed write silently replaces or erases another.
+
 **Optimistic concurrency**
 : A strategy that performs an update only if a previously observed version or
 predicate remains current.
@@ -6588,6 +6627,11 @@ the associated domain transition.
 : A representation designed for storage shape, compatibility, and physical
 decoding, not automatically a trusted domain entity.
 
+**Phantom**
+: A concurrency phenomenon in which repeating a predicate query observes a
+different qualifying row set because another transaction committed inserts,
+deletes, or updates. Exact prevention semantics are product-specific.
+
 **Quarantine**
 : Isolation of invalid stored evidence with identity and diagnostics so it can
 be audited and repaired without entering trusted operations.
@@ -6596,9 +6640,49 @@ be audited and repaired without entering trusted operations.
 : A database-enforced predicate such as nullability, uniqueness, referential
 integrity, or a check expression.
 
+**Serializable**
+: An isolation contract under which committed transaction effects are
+equivalent to some serial execution. It can require abort and retry and does not
+by itself establish real-time ordering, external-effect atomicity, or future
+liveness.
+
+**Serialization anomaly**
+: A committed result that cannot be explained by any serial ordering of the
+participating transactions.
+
+**Snapshot isolation**
+: An isolation model in which a transaction reads from a consistent snapshot
+and concurrent write-write conflicts are rejected under the product's rules.
+It can still permit write skew when transactions update disjoint rows.
+
 **Storage discriminator**
 : A stable encoded value selecting one variant or lifecycle state in a durable
 representation.
+
+**Write skew**
+: A serialization anomaly in which transactions read a shared predicate or
+invariant, update disjoint rows, and both commit because no direct write-write
+conflict exposes the combined violation.
+
+## Isolation-analysis map
+
+This map supports RUST-DOC-0005-R009 analysis; it is not a substitute for the
+selected database's primary documentation.
+
+| Mechanism or level                   | Typical protection                                                            | Residual analysis still required                                                    |
+| ------------------------------------ | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| per-row version or compare-and-set   | detects a lost update on the guarded row or predicate                         | disjoint-row write skew, phantoms, unguarded alternate writers                      |
+| snapshot isolation                   | stable transaction snapshot and product-defined write-write conflict handling | write skew and other serialization anomalies                                        |
+| predicate or range lock              | protects the locked predicate or key range from specified interference        | complete lock scope, deadlock, alternate access paths, and product behavior         |
+| serializable isolation               | rejects or blocks executions that would not have a serial explanation         | retry handling, product configuration, external effects, and real-time-order claims |
+| schema constraint or atomic mutation | arbitrates the encoded predicate at the database boundary                     | invariants not encoded by that constraint or mutation                               |
+
+PostgreSQL currently implements its Repeatable Read level using snapshot
+isolation: it prevents the phantom reads described by its documentation but
+still permits serialization anomalies such as write skew. PostgreSQL
+Serializable adds detection and may abort a transaction, so applications must
+retry the complete transaction. Other products can assign different guarantees
+to similarly named levels.
 
 ---
 
@@ -6614,6 +6698,10 @@ representation.
 - [PostgreSQL documentation: transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html)
   describes phenomena and guarantees for its isolation levels. Other databases
   require their own primary documentation.
+- [Berenson et al., “A Critique of ANSI SQL Isolation
+  Levels”](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf)
+  defines snapshot isolation and write skew and distinguishes them from the
+  original ANSI phenomena.
 - [PostgreSQL documentation: explicit locking](https://www.postgresql.org/docs/current/explicit-locking.html)
   documents row and table lock behavior and deadlock considerations.
 - [PostgreSQL documentation: enumerated types](https://www.postgresql.org/docs/current/datatype-enum.html)
@@ -6638,7 +6726,7 @@ id: RUST-DOC-0006
 slug: distributed-uncertainty
 title: Distributed Effects, Uncertainty, and Reconciliation
 status: active
-version: 0.1.0
+version: 0.2.0
 normative: true
 applies_to:
   - planning
@@ -6727,7 +6815,8 @@ execution. Unknown states carry enough evidence for reconciliation. At-least-onc
 delivery means duplicates are expected. Ordering claims name their exact scope.
 Compensation is a new fallible action, not rollback. Audit trails preserve
 operation identity, attempts, correlation, causality, observations, and final
-resolution.
+resolution. Time-based authority names its clock, timing bounds, and behavior
+when those assumptions fail.
 
 ---
 
@@ -6947,19 +7036,23 @@ revalidation trigger.
 **Statement.** Where multiple workers or coordinators can act on one logical
 operation, the design MUST address concurrent execution using ownership,
 leases with fencing, compare-and-set state, consensus-backed leadership, or an
-effect-level idempotency mechanism.
+effect-level idempotency mechanism. When a lease, expiry, or deadline
+contributes to that authority, the design MUST define the clock source, whether
+elapsed or wall time is used, accepted clock-skew, process-pause, and
+renewal-delay bounds, and behavior when any timing assumption fails.
 
 **Intent.** Prevent stale owners and duplicate coordinators from acting with
-equal authority.
+equal authority, including after a timing assumption ceases to hold.
 
-**Applicability.** Reconciliation workers, schedulers, failover, and distributed
-locks.
+**Applicability.** Reconciliation workers, schedulers, failover, distributed
+locks, leases, and other time-based authority.
 
 **Allowed exceptions.** Concurrent execution is allowed for commutative,
 duplicate-safe operations with evidence.
 
-**Review evidence.** Authority protocol, expiry, fencing token use, clock
-assumptions, and overlap test.
+**Review evidence.** Authority protocol, expiry, fencing token use, clock source
+and kind, quantified timing bounds, assumption-failure behavior, and overlap
+test.
 
 ## RUST-DOC-0006-R015 — Bound retries and reconciliation
 
@@ -7185,6 +7278,20 @@ Clock skew, process pauses, renewal delay, and resource support belong in the
 guarantee ledger. Rust ownership can prevent cloning a local lease handle; it
 cannot revoke authority already accepted by a remote system.
 
+A reviewable time-based authority contract names:
+
+- the component that supplies authority time;
+- monotonic elapsed time versus civil wall time and any conversion between
+  them;
+- maximum accepted skew, process pause, scheduling delay, and renewal latency;
+- the safety margin between renewal and expiry;
+- the protected resource's fencing or rejection behavior; and
+- the transition taken when a bound is exceeded or the clock is unavailable.
+
+Tests then force overlap, delayed renewal, and bound failure at the protocol
+seam. They provide scoped evidence for the implementation; they do not prove
+that production clocks or processes always stay within the bounds.
+
 ## Audit without secret replication
 
 Incident reconstruction needs stable IDs, timestamps, target identity,
@@ -7195,13 +7302,13 @@ Access and retention should match the evidence's sensitivity.
 
 ## Guarantee ledger
 
-| Claim                                     | Established by                             | Protected construction        | Boundary preservation    | Escape hatches          | Does not prove                  | Residual runtime risk          |
-| ----------------------------------------- | ------------------------------------------ | ----------------------------- | ------------------------ | ----------------------- | ------------------------------- | ------------------------------ |
-| operation has stable identity             | generated once and persisted               | private operation constructor | reused across attempts   | administrative replay   | effect executed once            | identity collision, misuse     |
-| provider confirmed capture                | authenticated response or reconciled event | outcome transition            | evidence retained        | operator override       | later settlement                | provider reversal, stale event |
-| capture is unknown                        | timeout after possible dispatch            | explicit variant              | token persists           | destructive manual edit | success or rejection            | delayed observation            |
-| duplicate local DB effect is suppressed   | unique inbox plus atomic mutation          | repository transaction        | durable identity         | retention expiry        | remote side effect uniqueness   | late replay                    |
-| worker currently holds local lease handle | checked acquisition                        | non-clone authority           | fencing sent with writes | raw backend access      | exclusive remote action forever | pause, partition, expiry       |
+| Claim                                         | Established by                             | Protected construction        | Boundary preservation    | Escape hatches          | Does not prove                                         | Residual runtime risk          |
+| --------------------------------------------- | ------------------------------------------ | ----------------------------- | ------------------------ | ----------------------- | ------------------------------------------------------ | ------------------------------ |
+| operation has stable identity                 | generated once and persisted               | private operation constructor | reused across attempts   | administrative replay   | effect executed once                                   | identity collision, misuse     |
+| provider confirmed capture                    | authenticated response or reconciled event | outcome transition            | evidence retained        | operator override       | later settlement                                       | provider reversal, stale event |
+| capture is unknown                            | timeout after possible dispatch            | explicit variant              | token persists           | destructive manual edit | success or rejection                                   | delayed observation            |
+| duplicate local DB effect is suppressed       | unique inbox plus atomic mutation          | repository transaction        | durable identity         | retention expiry        | remote side effect uniqueness                          | late replay                    |
+| worker currently holds time-bounded authority | checked acquisition plus clock contract    | non-clone authority           | fencing sent with writes | raw backend access      | synchronized clocks or exclusive remote action forever | pause, skew, partition, expiry |
 
 ## Proportionality
 
@@ -7417,7 +7524,7 @@ Each gate receives **pass**, **fail**, **not applicable**, or an approved
 | D43  | Is compensation idempotency analyzed?             | repeat test                         | duplicate reversal                      | critical | stable identity               |
 | D44  | Are concurrent coordinators controlled?           | lease/CAS protocol                  | two reconcilers both act                | critical | claim and fence               |
 | D45  | Do leases use fencing where needed?               | monotonic token at resource         | expired owner still accepted            | critical | add fencing                   |
-| D46  | Are clock assumptions documented?                 | lease timing analysis               | wall clocks assumed identical           | high     | bound skew or avoid           |
+| D46  | Is the time-authority contract complete?          | source, clock kind, bounds, failure | wall clocks assumed identical           | critical | define bounds and failure     |
 | D47  | Is audit causality preserved?                     | parent/trigger IDs                  | attempts cannot be reconstructed        | high     | enrich audit schema           |
 | D48  | Are audit secrets minimized?                      | field classification                | raw credential logged                   | critical | redact/minimize               |
 | D49  | Are retry/reconcile queues bounded?               | capacity and age metrics            | backlog consumes memory                 | critical | persist and bound workers     |
@@ -7692,7 +7799,8 @@ success or definitive rejection.
   explains production API identity and retry design.
 - [Gray and Cheriton, “Leases: An Efficient Fault-Tolerant Mechanism for
   Distributed File Cache Consistency”](https://dl.acm.org/doi/10.1145/74850.74870)
-  is foundational literature on time-bounded distributed authority.
+  is foundational literature on time-bounded distributed authority and its
+  clock assumptions.
 - [PostgreSQL documentation: transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html)
   grounds database observations and anomalies for relevant examples.
 
@@ -7708,7 +7816,7 @@ id: RUST-DOC-0007
 slug: unsafe-rust
 title: Unsafe Rust as a Proof Obligation
 status: active
-version: 0.1.0
+version: 0.1.1
 normative: true
 applies_to:
   - planning
@@ -7796,13 +7904,17 @@ reasoning.
 
 ## Executable evidence status
 
-The 0.1.0 workspace forbids unsafe code in its own crates and therefore ships no
-unsafe implementation, Miri run, sanitizer run, FFI target test, or
-provenance-sensitive executable example. The review tables and source notes
-define those evidence obligations, but they are not evidence for a concrete
-unsafe abstraction. A later unsafe example would require its own safety
-argument and specialized tool results rather than inheriting credibility from
-this prose.
+The workspace forbids unsafe code by default. The narrowly isolated
+`unsafe-evidence` crate opts out locally to exercise a panic-safe
+`MaybeUninit<[T; N]>` initializer. Its five unit tests cover success, builder
+error, builder panic, an empty array, and zero-sized element drop accounting;
+the dedicated CI job reruns them under Miri on a pinned nightly toolchain. The
+crate documents each unsafe operation, safe-API proof, construction boundary,
+and residual limits.
+
+This evidence supports only that abstraction under the exercised interpreter
+and inputs. It is not sanitizer, FFI-target, fuzzing, concurrent-unsafe, or
+universal provenance evidence, and it does not replace the safety argument.
 
 ---
 
@@ -8739,7 +8851,7 @@ id: RUST-DOC-0008
 slug: testing-and-evidence
 title: Testing as Layered Evidence
 status: active
-version: 0.1.0
+version: 0.1.1
 normative: true
 applies_to:
   - planning
@@ -8829,13 +8941,13 @@ gap discovery but does not replace invariant coverage.
 
 ## Executable evidence status
 
-The 0.1.0 workspace includes positive and negative unit tests, checked boundary
-conversion, deterministic generator tests, and compiler-rejection cases through
-`trybuild`. It does not include property-based generation, fault injection,
-schedule exploration, contract testing against a deployed service, Miri, or
-production telemetry. Those classes remain conditional tools whose value
-depends on the claim; the existing suite establishes only the behaviors it
-executes.
+The workspace includes positive and negative unit tests, checked boundary
+conversion, deterministic generator tests, compiler-rejection cases through
+`trybuild`, and a dedicated Miri run for the isolated unsafe example. It does
+not include property-based generation, fault injection, schedule exploration,
+contract testing against a deployed service, sanitizers, fuzzing, or production
+telemetry. Those classes remain conditional tools whose value depends on the
+claim; the existing suite establishes only the behaviors it executes.
 
 ---
 
@@ -13300,6 +13412,20 @@ constructor visibility, queries, protocol documents, tests, fault matrices,
 measurements, and generated-bundle checks. "Idiomatic Rust," compilation, or a
 green suite alone is not enough. Evidence must match the claim and identify its
 limits.
+
+## Procedure format policy
+
+Compact tables are the default for dense operational checklists because they
+make gate, evidence, failure, severity, and remediation fields easy to scan.
+Expanded gate sections remain valid when a procedure needs a fuller argument
+per question. The two forms carry the same disposition and traceability
+requirements.
+
+The current corpus deliberately uses the expanded form only for the
+foundational RUST-DOC-0001 package review; RUST-DOC-0002 through
+RUST-DOC-0009 use tables. Do not normalize that exception mechanically if doing
+so would discard its evidence and remediation detail. New divergence must
+explain what additional review value the expanded form supplies.
 
 ## Severity and disposition
 

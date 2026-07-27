@@ -78,9 +78,19 @@ Pessimistic locking can serialize access but affects contention and deadlock.
 Commutative database updates can avoid read-modify-write races for suitable
 operations.
 
+Lost-update protection is not a complete isolation argument. Suppose two
+transactions each read that at least one of two operators remains on duty, then
+each marks a different operator off duty. Per-row version predicates both
+succeed because the writes are disjoint, yet the cross-row invariant is false
+after both commits. This is write skew. Snapshot isolation can permit it;
+serializable isolation, a predicate-level lock, an invariant-enforcing
+constraint, or another coordination protocol may prevent it, subject to the
+selected product's exact contract.
+
 No generic statement such as "inside a transaction" establishes serializable
 business behavior. Review must connect the invariant to actual queries,
-constraints, locks, and configured isolation.
+constraints, locks, configured isolation, prevented anomaly, and residual
+anomaly set.
 
 ## Commit can be ambiguous
 

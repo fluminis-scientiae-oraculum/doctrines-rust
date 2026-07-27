@@ -11,6 +11,12 @@ establish transfer, sharing, poisoning, and memory-order APIs. The
 [Rustonomicon concurrency chapter](https://doc.rust-lang.org/nomicon/concurrency.html)
 provides official unsafe-concurrency context.
 
+The pinned
+[Rust 1.97.1 `std::sync::nonpoison`
+documentation](https://doc.rust-lang.org/1.97.1/std/sync/nonpoison/index.html)
+exposes a nightly-only experimental non-poisoning namespace. It is accepted as
+version-specific API evidence, not as a claim that the module is stable.
+
 The [Async Book](https://rust-lang.github.io/async-book/) describes future and
 executor mechanics. Tokio's official documentation for
 [`select!`](https://docs.rs/tokio/latest/tokio/macro.select.html),
@@ -37,7 +43,8 @@ are cancellation-safe and how blocking tasks behave.
 `Send + Sync` is refined to mean the marker contracts, not absence of deadlock,
 starvation, logical races, or overload. A mutex protects only the invariant
 actually enclosed by its protocol. An async-aware mutex does not make long
-critical sections harmless.
+critical sections harmless. A non-poisoning mutex removes the poison signal,
+not the need to analyze invariant state after unwinding.
 
 Structured concurrency is expressed as accountable task ownership rather than
 requiring one library API. A process-lifetime worker may outlive an immediate
@@ -84,6 +91,7 @@ identify and honor that contract.
 ## Maintenance triggers
 
 Recheck sources when runtime versions, feature flags, scheduling, cancellation,
-blocking-pool, or shutdown APIs change. Re-audit when a synchronous library is
-introduced into async work or when worker/channel capacity changes. A clean
-compiler upgrade does not establish unchanged scheduling or performance.
+blocking-pool, lock-poisoning, or shutdown APIs change. Re-audit when a
+synchronous library is introduced into async work or when worker/channel
+capacity changes. A clean compiler upgrade does not establish unchanged
+scheduling or performance.

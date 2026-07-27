@@ -50,7 +50,7 @@ Each gate receives **pass**, **fail**, **not applicable**, or an approved
 | D43  | Is compensation idempotency analyzed?             | repeat test                         | duplicate reversal                      | critical | stable identity               |
 | D44  | Are concurrent coordinators controlled?           | lease/CAS protocol                  | two reconcilers both act                | critical | claim and fence               |
 | D45  | Do leases use fencing where needed?               | monotonic token at resource         | expired owner still accepted            | critical | add fencing                   |
-| D46  | Are clock assumptions documented?                 | lease timing analysis               | wall clocks assumed identical           | high     | bound skew or avoid           |
+| D46  | Is the time-authority contract complete?          | source, clock kind, bounds, failure | wall clocks assumed identical           | critical | define bounds and failure     |
 | D47  | Is audit causality preserved?                     | parent/trigger IDs                  | attempts cannot be reconstructed        | high     | enrich audit schema           |
 | D48  | Are audit secrets minimized?                      | field classification                | raw credential logged                   | critical | redact/minimize               |
 | D49  | Are retry/reconcile queues bounded?               | capacity and age metrics            | backlog consumes memory                 | critical | persist and bound workers     |

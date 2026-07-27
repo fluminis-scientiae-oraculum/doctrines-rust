@@ -7,6 +7,7 @@ pub const EXAMPLE_PACKAGES: &[&str] = &[
     "typestate",
     "boundary-validation",
     "distributed-outcomes",
+    "unsafe-evidence",
     "doctrine-compile-fail",
 ];
 

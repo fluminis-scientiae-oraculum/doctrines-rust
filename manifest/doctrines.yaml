@@ -1,5 +1,5 @@
 schema_version: "1.0"
-repository_version: "0.1.0"
+repository_version: "0.2.0"
 doctrines:
   - id: RUST-DOC-0001
     slug: invalid-states
@@ -85,7 +85,7 @@ doctrines:
     slug: concurrency-and-async
     title: Concurrency and Async Correctness
     status: active
-    version: "0.1.0"
+    version: "0.1.1"
     package_path: doctrines/0004-concurrency-and-async
     normative_path: doctrines/0004-concurrency-and-async/doctrine.md
     applies_to: [planning, implementation, review, audit]
@@ -111,7 +111,7 @@ doctrines:
     slug: persistence-boundaries
     title: Persistence Boundaries and Domain Integrity
     status: active
-    version: "0.1.0"
+    version: "0.2.0"
     package_path: doctrines/0005-persistence-boundaries
     normative_path: doctrines/0005-persistence-boundaries/doctrine.md
     applies_to: [planning, implementation, review, audit, maintenance]
@@ -138,7 +138,7 @@ doctrines:
     slug: distributed-uncertainty
     title: Distributed Effects, Uncertainty, and Reconciliation
     status: active
-    version: "0.1.0"
+    version: "0.2.0"
     package_path: doctrines/0006-distributed-uncertainty
     normative_path: doctrines/0006-distributed-uncertainty/doctrine.md
     applies_to: [planning, implementation, review, audit, maintenance]
@@ -165,7 +165,7 @@ doctrines:
     slug: unsafe-rust
     title: Unsafe Rust as a Proof Obligation
     status: active
-    version: "0.1.0"
+    version: "0.1.1"
     package_path: doctrines/0007-unsafe-rust
     normative_path: doctrines/0007-unsafe-rust/doctrine.md
     applies_to: [planning, implementation, review, audit, maintenance]
@@ -189,7 +189,7 @@ doctrines:
     slug: testing-and-evidence
     title: Testing as Layered Evidence
     status: active
-    version: "0.1.0"
+    version: "0.1.1"
     package_path: doctrines/0008-testing-and-evidence
     normative_path: doctrines/0008-testing-and-evidence/doctrine.md
     applies_to: [planning, implementation, review, audit, maintenance]

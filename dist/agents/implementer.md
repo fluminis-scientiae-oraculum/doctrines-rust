@@ -1735,7 +1735,8 @@ behavior MUST be chosen consciously rather than inherited without review.
 
 **Intent.** Make cyclic waits and post-panic state handling explicit.
 
-**Applicability.** Nested locks, callbacks under locks, standard-library mutexes,
+**Applicability.** Nested locks, callbacks under locks, standard-library
+poisoning locks, version-appropriate `std::sync::nonpoison` APIs when available,
 and libraries with different poisoning semantics.
 
 **Allowed exceptions.** A proof that locks cannot overlap may replace a global
@@ -2171,7 +2172,9 @@ and old/new reader tests.
 **Statement.** A cross-entity invariant that requires atomic observation and
 mutation MUST be enforced within a transaction boundary and isolation mechanism
 capable of protecting that invariant, or through an explicit alternative
-coordination protocol.
+coordination protocol. The design MUST name the concurrency anomaly being
+controlled and the residual anomaly set permitted by the selected mechanism,
+database, and configuration.
 
 **Intent.** Prevent application prechecks from racing concurrent writers.
 
@@ -2181,8 +2184,9 @@ aggregate versions, and paired records.
 **Allowed exceptions.** Eventual convergence is permitted when temporary
 violation is a documented domain state with bounded detection and repair.
 
-**Review evidence.** Transaction scope, isolation analysis, locking or
-constraint mechanism, concurrent test, and residual anomaly statement.
+**Review evidence.** Transaction scope, isolation analysis against the package
+taxonomy, locking or constraint mechanism, concurrent test, and named residual
+anomaly set.
 
 ## RUST-DOC-0005-R010 — Prevent lost updates
 
@@ -2537,19 +2541,23 @@ revalidation trigger.
 **Statement.** Where multiple workers or coordinators can act on one logical
 operation, the design MUST address concurrent execution using ownership,
 leases with fencing, compare-and-set state, consensus-backed leadership, or an
-effect-level idempotency mechanism.
+effect-level idempotency mechanism. When a lease, expiry, or deadline
+contributes to that authority, the design MUST define the clock source, whether
+elapsed or wall time is used, accepted clock-skew, process-pause, and
+renewal-delay bounds, and behavior when any timing assumption fails.
 
 **Intent.** Prevent stale owners and duplicate coordinators from acting with
-equal authority.
+equal authority, including after a timing assumption ceases to hold.
 
-**Applicability.** Reconciliation workers, schedulers, failover, and distributed
-locks.
+**Applicability.** Reconciliation workers, schedulers, failover, distributed
+locks, leases, and other time-based authority.
 
 **Allowed exceptions.** Concurrent execution is allowed for commutative,
 duplicate-safe operations with evidence.
 
-**Review evidence.** Authority protocol, expiry, fencing token use, clock
-assumptions, and overlap test.
+**Review evidence.** Authority protocol, expiry, fencing token use, clock source
+and kind, quantified timing bounds, assumption-failure behavior, and overlap
+test.
 
 ## RUST-DOC-0006-R015 — Bound retries and reconciliation
 

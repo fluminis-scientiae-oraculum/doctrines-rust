@@ -8,6 +8,10 @@ Primary and authoritative material:
   application-level deadlock or protocol correctness.
 - [Rust standard library: `std::sync::Mutex`](https://doc.rust-lang.org/std/sync/struct.Mutex.html)
   documents locking and poisoning behavior used by the review rules.
+- [Rust 1.97.1 standard library:
+  `std::sync::nonpoison`](https://doc.rust-lang.org/1.97.1/std/sync/nonpoison/index.html)
+  documents the pinned toolchain's nightly-only experimental non-poisoning lock
+  namespace. Its API status must be rechecked for each selected toolchain.
 - [Rust standard library: atomic memory ordering](https://doc.rust-lang.org/std/sync/atomic/enum.Ordering.html)
   defines the available orderings. The doctrine adds the requirement to connect
   every selection to an application invariant.

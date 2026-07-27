@@ -16,7 +16,8 @@
   explains production API identity and retry design.
 - [Gray and Cheriton, “Leases: An Efficient Fault-Tolerant Mechanism for
   Distributed File Cache Consistency”](https://dl.acm.org/doi/10.1145/74850.74870)
-  is foundational literature on time-bounded distributed authority.
+  is foundational literature on time-bounded distributed authority and its
+  clock assumptions.
 - [PostgreSQL documentation: transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html)
   grounds database observations and anomalies for relevant examples.
 

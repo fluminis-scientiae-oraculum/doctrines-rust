@@ -136,6 +136,20 @@ Clock skew, process pauses, renewal delay, and resource support belong in the
 guarantee ledger. Rust ownership can prevent cloning a local lease handle; it
 cannot revoke authority already accepted by a remote system.
 
+A reviewable time-based authority contract names:
+
+- the component that supplies authority time;
+- monotonic elapsed time versus civil wall time and any conversion between
+  them;
+- maximum accepted skew, process pause, scheduling delay, and renewal latency;
+- the safety margin between renewal and expiry;
+- the protected resource's fencing or rejection behavior; and
+- the transition taken when a bound is exceeded or the clock is unavailable.
+
+Tests then force overlap, delayed renewal, and bound failure at the protocol
+seam. They provide scoped evidence for the implementation; they do not prove
+that production clocks or processes always stay within the bounds.
+
 ## Audit without secret replication
 
 Incident reconstruction needs stable IDs, timestamps, target identity,
@@ -146,13 +160,13 @@ Access and retention should match the evidence's sensitivity.
 
 ## Guarantee ledger
 
-| Claim                                     | Established by                             | Protected construction        | Boundary preservation    | Escape hatches          | Does not prove                  | Residual runtime risk          |
-| ----------------------------------------- | ------------------------------------------ | ----------------------------- | ------------------------ | ----------------------- | ------------------------------- | ------------------------------ |
-| operation has stable identity             | generated once and persisted               | private operation constructor | reused across attempts   | administrative replay   | effect executed once            | identity collision, misuse     |
-| provider confirmed capture                | authenticated response or reconciled event | outcome transition            | evidence retained        | operator override       | later settlement                | provider reversal, stale event |
-| capture is unknown                        | timeout after possible dispatch            | explicit variant              | token persists           | destructive manual edit | success or rejection            | delayed observation            |
-| duplicate local DB effect is suppressed   | unique inbox plus atomic mutation          | repository transaction        | durable identity         | retention expiry        | remote side effect uniqueness   | late replay                    |
-| worker currently holds local lease handle | checked acquisition                        | non-clone authority           | fencing sent with writes | raw backend access      | exclusive remote action forever | pause, partition, expiry       |
+| Claim                                         | Established by                             | Protected construction        | Boundary preservation    | Escape hatches          | Does not prove                                         | Residual runtime risk          |
+| --------------------------------------------- | ------------------------------------------ | ----------------------------- | ------------------------ | ----------------------- | ------------------------------------------------------ | ------------------------------ |
+| operation has stable identity                 | generated once and persisted               | private operation constructor | reused across attempts   | administrative replay   | effect executed once                                   | identity collision, misuse     |
+| provider confirmed capture                    | authenticated response or reconciled event | outcome transition            | evidence retained        | operator override       | later settlement                                       | provider reversal, stale event |
+| capture is unknown                            | timeout after possible dispatch            | explicit variant              | token persists           | destructive manual edit | success or rejection                                   | delayed observation            |
+| duplicate local DB effect is suppressed       | unique inbox plus atomic mutation          | repository transaction        | durable identity         | retention expiry        | remote side effect uniqueness                          | late replay                    |
+| worker currently holds time-bounded authority | checked acquisition plus clock contract    | non-clone authority           | fencing sent with writes | raw backend access      | synchronized clocks or exclusive remote action forever | pause, skew, partition, expiry |
 
 ## Proportionality
 
