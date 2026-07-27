@@ -3,7 +3,7 @@ id: RUST-DOC-0007
 slug: unsafe-rust
 title: Unsafe Rust as a Proof Obligation
 status: active
-version: 0.1.0
+version: 0.1.1
 normative: true
 applies_to:
   - planning
@@ -91,10 +91,14 @@ reasoning.
 
 ## Executable evidence status
 
-The 0.1.0 workspace forbids unsafe code in its own crates and therefore ships no
-unsafe implementation, Miri run, sanitizer run, FFI target test, or
-provenance-sensitive executable example. The review tables and source notes
-define those evidence obligations, but they are not evidence for a concrete
-unsafe abstraction. A later unsafe example would require its own safety
-argument and specialized tool results rather than inheriting credibility from
-this prose.
+The workspace forbids unsafe code by default. The narrowly isolated
+`unsafe-evidence` crate opts out locally to exercise a panic-safe
+`MaybeUninit<[T; N]>` initializer. Its five unit tests cover success, builder
+error, builder panic, an empty array, and zero-sized element drop accounting;
+the dedicated CI job reruns them under Miri on a pinned nightly toolchain. The
+crate documents each unsafe operation, safe-API proof, construction boundary,
+and residual limits.
+
+This evidence supports only that abstraction under the exercised interpreter
+and inputs. It is not sanitizer, FFI-target, fuzzing, concurrent-unsafe, or
+universal provenance evidence, and it does not replace the safety argument.

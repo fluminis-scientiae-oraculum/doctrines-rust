@@ -3,7 +3,7 @@ id: RUST-DOC-0008
 slug: testing-and-evidence
 title: Testing as Layered Evidence
 status: active
-version: 0.1.0
+version: 0.1.1
 normative: true
 applies_to:
   - planning
@@ -93,10 +93,10 @@ gap discovery but does not replace invariant coverage.
 
 ## Executable evidence status
 
-The 0.1.0 workspace includes positive and negative unit tests, checked boundary
-conversion, deterministic generator tests, and compiler-rejection cases through
-`trybuild`. It does not include property-based generation, fault injection,
-schedule exploration, contract testing against a deployed service, Miri, or
-production telemetry. Those classes remain conditional tools whose value
-depends on the claim; the existing suite establishes only the behaviors it
-executes.
+The workspace includes positive and negative unit tests, checked boundary
+conversion, deterministic generator tests, compiler-rejection cases through
+`trybuild`, and a dedicated Miri run for the isolated unsafe example. It does
+not include property-based generation, fault injection, schedule exploration,
+contract testing against a deployed service, sanitizers, fuzzing, or production
+telemetry. Those classes remain conditional tools whose value depends on the
+claim; the existing suite establishes only the behaviors it executes.

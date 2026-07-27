@@ -64,7 +64,8 @@ behavior MUST be chosen consciously rather than inherited without review.
 
 **Intent.** Make cyclic waits and post-panic state handling explicit.
 
-**Applicability.** Nested locks, callbacks under locks, standard-library mutexes,
+**Applicability.** Nested locks, callbacks under locks, standard-library
+poisoning locks, version-appropriate `std::sync::nonpoison` APIs when available,
 and libraries with different poisoning semantics.
 
 **Allowed exceptions.** A proof that locks cannot overlap may replace a global

@@ -106,7 +106,8 @@ Canonical content has distinct responsibilities:
   duplicating it.
 - `case-studies/` follows complete problems from weak representations through improved
   designs and residual uncertainty.
-- `examples/` provides positive tests and compiler-rejection evidence.
+- `examples/` provides positive tests, compiler-rejection evidence, and an
+  isolated unsafe abstraction checked under Miri.
 - `sources/` records provenance, accepted ideas, refinements, and doctrine additions.
 - `templates/` and `rfcs/` govern future doctrine work.
 - `manifest/` exposes doctrine and agent-pack discovery through YAML validated against Draft
@@ -117,6 +118,9 @@ Definitions flow into doctrine; doctrine constrains patterns, boundary guides, r
 agent work. A case study may demonstrate doctrine but cannot silently redefine it. Source
 notes explain provenance but are non-normative. Executable examples provide evidence for
 specific claims without becoming the only expression of a rule.
+
+[`EVIDENCE.md`](EVIDENCE.md) inventories the repository's current executable
+evidence by doctrine and names the material gaps that remain.
 
 ## Canonical and generated content
 
@@ -187,10 +191,11 @@ discovery source.
 | RUST-DOC-0008 | [Testing as Layered Evidence](doctrines/0008-testing-and-evidence/README.md)                             | Evidence scope, forbidden programs, faults, model checking                         |
 | RUST-DOC-0009 | [Performance Claims Require Measurement](doctrines/0009-performance-and-measurement/README.md)           | Workloads, profiling, distributions, regressions                                   |
 
-All doctrines begin at version `0.1.0`. Repository `0.1.0` establishes the initial corpus but
-does not claim `1.0` semantic stability. Patch releases clarify without changing normative
-meaning; minor releases add normative requirements or substantial compatible material; major
-releases may make normative contracts incompatible. Individual doctrines may later version
+All doctrines began at version `0.1.0`. Repository `0.2.0` adds compatible
+normative requirements but does not claim `1.0` semantic stability. Patch
+releases clarify without changing normative meaning; minor releases add
+normative requirements or substantial compatible material; major releases may
+make normative contracts incompatible. Individual doctrines version
 independently.
 
 ## Local validation

@@ -33,6 +33,20 @@ measurements, and generated-bundle checks. "Idiomatic Rust," compilation, or a
 green suite alone is not enough. Evidence must match the claim and identify its
 limits.
 
+## Procedure format policy
+
+Compact tables are the default for dense operational checklists because they
+make gate, evidence, failure, severity, and remediation fields easy to scan.
+Expanded gate sections remain valid when a procedure needs a fuller argument
+per question. The two forms carry the same disposition and traceability
+requirements.
+
+The current corpus deliberately uses the expanded form only for the
+foundational RUST-DOC-0001 package review; RUST-DOC-0002 through
+RUST-DOC-0009 use tables. Do not normalize that exception mechanically if doing
+so would discard its evidence and remediation detail. New divergence must
+explain what additional review value the expanded form supplies.
+
 ## Severity and disposition
 
 Use **critical** when failure can forge trusted evidence, bypass authority,

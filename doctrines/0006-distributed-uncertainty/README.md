@@ -3,7 +3,7 @@ id: RUST-DOC-0006
 slug: distributed-uncertainty
 title: Distributed Effects, Uncertainty, and Reconciliation
 status: active
-version: 0.1.0
+version: 0.2.0
 normative: true
 applies_to:
   - planning
@@ -92,4 +92,5 @@ execution. Unknown states carry enough evidence for reconciliation. At-least-onc
 delivery means duplicates are expected. Ordering claims name their exact scope.
 Compensation is a new fallible action, not rollback. Audit trails preserve
 operation identity, attempts, correlation, causality, observations, and final
-resolution.
+resolution. Time-based authority names its clock, timing bounds, and behavior
+when those assumptions fail.

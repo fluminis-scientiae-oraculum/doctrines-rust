@@ -212,19 +212,23 @@ revalidation trigger.
 **Statement.** Where multiple workers or coordinators can act on one logical
 operation, the design MUST address concurrent execution using ownership,
 leases with fencing, compare-and-set state, consensus-backed leadership, or an
-effect-level idempotency mechanism.
+effect-level idempotency mechanism. When a lease, expiry, or deadline
+contributes to that authority, the design MUST define the clock source, whether
+elapsed or wall time is used, accepted clock-skew, process-pause, and
+renewal-delay bounds, and behavior when any timing assumption fails.
 
 **Intent.** Prevent stale owners and duplicate coordinators from acting with
-equal authority.
+equal authority, including after a timing assumption ceases to hold.
 
-**Applicability.** Reconciliation workers, schedulers, failover, and distributed
-locks.
+**Applicability.** Reconciliation workers, schedulers, failover, distributed
+locks, leases, and other time-based authority.
 
 **Allowed exceptions.** Concurrent execution is allowed for commutative,
 duplicate-safe operations with evidence.
 
-**Review evidence.** Authority protocol, expiry, fencing token use, clock
-assumptions, and overlap test.
+**Review evidence.** Authority protocol, expiry, fencing token use, clock source
+and kind, quantified timing bounds, assumption-failure behavior, and overlap
+test.
 
 ## RUST-DOC-0006-R015 — Bound retries and reconciliation
 

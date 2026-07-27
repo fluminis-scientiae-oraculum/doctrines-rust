@@ -85,12 +85,13 @@ incorrectly.
 For each read-modify-write:
 
 1. identify concurrent writers;
-2. name the anomaly that matters;
+2. name the anomaly that matters using the package glossary;
 3. choose a constraint, atomic update, optimistic version, lock, or isolation
    level;
-4. preserve conflict as a structured result;
-5. test at least two competing operations;
-6. define caller retry and deadline.
+4. name the residual anomaly set for the selected product and configuration;
+5. preserve conflict as a structured result;
+6. test at least two competing operations;
+7. define caller retry and deadline.
 
 Last-write-wins requires explicit business acceptance, not absence of a version
 column.

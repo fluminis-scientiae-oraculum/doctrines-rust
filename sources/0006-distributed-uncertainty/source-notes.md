@@ -46,7 +46,9 @@ end-to-end slogan.
 
 Leases are refined with stale-owner analysis and fencing at the protected
 resource. Local ownership of a lease handle cannot revoke remote writes already
-accepted.
+accepted. Time-based authority additionally names its clock source, clock kind,
+skew/pause/renewal bounds, safety margin, and behavior after an assumption
+fails.
 
 ## Rejected ideas
 
@@ -60,8 +62,8 @@ rejects absence in a lagging observation as immediate proof of non-execution.
 The repository adds a required confirmed/rejected/local-failure/unknown
 decision, durable reconciliation evidence, unknown-state ownership and age,
 operator-decision audit, compensation uncertainty, sensitive reconciliation
-data minimization, effect failure-point tests, and a sixty-gate distributed
-review.
+data minimization, effect failure-point tests, an enforceable time-authority
+contract, and a sixty-gate distributed review.
 
 ## Source-to-rule application
 
@@ -70,7 +72,9 @@ rules use vendor examples only as evidence of dimensions every concrete
 contract must specify; they do not impose Stripe's exact retention or response
 behavior on other APIs. Duplicate and order rules use broker semantics as
 scoped examples. Lease rules require effect-level fencing when stale owners can
-harm, a stronger operational qualification than local handle ownership.
+harm, a stronger operational qualification than local handle ownership. R014
+makes the clock and failure assumptions enforceable whenever time contributes
+to authority.
 
 Reconciliation is repository-added lifecycle governance: stable identity,
 request fingerprint, authoritative observation, freshness, repeated unknown,
@@ -83,4 +87,5 @@ Recheck provider idempotency, retention, finality, query, and webhook contracts
 when API versions change. Re-evaluate replay horizons when broker retention or
 operator replay changes. New proxies, retries, regions, coordinators, or
 compensations expand the effect timeline and can invalidate a prior retry
-classification.
+classification. Recheck lease contracts when clock sources, pause behavior,
+renewal cadence, failover timing, or fencing support changes.

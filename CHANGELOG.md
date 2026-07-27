@@ -4,6 +4,30 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.2.0] — 2026-07-27
+
+### Changed in 0.2.0
+
+- Strengthened RUST-DOC-0005-R009 so concurrency designs name the anomaly class
+  they prevent and every residual anomaly class they permit; added isolation
+  terminology, a mechanism map, and a critical review gate.
+- Strengthened RUST-DOC-0006-R014 so time-based authority defines its clock
+  source, clock kind, timing bounds, and behavior when assumptions fail.
+- Clarified RUST-DOC-0004-R004 coverage of poisoning and non-poisoning lock
+  APIs, including the pinned toolchain's experimental `std::sync::nonpoison`
+  module.
+- Documented the deliberate expanded-versus-tabular review procedure policy.
+
+### Added in 0.2.0
+
+- A repository-level evidence map relating all 165 normative rules to current
+  executable evidence classes and known gaps.
+- An isolated, panic-safe `MaybeUninit` array initializer with a local unsafe
+  lint exception, five unit tests, a safety argument, and pinned-nightly Miri
+  CI.
+- RFC-0001 recording the accepted normative isolation and time-assumption
+  changes.
+
 ## [0.1.0] — Initial doctrine corpus
 
 ### Added

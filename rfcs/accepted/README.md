@@ -5,6 +5,9 @@ implemented. Entry requires a completed decision record naming date, owners,
 rationale, conditions, affected doctrine IDs, and migration/evidence
 expectations.
 
+- [RFC-0001: Make isolation anomalies and time assumptions
+  enforceable](RFC-0001-isolation-and-time-assumptions.md)
+
 After acceptance, substantive changes to the decided normative contract require
 a new RFC. Factual annotations, implementation links, and status notes may be
 added without rewriting the decision. Implementation tracks every condition and

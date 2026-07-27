@@ -3,7 +3,7 @@ id: RUST-DOC-0005
 slug: persistence-boundaries
 title: Persistence Boundaries and Domain Integrity
 status: active
-version: 0.1.0
+version: 0.2.0
 normative: true
 applies_to:
   - planning
@@ -91,7 +91,9 @@ Storage models and domain models should be distinct when their invariants or
 evolution pressures differ. Every path from storage to a trusted type needs to
 validate current invariants. Schema constraints reinforce but do not replace
 domain construction. Transactions protect only operations within their actual
-boundary and isolation semantics. Version checks prevent silent lost updates.
-Persistence plus messaging requires durable coordination such as an outbox or
-an explicit reconciliation design. Historical invalid data is quarantined or
-migrated; it is never forged into a trusted value for convenience.
+boundary and isolation semantics. Concurrency designs name the anomaly they
+prevent and any anomaly they still permit; a per-row version check can prevent
+lost updates while leaving cross-row write skew possible. Persistence plus
+messaging requires durable coordination such as an outbox or an explicit
+reconciliation design. Historical invalid data is quarantined or migrated; it
+is never forged into a trusted value for convenience.

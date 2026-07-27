@@ -3,7 +3,7 @@ id: RUST-DOC-0004
 slug: concurrency-and-async
 title: Concurrency and Async Correctness
 status: active
-version: 0.1.0
+version: 0.1.1
 normative: true
 applies_to:
   - planning
