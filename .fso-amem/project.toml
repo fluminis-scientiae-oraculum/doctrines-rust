@@ -6,4 +6,4 @@ slug = "fso-doctrines-rust"
 server = "https://amem.flusci.org"
 
 [client]
-manifest_version = 21
+manifest_version = 28
