@@ -3,7 +3,7 @@ id: ADR-NNNN
 title: <the one decision question this record answers>
 status: active
 owner: <accountable role or team>
-scope: <narrow subject, matching the registry entry>
+scope: <narrow subject this record answers for>
 created: <YYYY-MM-DD>
 executable_authority:
   - <repository-relative path that governs current behavior>
@@ -50,6 +50,12 @@ State the named event that prompts re-examination, the condition under which thi
 applying, and who performs the deletion or the move to the archive. A record whose reason has
 ended is expired or archived under `RUST-DOC-0011-R009`; it does not stay active because nobody
 revisited it.
+
+On archival, change `status` to `superseded`, `expired`, or `archival`, add an `archived_reason`
+field to the front matter, add the marking `NOT CURRENT OPERATIONAL AUTHORITY` to the body, move
+the file under `decisions/archive/`, and move its path to `archived_decision_records` in the
+registry. `doctrine-lint` checks all five, and rejects a record whose declared `status` disagrees
+with the list it is registered under.
 
 ## Rejected alternatives
 

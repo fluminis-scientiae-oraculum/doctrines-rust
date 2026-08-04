@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/fluminis-scientiae-oraculum/doctrines-rust/raw/main/manifest/schema/decision-record.schema.json",
   "title": "doctrines-rust decision-record registry",
+  "description": "Membership only. Each record's own front matter is the authority for its metadata, so this file lists paths and nothing a record already states.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "active_decision_records", "archived_decision_records"],
@@ -13,126 +14,25 @@
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "$ref": "#/$defs/activeRecord"
+        "$ref": "#/$defs/activePath"
       }
     },
     "archived_decision_records": {
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "$ref": "#/$defs/archivedRecord"
+        "$ref": "#/$defs/archivedPath"
       }
     }
   },
   "$defs": {
-    "path": {
+    "activePath": {
       "type": "string",
-      "minLength": 3,
-      "pattern": "^[a-z0-9_-]+(?:\\.[a-z0-9_-]+)*(?:/[a-z0-9_-]+(?:\\.[a-z0-9_-]+)*)*$"
+      "pattern": "^decisions/active/[a-z0-9_-]+(?:\\.[a-z0-9_-]+)*\\.md$"
     },
-    "trigger": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "minLength": 4
-      }
-    },
-    "common": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "pattern": "^ADR-[0-9]{4}$"
-        },
-        "title": {
-          "type": "string",
-          "minLength": 8
-        },
-        "owner": {
-          "type": "string",
-          "minLength": 3
-        },
-        "scope": {
-          "type": "string",
-          "minLength": 3
-        },
-        "path": {
-          "$ref": "#/$defs/path"
-        }
-      }
-    },
-    "activeRecord": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "id",
-        "title",
-        "owner",
-        "scope",
-        "status",
-        "path",
-        "executable_authority",
-        "revalidate_on",
-        "obsolete_when"
-      ],
-      "allOf": [{ "$ref": "#/$defs/common" }],
-      "properties": {
-        "id": true,
-        "title": true,
-        "owner": true,
-        "scope": true,
-        "path": true,
-        "status": {
-          "const": "active"
-        },
-        "executable_authority": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/path"
-          }
-        },
-        "revalidate_on": {
-          "$ref": "#/$defs/trigger"
-        },
-        "obsolete_when": {
-          "$ref": "#/$defs/trigger"
-        }
-      }
-    },
-    "archivedRecord": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["id", "title", "owner", "scope", "status", "path", "archived_reason"],
-      "allOf": [{ "$ref": "#/$defs/common" }],
-      "properties": {
-        "id": true,
-        "title": true,
-        "owner": true,
-        "scope": true,
-        "path": true,
-        "status": {
-          "enum": ["superseded", "expired", "archival"]
-        },
-        "archived_reason": {
-          "type": "string",
-          "minLength": 8
-        },
-        "superseded_by": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "type": "string",
-              "pattern": "^ADR-[0-9]{4}$"
-            }
-          ]
-        }
-      }
+    "archivedPath": {
+      "type": "string",
+      "pattern": "^decisions/archive/[a-z0-9_-]+(?:\\.[a-z0-9_-]+)*\\.md$"
     }
   }
 }

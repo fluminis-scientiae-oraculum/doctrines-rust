@@ -11,7 +11,7 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Nineteen tooling tests exercise doctrine linting, decision-record registry
+- Twenty-four tooling tests exercise doctrine linting, decision-record
   validation, and deterministic bundle generation.
 - A dedicated CI job reruns the five `unsafe-evidence` unit tests under Miri on
   pinned nightly `nightly-2026-07-13`.

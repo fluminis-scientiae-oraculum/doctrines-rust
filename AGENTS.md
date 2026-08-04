@@ -21,7 +21,9 @@ Canonical sources live under `foundations/`, `doctrines/`, `patterns/`, `boundar
 `reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
 Files under `dist/` are generated projections.
 
-An agent MUST NOT edit `dist/` manually. After any canonical change, run:
+An agent MUST NOT edit a generated file manually. `dist/` is generated in full, and
+`rfcs/accepted/README.md` is generated from `rfcs/accepted/overview.md` and each RFC's front
+matter; both carry a banner naming their source. After any canonical change, run:
 
 ```bash
 cargo run -p bundle-agent-context -- generate

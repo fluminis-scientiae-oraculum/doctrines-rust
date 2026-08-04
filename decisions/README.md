@@ -21,16 +21,27 @@ set, not a claim that this repository is under no unrecorded constraint.
 ## The active set
 
 [`manifest/decision-records.yaml`](../manifest/decision-records.yaml) enumerates the active set
-and the archive. Membership in the active list is what makes a record citable as authority; a file
-that is not listed is not in the active set, whatever it contains.
+and the archive, and it enumerates **membership only**. Each record's own front matter is the
+authority for its identifier, title, owner, scope, executable authorities, revalidation trigger,
+and obsolescence condition. The registry states none of those, so the two cannot disagree about a
+field only one of them carries.
+
+Membership in the active list is what makes a record citable as authority; a file that is not
+listed is not in the active set, whatever it contains.
 
 `doctrine-lint` validates the registry against
-[its schema](../manifest/schema/decision-record.schema.json) and against
-`RUST-DOC-0011-R007`: every active record needs an owner, a scope, at least one executable
-authority that resolves to a real file, at least one revalidation trigger, and at least one
-obsolescence condition. Every archived record needs a reason, needs to live under
-`decisions/archive/`, needs to carry the archival marking in its own text, and cannot appear in
-any agent pack.
+[its schema](../manifest/schema/decision-record.schema.json), then opens each listed record and
+validates `RUST-DOC-0011-R007` from that record's front matter: a well-formed `ADR-NNNN`
+identifier, unique across both sets; a non-empty title, owner, and scope; and for an active
+record at least one executable authority that resolves to a real file, at least one revalidation
+trigger, and at least one obsolescence condition. An archived record needs a reason in its own
+front matter, needs to live under `decisions/archive/`, needs to carry the archival marking in its
+own text, and cannot appear in any agent pack.
+
+The one fact both artifacts express is which set a record belongs to: the list it appears in, and
+the `status` it declares. That pair is compared mechanically rather than trusted, which is the
+checked-view exception `RUST-DOC-0011-R004` allows. A record declaring `status: expired` while
+listed as active fails the build.
 
 ## Before writing a record
 

@@ -134,31 +134,60 @@ struct AgentManifest {
     packs: Vec<AgentPack>,
 }
 
+/// The registry enumerates membership only. Each record's own front matter is the
+/// authority for its metadata, so the two cannot disagree about fields only one of
+/// them carries.
 #[derive(Debug, Deserialize)]
 struct DecisionRecordRegistry {
     schema_version: String,
-    active_decision_records: Vec<ActiveDecisionRecord>,
-    archived_decision_records: Vec<ArchivedDecisionRecord>,
+    active_decision_records: Vec<String>,
+    archived_decision_records: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
-struct ActiveDecisionRecord {
+struct DecisionRecordMetadata {
     id: String,
+    title: String,
+    status: String,
     owner: String,
     scope: String,
-    status: String,
-    path: String,
+    #[serde(default)]
     executable_authority: Vec<String>,
+    #[serde(default)]
     revalidate_on: Vec<String>,
+    #[serde(default)]
     obsolete_when: Vec<String>,
+    #[serde(default)]
+    archived_reason: String,
 }
 
-#[derive(Debug, Deserialize)]
-struct ArchivedDecisionRecord {
-    id: String,
-    status: String,
-    path: String,
-    archived_reason: String,
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum RecordBucket {
+    Active,
+    Archived,
+}
+
+impl RecordBucket {
+    fn directory(self) -> &'static str {
+        match self {
+            Self::Active => ACTIVE_RECORD_DIRECTORY,
+            Self::Archived => ARCHIVED_RECORD_DIRECTORY,
+        }
+    }
+
+    fn registry_field(self) -> &'static str {
+        match self {
+            Self::Active => "active_decision_records",
+            Self::Archived => "archived_decision_records",
+        }
+    }
+
+    fn accepts_status(self, status: &str) -> bool {
+        match self {
+            Self::Active => status == "active",
+            Self::Archived => matches!(status, "superseded" | "expired" | "archival"),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -880,136 +909,176 @@ fn check_decision_records(root: &Path, agents: &AgentManifest, diagnostics: &mut
     }
 
     let mut identifiers = BTreeSet::new();
-    for record in &registry.active_decision_records {
-        check_active_record(root, &registry_path, record, &mut identifiers, diagnostics);
+    for path in &registry.active_decision_records {
+        check_registered_record(
+            root,
+            &registry_path,
+            path,
+            RecordBucket::Active,
+            &mut identifiers,
+            diagnostics,
+        );
     }
-    for record in &registry.archived_decision_records {
-        check_archived_record(root, &registry_path, record, &mut identifiers, diagnostics);
+    for path in &registry.archived_decision_records {
+        check_registered_record(
+            root,
+            &registry_path,
+            path,
+            RecordBucket::Archived,
+            &mut identifiers,
+            diagnostics,
+        );
     }
 
     check_agent_packs_exclude_archive(root, agents, diagnostics);
 }
 
-fn check_active_record(
+/// Validates one registered record from its own front matter.
+///
+/// The registry supplies membership and nothing else, so every field checked here
+/// is read from the record itself. The single fact both artifacts express, which
+/// list a record appears in versus the `status` it declares, is compared rather
+/// than trusted.
+fn check_registered_record(
     root: &Path,
     registry_path: &Path,
-    record: &ActiveDecisionRecord,
+    path: &str,
+    bucket: RecordBucket,
     identifiers: &mut BTreeSet<String>,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
-    if !identifiers.insert(record.id.clone()) {
+    if !check_record_path(
+        root,
+        registry_path,
+        path,
+        path,
+        "record",
+        Some(bucket.directory()),
+        diagnostics,
+    ) {
+        return;
+    }
+
+    let record_path = root.join(path);
+    let Some(text) = read_text(&record_path, diagnostics) else {
+        return;
+    };
+    let metadata_text = match front_matter(&text) {
+        Ok(metadata) => metadata,
+        Err(message) => {
+            diagnostics.push(Diagnostic::new(&record_path, message));
+            return;
+        }
+    };
+    let metadata = match serde_yaml_ng::from_str::<DecisionRecordMetadata>(metadata_text) {
+        Ok(metadata) => metadata,
+        Err(error) => {
+            diagnostics.push(Diagnostic::new(
+                &record_path,
+                format!("cannot parse decision-record front matter: {error}"),
+            ));
+            return;
+        }
+    };
+
+    if !valid_record_id(&metadata.id) {
         diagnostics.push(Diagnostic::new(
-            registry_path,
-            format!("decision record ID {} is duplicated", record.id),
+            &record_path,
+            format!("decision record ID {} must match ADR-NNNN", metadata.id),
         ));
     }
-    if record.status != "active" {
+    if !identifiers.insert(metadata.id.clone()) {
         diagnostics.push(Diagnostic::new(
-            registry_path,
+            &record_path,
+            format!("decision record ID {} is duplicated", metadata.id),
+        ));
+    }
+    if !bucket.accepts_status(&metadata.status) {
+        diagnostics.push(Diagnostic::new(
+            &record_path,
             format!(
-                "active decision record {} has status {}",
-                record.id, record.status
+                "decision record {} declares status {} but the registry lists it under {}",
+                metadata.id,
+                metadata.status,
+                bucket.registry_field()
             ),
         ));
     }
-    for (field, value) in [("owner", &record.owner), ("scope", &record.scope)] {
+    for (field, value) in [
+        ("title", &metadata.title),
+        ("owner", &metadata.owner),
+        ("scope", &metadata.scope),
+    ] {
         if value.trim().is_empty() {
             diagnostics.push(Diagnostic::new(
-                registry_path,
-                format!("active decision record {} has an empty {field}", record.id),
+                &record_path,
+                format!("decision record {} has an empty {field}", metadata.id),
             ));
         }
     }
+
+    match bucket {
+        RecordBucket::Active => check_active_record(root, &record_path, &metadata, diagnostics),
+        RecordBucket::Archived => {
+            check_archived_record(&record_path, &text, &metadata, diagnostics);
+        }
+    }
+}
+
+fn check_active_record(
+    root: &Path,
+    record_path: &Path,
+    metadata: &DecisionRecordMetadata,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
     for (field, values) in [
-        ("revalidate_on", &record.revalidate_on),
-        ("obsolete_when", &record.obsolete_when),
-        ("executable_authority", &record.executable_authority),
+        ("revalidate_on", &metadata.revalidate_on),
+        ("obsolete_when", &metadata.obsolete_when),
+        ("executable_authority", &metadata.executable_authority),
     ] {
         if values.is_empty() {
             diagnostics.push(Diagnostic::new(
-                registry_path,
+                record_path,
                 format!(
                     "active decision record {} states no {field}; RUST-DOC-0011-R007 requires one",
-                    record.id
+                    metadata.id
                 ),
             ));
         }
     }
-    for authority in &record.executable_authority {
+    for authority in &metadata.executable_authority {
         check_record_path(
             root,
-            registry_path,
-            &record.id,
+            record_path,
+            &metadata.id,
             authority,
             "executable authority",
             None,
             diagnostics,
         );
     }
-    check_record_path(
-        root,
-        registry_path,
-        &record.id,
-        &record.path,
-        "record",
-        Some(ACTIVE_RECORD_DIRECTORY),
-        diagnostics,
-    );
 }
 
 fn check_archived_record(
-    root: &Path,
-    registry_path: &Path,
-    record: &ArchivedDecisionRecord,
-    identifiers: &mut BTreeSet<String>,
+    record_path: &Path,
+    text: &str,
+    metadata: &DecisionRecordMetadata,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
-    if !identifiers.insert(record.id.clone()) {
+    if metadata.archived_reason.trim().is_empty() {
         diagnostics.push(Diagnostic::new(
-            registry_path,
-            format!("decision record ID {} is duplicated", record.id),
+            record_path,
+            format!("archived decision record {} states no reason", metadata.id),
         ));
     }
-    if !matches!(
-        record.status.as_str(),
-        "superseded" | "expired" | "archival"
-    ) {
+    if !text.contains(ARCHIVAL_MARKER) {
         diagnostics.push(Diagnostic::new(
-            registry_path,
+            record_path,
             format!(
-                "archived decision record {} has status {}",
-                record.id, record.status
+                "archived decision record {} must carry {ARCHIVAL_MARKER}",
+                metadata.id
             ),
         ));
-    }
-    if record.archived_reason.trim().is_empty() {
-        diagnostics.push(Diagnostic::new(
-            registry_path,
-            format!("archived decision record {} states no reason", record.id),
-        ));
-    }
-    if !check_record_path(
-        root,
-        registry_path,
-        &record.id,
-        &record.path,
-        "record",
-        Some(ARCHIVED_RECORD_DIRECTORY),
-        diagnostics,
-    ) {
-        return;
-    }
-    let record_path = root.join(&record.path);
-    if let Some(text) = read_text(&record_path, diagnostics) {
-        if !text.contains(ARCHIVAL_MARKER) {
-            diagnostics.push(Diagnostic::new(
-                &record_path,
-                format!(
-                    "archived decision record {} must carry {ARCHIVAL_MARKER}",
-                    record.id
-                ),
-            ));
-        }
     }
 }
 
@@ -1276,6 +1345,13 @@ fn valid_manifest_path(value: &str) -> bool {
         })
 }
 
+fn valid_record_id(record_id: &str) -> bool {
+    let Some(rest) = record_id.strip_prefix("ADR-") else {
+        return false;
+    };
+    rest.len() == 4 && rest.bytes().all(|byte| byte.is_ascii_digit())
+}
+
 fn valid_rule_id(rule_id: &str) -> bool {
     let Some(rest) = rule_id.strip_prefix("RUST-DOC-") else {
         return false;
@@ -1299,10 +1375,10 @@ fn display_path(root: &Path, path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        ActiveDecisionRecord, AgentManifest, AgentPack, ArchivedDecisionRecord, RuleHeading,
-        check_active_record, check_agent_packs_exclude_archive, check_archived_record,
-        check_structured_field_register, contains_normative_term, extract_rule_headings,
-        front_matter, valid_manifest_path, valid_rule_id, workspace_package_version,
+        AgentManifest, AgentPack, RecordBucket, RuleHeading, check_agent_packs_exclude_archive,
+        check_registered_record, check_structured_field_register, contains_normative_term,
+        extract_rule_headings, front_matter, valid_manifest_path, valid_record_id, valid_rule_id,
+        workspace_package_version,
     };
     use std::collections::BTreeSet;
     use std::fs;
@@ -1316,17 +1392,45 @@ mod tests {
         path
     }
 
-    fn active_record() -> ActiveDecisionRecord {
-        ActiveDecisionRecord {
-            id: "ADR-0001".to_owned(),
-            owner: "platform-governance".to_owned(),
-            scope: "data-residency".to_owned(),
-            status: "active".to_owned(),
-            path: "decisions/active/adr-0001-residency.md".to_owned(),
-            executable_authority: vec!["decisions/README.md".to_owned()],
-            revalidate_on: vec!["contract-renewal".to_owned()],
-            obsolete_when: vec!["obligation-withdrawn".to_owned()],
-        }
+    /// Writes a record file and returns the repository-relative path it was written to.
+    fn write_record(root: &Path, relative: &str, front_matter_body: &str, body: &str) -> String {
+        let path = root.join(relative);
+        fs::create_dir_all(path.parent().expect("record parent")).expect("create record directory");
+        fs::write(&path, format!("---\n{front_matter_body}---\n\n{body}")).expect("write record");
+        relative.to_owned()
+    }
+
+    fn active_front_matter() -> String {
+        concat!(
+            "id: ADR-0001\n",
+            "title: Subscriber data stays inside one jurisdiction\n",
+            "status: active\n",
+            "owner: platform-governance\n",
+            "scope: data-residency\n",
+            "executable_authority:\n",
+            "  - decisions/active/adr-0001-residency.md\n",
+            "revalidate_on:\n",
+            "  - contract-renewal\n",
+            "obsolete_when:\n",
+            "  - obligation-withdrawn\n",
+        )
+        .to_owned()
+    }
+
+    fn check_one(root: &Path, relative: &str, bucket: RecordBucket) -> Vec<String> {
+        let mut diagnostics = Vec::new();
+        check_registered_record(
+            root,
+            Path::new("manifest/decision-records.yaml"),
+            relative,
+            bucket,
+            &mut BTreeSet::new(),
+            &mut diagnostics,
+        );
+        diagnostics
+            .into_iter()
+            .map(|diagnostic| diagnostic.message)
+            .collect()
     }
 
     fn agent_pack(canonical_sources: Vec<String>) -> AgentPack {
@@ -1343,66 +1447,150 @@ mod tests {
     }
 
     #[test]
-    fn active_record_without_owner_or_end_condition_is_rejected() {
-        let mut record = active_record();
-        record.owner = "  ".to_owned();
-        record.revalidate_on.clear();
-        record.obsolete_when.clear();
-        record.executable_authority.clear();
-
-        let mut diagnostics = Vec::new();
-        check_active_record(
-            Path::new("/nonexistent"),
-            Path::new("manifest/decision-records.yaml"),
-            &record,
-            &mut BTreeSet::new(),
-            &mut diagnostics,
+    fn a_well_formed_active_record_passes() {
+        let root = temporary_directory("active-ok");
+        let relative = write_record(
+            &root,
+            "decisions/active/adr-0001-residency.md",
+            &active_front_matter(),
+            "# ADR-0001\n",
         );
 
-        let messages = diagnostics
-            .iter()
-            .map(|diagnostic| diagnostic.message.as_str())
-            .collect::<Vec<_>>()
-            .join("\n");
+        assert!(
+            check_one(&root, &relative, RecordBucket::Active).is_empty(),
+            "well-formed record must pass"
+        );
+        fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    #[test]
+    fn active_record_metadata_is_read_from_the_record_not_the_registry() {
+        let root = temporary_directory("active-missing-fields");
+        let relative = write_record(
+            &root,
+            "decisions/active/adr-0001-residency.md",
+            concat!(
+                "id: ADR-0001\n",
+                "title: Subscriber data stays inside one jurisdiction\n",
+                "status: active\n",
+                "owner: \"  \"\n",
+                "scope: data-residency\n",
+            ),
+            "# ADR-0001\n",
+        );
+
+        let messages = check_one(&root, &relative, RecordBucket::Active).join("\n");
         assert!(messages.contains("empty owner"), "{messages}");
         assert!(messages.contains("no revalidate_on"), "{messages}");
         assert!(messages.contains("no obsolete_when"), "{messages}");
         assert!(messages.contains("no executable_authority"), "{messages}");
+        fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    /// The registry and the record express one overlapping fact: which set the record
+    /// belongs to. It is compared, not trusted.
+    #[test]
+    fn a_record_whose_status_disagrees_with_its_registry_list_is_rejected() {
+        let root = temporary_directory("status-mismatch");
+        let relative = write_record(
+            &root,
+            "decisions/active/adr-0001-residency.md",
+            &active_front_matter().replace("status: active", "status: expired"),
+            "# ADR-0001\n",
+        );
+
+        let messages = check_one(&root, &relative, RecordBucket::Active).join("\n");
+        assert!(
+            messages.contains("declares status expired")
+                && messages.contains("active_decision_records"),
+            "{messages}"
+        );
+        fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    #[test]
+    fn an_executable_authority_that_does_not_resolve_is_rejected() {
+        let root = temporary_directory("authority-missing");
+        let relative = write_record(
+            &root,
+            "decisions/active/adr-0001-residency.md",
+            &active_front_matter().replace(
+                "  - decisions/active/adr-0001-residency.md",
+                "  - deploy/policy/storage-regions.yaml",
+            ),
+            "# ADR-0001\n",
+        );
+
+        let messages = check_one(&root, &relative, RecordBucket::Active).join("\n");
+        assert!(
+            messages.contains("executable authority path does not resolve to a file"),
+            "{messages}"
+        );
+        fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    #[test]
+    fn a_record_without_front_matter_is_rejected() {
+        let root = temporary_directory("no-front-matter");
+        let path = root.join("decisions/active/adr-0001-residency.md");
+        fs::create_dir_all(path.parent().expect("record parent")).expect("create directory");
+        fs::write(&path, "# ADR-0001\n\nNo front matter here.\n").expect("write record");
+
+        let messages = check_one(
+            &root,
+            "decisions/active/adr-0001-residency.md",
+            RecordBucket::Active,
+        )
+        .join("\n");
+        assert!(messages.contains("front matter"), "{messages}");
+        fs::remove_dir_all(root).expect("remove temporary test directory");
     }
 
     #[test]
     fn active_record_must_be_filed_under_the_active_directory() {
-        let mut record = active_record();
-        record.path = "decisions/examples/justified-data-residency.md".to_owned();
-
-        let mut diagnostics = Vec::new();
-        check_active_record(
-            Path::new("/nonexistent"),
-            Path::new("manifest/decision-records.yaml"),
-            &record,
-            &mut BTreeSet::new(),
-            &mut diagnostics,
+        let root = temporary_directory("wrong-directory");
+        let relative = write_record(
+            &root,
+            "decisions/examples/justified-data-residency.md",
+            &active_front_matter(),
+            "# ADR-0001\n",
         );
 
+        let messages = check_one(&root, &relative, RecordBucket::Active).join("\n");
         assert!(
-            diagnostics.iter().any(|diagnostic| diagnostic
-                .message
-                .contains("must live under decisions/active/")),
-            "{diagnostics:?}"
+            messages.contains("must live under decisions/active/"),
+            "{messages}"
         );
+        fs::remove_dir_all(root).expect("remove temporary test directory");
     }
 
     #[test]
     fn duplicate_record_identifiers_are_rejected() {
-        let record = active_record();
+        let root = temporary_directory("duplicate-ids");
+        let first = write_record(
+            &root,
+            "decisions/active/adr-0001-residency.md",
+            &active_front_matter(),
+            "# ADR-0001\n",
+        );
+        let second = write_record(
+            &root,
+            "decisions/active/adr-0001-duplicate.md",
+            &active_front_matter().replace(
+                "  - decisions/active/adr-0001-residency.md",
+                "  - decisions/active/adr-0001-duplicate.md",
+            ),
+            "# ADR-0001\n",
+        );
+
         let mut identifiers = BTreeSet::new();
         let mut diagnostics = Vec::new();
-
-        for _ in 0..2 {
-            check_active_record(
-                Path::new("/nonexistent"),
+        for relative in [&first, &second] {
+            check_registered_record(
+                &root,
                 Path::new("manifest/decision-records.yaml"),
-                &record,
+                relative,
+                RecordBucket::Active,
                 &mut identifiers,
                 &mut diagnostics,
             );
@@ -1414,57 +1602,55 @@ mod tests {
                 .any(|diagnostic| diagnostic.message.contains("ADR-0001 is duplicated")),
             "{diagnostics:?}"
         );
+        fs::remove_dir_all(root).expect("remove temporary test directory");
     }
 
     #[test]
-    fn archived_record_must_carry_the_archival_marker() {
+    fn archived_record_must_carry_the_archival_marker_and_a_reason() {
         let root = temporary_directory("archival-marker");
-        fs::create_dir_all(root.join("decisions/archive")).expect("create archive directory");
-        fs::write(
-            root.join("decisions/archive/adr-0002-old.md"),
+        let archived = concat!(
+            "id: ADR-0002\n",
+            "title: A retired residency obligation\n",
+            "status: expired\n",
+            "owner: platform-governance\n",
+            "scope: data-residency\n",
+            "archived_reason: the residency obligation was withdrawn\n",
+        );
+        let relative = write_record(
+            &root,
+            "decisions/archive/adr-0002-old.md",
+            archived,
             "# ADR-0002\n\nThis file omits the marker.\n",
-        )
-        .expect("write archived record");
-
-        let record = ArchivedDecisionRecord {
-            id: "ADR-0002".to_owned(),
-            status: "expired".to_owned(),
-            path: "decisions/archive/adr-0002-old.md".to_owned(),
-            archived_reason: "the residency obligation was withdrawn".to_owned(),
-        };
-
-        let mut diagnostics = Vec::new();
-        check_archived_record(
-            &root,
-            Path::new("manifest/decision-records.yaml"),
-            &record,
-            &mut BTreeSet::new(),
-            &mut diagnostics,
         );
 
+        let messages = check_one(&root, &relative, RecordBucket::Archived).join("\n");
         assert!(
-            diagnostics.iter().any(|diagnostic| {
-                diagnostic
-                    .message
-                    .contains("NOT CURRENT OPERATIONAL AUTHORITY")
-            }),
-            "{diagnostics:?}"
+            messages.contains("NOT CURRENT OPERATIONAL AUTHORITY"),
+            "{messages}"
         );
 
-        fs::write(
-            root.join("decisions/archive/adr-0002-old.md"),
-            "# ADR-0002\n\nNOT CURRENT OPERATIONAL AUTHORITY\n",
-        )
-        .expect("rewrite archived record");
-        let mut diagnostics = Vec::new();
-        check_archived_record(
+        write_record(
             &root,
-            Path::new("manifest/decision-records.yaml"),
-            &record,
-            &mut BTreeSet::new(),
-            &mut diagnostics,
+            "decisions/archive/adr-0002-old.md",
+            archived,
+            "# ADR-0002\n\nNOT CURRENT OPERATIONAL AUTHORITY\n",
         );
-        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+        assert!(
+            check_one(&root, &relative, RecordBucket::Archived).is_empty(),
+            "corrected archived record must pass"
+        );
+
+        write_record(
+            &root,
+            "decisions/archive/adr-0002-old.md",
+            &archived.replace(
+                "archived_reason: the residency obligation was withdrawn",
+                "archived_reason: \"\"",
+            ),
+            "# ADR-0002\n\nNOT CURRENT OPERATIONAL AUTHORITY\n",
+        );
+        let messages = check_one(&root, &relative, RecordBucket::Archived).join("\n");
+        assert!(messages.contains("states no reason"), "{messages}");
 
         fs::remove_dir_all(root).expect("remove temporary test directory");
     }
@@ -1500,6 +1686,13 @@ mod tests {
         check_agent_packs_exclude_archive(Path::new("/nonexistent"), &manifest, &mut diagnostics);
 
         assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    }
+
+    #[test]
+    fn validates_record_shape() {
+        assert!(valid_record_id("ADR-0007"));
+        assert!(!valid_record_id("ADR-007"));
+        assert!(!valid_record_id("ADR-EXAMPLE-0001"));
     }
 
     #[test]

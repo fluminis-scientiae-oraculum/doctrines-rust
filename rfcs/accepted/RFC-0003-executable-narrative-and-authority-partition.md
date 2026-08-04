@@ -156,9 +156,10 @@ regenerated.
 
 ## Compatibility
 
-No consuming Rust API, persisted value, wire format, schema, or example behavior changes. Ten
-existing rule identifiers, statements, and allowed exceptions are preserved; one existing rule,
-`RUST-DOC-0010-R022`, changes meaning and keeps its identifier.
+No consuming Rust API, persisted value, wire format, schema, or example behavior changes. Every
+existing rule identifier is preserved. Exactly one existing rule, `RUST-DOC-0010-R022`, changes
+meaning and keeps its identifier; the other twenty-one rules in that package, and all 165 rules in
+the nine other packages, are unchanged in statement and allowed exceptions.
 
 The restatement is a narrowing in one direction and a widening in another. A design that
 previously satisfied R022 by citing a governing decision record for its rationale continues to

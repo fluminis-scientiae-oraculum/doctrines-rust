@@ -63,7 +63,33 @@ compatible normative requirements, and major releases may change doctrine contra
   violation before being accepted as evidence.
 - RFC-0003 recording the accepted decision, including the previous position, the
   corrected position, and the reason the earlier wording was wrong.
-- RFC-0002 and RFC-0003 in the accepted-RFC index, which had omitted RFC-0002.
+- A generated accepted-RFC index. `rfcs/accepted/README.md` is now produced by
+  `bundle-agent-context` from `rfcs/accepted/overview.md` and each RFC's own
+  front matter, and is drift-checked; it had omitted RFC-0002 while
+  hand-maintained.
+
+### Fixed before release in 0.4.0
+
+Review of the initial revision found three defects. All were corrected before
+merge:
+
+- The decision-record registry duplicated the metadata each record already
+  carries in its front matter, and the linter validated only the registry row.
+  A record could omit or contradict its own owner, scope, authorities, or
+  triggers while the build stayed green, which both overstated the guarantee and
+  created the competing copy RUST-DOC-0011-R004 prohibits, inside the
+  enforcement for that rule. The registry now enumerates membership only; the
+  linter opens each listed record and validates RUST-DOC-0011-R007 from its
+  front matter. The one overlapping fact, list membership versus declared
+  `status`, is compared rather than trusted, and a mismatch test covers it.
+- The accepted-RFC index was left hand-maintained on the stated ground that a
+  generator would need another hand-written list. That reason was wrong: the
+  directory supplies the file set and each RFC's front matter supplies its
+  identifier, title, and status, so the view is generated with no competing
+  source.
+- RFC-0003 said ten existing rule statements were preserved. RUST-DOC-0010 has
+  twenty-two rules and only R022 changes, so twenty-one are preserved in that
+  package and 165 in the nine others.
 
 ## [0.3.0] — 2026-08-04
 
