@@ -32,9 +32,34 @@ compatible normative requirements, and major releases may change doctrine contra
   agent packs, and cross-referenced the new pattern from RUST-DOC-0001,
   RUST-DOC-0003, RUST-DOC-0004, RUST-DOC-0005, and RUST-DOC-0006. Their
   normative text is unchanged.
-- Updated the repository evidence map for 187 normative rules, 38 unit tests,
-  and eight compiler-rejection cases, and recorded which of the new rules have
+- Updated the repository evidence map for 187 normative rules, 40 unit tests,
+  and nine compiler-rejection cases, and recorded which of the new rules have
   no executable evidence in this repository.
+
+### Fixed before release in 0.3.0
+
+Review of the initial RUST-DOC-0010 revision found five defects in the shipped
+package. All were corrected before merge:
+
+- `RUST-DOC-0010-R005` now makes non-duplicability part of the consumption
+  obligation. Nonterminal stages previously derived `Clone`, so a caller could
+  copy a stage and advance every copy while every consuming signature remained
+  satisfied. Added a compiler-rejection case for duplication and gate S59.
+- `RUST-DOC-0010-R019` now requires a contract assertion that derives the
+  successor capability from the stage capability alone. The original assertions
+  restated the bound themselves, so deleting `type Next: CheckIdentity` from a
+  capability left the suite green.
+- `RUST-DOC-0010-R007` now applies to fallible transitions only, and forbids
+  declaring a failure type that is never constructed. `prepare_persistence` is
+  infallible and returns its successor directly, consistent with
+  RUST-DOC-0001-R013. Added gate S60.
+- The conflict-resolution edge preserves origin evidence. A revised submission
+  is now parameterized by the original origin, so an invited attempt stays
+  invited instead of being reported as self-service under a fabricated
+  challenge identifier.
+- The registration case study carries a guarantee-ledger row per stage, as
+  `RUST-DOC-0010-R020` and gate S55 require, including duplicability and the
+  recovery stages.
 
 ## [0.2.0] — 2026-07-27
 

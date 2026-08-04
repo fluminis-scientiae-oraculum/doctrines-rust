@@ -126,11 +126,24 @@ pub trait ResolveConflict: Sized {
 
     fn resolve(self, revision: Option<RawSubmission>) -> Result<Recovery<Self::Revised>, Self::Error>;
 }
+
+impl<O: Origin> ResolveConflict for ConflictingRegistration<O> {
+    type Revised = RevisedSubmission<O>;
+    // ...
+}
 ```
 
 The bound points back at `Canonicalize`, so a revised submission re-enters at the first stage and
 is canonicalized again. A revision cannot skip ahead to the check with an unnormalized address.
 Abandonment produces a terminal stage with no further edges. This is `RUST-DOC-0010-R009`.
+
+The revised stage is parameterized by the same `O`, which matters for `RUST-DOC-0010-R006`. An
+invited attempt that hits a conflict and revises stays invited: it carries the original
+`InvitedOrigin` forward, and the terminal value reports `OriginKind::Invited`. Collapsing every
+revision into a self-service submission would have discarded the invitation evidence and
+invented a challenge identifier no applicant supplied, which is precisely the evidence
+fabrication `RUST-DOC-0010-R010` prohibits. A test drives an invited revision through to the
+terminal stage.
 
 ## The collapsed view
 
@@ -145,7 +158,7 @@ let IdentityOutcome::Available(available) = persistable else {
 
 let persistable = available
     .accept_policy(offered_consent)?
-    .prepare_persistence(account_id)?;
+    .prepare_persistence(account_id);
 ```
 
 The chain is a summary, not evidence. What makes it trustworthy is that the illegal variants of
@@ -195,15 +208,39 @@ edge, so a redirected `type Next` fails the build rather than the review.
 
 Three compiler-rejection cases under [`../../examples/compile-fail/ui/`](../../examples/compile-fail/ui/)
 prove that the policy stage cannot be entered from an unchecked registration, that a consumed
-stage cannot be advanced twice, and that consent evidence cannot be built from a literal.
+stage cannot be advanced twice, that a stage cannot be cloned to duplicate progression, and
+that consent evidence cannot be built from a literal.
 
-## Guarantee ledger
+## Guarantee ledger, one row per stage
 
-| Claim                                  | Established by                           | Protected construction        | Boundary preservation                    | Escape hatches        | Does not prove                             | Residual runtime risk                       |
-| -------------------------------------- | ---------------------------------------- | ----------------------------- | ---------------------------------------- | --------------------- | ------------------------------------------ | ------------------------------------------- |
-| Address is canonical                   | `EmailAddress::parse` at stage one       | private representation        | raw strings dropped after the stage      | none                  | that the mailbox exists or is owned        | provider-specific normalization differences |
-| Origin evidence matches the entry path | the entry stage's implementation         | private field, no constructor | erased to `OriginKind` only at write     | none                  | that the challenge or invitation was valid | upstream verification defect                |
-| No conflicting identity was visible    | the identity-check transition            | observation built only there  | a read, not a lock                       | none                  | that the identity is free at write time    | a competing writer inside the window        |
-| Consent matched the version in force   | the policy transition                    | one private field             | offered consent is untrusted input       | none                  | that the policy is unchanged at write time | policy change between check and write       |
-| The in-process protocol ran in order   | consuming transitions and bounds         | no public stage constructors  | erasure only at the persistence boundary | none                  | that any row was written                   | none locally; durable state is separate     |
-| The account row exists exactly once    | unique constraint plus conflict handling | database constraint           | the durable model is a runtime record    | administrative repair | that the notification was delivered        | ambiguous write outcome on connection loss  |
+`RUST-DOC-0010-R020` requires a row per stage, not per claim. Nonterminal stages implement
+neither `Clone` nor `Copy`, so "duplicable" is `no` for every one of them and duplicate
+progression is not a residual risk; the two terminal stages are duplicable because duplicating
+them advances no protocol.
+
+| Stage                        | Claim its construction establishes                        | Established by                       | Duplicable | Protected construction   | Does not prove                            | Residual runtime risk                                         |
+| ---------------------------- | --------------------------------------------------------- | ------------------------------------ | ---------- | ------------------------ | ----------------------------------------- | ------------------------------------------------------------- |
+| `SelfServiceSubmission`      | a self-service attempt was received with a challenge id   | caller construction from request     | no         | public fields, untrusted | that the challenge was solved             | upstream challenge verification is weak                       |
+| `InvitedSubmission`          | an invited attempt was received with an invitation code   | caller construction from request     | no         | public fields, untrusted | that the invitation is genuine or unspent | upstream invitation verification is weak                      |
+| `CanonicalRegistration<O>`   | address and display name are canonical under local policy | `canonicalize`                       | no         | private fields, no ctor  | mailbox existence or ownership            | provider normalization differs from the policy                |
+| `AvailableRegistration<O>`   | no conflicting account was visible at check time          | `check_identity`, available branch   | no         | private fields, no ctor  | the identity is still free at write time  | competing writer inside the observation window                |
+| `ConflictingRegistration<O>` | an existing account held the identity at check time       | `check_identity`, conflicting branch | no         | private fields, no ctor  | the conflict still holds, or who owns it  | the blocking account is deleted concurrently                  |
+| `RevisedSubmission<O>`       | a revision was supplied, carrying the original origin     | `resolve`, revised edge              | no         | private fields, no ctor  | the revised values are canonical yet      | applicant revises to another taken identity                   |
+| `AcceptedRegistration<O>`    | offered consent matched the version in force              | `accept_policy`                      | no         | private fields, no ctor  | policy is unchanged at write time         | policy changes between check and durable write                |
+| `PersistableRegistration`    | the in-process protocol ran in the documented order       | `prepare_persistence` (infallible)   | yes        | private fields, no ctor  | that any row was written                  | duplicate write attempts; R014 requires the store to re-check |
+| `AbandonedRegistration`      | the attempt ended without an account                      | `resolve`, abandoned edge            | yes        | private fields, no ctor  | that the applicant will not retry later   | none locally                                                  |
+
+`ConsentProof` and `UniquenessObservation` are stage evidence rather than stages. Both have
+private fields and no public constructor, so possession is proof the corresponding transition
+ran; a compile-fail case pins the `ConsentProof` literal.
+
+## Claim-level summary
+
+| Claim                                  | Established by                                                     | Protected construction                                         | Boundary preservation                    | Escape hatches        | Does not prove                             | Residual runtime risk                                                                                          |
+| -------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------- | --------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Address is canonical                   | `EmailAddress::parse` at stage one                                 | private representation                                         | raw strings dropped after the stage      | none                  | that the mailbox exists or is owned        | provider-specific normalization differences                                                                    |
+| Origin evidence matches the entry path | the entry stage's implementation                                   | private field, no constructor                                  | erased to `OriginKind` only at write     | none                  | that the challenge or invitation was valid | upstream verification defect                                                                                   |
+| No conflicting identity was visible    | the identity-check transition                                      | observation built only there                                   | a read, not a lock                       | none                  | that the identity is free at write time    | a competing writer inside the window                                                                           |
+| Consent matched the version in force   | the policy transition                                              | one private field                                              | offered consent is untrusted input       | none                  | that the policy is unchanged at write time | policy change between check and write                                                                          |
+| The in-process protocol ran in order   | consuming transitions, successor bounds, and non-duplicable stages | no public stage constructors, no `Clone` on nonterminal stages | erasure only at the persistence boundary | none                  | that any row was written                   | none locally, because consumption plus non-duplicability closes both reuse and copy; durable state is separate |
+| The account row exists exactly once    | unique constraint plus conflict handling                           | database constraint                                            | the durable model is a runtime record    | administrative repair | that the notification was delivered        | ambiguous write outcome on connection loss                                                                     |

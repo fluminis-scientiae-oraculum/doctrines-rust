@@ -43,6 +43,39 @@ the same row. `RUST-DOC-0010-R014` separates the two claims and requires identit
 and a concurrency token to be re-checked where durable state advances.
 `RUST-DOC-0010-R015` keeps the durable model at runtime.
 
+**The consuming transition defeated by a derive.** Every transition takes `self`, the
+compile-fail case for reuse-after-move passes, and the design is described as permitting single
+progression. Then a stage derives `Clone`, because some test wanted a copy. A caller now clones
+the stage and advances both copies; the consuming signatures are all still there and all still
+satisfied. This defect was live in this package's own example until review caught it, and the
+committed compiler diagnostic for the reuse case even suggested `.clone()` as the workaround.
+`RUST-DOC-0010-R005` therefore makes non-duplicability part of the obligation rather than a
+consequence of it, and `RUST-DOC-0010-R018` requires a compile-fail case for duplication
+separately from one for reuse.
+
+**The topology assertion that asserted itself.** A helper is written to pin the stage graph:
+
+```rust
+fn assert_edge<S, N>() where S: Canonicalize<Next = N>, N: CheckIdentity {}
+```
+
+It compiles, it names every edge, and it detects nothing. The `N: CheckIdentity` bound in the
+helper supplies exactly the constraint the trait is supposed to declare, so deleting
+`type Next: CheckIdentity` from `Canonicalize` leaves the assertion green. This too was live in
+this package until review compiled the library with the bound removed and observed a passing
+suite. A contract assertion has to derive the successor capability from the trait alone:
+
+```rust
+fn assert_contract<S: Canonicalize>() {
+    fn requires<T: CheckIdentity>() {}
+    requires::<S::Next>();
+}
+```
+
+Nothing here supplies the bound, so it fails the moment the trait stops declaring it. Edge
+assertions remain useful for pinning the concrete successor; they are not a substitute.
+`RUST-DOC-0010-R019` requires the contract form.
+
 **The protocol erased in the middle.** An orchestration layer converts stage three into a
 dynamic map so a plugin can inspect it, then converts back. Static enforcement ends at that
 point for every later stage. `RUST-DOC-0010-R017` confines erasure to a named boundary while
@@ -123,16 +156,16 @@ three-line pipeline of ordinary functions is a better answer than seven traits, 
 
 ## Guarantee ledger
 
-| Claim                                                   | Established by                                               | Protected construction                            | Boundary preservation                                      | Escape hatches                                   | Does not prove                                                                   | Residual runtime risk                                        |
-| ------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| The in-process protocol ran in the documented order     | consuming transitions plus bounded associated successors     | private stage fields, no public stage constructor | untrusted input canonicalized at the first stage           | restricted trusted construction under R011       | that any durable or remote effect occurred                                       | a stage reached through an unreviewed trusted path           |
-| A stage's legal successor satisfies the next capability | associated-type bound checked by the compiler                | bound may not be widened under R004               | restoration issues a typed stage only through checked code | none                                             | that the successor's evidence is externally current                              | a bound relaxed in a refactor without the topology assertion |
-| Canonical values were established once                  | the canonicalization stage and its value constructors        | private newtype representations                   | raw input is dropped or separately named under R006        | audit retention named beside the canonical value | that the canonical form matches an external system's normalization               | divergent normalization policy between services              |
-| A check observed no conflicting identity                | the identity-check transition against a directory read       | observation constructible only by that transition | the read is a boundary observation, not a durable claim    | none                                             | that the identity is still free at write time                                    | a competing writer between observation and durable write     |
-| Consent evidence corresponds to a checked version       | the policy transition comparing offered and required version | private evidence field, no public literal         | offered consent arrives as untrusted input                 | none                                             | that the policy version is still in force when the record is stored              | policy change between the check and the durable write        |
-| The failing stage is identifiable                       | per-stage failure types under R007                           | failure types are not unified inside the protocol | mapped to a transport error only at the outer boundary     | boundary adapter mapping                         | that the failure is recoverable, or that a retry is safe                         | a stage failure erased early by an over-eager adapter        |
-| Durable state advanced exactly once                     | identity, stored state, and concurrency token re-checked     | the authoritative query or procedure              | the durable model is a runtime representation under R015   | administrative repair paths                      | that the local protocol observed the advance, or that no duplicate was attempted | lost update, stale read, or an unfenced competing writer     |
-| The documented stage graph is the compiled graph        | the executable topology assertion under R019                 | assertion covers every documented edge            | assertion runs in the ordinary test suite                  | waiver under the normative waiver section        | that the graph is the right graph for the domain                                 | an edge added to the code and omitted from the assertion     |
+| Claim                                                   | Established by                                               | Protected construction                                                              | Boundary preservation                                      | Escape hatches                                   | Does not prove                                                                   | Residual runtime risk                                        |
+| ------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| The in-process protocol ran in the documented order     | consuming transitions plus bounded associated successors     | private stage fields, no public stage constructor, no `Clone` on nonterminal stages | untrusted input canonicalized at the first stage           | restricted trusted construction under R011       | that any durable or remote effect occurred                                       | a stage reached through an unreviewed trusted path           |
+| A stage's legal successor satisfies the next capability | associated-type bound checked by the compiler                | bound may not be widened under R004                                                 | restoration issues a typed stage only through checked code | none                                             | that the successor's evidence is externally current                              | a bound relaxed in a refactor without the topology assertion |
+| Canonical values were established once                  | the canonicalization stage and its value constructors        | private newtype representations                                                     | raw input is dropped or separately named under R006        | audit retention named beside the canonical value | that the canonical form matches an external system's normalization               | divergent normalization policy between services              |
+| A check observed no conflicting identity                | the identity-check transition against a directory read       | observation constructible only by that transition                                   | the read is a boundary observation, not a durable claim    | none                                             | that the identity is still free at write time                                    | a competing writer between observation and durable write     |
+| Consent evidence corresponds to a checked version       | the policy transition comparing offered and required version | private evidence field, no public literal                                           | offered consent arrives as untrusted input                 | none                                             | that the policy version is still in force when the record is stored              | policy change between the check and the durable write        |
+| The failing stage is identifiable                       | per-stage failure types under R007                           | failure types are not unified inside the protocol                                   | mapped to a transport error only at the outer boundary     | boundary adapter mapping                         | that the failure is recoverable, or that a retry is safe                         | a stage failure erased early by an over-eager adapter        |
+| Durable state advanced exactly once                     | identity, stored state, and concurrency token re-checked     | the authoritative query or procedure                                                | the durable model is a runtime representation under R015   | administrative repair paths                      | that the local protocol observed the advance, or that no duplicate was attempted | lost update, stale read, or an unfenced competing writer     |
+| The documented stage graph is the compiled graph        | the executable topology assertion under R019                 | assertion covers every documented edge                                              | assertion runs in the ordinary test suite                  | waiver under the normative waiver section        | that the graph is the right graph for the domain                                 | an edge added to the code and omitted from the assertion     |
 
 ## Evidence limits
 

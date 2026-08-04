@@ -130,8 +130,21 @@ and constructing stage evidence from a literal.
 
 Then assert the topology executably, because compile-fail cases alone do not cover it. A
 redirected associated type can leave every existing negative test passing while the edge it
-protected no longer exists. A small set of generic functions, each of which compiles only if a
-named edge holds, closes that gap:
+protected no longer exists.
+
+Two assertions are needed, and the difference between them is easy to get wrong. A **contract**
+assertion knows only the stage capability and demands that its associated successor satisfies the
+next one. Nothing in the helper supplies that bound, so it compiles only while the trait declares
+it:
+
+```rust
+fn assert_canonicalize_contract<S: Canonicalize>() {
+    fn requires_check_identity<T: CheckIdentity>() {}
+    requires_check_identity::<S::Next>();
+}
+```
+
+An **edge** assertion additionally pins the concrete successor:
 
 ```rust
 fn assert_canonicalize_edge<S, N>()
@@ -141,6 +154,11 @@ where
 {
 }
 ```
+
+The edge form cannot replace the contract form. Its own `N: CheckIdentity` bound silently
+supplies whatever the trait lost, so deleting `type Next: CheckIdentity` from `Canonicalize`
+leaves a suite of edge assertions entirely green. Write both: contract assertions for the trait
+obligations, edge assertions for the concrete graph.
 
 ## 10. Costs
 
@@ -200,5 +218,7 @@ remains a durable operation which re-checks identity and state under its own con
 - Does a revision edge re-enter at the correct stage?
 - Is an undetermined outcome distinguishable from both branches?
 - Can any conversion, derive, or public constructor produce a later stage?
-- Does the documented graph have an executable assertion covering every edge?
+- Does any nonterminal stage derive `Clone` or `Copy`, allowing a copy to advance separately?
+- Does the documented graph have a contract assertion, not only edge assertions?
+- Does deleting a successor bound actually break the build?
 - Is any local transition being presented as durable evidence?

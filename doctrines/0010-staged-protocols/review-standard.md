@@ -39,6 +39,8 @@ reference**. Blank status is not approval.
 | S20  | Is retained original input separately named?               | field names         | one field holds raw or canonical            | high     | split the fields           |
 | S21  | Does each failure identify its stage?                      | failure types       | one opaque protocol error                   | high     | separate by stage          |
 | S22  | Is failure erasure deferred to the boundary?               | mapping location    | stages erase failure immediately            | high     | map at the boundary        |
+| S59  | Is every nonterminal stage non-duplicable?                 | derive audit        | stage derives `Clone`, so copies advance    | critical | remove the derive          |
+| S60  | Does each declared failure type have a constructing path?  | test or code path   | infallible transition returns `Result`      | high     | make the signature honest  |
 
 ## Branches, recovery, and granularity
 

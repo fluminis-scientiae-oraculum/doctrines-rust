@@ -79,19 +79,17 @@ pub trait AcceptPolicy: Sized {
 }
 
 /// Fourth capability: assemble the value a durable writer may accept.
+///
+/// This transition is infallible by contract. It rearranges evidence already
+/// established by earlier stages and performs no I/O, so it has no failure to
+/// report. Giving it a `Result` would advertise an error case that cannot
+/// occur, which `RUST-DOC-0010-R007` and `RUST-DOC-0001-R013` both forbid.
 pub trait PreparePersistence: Sized {
     /// Terminal output of the in-process protocol.
     type Output;
 
-    /// Failure specific to persistence preparation.
-    type Error;
-
     /// Consumes the accepted registration and produces the persistable value.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Self::Error`] when a required account identity is unavailable.
-    fn prepare_persistence(self, account_id: AccountId) -> Result<Self::Output, Self::Error>;
+    fn prepare_persistence(self, account_id: AccountId) -> Self::Output;
 }
 
 /// Recovery capability reached only from the conflicting branch.
@@ -125,7 +123,7 @@ pub trait ResolveConflict: Sized {
 /// The alternatives are distinct types, so neither branch can be reached with
 /// the other's evidence and neither carries optional fields standing in for a
 /// state that was never established.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum IdentityOutcome<Available, Conflicting> {
     /// The canonical identity was not held by an existing account.
     Available(Available),
@@ -134,7 +132,7 @@ pub enum IdentityOutcome<Available, Conflicting> {
 }
 
 /// Named recovery edge from the conflicting branch.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Recovery<Revised> {
     /// The applicant supplied a revised submission; the protocol restarts.
     Revised(Revised),
@@ -368,7 +366,7 @@ pub struct RawSubmission {
 }
 
 /// Entry stage for a self-service submission.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct SelfServiceSubmission {
     /// Untrusted submission input.
     pub submission: RawSubmission,
@@ -377,7 +375,7 @@ pub struct SelfServiceSubmission {
 }
 
 /// Entry stage for an invited submission.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct InvitedSubmission {
     /// Untrusted submission input.
     pub submission: RawSubmission,
@@ -391,7 +389,7 @@ pub struct InvitedSubmission {
 ///
 /// Fields are private and no public constructor exists, so this stage can be
 /// reached only by running [`Canonicalize::canonicalize`].
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct CanonicalRegistration<O> {
     address: EmailAddress,
     display_name: DisplayName,
@@ -416,7 +414,7 @@ impl<O> CanonicalRegistration<O> {
 }
 
 /// Registration whose canonical identity was observed to be available.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct AvailableRegistration<O> {
     registration: CanonicalRegistration<O>,
     uniqueness: UniquenessObservation,
@@ -430,7 +428,7 @@ impl<O> AvailableRegistration<O> {
 }
 
 /// Registration blocked by an existing account.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct ConflictingRegistration<O> {
     registration: CanonicalRegistration<O>,
     existing_account: AccountId,
@@ -444,7 +442,7 @@ impl<O> ConflictingRegistration<O> {
 }
 
 /// Registration whose consent evidence was established.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct AcceptedRegistration<O> {
     available: AvailableRegistration<O>,
     consent: ConsentProof,
@@ -461,7 +459,7 @@ impl<O> AcceptedRegistration<O> {
 ///
 /// Reaching this stage proves the in-process protocol ran in order. It proves
 /// nothing about a stored row.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct PersistableRegistration {
     account_id: AccountId,
     address: EmailAddress,
@@ -497,8 +495,26 @@ impl PersistableRegistration {
     }
 }
 
+/// Revised submission re-entering the protocol at its first stage.
+///
+/// It carries the origin evidence of the attempt it revises. A revision changes
+/// the submitted values; it does not change how the applicant entered, so an
+/// invited attempt stays invited and no entry evidence is invented.
+#[derive(Debug, Eq, PartialEq)]
+pub struct RevisedSubmission<O> {
+    submission: RawSubmission,
+    origin: O,
+}
+
+impl<O> RevisedSubmission<O> {
+    /// Returns the origin evidence carried from the revised attempt.
+    pub const fn origin(&self) -> &O {
+        &self.origin
+    }
+}
+
 /// Terminal recovery stage with no further protocol edge.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct AbandonedRegistration {
     blocked_by: AccountId,
 }
@@ -575,21 +591,6 @@ impl fmt::Display for PolicyError {
 }
 
 impl Error for PolicyError {}
-
-/// Failure of the persistence-preparation stage.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PreparationError {
-    /// Underlying value failure.
-    pub cause: ValueError,
-}
-
-impl fmt::Display for PreparationError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "persistence preparation failed: {}", self.cause)
-    }
-}
-
-impl Error for PreparationError {}
 
 /// Failure of the conflict-resolution stage.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -761,17 +762,16 @@ where
     O: Origin,
 {
     type Output = PersistableRegistration;
-    type Error = PreparationError;
 
-    fn prepare_persistence(self, account_id: AccountId) -> Result<Self::Output, Self::Error> {
+    fn prepare_persistence(self, account_id: AccountId) -> Self::Output {
         let registration = self.available.registration;
-        Ok(PersistableRegistration {
+        PersistableRegistration {
             account_id,
             address: registration.address,
             display_name: registration.display_name,
             consent: self.consent,
             origin_kind: registration.origin.kind(),
-        })
+        }
     }
 }
 
@@ -779,7 +779,7 @@ impl<O> ResolveConflict for ConflictingRegistration<O>
 where
     O: Origin,
 {
-    type Revised = SelfServiceSubmission;
+    type Revised = RevisedSubmission<O>;
     type Error = ResolutionError;
 
     fn resolve(
@@ -792,10 +792,28 @@ where
             }));
         };
         canonical_parts(&submission).map_err(|cause| ResolutionError { cause })?;
-        Ok(Recovery::Revised(SelfServiceSubmission {
+        Ok(Recovery::Revised(RevisedSubmission {
             submission,
-            challenge_id: format!("revision-of-{}", self.existing_account.as_str()),
+            origin: self.registration.origin,
         }))
+    }
+}
+
+impl<O> Canonicalize for RevisedSubmission<O>
+where
+    O: Origin,
+{
+    type Next = CanonicalRegistration<O>;
+    type Error = CanonicalizeError;
+
+    fn canonicalize(self) -> Result<Self::Next, Self::Error> {
+        let (address, display_name) =
+            canonical_parts(&self.submission).map_err(|cause| CanonicalizeError { cause })?;
+        Ok(CanonicalRegistration {
+            address,
+            display_name,
+            origin: self.origin,
+        })
     }
 }
 
@@ -807,18 +825,66 @@ mod tests {
         ConflictingRegistration, DisplayName, EmailAddress, IdentityDirectory, IdentityOutcome,
         InvitedOrigin, InvitedSubmission, OfferedConsent, OriginKind, PersistableRegistration,
         PolicyVersion, PreparePersistence, REQUIRED_POLICY_VERSION, RawSubmission, Recovery,
-        ResolveConflict, SelfServiceOrigin, SelfServiceSubmission, ValueError,
+        ResolveConflict, RevisedSubmission, SelfServiceOrigin, SelfServiceSubmission, ValueError,
     };
 
     // ---------------------------------------------------------------------
     // Protocol topology evidence
     // ---------------------------------------------------------------------
     //
-    // These assertions compile only while each stage's associated successor
-    // type is exactly the documented one *and* still satisfies the successor
-    // capability. Redirecting a `type Next`, widening a bound, or deleting an
-    // implementation turns the documented graph into a compiler error instead
-    // of silent drift.
+    // Two distinct obligations, and they need two distinct kinds of assertion.
+    //
+    // CONTRACT assertions below derive the successor capability from the trait
+    // alone. Each helper knows only `S: SomeCapability` and then demands that
+    // `S::Successor` satisfies the next capability. Nothing in the helper
+    // supplies that bound, so it compiles only while the *trait* declares it.
+    // Deleting `type Next: CheckIdentity` from `Canonicalize` breaks these.
+    //
+    // EDGE assertions further down pin the concrete successor type. They take
+    // the successor as a second parameter with its own bound, which is why an
+    // edge assertion alone cannot detect a widened trait contract: its own
+    // `N: CheckIdentity` bound silently replaces the one the trait lost.
+    //
+    // Keeping only the edge assertions was the original defect here.
+
+    fn assert_canonicalize_contract<S: Canonicalize>() {
+        fn requires_check_identity<T: CheckIdentity>() {}
+        requires_check_identity::<S::Next>();
+    }
+
+    fn assert_check_identity_contract<S: CheckIdentity>() {
+        fn requires_accept_policy<T: AcceptPolicy>() {}
+        fn requires_resolve_conflict<T: ResolveConflict>() {}
+        requires_accept_policy::<S::Available>();
+        requires_resolve_conflict::<S::Conflicting>();
+    }
+
+    fn assert_accept_policy_contract<S: AcceptPolicy>() {
+        fn requires_prepare_persistence<T: PreparePersistence>() {}
+        requires_prepare_persistence::<S::Next>();
+    }
+
+    fn assert_resolve_conflict_contract<S: ResolveConflict>() {
+        fn requires_canonicalize<T: Canonicalize>() {}
+        requires_canonicalize::<S::Revised>();
+    }
+
+    #[test]
+    fn every_capability_declares_its_successor_bound() {
+        assert_canonicalize_contract::<SelfServiceSubmission>();
+        assert_canonicalize_contract::<InvitedSubmission>();
+        assert_canonicalize_contract::<RevisedSubmission<SelfServiceOrigin>>();
+        assert_canonicalize_contract::<RevisedSubmission<InvitedOrigin>>();
+
+        assert_check_identity_contract::<CanonicalRegistration<SelfServiceOrigin>>();
+        assert_check_identity_contract::<CanonicalRegistration<InvitedOrigin>>();
+
+        assert_accept_policy_contract::<AvailableRegistration<SelfServiceOrigin>>();
+        assert_accept_policy_contract::<AvailableRegistration<InvitedOrigin>>();
+
+        assert_resolve_conflict_contract::<ConflictingRegistration<SelfServiceOrigin>>();
+        assert_resolve_conflict_contract::<ConflictingRegistration<InvitedOrigin>>();
+    }
 
     fn assert_canonicalize_edge<S, N>()
     where
@@ -885,8 +951,14 @@ mod tests {
         );
         assert_preparation_edge::<AcceptedRegistration<InvitedOrigin>, PersistableRegistration>();
 
-        assert_recovery_edge::<ConflictingRegistration<SelfServiceOrigin>, SelfServiceSubmission>();
-        assert_recovery_edge::<ConflictingRegistration<InvitedOrigin>, SelfServiceSubmission>();
+        assert_recovery_edge::<
+            ConflictingRegistration<SelfServiceOrigin>,
+            RevisedSubmission<SelfServiceOrigin>,
+        >();
+        assert_recovery_edge::<
+            ConflictingRegistration<InvitedOrigin>,
+            RevisedSubmission<InvitedOrigin>,
+        >();
     }
 
     // ---------------------------------------------------------------------
@@ -951,8 +1023,7 @@ mod tests {
         let persistable = available
             .accept_policy(accepted_consent())
             .expect("consent matches the version in force")
-            .prepare_persistence(account_id.clone())
-            .expect("persistable value");
+            .prepare_persistence(account_id.clone());
 
         assert_eq!(persistable.account_id(), &account_id);
         assert_eq!(persistable.address().as_str(), "Applicant@example.com");
@@ -983,8 +1054,7 @@ mod tests {
         let persistable = available
             .accept_policy(accepted_consent())
             .expect("consent matches")
-            .prepare_persistence(AccountId::new("account-2").expect("nonblank identity"))
-            .expect("persistable value");
+            .prepare_persistence(AccountId::new("account-2").expect("nonblank identity"));
 
         assert_eq!(persistable.origin_kind(), OriginKind::Invited);
     }
@@ -1039,6 +1109,55 @@ mod tests {
 
         let canonical = revised.canonicalize().expect("canonical values");
         assert_eq!(canonical.address().as_str(), "second@example.com");
+    }
+
+    #[test]
+    fn invited_revision_stays_invited_through_the_terminal_stage() {
+        let holder = AccountId::new("account-existing").expect("nonblank identity");
+        let directory = IdentityDirectory::new().with_taken(
+            EmailAddress::parse("applicant@example.com").expect("valid address"),
+            holder,
+        );
+
+        let IdentityOutcome::Conflicting(conflicting) = invited("applicant@example.com")
+            .canonicalize()
+            .expect("canonical values")
+            .check_identity(&directory)
+            .expect("availability determined")
+        else {
+            panic!("expected the conflicting branch");
+        };
+
+        let Recovery::Revised(revised) = conflicting
+            .resolve(Some(submission("second@example.com")))
+            .expect("revision is usable")
+        else {
+            panic!("a supplied revision must produce the revised edge");
+        };
+
+        // The revision carries the original invitation evidence rather than a
+        // fabricated self-service challenge.
+        assert_eq!(revised.origin().invite_code(), "invite-1");
+        assert_eq!(
+            revised.origin().inviting_account().as_str(),
+            "account-inviter"
+        );
+
+        let IdentityOutcome::Available(available) = revised
+            .canonicalize()
+            .expect("canonical values")
+            .check_identity(&IdentityDirectory::new())
+            .expect("availability determined")
+        else {
+            panic!("the revised address is free");
+        };
+
+        let persistable = available
+            .accept_policy(accepted_consent())
+            .expect("consent matches")
+            .prepare_persistence(AccountId::new("account-4").expect("nonblank identity"));
+
+        assert_eq!(persistable.origin_kind(), OriginKind::Invited);
     }
 
     #[test]
@@ -1138,8 +1257,7 @@ mod tests {
         let prepared = available
             .accept_policy(accepted_consent())
             .expect("consent matches")
-            .prepare_persistence(AccountId::new("account-3").expect("nonblank identity"))
-            .expect("persistable value");
+            .prepare_persistence(AccountId::new("account-3").expect("nonblank identity"));
 
         // The raw submission strings are not carried past canonicalization.
         assert_eq!(prepared.address().as_str(), "Applicant@example.com");

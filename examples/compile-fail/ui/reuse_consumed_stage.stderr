@@ -13,7 +13,3 @@ note: `check_identity` takes ownership of the receiver `self`, which moves `cano
   |
   |         self,
   |         ^^^^
-help: you can `clone` the value and consume it, but this might not be your desired behavior
-  |
-7 |     let _first = canonical.clone().check_identity(&directory);
-  |                           ++++++++

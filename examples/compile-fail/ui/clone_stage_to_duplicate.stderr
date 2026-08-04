@@ -1,0 +1,5 @@
+error[E0599]: no method named `clone` found for struct `SelfServiceSubmission` in the current scope
+ --> ui/clone_stage_to_duplicate.rs:6:23
+  |
+6 |     let _twin = entry.clone();
+  |                       ^^^^^ method not found in `SelfServiceSubmission`

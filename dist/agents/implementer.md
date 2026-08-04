@@ -3366,20 +3366,28 @@ for any relaxation.
 ## RUST-DOC-0010-R005 — Consume the stage on transition
 
 **Statement.** A stage transition MUST consume the stage value when reuse of the prior stage
-would be invalid, and MUST NOT rely on an internal flag to mark the stage as advanced.
+would be invalid, and MUST NOT rely on an internal flag to mark the stage as advanced. A stage
+whose protocol claims single progression MUST NOT be duplicable, so it MUST NOT implement or
+derive `Clone` or `Copy` unless duplicate progression is deliberately permitted and documented.
 
 **Intent.** Make the successor value the evidence that the transition ran, and make reuse of the
-superseded stage a compiler error.
+superseded stage a compiler error. Consumption alone is insufficient: a caller holding a
+duplicable stage can copy it first and advance every copy, which satisfies the letter of a
+consuming signature while defeating its purpose.
 
-**Applicability.** Transitions between stages of a locally owned protocol. RUST-DOC-0003 governs
-custody and RUST-DOC-0001 governs legal transitions generally; this rule adds the
+**Applicability.** Transitions between stages of a locally owned protocol, and the trait
+implementations of every stage type and branch wrapper. RUST-DOC-0003 governs custody and
+RUST-DOC-0001 governs legal transitions and the clone audit generally; this rule adds the
 stage-to-stage obligation.
 
 **Allowed exceptions.** A read-only inspection that establishes no new fact MAY borrow. A
 failure proven to occur before any part of the transition MAY return the prior stage with its
-error.
+error. A terminal stage with no successor MAY be duplicable, since duplicating it advances no
+protocol.
 
-**Review evidence.** Method receivers, recovery shapes, and the consumed-reuse compile-fail case.
+**Review evidence.** Method receivers, recovery shapes, the derive and trait-implementation
+audit for every stage type, and compile-fail cases for both consumed-stage reuse and stage
+duplication.
 
 ## RUST-DOC-0010-R006 — Carry forward exactly the evidence successors need
 
@@ -3400,21 +3408,28 @@ survive every transition.
 
 ## RUST-DOC-0010-R007 — Keep stage failure distinguishable
 
-**Statement.** Each transition MUST expose a failure type that identifies the stage that failed,
-and a protocol MUST NOT erase its stage failures into one opaque type before the protocol
-completes.
+**Statement.** Each **fallible** transition MUST expose a failure type that identifies the stage
+that failed, and a protocol MUST NOT erase its stage failures into one opaque type before the
+protocol completes. A transition that cannot fail MUST NOT declare a failure type it never
+constructs.
 
 **Intent.** Preserve which proof was not established, which is the information a caller needs to
-choose between retry, revision, and abandonment.
+choose between retry, revision, and abandonment, without spending that machinery on a state the
+transition cannot reach.
 
 **Applicability.** Failure types of stage transitions. RUST-DOC-0002 governs error taxonomy
-design; this rule adds the stage-identity obligation inside a protocol.
+design; this rule adds the stage-identity obligation inside a protocol. The second sentence
+applies to any transition whose body has no failure path.
 
 **Allowed exceptions.** A boundary adapter MAY map stage failures into one transport or
-presentation error after the protocol completes.
+presentation error after the protocol completes. A transition that only rearranges evidence
+already established, performs no I/O, and enforces no further condition MAY be infallible, as
+RUST-DOC-0001-R013 permits for pure in-process operations; its signature then returns the
+successor directly rather than a `Result`.
 
-**Review evidence.** Per-stage failure types, the boundary mapping, and tests asserting stage
-identity is preserved.
+**Review evidence.** Per-stage failure types, the boundary mapping, tests asserting stage
+identity is preserved, and, for each transition declared fallible, a test or code path that
+constructs its failure.
 
 ## RUST-DOC-0010-R008 — Model material branches as named successor alternatives
 
@@ -3615,7 +3630,9 @@ rejection occurs at the intended boundary.
 
 **Statement.** The stage and successor graph a protocol documents MUST be asserted executably,
 so that a redirected associated type, a widened bound, or a removed implementation is detected
-by the build rather than by reading.
+by the build rather than by reading. At least one assertion per capability MUST derive the
+successor's required capability from the stage capability alone, and MUST NOT restate that
+requirement as its own bound.
 
 **Intent.** Keep the documented topology and the compiled topology from diverging, which is the
 failure that prose review is least able to catch.
@@ -3625,8 +3642,10 @@ failure that prose review is least able to catch.
 **Allowed exceptions.** A protocol whose complete graph is visible in one function signature MAY
 rely on that signature.
 
-**Review evidence.** The topology assertion, its coverage of every documented edge, and its
-failure when an edge is changed.
+**Review evidence.** The contract assertions, the edge assertions, their coverage of every
+documented edge, and an observed compiler failure when a successor bound is deleted from a
+capability. An assertion whose own bounds restate the trait's obligation is not evidence for
+this rule.
 
 ## RUST-DOC-0010-R020 — Record a guarantee ledger row per stage
 
