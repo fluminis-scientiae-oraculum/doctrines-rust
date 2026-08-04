@@ -10970,6 +10970,1398 @@ requirements.
 
 ---
 
+## Source: `doctrines/0010-staged-protocols/README.md`
+
+---
+id: RUST-DOC-0010
+slug: staged-protocols
+title: Staged Protocols and Successor Capabilities
+status: active
+version: 0.1.0
+normative: true
+applies_to:
+  - planning
+  - implementation
+  - review
+  - audit
+risk_domains:
+  - protocol-design
+  - state-machines
+  - api-design
+  - persistence
+supersedes: []
+superseded_by: null
+---
+
+# Staged Protocols and Successor Capabilities
+
+## Scope
+
+A staged protocol is an in-process sequence in which each stage establishes a fact that later
+stages depend on: canonicalize, then check, then authorize, then prepare, then hand off. This
+doctrine governs how such a protocol is represented so that its ordering is enforced rather than
+remembered.
+
+Its distinctive concern is the protocol edge. A stage capability names its legal successor as an
+associated type bounded by the capability that successor must satisfy. The edge therefore lives
+in the contract, and a stage that stops leading anywhere legal fails to compile. The doctrine
+also governs branch and recovery edges, per-stage failure identity, stage granularity, effect
+disclosure, the boundary at which the protocol may be erased, and the point at which a local
+transition stops being evidence of a durable one.
+
+## Out of scope
+
+It does not govern value validation or newtype construction, which belong to RUST-DOC-0001. It
+does not design an error taxonomy, which belongs to RUST-DOC-0002. It does not define custody,
+capability issuance, or revocation, which belong to RUST-DOC-0003. It does not define
+cancellation mechanics, which belong to RUST-DOC-0004. It does not govern durable decoding,
+migration, or transactions, which belong to RUST-DOC-0005, nor distributed ambiguity and
+reconciliation, which belong to RUST-DOC-0006. It states no soundness obligation, which belongs
+to RUST-DOC-0007, defines no evidence class, which belongs to RUST-DOC-0008, and makes no cost
+claim, which belongs to RUST-DOC-0009.
+
+It does not claim that every ordered sequence deserves a stage type, and it does not make a
+typed protocol a substitute for a durable workflow engine.
+
+## Intended readers
+
+Planners inventory stages, edges, evidence, and effects before types exist. Implementers build
+the capability traits, the successor bounds, and the topology assertion. Reviewers test whether
+the documented graph is the compiled graph and whether each stage claims only what its
+construction establishes. Auditors search for conversion bypasses, forged stage evidence, and
+local transitions presented as durable ones. Maintainers keep stage identity stable across
+versions.
+
+## Normative status
+
+`doctrine.md` is normative and carries the stable rule identifiers. This package is version
+0.1.0 with status active. Rationale, decision framework, anti-patterns, glossary, and references
+are informative and cannot create an obligation that `doctrine.md` does not state.
+
+Rules `RUST-DOC-0010-R012`, `RUST-DOC-0010-R016`, and `RUST-DOC-0010-R019` permit a waiver on
+the terms recorded in the normative waiver section. The rules governing successor bounds,
+construction bypass, durable claims, the guarantee ledger, terminology, and governance
+precedence do not.
+
+## Prerequisite foundations
+
+Read [normative language](../foundations/normative-language.md) for requirement levels and
+waiver structure, [invariants](../foundations/invariants.md) for classifying the facts stages
+prove, [evidence](../foundations/evidence.md) for what each evidence class establishes,
+[guarantee honesty](../foundations/guarantee-honesty.md) for the ledger discipline used
+throughout, and [complexity budget](../foundations/complexity-budget.md) for the granularity
+assessment required by `RUST-DOC-0010-R012`.
+
+## Related material
+
+Patterns: [successor capabilities](../patterns/successor-capabilities.md) is the mechanism
+this doctrine governs; [typestate](../patterns/typestate.md) and
+[consuming transitions](../patterns/consuming-transitions.md) are its foundation;
+[sum types](../patterns/sum-types.md) carry its branches; and
+[hybrid state machines](../patterns/hybrid-state-machines.md) carry the durable half that
+`RUST-DOC-0010-R015` requires.
+
+Boundaries: [HTTP and RPC](../boundaries/http-and-rpc.md) for the untrusted input that enters
+the first stage, [database decoding](../boundaries/database-decoding.md) for restoration, and
+[messaging](../boundaries/messaging.md) for published effects.
+
+Reviews: [typestate review](../reviews/typestate-review.md) covers proportionality and adds a
+staged-protocol gate group. Case studies:
+[registration onboarding](../case-studies/registration-onboarding/) is the worked protocol;
+[payment lifecycle](../case-studies/payment-lifecycle/) and
+[authenticated session](../case-studies/authenticated-session/) show the durable and authority
+halves this doctrine defers.
+
+Executable evidence lives in [`examples/staged-protocol`](../examples/staged-protocol/src/lib.rs)
+with compiler-rejection cases under [`examples/compile-fail/ui/`](../examples/compile-fail/ui/).
+
+## Reading order
+
+Start with this file for scope, then `doctrine.md` for the obligations. Read `rationale.md` for
+the failure modes and the guarantee ledger, then `decision-framework.md` before committing to a
+stage graph. Use `review-standard.md` during review, `anti-patterns.md` when a design feels
+close to one of the known failures, `glossary.md` for terms whose local meaning is narrower than
+ordinary usage, and `references.md` for provenance.
+
+## Compact doctrine summary
+
+Inventory the protocol before typing it. Name each stage for the fact it proves. Put the legal
+successor in the contract as an associated type bounded by the next capability, and never widen
+that bound to make an implementation compile. Consume the stage on transition, carry forward
+exactly the evidence successors need, and keep each failure identifiable by stage. Model
+branches as named alternatives over distinct successors, and name every retry and recovery edge.
+Allow no conversion, derive, or public constructor that produces a later stage without its
+transition, and restrict and inventory the trusted paths that remain. Disclose durable and
+external effects per stage. Erase the protocol only at a named boundary.
+
+The central non-guarantee: reaching a later stage proves that the in-process protocol ran in
+order, and nothing more. A move consumes a local value; stored facts are read, copied, and
+replayed, so no local move consumes them. Durable advancement re-checks identity, stored state,
+and a concurrency token, and persisted lifecycle stays a runtime model.
+
+## Package completion check
+
+- metadata agrees with `manifest/doctrines.yaml` and its JSON Schema;
+- rule IDs use `RUST-DOC-0010-RNNN` and every one appears in `review-standard.md`;
+- all eight files carry domain-specific substance;
+- references and source notes separate external facts from repository governance, and record
+  which vocabulary is local;
+- the example crate, its topology assertion, and the compiler-rejection cases are linked;
+- generated bundles reproduce after the manifest update.
+
+---
+
+## Source: `doctrines/0010-staged-protocols/doctrine.md`
+
+# Normative doctrine
+
+## RUST-DOC-0010-R001 — Inventory the protocol before typing it
+
+**Statement.** A staged protocol MUST have a written inventory of stages, edges, the evidence
+each transition establishes, its failure classes, and its external effects before stage types
+or capability traits are introduced.
+
+**Intent.** Prevent a type graph from being derived mechanically from existing functions rather
+than from the proof boundaries the domain actually has.
+
+**Applicability.** Multi-stage command, request, submission, handshake, and workflow protocols
+whose stage order carries consequence.
+
+**Allowed exceptions.** A single-transition operation MAY record the inventory inline with its
+design note.
+
+**Review evidence.** Stage and edge inventory, evidence-per-transition table, and the design
+note that preceded the types.
+
+## RUST-DOC-0010-R002 — Name each stage by the fact it proves
+
+**Statement.** A stage type MUST be named for the fact its construction establishes, and MUST
+NOT be named for its position, its processing step, or a version counter.
+
+**Intent.** Keep the stage graph readable as a sequence of proofs rather than an ordering of
+implementation steps.
+
+**Applicability.** Every named stage type and type-level state marker in a staged protocol.
+
+**Allowed exceptions.** None. A stage whose proven fact cannot be named is evidence that the
+boundary is not a real one.
+
+**Review evidence.** Stage names, their documented guarantees, and the guarantee ledger.
+
+## RUST-DOC-0010-R003 — Expose the successor capability in the stage contract
+
+**Statement.** A stage capability whose protocol has a legal successor MUST expose that
+successor as an associated type bounded by the capability the successor is required to satisfy,
+rather than returning an unconstrained generic, an erased type, or a value whose successor
+relationship exists only in prose.
+
+**Intent.** Make the protocol edge a checked part of the contract, so a stage that stops leading
+anywhere legal fails to compile instead of failing in review.
+
+**Applicability.** Capability traits for staged protocols with more than one transition.
+
+**Allowed exceptions.** A terminal stage MUST NOT name a successor. A protocol with exactly one
+transition MAY return a concrete successor type directly when no second implementation is
+anticipated.
+
+**Review evidence.** Trait definitions, associated-type bounds, and the topology assertion
+required by RUST-DOC-0010-R019.
+
+## RUST-DOC-0010-R004 — Bound the successor by capability actually established
+
+**Statement.** A successor bound MUST name only capabilities the successor value genuinely
+establishes, and MUST NOT be widened, relaxed, or removed in order to make an implementation
+compile.
+
+**Intent.** Prevent the protocol contract from being edited to match a convenient
+implementation, which converts a compile-time guarantee into decoration.
+
+**Applicability.** Every associated successor type and its bounds.
+
+**Allowed exceptions.** None. A bound that cannot be satisfied indicates the stage graph or the
+implementation is wrong, not the bound.
+
+**Review evidence.** Bound change history, the reason each bound exists, and the review record
+for any relaxation.
+
+## RUST-DOC-0010-R005 — Consume the stage on transition
+
+**Statement.** A stage transition MUST consume the stage value when reuse of the prior stage
+would be invalid, and MUST NOT rely on an internal flag to mark the stage as advanced.
+
+**Intent.** Make the successor value the evidence that the transition ran, and make reuse of the
+superseded stage a compiler error.
+
+**Applicability.** Transitions between stages of a locally owned protocol. RUST-DOC-0003 governs
+custody and RUST-DOC-0001 governs legal transitions generally; this rule adds the
+stage-to-stage obligation.
+
+**Allowed exceptions.** A read-only inspection that establishes no new fact MAY borrow. A
+failure proven to occur before any part of the transition MAY return the prior stage with its
+error.
+
+**Review evidence.** Method receivers, recovery shapes, and the consumed-reuse compile-fail case.
+
+## RUST-DOC-0010-R006 — Carry forward exactly the evidence successors need
+
+**Statement.** A stage MUST carry the evidence its successors require, and MUST NOT retain a
+superseded untrusted representation unless a named audit, diagnostic, or reconciliation
+obligation requires it and the retained value is distinguishable from the canonical one.
+
+**Intent.** Keep a later stage from re-deriving a fact, and keep a raw value from being mistaken
+for a checked one after the stage that checked it.
+
+**Applicability.** Stage payloads and the values transitions move between them.
+
+**Allowed exceptions.** Audit, reconciliation, and error-reporting obligations MAY retain the
+original input when it is separately named.
+
+**Review evidence.** Stage fields, the field-provenance mapping, and tests that canonical values
+survive every transition.
+
+## RUST-DOC-0010-R007 — Keep stage failure distinguishable
+
+**Statement.** Each transition MUST expose a failure type that identifies the stage that failed,
+and a protocol MUST NOT erase its stage failures into one opaque type before the protocol
+completes.
+
+**Intent.** Preserve which proof was not established, which is the information a caller needs to
+choose between retry, revision, and abandonment.
+
+**Applicability.** Failure types of stage transitions. RUST-DOC-0002 governs error taxonomy
+design; this rule adds the stage-identity obligation inside a protocol.
+
+**Allowed exceptions.** A boundary adapter MAY map stage failures into one transport or
+presentation error after the protocol completes.
+
+**Review evidence.** Per-stage failure types, the boundary mapping, and tests asserting stage
+identity is preserved.
+
+## RUST-DOC-0010-R008 — Model material branches as named successor alternatives
+
+**Statement.** A transition with materially different outcomes MUST return a named sum type over
+distinct successor stages, and MUST NOT return one successor carrying optional fields that stand
+in for a state that was never established.
+
+**Intent.** Prevent a branch from degrading into a partially populated value that every later
+stage must re-inspect.
+
+**Applicability.** Approval, availability, eligibility, verification, and routing transitions.
+
+**Allowed exceptions.** An outcome that changes no successor capability and no later obligation
+MAY be represented as data on one successor.
+
+**Review evidence.** Branch enum definitions, successor bounds per variant, and a test per
+branch.
+
+## RUST-DOC-0010-R009 — Name retry, revision, and recovery edges
+
+**Statement.** A protocol that permits retry, revision, correction, or resumption MUST represent
+each such path as a named stage and a named edge, and MUST NOT leave it implicit in caller
+control flow.
+
+**Intent.** Keep the recovery half of a protocol as visible and as reviewable as its success
+path.
+
+**Applicability.** Protocols with revisable input, contended identity, recoverable rejection, or
+resumable interruption.
+
+**Allowed exceptions.** A protocol whose only recovery is to restart from the initial stage MAY
+state that explicitly instead of adding a stage.
+
+**Review evidence.** Recovery stage types, the edges that reach them, and tests exercising each
+recovery path.
+
+## RUST-DOC-0010-R010 — Prohibit conversion paths that skip stages
+
+**Statement.** A protocol MUST NOT expose a `From`, `Into`, `Default`, public constructor,
+public field, or derived decoding path that constructs a later stage without performing the
+intervening transitions.
+
+**Intent.** Close the bypass that makes an otherwise sound stage graph decorative, since a
+conversion that produces a later stage asserts every proof that stage represents.
+
+**Applicability.** Trait implementations, constructors, field visibility, and derived
+deserialization on stage types and stage evidence.
+
+**Allowed exceptions.** A restricted trusted-construction path MAY exist under
+RUST-DOC-0010-R011.
+
+**Review evidence.** Trait implementation inventory, field visibility audit, derive audit, and
+the evidence-forgery compile-fail case.
+
+## RUST-DOC-0010-R011 — Restrict and inventory trusted stage construction
+
+**Statement.** Any path that constructs a stage or its evidence without running the
+corresponding transition MUST be visibility-restricted to a named owner, MUST be listed in the
+guarantee ledger, and MUST state the obligation its caller assumes.
+
+**Intent.** Keep necessary construction paths for testing, migration, and checked restoration
+from becoming ambient protocol bypasses.
+
+**Applicability.** Test builders, migration adapters, restoration services, and privileged
+factories.
+
+**Allowed exceptions.** None to omit the inventory. The path itself is permitted only with a
+recorded owner and obligation.
+
+**Review evidence.** Visibility, the escape-hatch inventory, and the caller obligation recorded
+beside each path.
+
+## RUST-DOC-0010-R012 — Keep stage granularity proportionate
+
+**Statement.** A stage MUST correspond to a proof boundary rather than an implementation helper,
+and the stage count SHOULD be justified against the complexity budget when the protocol exceeds
+the size a reader can hold in one signature chain.
+
+**Intent.** Prevent both directions of failure: one stage hiding several unrelated
+responsibilities, and a stage per helper function.
+
+**Applicability.** Protocol design and any change that adds or merges a stage.
+
+**Allowed exceptions.** A regulated process MAY require a stage per externally mandated
+checkpoint even when the engineering boundary is weaker.
+
+**Review evidence.** Stage count, the proof each stage adds, the complexity-budget assessment,
+and the rejected alternative granularity.
+
+## RUST-DOC-0010-R013 — Disclose durable and external effects per stage
+
+**Statement.** A transition MUST disclose the durable writes, external calls, and messages it
+performs, and a transition named for a check, validation, or preparation MUST NOT perform a
+durable write or publish a message.
+
+**Intent.** Keep the collapsed call chain an accurate summary of what the protocol does, not
+only of what it proves.
+
+**Applicability.** Every transition in a protocol that touches storage, a network, a broker, or
+a filesystem.
+
+**Allowed exceptions.** A domain that genuinely defines one atomic operation MAY combine effects
+under a name that says so.
+
+**Review evidence.** Per-stage effect inventory, the transition names, and tests asserting that
+effect-free stages perform no effect.
+
+## RUST-DOC-0010-R014 — Do not present a local transition as a durable one
+
+**Statement.** A consuming in-process transition MUST NOT be presented as evidence that a
+durable or remote state change occurred, and a transition that advances authoritative state MUST
+re-check the entity identity together with its stored state and a version, fence, or equivalent
+concurrency token at the authoritative store.
+
+**Intent.** Prevent the strongest available local guarantee from being read as a distributed
+one. A move consumes a local value; stored facts are read, copied, and replayed, so no local
+move can consume them.
+
+**Applicability.** Protocols whose stages correspond to persisted lifecycle states, and any
+mapping of a typed protocol onto database procedures or stored state.
+
+**Allowed exceptions.** None for the claim. A protocol that never advances durable state states
+that limit instead.
+
+**Review evidence.** The authoritative-transition query or procedure, its concurrency token, the
+guarantee ledger row separating local from durable proof, and competing-writer evidence.
+
+## RUST-DOC-0010-R015 — Keep persisted or multi-actor lifecycle in a runtime model
+
+**Statement.** Where protocol state is persisted, inspected heterogeneously, or advanced by more
+than one actor, the durable model MUST be a runtime representation, and the typed stage protocol
+MUST be scoped to one in-process pass that is issued by checked construction.
+
+**Intent.** Keep a mechanism that is sound for a local sequence from being extended to a durable
+lifecycle it cannot govern.
+
+**Applicability.** Registration, onboarding, payment, approval, fulfillment, and any workflow
+with durable status and several participants.
+
+**Allowed exceptions.** A protocol that runs entirely within one process and stores nothing MAY
+omit the runtime model.
+
+**Review evidence.** The persisted representation, the restoration path that issues a typed
+stage, and the conversion contract between the two.
+
+## RUST-DOC-0010-R016 — State the async stage contract
+
+**Statement.** An asynchronous transition MUST state its cancellation behavior, whether retry is
+safe, the identity under which a retry is deduplicated, and whether the successor proof exists
+only after a durable acknowledgment.
+
+**Intent.** Keep an interrupted transition from silently producing a successor whose proof was
+never completed.
+
+**Applicability.** Transitions that await I/O, cross a process boundary, or can be cancelled.
+RUST-DOC-0004 governs cancellation mechanics; this rule requires the contract per stage.
+
+**Allowed exceptions.** A transition that performs no external effect and holds no resource MAY
+state that cancellation is inconsequential.
+
+**Review evidence.** Per-stage cancellation table, idempotency identity, retry policy, and fault
+tests at each interruption point.
+
+## RUST-DOC-0010-R017 — Erase the protocol only at a named boundary
+
+**Statement.** Type erasure of protocol state into trait objects, maps, dynamic contexts, or
+serialized documents MUST occur at a named orchestration or persistence boundary, and MUST NOT
+occur between stages.
+
+**Intent.** Keep the stage graph checkable for its whole length, since an erased intermediate
+value ends static enforcement for every stage after it.
+
+**Applicability.** Orchestration layers, dynamic strategy selection, and persistence adapters.
+
+**Allowed exceptions.** Runtime selection among protocol implementations MAY be dynamic while
+each selected branch continues to advance through typed stages.
+
+**Review evidence.** The named boundary, what is erased there, and the reason earlier erasure is
+unnecessary.
+
+## RUST-DOC-0010-R018 — Prove the prohibited orderings
+
+**Statement.** Illegal stage orderings, reuse of a consumed stage, and construction of stage
+evidence outside its transition MUST have compile-fail evidence when the protocol claims those
+programs are unrepresentable.
+
+**Intent.** Keep a claimed impossibility from silently becoming possible during refactoring.
+
+**Applicability.** Every negative guarantee a staged protocol states.
+
+**Allowed exceptions.** A prohibition enforced only at runtime MUST be stated as a runtime check
+rather than given compile-fail evidence it does not have.
+
+**Review evidence.** Compile-fail cases, their reviewed diagnostics, and confirmation that each
+rejection occurs at the intended boundary.
+
+## RUST-DOC-0010-R019 — Assert the stage graph executably
+
+**Statement.** The stage and successor graph a protocol documents MUST be asserted executably,
+so that a redirected associated type, a widened bound, or a removed implementation is detected
+by the build rather than by reading.
+
+**Intent.** Keep the documented topology and the compiled topology from diverging, which is the
+failure that prose review is least able to catch.
+
+**Applicability.** Protocols with more than two stages or more than one branch.
+
+**Allowed exceptions.** A protocol whose complete graph is visible in one function signature MAY
+rely on that signature.
+
+**Review evidence.** The topology assertion, its coverage of every documented edge, and its
+failure when an edge is changed.
+
+## RUST-DOC-0010-R020 — Record a guarantee ledger row per stage
+
+**Statement.** Each stage MUST have a guarantee ledger row stating the claim it establishes, the
+transition that establishes it, how its construction is protected, how boundary decoding
+preserves it, its escape hatches, what it does not prove, and the residual runtime risk.
+
+**Intent.** Keep the protocol's honesty auditable at the granularity at which its claims are
+made.
+
+**Applicability.** Every stage type and every piece of stage evidence.
+
+**Allowed exceptions.** None.
+
+**Review evidence.** The completed ledger and its agreement with the stage definitions.
+
+## RUST-DOC-0010-R021 — Keep protocol terminology honest
+
+**Statement.** Documentation for a staged protocol MUST NOT present project vocabulary as
+standardized external terminology, and MUST identify the established family a mechanism belongs
+to when it uses a local name for it.
+
+**Intent.** Keep a useful local vocabulary from being cited as external authority it does not
+have.
+
+**Applicability.** Doctrine text, design notes, API documentation, and agent instructions that
+name a protocol mechanism.
+
+**Allowed exceptions.** Terms defined by a cited specification or published literature MAY be
+used as standard when the citation is given.
+
+**Review evidence.** Terminology definitions, their family attribution, and the source notes
+recording which vocabulary is local.
+
+## RUST-DOC-0010-R022 — Keep governance precedence explicit
+
+**Statement.** An executable protocol is authoritative for the in-process ordering it enforces,
+and MUST NOT be treated as replacing doctrine obligations, recorded review evidence, or the
+decision process required to change a normative contract.
+
+**Intent.** Keep the accurate observation that code enforces ordering from becoming the claim
+that code alone settles what a system is obliged to do.
+
+**Applicability.** Design notes, doctrine proposals, and agent instructions that describe a
+protocol as a living or self-documenting contract.
+
+**Allowed exceptions.** None.
+
+**Review evidence.** The governing decision record, the review evidence for the protocol, and
+the guarantee ledger the code does not itself supply.
+
+## Guarantee and non-guarantee requirements
+
+A staged protocol states, for each stage and each piece of stage evidence: the claim its
+construction establishes under RUST-DOC-0010-R002; how construction is protected under
+RUST-DOC-0010-R010 and RUST-DOC-0010-R011; how decoding and restoration preserve or re-establish
+it under RUST-DOC-0010-R015; its escape hatches under RUST-DOC-0010-R011; the external facts
+that remain mutable under RUST-DOC-0010-R014; the failures that remain runtime failures under
+RUST-DOC-0010-R007; the outcomes that can remain indeterminate under RUST-DOC-0010-R016; and the
+executable evidence supporting the claim under RUST-DOC-0010-R018 and RUST-DOC-0010-R019.
+
+## Boundary requirements
+
+Untrusted input enters at the initial stage and is canonicalized under RUST-DOC-0010-R006 before
+any stage claims a checked value. Persistence and wire boundaries follow RUST-DOC-0010-R015 and
+RUST-DOC-0010-R017: durable state is a runtime model, erasure is named, and a typed stage is
+issued only by checked construction. Durable advancement follows RUST-DOC-0010-R014 and re-checks
+identity, stored state, and a concurrency token. Sensitive values carried as stage evidence
+remain subject to RUST-DOC-0003 secret handling, and failure mapping at the outer boundary
+follows RUST-DOC-0010-R007.
+
+## Waiver requirements
+
+RUST-DOC-0010-R012, RUST-DOC-0010-R016, and RUST-DOC-0010-R019 MAY be waived for a protocol
+whose scope, lifetime, or effect makes the obligation disproportionate. A waiver records the
+affected rule and protocol, the owner accepting the risk, the consequence, the compensating
+control, an expiry or reconsideration trigger, and the removal condition.
+
+RUST-DOC-0010-R003, RUST-DOC-0010-R004, RUST-DOC-0010-R010, RUST-DOC-0010-R011,
+RUST-DOC-0010-R014, RUST-DOC-0010-R020, RUST-DOC-0010-R021, and RUST-DOC-0010-R022 MUST NOT be
+waived. A waiver cannot make a bypassed protocol sound, cannot convert a local move into a
+durable transition, and cannot make an inaccurate external claim true.
+
+---
+
+## Source: `doctrines/0010-staged-protocols/rationale.md`
+
+# Rationale
+
+## Failure modes
+
+**The successor that quietly stopped leading anywhere.** A protocol declares four stages. During
+a refactor the second stage's return type is changed from the third stage to a general-purpose
+context value, because one caller needed to branch. Every call site still compiles; the chain
+still reads like the business process; the ordering guarantee is gone. Nothing in a
+documentation-only design detects this. `RUST-DOC-0010-R003` puts the successor in the contract
+and `RUST-DOC-0010-R019` makes its removal a build failure.
+
+**The bound widened to make the build pass.** An implementation cannot satisfy
+`type Next: AcceptPolicy`, so the bound is relaxed to `type Next: Sized`. The edit is one line,
+looks like a generics fix, and converts a compile-time protocol into a naming convention.
+`RUST-DOC-0010-R004` makes the bound the fixed point and the implementation the thing that must
+change.
+
+**The conversion that skipped four stages.** A `From<Submission> for ApprovedRegistration`
+implementation is added for a test fixture and later used in production code because it is
+convenient. The type name still asserts approval; no approval occurred. This is the bypass that
+makes an otherwise sound stage graph decorative, and it is why `RUST-DOC-0010-R010` prohibits
+the conversion path outright while `RUST-DOC-0010-R011` requires the remaining trusted paths to
+be restricted, owned, and inventoried.
+
+**The branch that became optional fields.** An availability check returns one successor carrying
+`Option<ExistingAccount>`. Every later stage re-inspects it, one of them forgets, and a
+registration completes against a taken identity. `RUST-DOC-0010-R008` requires distinct
+successor types so the conflicting path cannot be reached with the available path's evidence.
+A third outcome belongs in the failure type rather than in a third variant of the branch, and
+`RUST-DOC-0010-R007` keeps an undetermined check distinguishable from both branches.
+
+**The check stage that wrote a row.** A transition named `validate` acquires an identifier and
+inserts a reservation, because the identifier was needed downstream. The collapsed chain still
+reads as validation. A cancelled request now leaves durable state. `RUST-DOC-0010-R013` makes
+the disclosure an obligation and forbids the naming mismatch.
+
+**The move that was read as a commit.** The strongest local guarantee available in Rust is that
+a consumed value cannot be used again. A design maps stages onto persisted lifecycle states and
+concludes that because the Rust value was consumed, the durable advance happened once. Stored
+facts do not work that way: they are read, copied into a value, and can be read again by another
+worker, so no local move consumes them. Two workers can each hold a consumed local handle for
+the same row. `RUST-DOC-0010-R014` separates the two claims and requires identity, stored state,
+and a concurrency token to be re-checked where durable state advances.
+`RUST-DOC-0010-R015` keeps the durable model at runtime.
+
+**The protocol erased in the middle.** An orchestration layer converts stage three into a
+dynamic map so a plugin can inspect it, then converts back. Static enforcement ends at that
+point for every later stage. `RUST-DOC-0010-R017` confines erasure to a named boundary while
+still permitting dynamic strategy selection, so long as each selected branch continues through
+typed stages.
+
+**The vocabulary that borrowed authority.** A design note names a local mechanism, and a later
+reader cites the name as established practice, treating a project convention as external
+consensus. `RUST-DOC-0010-R021` requires the family attribution to travel with the local name.
+
+**The protocol offered as its own governance.** A protocol enforces ordering, and this accurate
+observation grows into the claim that the code is the whole contract, so review evidence,
+guarantee ledgers, and the decision process become optional. Code enforces what it enforces; it
+does not record why the ordering was chosen, what the stages deliberately do not prove, or who
+accepted the residual risk. `RUST-DOC-0010-R022` keeps the precedence explicit.
+
+## Why weaker alternatives fail
+
+**Prose ordering.** A design document stating "authorize before capture" is readable and cheap.
+It is also unenforced, and it goes stale silently: the document and the code diverge without any
+signal. It remains the right choice when the sequence is advisory or when the states are
+externally determined.
+
+**A concrete successor return type.** Returning `Authorized` directly from `authenticate` is
+genuine typestate and satisfies most of this doctrine. What it cannot express is one capability
+with several implementations producing different successor evidence. A password login and an
+invitation-based signup both need to reach the authorization stage while carrying different
+proofs. Without an associated successor type, that requires either one widened successor
+carrying both proofs as options, which reintroduces the optional-field failure, or a duplicated
+protocol. This is the specific gap `RUST-DOC-0010-R003` fills, and it is why the doctrine exists
+separately from `patterns/typestate.md`.
+
+**A runtime state machine.** An enum with a `state` field and a `transition` method handles
+dynamic, persisted, heterogeneous, and externally-determined state well, and it is the correct
+choice for durable lifecycle. What it does not do is remove illegal calls from the API surface;
+each method re-checks and each caller must handle a rejection that a typed protocol would have
+made unrepresentable. `RUST-DOC-0010-R015` is the explicit instruction to use both: runtime for
+the durable half, typed stages for the in-process pass.
+
+**A middleware chain.** Ordering by registration position is flexible and composes well. It
+proves nothing about what a downstream handler receives, and reordering two entries is a silent
+behavioral change. It remains appropriate when the stages are genuinely independent and share no
+evidence.
+
+**Compile-fail tests alone.** Negative tests prove the specific programs written remain
+rejected. They do not prove the graph is intact, because a redirected associated type can leave
+every existing negative test passing while the edge it protected no longer exists. That
+asymmetry is why `RUST-DOC-0010-R018` and `RUST-DOC-0010-R019` are separate obligations.
+
+## Interaction with external reality
+
+A stage type is local evidence with a timestamp. An availability observation records that no
+conflicting account was visible to one reader at one moment; another writer can take the
+identity immediately afterward. A consent proof records that an offered version matched the
+version in force when the check ran; the policy can change before the record is written. A
+prepared value records that the in-process protocol ran in order; it records nothing about
+whether a durable write followed.
+
+Asynchronous transitions add interruption. A transition cancelled after a remote effect was
+accepted but before the successor was constructed leaves the external world advanced and the
+local protocol not advanced. `RUST-DOC-0010-R016` requires that possibility to be stated per
+stage rather than discovered, and where it matters the honest representation is an additional
+stage for the interval whose outcome is unknown, which is the territory `RUST-DOC-0006` governs.
+
+## Costs and overapplication
+
+Capability traits with associated successor types make signatures longer and diagnostics
+harder than a concrete return type; a mismatch is reported as an unsatisfied bound rather than a
+plain type error. Generic stage types spread through helper functions, test harnesses, and mock
+implementations. Each additional stage adds a type, a failure type, a ledger row, and a
+topology assertion. Monomorphization grows with the product of stages and implementations.
+
+The mechanism earns none of that when a protocol has two stages, when the sequence is advisory,
+when states are chosen at runtime by external systems, when callers must hold heterogeneous
+stages in one collection, or when the whole graph already fits in one function signature. A
+three-line pipeline of ordinary functions is a better answer than seven traits, and
+`RUST-DOC-0010-R012` exists to make that comparison mandatory rather than optional.
+
+## Guarantee ledger
+
+| Claim                                                   | Established by                                               | Protected construction                            | Boundary preservation                                      | Escape hatches                                   | Does not prove                                                                   | Residual runtime risk                                        |
+| ------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| The in-process protocol ran in the documented order     | consuming transitions plus bounded associated successors     | private stage fields, no public stage constructor | untrusted input canonicalized at the first stage           | restricted trusted construction under R011       | that any durable or remote effect occurred                                       | a stage reached through an unreviewed trusted path           |
+| A stage's legal successor satisfies the next capability | associated-type bound checked by the compiler                | bound may not be widened under R004               | restoration issues a typed stage only through checked code | none                                             | that the successor's evidence is externally current                              | a bound relaxed in a refactor without the topology assertion |
+| Canonical values were established once                  | the canonicalization stage and its value constructors        | private newtype representations                   | raw input is dropped or separately named under R006        | audit retention named beside the canonical value | that the canonical form matches an external system's normalization               | divergent normalization policy between services              |
+| A check observed no conflicting identity                | the identity-check transition against a directory read       | observation constructible only by that transition | the read is a boundary observation, not a durable claim    | none                                             | that the identity is still free at write time                                    | a competing writer between observation and durable write     |
+| Consent evidence corresponds to a checked version       | the policy transition comparing offered and required version | private evidence field, no public literal         | offered consent arrives as untrusted input                 | none                                             | that the policy version is still in force when the record is stored              | policy change between the check and the durable write        |
+| The failing stage is identifiable                       | per-stage failure types under R007                           | failure types are not unified inside the protocol | mapped to a transport error only at the outer boundary     | boundary adapter mapping                         | that the failure is recoverable, or that a retry is safe                         | a stage failure erased early by an over-eager adapter        |
+| Durable state advanced exactly once                     | identity, stored state, and concurrency token re-checked     | the authoritative query or procedure              | the durable model is a runtime representation under R015   | administrative repair paths                      | that the local protocol observed the advance, or that no duplicate was attempted | lost update, stale read, or an unfenced competing writer     |
+| The documented stage graph is the compiled graph        | the executable topology assertion under R019                 | assertion covers every documented edge            | assertion runs in the ordinary test suite                  | waiver under the normative waiver section        | that the graph is the right graph for the domain                                 | an edge added to the code and omitted from the assertion     |
+
+## Evidence limits
+
+Compiler rejection proves that the specific programs written are rejected at the pinned
+diagnostic boundary, and nothing about programs nobody wrote. A topology assertion proves the
+edges it names still typecheck; it does not prove the graph matches the business process, which
+remains a review judgment under `RUST-DOC-0010-R001`. Unit tests over an in-memory collaborator
+prove the transitions behave as written on the inputs supplied, and prove nothing about a real
+directory, database, or broker.
+
+No evidence in this repository establishes the durable half. The example crate deliberately
+stops at a persistable value, so `RUST-DOC-0010-R014` and `RUST-DOC-0010-R015` are supported by
+argument and review gates rather than by an executed database test. A consuming system supplies
+its own competing-writer and fault evidence; this package does not claim it.
+
+---
+
+## Source: `doctrines/0010-staged-protocols/decision-framework.md`
+
+# Decision framework
+
+## Inputs
+
+Bring the stage and edge inventory, the evidence each transition establishes, the failure
+classes per transition, the external-effect inventory, the ownership map for the values being
+advanced, the persistence model where any stage state is durable, the complexity budget, and the
+evidence plan. A protocol cannot be assessed from its happy path alone.
+
+## Questions
+
+1. What consequential ordering is being protected, and what does the system do today when the
+   order is violated?
+2. Does each proposed stage establish a fact a later stage depends on, or is it a processing
+   step that was convenient to name?
+3. Is the sequence controlled by one owner within one process, or advanced by several actors
+   against durable state?
+4. Will one capability have several implementations producing different successor evidence?
+5. Which transitions branch materially, which permit revision or retry, and which can end the
+   protocol?
+6. Which transitions perform durable writes, external calls, or message publication?
+7. Where does untrusted input enter, and where must the protocol be erased for storage or
+   dispatch?
+8. What evidence would show the design is wrong, and what would show the graph has drifted?
+
+## Decision table
+
+| Situation                                                        | Preferred mechanism                                                 | Conditions                                                          | Stop condition                                                          |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Advisory ordering with no shared evidence                        | ordinary functions in sequence                                      | violation is inconvenient rather than consequential                 | when a violation becomes a security, financial, or integrity fault      |
+| Two-stage local sequence, one implementation                     | consuming transition returning a concrete successor                 | the successor never varies                                          | when a second implementation needs different successor evidence         |
+| Multi-stage local sequence, one implementation per stage         | typestate with consuming transitions                                | the graph fits in signatures a reader can follow                    | when the successor relationship must be abstracted over implementations |
+| Multi-stage sequence, several implementations per capability     | capability traits with bounded associated successor types           | successors differ in evidence but agree on the next capability      | when stages must be stored heterogeneously or inspected dynamically     |
+| Materially different outcomes from one transition                | named sum type over distinct successor stages                       | each outcome changes the successor capability or a later obligation | when the outcome changes nothing downstream and is ordinary data        |
+| Outcome that is neither success nor a modeled branch             | stage-identifying failure type                                      | availability, eligibility, or authority could not be determined     | when the third case is common enough to deserve its own stage           |
+| Durable lifecycle advanced by several actors                     | runtime state model plus a typed pass issued by checked restoration | storage is authoritative and the typed protocol covers one pass     | when the typed protocol starts being treated as the durable record      |
+| Runtime choice among protocol implementations                    | enum or dispatch at the selection point only                        | each branch continues through typed stages afterwards               | when the whole protocol is erased to accommodate one choice             |
+| Stage state must be persisted, listed, or inspected across kinds | runtime enum with explicit operations                               | callers hold heterogeneous states together                          | when static enforcement is being simulated with runtime checks anyway   |
+
+## Decision tree
+
+```text
+Is the ordering consequential when violated?
+├─ no  → ordinary functions; record the sequence in the design note and stop
+└─ yes → Does each stage establish a fact a later stage consumes?
+   ├─ no  → merge the steps until they do; re-enter this tree
+   └─ yes → Is the sequence advanced by one owner within one process?
+      ├─ no  → runtime state model is authoritative (RUST-DOC-0005, RUST-DOC-0006)
+      │        └─ is there also a local pass worth enforcing?
+      │           ├─ no  → stop; runtime model only
+      │           └─ yes → typed stages for the pass, issued by checked restoration
+      └─ yes → How many transitions?
+         ├─ one   → consuming transition with a concrete successor; stop
+         ├─ two   → typestate with concrete successors unless a second
+         │          implementation is already known
+         └─ three or more → Will one capability have several implementations
+                            producing different successor evidence?
+            ├─ no  → typestate with concrete successors; revisit if that changes
+            └─ yes → capability traits with bounded associated successors
+                     ├─ add named sum types for material branches
+                     ├─ add named stages for retry, revision, and recovery
+                     ├─ add the topology assertion
+                     └─ is the stage count still justifiable against the budget?
+                        ├─ no  → merge to proof boundaries and re-enter
+                        └─ yes → proceed to the evidence plan
+```
+
+The tree has two deliberate exits into simpler designs. A protocol that cannot answer the second
+question is not a protocol, and a protocol whose stage count fails the budget check is expressing
+implementation structure rather than proof structure.
+
+## Complexity check
+
+Count the stages, the capabilities, the implementations per capability, and the resulting
+monomorphized combinations. Read one full transition signature aloud; if its bounds cannot be
+followed, callers and mock authors will not follow them either. Check how far generic stage
+parameters travel into helper functions, test harnesses, and public API boundaries, and whether
+they can be stopped at an internal boundary.
+
+Compare against the runtime alternative honestly: the same protocol as an enum with explicit
+operations, and the same protocol as ordinary sequenced functions. Record what each alternative
+would fail to prevent. If the answer is "nothing consequential," the simpler design wins.
+
+Then check diagnostics. An unsatisfied successor bound is a worse first-encounter error message
+than a plain type mismatch. If the protocol will be used mainly by people who did not write it,
+that cost is real and belongs in the assessment.
+
+## Evidence selection
+
+| Decision                                 | Evidence class                                                        |
+| ---------------------------------------- | --------------------------------------------------------------------- |
+| Stage graph matches the documented graph | executable topology assertion over every edge                         |
+| Illegal ordering is unrepresentable      | compile-fail case per claimed impossibility                           |
+| Consumed stages cannot be reused         | compile-fail case on reuse after a consuming transition               |
+| Stage evidence cannot be forged          | compile-fail case on literal construction of private evidence         |
+| Each transition builds correct evidence  | unit test per transition, positive and negative                       |
+| Branches produce the right successor     | unit test per branch variant                                          |
+| Recovery edges re-enter correctly        | unit test per recovery path, including the terminal one               |
+| Canonical values survive transitions     | unit test comparing first-stage input with terminal-stage output      |
+| Effect-free stages perform no effect     | collaborator observation or fault injection asserting no write        |
+| Cancellation behavior is as stated       | fault test interrupting each async transition                         |
+| Durable advancement is exactly once      | competing-writer test against the real store, in the consuming system |
+| Restoration issues a valid typed stage   | integration test over stored state, in the consuming system           |
+
+The last two rows are deliberately assigned to the consuming system. This repository ships no
+database or broker, so the doctrine states those obligations and the review gates check them,
+but the executable evidence for them is not claimed here.
+
+---
+
+## Source: `doctrines/0010-staged-protocols/review-standard.md`
+
+# Review standard
+
+Mark every gate **pass**, **fail**, **not applicable**, or with an approved **waiver
+reference**. Blank status is not approval.
+
+## Protocol discovery and stage identity
+
+| Gate | Question                                               | Pass evidence      | Failure example                          | Severity | Remediation               |
+| ---- | ------------------------------------------------------ | ------------------ | ---------------------------------------- | -------- | ------------------------- |
+| S01  | Does a stage and edge inventory exist?                 | inventory document | types derived from existing functions    | high     | write the inventory first |
+| S02  | Does each transition name the evidence it establishes? | evidence table     | transition described only as a step      | high     | name the proof            |
+| S03  | Are failure classes listed per transition?             | failure inventory  | one shared failure list                  | high     | separate by stage         |
+| S04  | Are external effects listed per transition?            | effect inventory   | effects discovered during implementation | high     | complete the inventory    |
+| S05  | Is each stage named for a proven fact?                 | names and claims   | a stage named for its position           | high     | rename to the proof       |
+| S06  | Can every stage name be tied to a ledger claim?        | guarantee ledger   | a stage with no stated claim             | critical | state or delete the stage |
+| S07  | Is any stage a renamed processing step?                | boundary rationale | a stage per helper function              | medium   | merge into a proof        |
+
+## Successor capability and bounds
+
+| Gate | Question                                                 | Pass evidence         | Failure example                      | Severity | Remediation                 |
+| ---- | -------------------------------------------------------- | --------------------- | ------------------------------------ | -------- | --------------------------- |
+| S08  | Does each nonterminal capability name a successor type?  | trait definitions     | successor stated only in prose       | critical | add the associated type     |
+| S09  | Is the successor bounded by the next capability?         | associated-type bound | unconstrained generic successor      | critical | add the bound               |
+| S10  | Is the successor relationship free of type erasure?      | signatures            | successor returned as a trait object | critical | keep the concrete relation  |
+| S11  | Do terminal stages avoid naming a successor?             | trait definitions     | terminal stage points at itself      | medium   | mark the stage terminal     |
+| S12  | Does each bound reflect capability actually established? | evidence mapping      | bound widened to compile             | critical | fix stage or implementation |
+| S13  | Was any bound relaxed, and was the relaxation reviewed?  | change record         | silent bound removal in a refactor   | critical | restore or record           |
+| S14  | Can two implementations produce different successors?    | implementation list   | successor hardcoded where it varies  | medium   | abstract the successor      |
+
+## Transition, evidence, and failure
+
+| Gate | Question                                                   | Pass evidence       | Failure example                             | Severity | Remediation                |
+| ---- | ---------------------------------------------------------- | ------------------- | ------------------------------------------- | -------- | -------------------------- |
+| S15  | Does each transition consume its stage where reuse is bad? | method receivers    | transition advances an internal flag        | critical | consume the stage          |
+| S16  | Is a borrowing transition justified?                       | read-only rationale | borrowing chosen for caller convenience     | high     | consume or justify         |
+| S17  | Is the prior stage returned only on proven non-transition? | recovery shape      | prior stage restored after a partial effect | critical | return an explicit outcome |
+| S18  | Does each stage carry what its successors need?            | field mapping       | later stage re-derives a checked fact       | medium   | move the evidence forward  |
+| S19  | Are superseded raw representations removed?                | field audit         | raw input kept beside canonical value       | high     | drop or name separately    |
+| S20  | Is retained original input separately named?               | field names         | one field holds raw or canonical            | high     | split the fields           |
+| S21  | Does each failure identify its stage?                      | failure types       | one opaque protocol error                   | high     | separate by stage          |
+| S22  | Is failure erasure deferred to the boundary?               | mapping location    | stages erase failure immediately            | high     | map at the boundary        |
+
+## Branches, recovery, and granularity
+
+| Gate | Question                                                | Pass evidence      | Failure example                            | Severity | Remediation               |
+| ---- | ------------------------------------------------------- | ------------------ | ------------------------------------------ | -------- | ------------------------- |
+| S23  | Is each material branch a named sum over successors?    | branch enum        | one successor with optional fields         | critical | model the branch          |
+| S24  | Does each branch variant carry its own successor bound? | variant bounds     | both branches share one capability         | high     | bound per variant         |
+| S25  | Is an undetermined outcome distinct from both branches? | failure or outcome | undetermined treated as rejection          | critical | represent the third case  |
+| S26  | Is each retry or revision path a named edge?            | recovery stage     | retry left to caller control flow          | high     | name the edge             |
+| S27  | Does a revision edge re-enter at the correct stage?     | successor bound    | revision skips canonicalization            | critical | bound the re-entry        |
+| S28  | Is a terminal recovery stage genuinely terminal?        | stage definition   | abandoned stage still exposes transitions  | medium   | remove the operations     |
+| S29  | Is the stage count justified against complexity?        | budget assessment  | twenty stages for one request              | medium   | merge to proof boundaries |
+| S30  | Does any stage hide unrelated responsibilities?         | effect inventory   | one stage validates, writes, and publishes | high     | split the stage           |
+
+## Construction, bypass, and erasure
+
+| Gate | Question                                                  | Pass evidence       | Failure example                        | Severity | Remediation             |
+| ---- | --------------------------------------------------------- | ------------------- | -------------------------------------- | -------- | ----------------------- |
+| S31  | Are stage fields private?                                 | visibility audit    | public field on a later stage          | critical | restrict visibility     |
+| S32  | Is there a conversion that produces a later stage?        | implementation list | a conversion into an approved stage    | critical | delete the conversion   |
+| S33  | Does any derive construct a stage without its transition? | derive audit        | derived decoding of stage evidence     | critical | route through the stage |
+| S34  | Are trusted construction paths visibility-restricted?     | visibility          | public test builder in the shipped API | critical | restrict the path       |
+| S35  | Is every trusted path in the escape-hatch inventory?      | ledger              | an undocumented factory                | critical | inventory or remove     |
+| S36  | Does each trusted path state its caller obligation?       | obligation record   | path documented only as convenience    | high     | state the obligation    |
+| S37  | Does erasure occur only at a named boundary?              | boundary record     | a map passed between stages            | critical | keep the types          |
+| S38  | Does dynamic selection preserve typed progression?        | dispatch design     | whole protocol erased for one choice   | high     | erase only the choice   |
+
+## Effects, durability, and asynchrony
+
+| Gate | Question                                                    | Pass evidence        | Failure example                           | Severity | Remediation                 |
+| ---- | ----------------------------------------------------------- | -------------------- | ----------------------------------------- | -------- | --------------------------- |
+| S39  | Does each transition disclose its durable effects?          | effect inventory     | a check stage writes a row                | critical | disclose or move the effect |
+| S40  | Do check and preparation stages perform no durable write?   | code trace and tests | validation publishes a message            | critical | separate the stages         |
+| S41  | Is a local transition kept distinct from a durable one?     | ledger rows          | consumed handle presented as commit proof | critical | narrow the claim            |
+| S42  | Does authoritative advancement re-check identity and state? | query or procedure   | update by identity alone                  | critical | add the state predicate     |
+| S43  | Does it carry a version, fence, or equivalent token?        | concurrency token    | blind overwrite of durable state          | critical | add concurrency control     |
+| S44  | Is persisted lifecycle modeled at runtime?                  | storage model        | stage marker persisted as protocol truth  | critical | persist a runtime state     |
+| S45  | Does restoration issue a typed stage through checked code?  | restoration service  | stored tag deserialized into a stage      | critical | validate before issuing     |
+| S46  | Is each async transition's cancellation behavior stated?    | cancellation table   | interruption behavior unexamined          | high     | state per stage             |
+| S47  | Is retry safety and its identity stated?                    | idempotency identity | retry without a deduplication identity    | critical | define the identity         |
+| S48  | Is a durable acknowledgment required before the successor?  | ordering evidence    | successor built before acknowledgment     | critical | reorder or split the stage  |
+
+## Evidence, honesty, and governance
+
+| Gate | Question                                                    | Pass evidence           | Failure example                      | Severity | Remediation              |
+| ---- | ----------------------------------------------------------- | ----------------------- | ------------------------------------ | -------- | ------------------------ |
+| S49  | Does each claimed impossibility have compile-fail evidence? | compile-fail cases      | claim stated only in prose           | high     | add the case             |
+| S50  | Was each diagnostic inspected for its semantic cause?       | reviewed diagnostic     | fixture accepted mechanically        | high     | inspect and re-record    |
+| S51  | Do the cases reject at the intended boundary?               | diagnostic analysis     | case fails for an unrelated reason   | high     | rewrite the case         |
+| S52  | Is the documented stage graph asserted executably?          | topology assertion      | graph checked only by reading        | high     | add the assertion        |
+| S53  | Does the assertion cover every documented edge?             | coverage comparison     | branch edges unasserted              | medium   | extend the assertion     |
+| S54  | Does the assertion fail when an edge changes?               | deliberate break        | assertion passes after a redirect    | high     | strengthen the assertion |
+| S55  | Does every stage have a guarantee ledger row?               | completed ledger        | evidence absent from the ledger      | critical | complete the ledger      |
+| S56  | Does each row state what the stage does not prove?          | ledger column           | stage claims durable completion      | critical | narrow the claim         |
+| S57  | Is local vocabulary distinguished from standard terms?      | terminology definitions | a local coinage cited as established | medium   | attribute the family     |
+| S58  | Is the governing decision record identified?                | decision reference      | code presented as the whole contract | high     | record the decision      |
+
+## Outcome
+
+Critical failures block merge. A valid waiver identifies the affected rule and protocol, the
+owner accepting the risk, the consequence, the compensating control and its evidence, an expiry
+or reconsideration trigger, and the removal condition. A waiver cannot make a bypassed protocol
+sound, cannot convert a local move into a durable transition, and cannot make an inaccurate
+external claim true. Remediation is verified by re-running the gate against the changed
+artifact, not by asserting that the change was made.
+
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0010-R001`, `RUST-DOC-0010-R002`, `RUST-DOC-0010-R003`, `RUST-DOC-0010-R004`
+- `RUST-DOC-0010-R005`, `RUST-DOC-0010-R006`, `RUST-DOC-0010-R007`, `RUST-DOC-0010-R008`
+- `RUST-DOC-0010-R009`, `RUST-DOC-0010-R010`, `RUST-DOC-0010-R011`, `RUST-DOC-0010-R012`
+- `RUST-DOC-0010-R013`, `RUST-DOC-0010-R014`, `RUST-DOC-0010-R015`, `RUST-DOC-0010-R016`
+- `RUST-DOC-0010-R017`, `RUST-DOC-0010-R018`, `RUST-DOC-0010-R019`, `RUST-DOC-0010-R020`
+- `RUST-DOC-0010-R021`, `RUST-DOC-0010-R022`
+
+Gate groups map to rules as follows. S01 to S07 cover `RUST-DOC-0010-R001` and
+`RUST-DOC-0010-R002`. S08 to S14 cover `RUST-DOC-0010-R003` and `RUST-DOC-0010-R004`. S15 to S22
+cover `RUST-DOC-0010-R005`, `RUST-DOC-0010-R006`, and `RUST-DOC-0010-R007`. S23 to S30 cover
+`RUST-DOC-0010-R008`, `RUST-DOC-0010-R009`, and `RUST-DOC-0010-R012`. S31 to S38 cover
+`RUST-DOC-0010-R010`, `RUST-DOC-0010-R011`, and `RUST-DOC-0010-R017`. S39 to S48 cover
+`RUST-DOC-0010-R013`, `RUST-DOC-0010-R014`, `RUST-DOC-0010-R015`, and `RUST-DOC-0010-R016`. S49
+to S58 cover `RUST-DOC-0010-R018`, `RUST-DOC-0010-R019`, `RUST-DOC-0010-R020`,
+`RUST-DOC-0010-R021`, and `RUST-DOC-0010-R022`.
+
+---
+
+## Source: `doctrines/0010-staged-protocols/anti-patterns.md`
+
+# Anti-pattern catalogue
+
+## Chain without state change
+
+**Weak example.**
+
+```rust
+impl Registration {
+    fn canonicalize(self) -> Result<Self, Error> { /* ... */ }
+    fn check_identity(self) -> Result<Self, Error> { /* ... */ }
+    fn accept_policy(self) -> Result<Self, Error> { /* ... */ }
+}
+```
+
+**Why it fails.** The chain reads like a protocol and enforces nothing. Every method is available
+at every point, so `accept_policy` can run first and the compiler is content. The fluency is
+real; the ordering guarantee is imaginary.
+
+**Risk.** A reviewer reads the call site, sees the business sequence, and approves an API that
+permits every other sequence.
+
+**Improved direction.** Give each stage a distinct type whose construction proves the preceding
+transition ran, and expose the successor through the stage contract.
+
+**When justified.** When the operations genuinely are reorderable, in which case the sequence
+should not be presented as a protocol at all.
+
+## Successor named only in prose
+
+**Weak example.**
+
+```rust
+pub trait CheckIdentity {
+    /// Returns a value that can then accept policy.
+    fn check_identity(self) -> Result<Box<dyn Any>, Error>;
+}
+```
+
+**Why it fails.** The successor relationship exists in a doc comment. Nothing checks that the
+returned value can accept policy, and the first refactor that returns something else compiles
+cleanly.
+
+**Risk.** The protocol graph degrades silently, and the failure surfaces at a call site far from
+the change.
+
+**Improved direction.** Name the successor as an associated type bounded by the next capability,
+and assert the resulting graph executably.
+
+**When justified.** Never for a stage with a legal successor. A terminal stage names no successor
+because it has none.
+
+## Bound widened to satisfy an implementation
+
+**Weak example.**
+
+```rust
+pub trait Canonicalize {
+    type Next; // was: type Next: CheckIdentity
+}
+```
+
+**Why it fails.** The bound was the entire protocol guarantee. Removing it is a one-line edit
+that looks like a generics simplification and reads as noise in a diff.
+
+**Risk.** A stage graph that still has all its types, all its names, and none of its edges.
+
+**Improved direction.** Treat the bound as fixed and change the implementation or the stage
+design. Where a bound genuinely must move, record the reason and re-check the topology
+assertion.
+
+**When justified.** Only when the protocol itself was wrong, and then the change is a doctrine
+decision rather than a refactor.
+
+## Conversion that manufactures a later stage
+
+**Weak example.**
+
+```rust
+impl From<RawSubmission> for AcceptedRegistration {
+    fn from(raw: RawSubmission) -> Self { /* ... */ }
+}
+```
+
+**Why it fails.** `AcceptedRegistration` asserts that canonicalization, an availability check,
+and a policy check all succeeded. The conversion asserts all three without performing any. The
+same failure arrives through a public constructor, a public field, or a derived decoder.
+
+**Risk.** Every guarantee downstream of the stage becomes false while the type names continue to
+claim it.
+
+**Improved direction.** Remove the conversion. Where a trusted path is genuinely required, make
+it visibility-restricted, give it an owner, state the obligation its caller assumes, and list it
+in the guarantee ledger.
+
+**When justified.** Never as an ambient conversion. A restricted, inventoried, owned
+construction path for checked restoration or migration is a different mechanism with different
+obligations.
+
+## Branch flattened into optional fields
+
+**Weak example.**
+
+```rust
+pub struct CheckedRegistration {
+    conflict: Option<AccountId>,
+    uniqueness: Option<UniquenessObservation>,
+}
+```
+
+**Why it fails.** The type admits all four combinations, two of which are meaningless. Every
+later stage must re-inspect and re-decide, and the first stage that forgets proceeds on a
+conflicting identity.
+
+**Risk.** A registration completes against an identity another account already holds.
+
+**Improved direction.** Return a named sum type over distinct successor stages, each bounded by
+the capability that outcome legitimately leads to.
+
+**When justified.** When the outcome changes no successor capability and no later obligation, in
+which case it is ordinary data rather than a branch.
+
+## Undetermined outcome folded into a branch
+
+**Weak example.**
+
+```rust
+match directory.lookup(&address) {
+    Ok(Some(holder)) => conflicting(holder),
+    _ => available(),
+}
+```
+
+**Why it fails.** A directory that could not be reached is treated as proof that the identity is
+free. The most dangerous outcome is silently mapped onto the most permissive one.
+
+**Risk.** A protocol advances on evidence that was never obtained.
+
+**Improved direction.** Keep the undetermined case in the stage-identifying failure type, and
+carry enough identity for an operator to look the attempt up.
+
+**When justified.** Never. If the undetermined case is common, it deserves its own stage rather
+than a quieter default.
+
+## Check stage with a durable effect
+
+**Weak example.**
+
+```rust
+fn validate(self) -> Result<Validated, Error> {
+    self.repository.insert_reservation(&self.id)?;
+    // ...
+}
+```
+
+**Why it fails.** The name says the stage establishes a fact about the input; the body changes
+the world. A cancelled or failed request now leaves durable state that nothing in the collapsed
+chain suggests exists.
+
+**Risk.** Orphaned reservations, duplicate side effects on retry, and a cleanup path nobody
+wrote because nobody knew it was needed.
+
+**Improved direction.** Split into a stage that checks and a stage that writes, and disclose the
+effect on the stage that performs it.
+
+**When justified.** When the domain genuinely defines one atomic operation, in which case the
+stage name says so.
+
+## Local move presented as durable proof
+
+**Weak example.**
+
+```rust
+// The handle was consumed, so the row advanced exactly once.
+let receipt = pending.mark_paid()?;
+```
+
+**Why it fails.** Consuming a Rust value proves the caller cannot use that value again. It
+proves nothing about a stored row, because a stored fact can be read again into a second value
+by a second worker. Two workers can each hold a consumed handle for the same row.
+
+**Risk.** Lost updates, duplicate durable transitions, and a concurrency bug whose type
+signatures look impeccable.
+
+**Improved direction.** Re-check identity, stored state, and a version or fencing token in the
+authoritative statement, and keep the durable model at runtime. State the local and durable
+claims as separate ledger rows.
+
+**When justified.** Never for the claim. The consuming transition remains correct and useful as
+a statement about local handle lifecycle.
+
+## Protocol erased between stages
+
+**Weak example.**
+
+```rust
+let context: HashMap<String, Value> = stage_three.into_context();
+let stage_four = StageFour::from_context(&context)?;
+```
+
+**Why it fails.** Static enforcement ends at the map. Every stage after it is checked by
+convention, and the round trip re-admits exactly the states the protocol was built to exclude.
+
+**Risk.** The remaining stages carry the appearance of enforcement without the substance.
+
+**Improved direction.** Keep the types through the protocol and erase once, at a named
+orchestration or persistence boundary, after the stages that matter have run.
+
+**When justified.** At the named boundary itself, and for runtime selection among
+implementations where each selected branch continues through typed stages.
+
+## Stage per helper function
+
+**Weak example.**
+
+```rust
+raw.trim()?.lowercase()?.split()?.reassemble()?.validate()?.normalize()?
+```
+
+**Why it fails.** None of these establish a fact a later stage depends on; they are steps in one
+transformation. The reader now navigates six types to follow one canonicalization.
+
+**Risk.** The protocol becomes unreadable, and the genuine proof boundaries are lost among the
+mechanical ones.
+
+**Improved direction.** Merge until each stage corresponds to a proof, and assess the resulting
+count against the complexity budget.
+
+**When justified.** When an external mandate requires a checkpoint per step even though the
+engineering boundary is weaker.
+
+## Local vocabulary cited as external authority
+
+**Weak example.** A design note introduces a coined name for a mechanism, and a later document
+cites the name as established practice without attribution.
+
+**Why it fails.** The name is a useful local shorthand. Treating it as external consensus
+borrows authority the mechanism has not earned and makes the claim hard for a reader to check.
+
+**Risk.** Review deference to a term rather than to the argument behind it.
+
+**Improved direction.** Keep the local name, and state the established family it refines and the
+citation for that family.
+
+**When justified.** When the term is genuinely defined by a cited specification or published
+literature, in which case the citation travels with it.
+
+## Code offered as its own governance
+
+**Weak example.** A protocol enforces ordering, and the design note concludes that documentation
+of the ordering is therefore unnecessary and no decision record is required.
+
+**Why it fails.** The code records what is enforced. It does not record why this ordering was
+chosen over alternatives, what the stages deliberately do not prove, which residual risks were
+accepted, or who accepted them. A future maintainer reading only the code can reconstruct the
+mechanism and none of the reasoning.
+
+**Risk.** A guarantee is weakened in a refactor because the reason it existed was never written
+down.
+
+**Improved direction.** Let the code be authoritative for in-process ordering and keep the
+decision record, the guarantee ledger, and the review evidence alongside it.
+
+**When justified.** Never as stated. The underlying observation, that prose alone should not be
+the only enforcement, is correct and is what the doctrine already requires.
+
+---
+
+## Source: `doctrines/0010-staged-protocols/glossary.md`
+
+# Glossary
+
+Terms whose meaning here is narrower than ordinary Rust or architecture usage. Shared vocabulary
+lives in the foundations.
+
+**Staged protocol**
+: An in-process sequence in which each stage establishes a fact later stages depend on. Narrower
+than "workflow": a workflow may be durable, distributed, and multi-actor, while a staged
+protocol is one owner's pass through a sequence within one process.
+
+**Stage**
+: A distinct type whose construction proves that its preceding transition completed. Narrower
+than "state": a stage carries the evidence of the transition that produced it, and a state may
+be a mere marker.
+
+**Transition**
+: The operation that consumes one stage and produces its successor. A transition is a protocol
+edge, not any method that happens to return a new value.
+
+**Capability**
+: A trait describing the operation legal at a stage, together with the successor that operation
+produces. Distinguish from a capability in the authority sense governed by RUST-DOC-0003, where
+possession conveys permission; a stage capability conveys position in a protocol, not authority.
+
+**Successor capability**
+: The bound placed on a capability's associated output type, naming what the next stage is
+required to satisfy. This is the protocol edge in checkable form.
+
+**Protocol edge**
+: One legal transition from one stage to one successor. Edges include branch alternatives and
+recovery paths, not only the success path.
+
+**Stage evidence**
+: A value constructible only by a specific transition, whose possession is proof that the
+transition ran. Narrower than "data carried by a stage": ordinary payload is not evidence unless
+its construction is protected.
+
+**Protocol topology**
+: The complete graph of stages and edges a protocol documents. The topology is asserted
+executably so that documentation and compilation cannot diverge.
+
+**Topology assertion**
+: An executable check that each documented edge still typechecks. It proves the edges named
+still exist; it does not prove the graph is right for the domain.
+
+**Collapsed view**
+: The call site read as a sequence of transitions. It summarizes the protocol and is not itself
+evidence of anything.
+
+**Expanded view**
+: The stages, evidence, failures, branches, and effects the collapsed view abbreviates.
+
+**Terminal stage**
+: A stage with no legal successor, including a recovery stage that ends an attempt. A terminal
+stage names no successor capability.
+
+**Undetermined outcome**
+: A transition result in which the fact could not be observed. It is distinct from both a
+success branch and a modeled rejection, and it belongs in the stage-identifying failure type.
+
+**Durable advancement**
+: A change to authoritative stored state. Distinct from a local transition: a local transition
+consumes a value, while durable advancement requires re-checking identity, stored state, and a
+concurrency token. No local move consumes a stored fact.
+
+**Trusted construction path**
+: A restricted way to build a stage or its evidence without running the transition, used for
+checked restoration, migration, or testing. It carries an owner, a stated caller obligation, and
+a guarantee-ledger entry.
+
+**Chainable Telescopic Typestate Traits (CT³)**
+: Local project vocabulary for the mechanism this doctrine governs, recorded here so the term is
+recognizable in older internal documents. It is not standardized external terminology. The
+established families it refines are typestate-oriented programming, behavioral types, and object
+protocols; the specific mechanism is a consuming transition with an associated successor type
+bounded by the next capability. Prefer the descriptive terms above in new material, per
+`RUST-DOC-0010-R021`.
+
+## Glossary review
+
+- every normative term is defined in the foundations or here;
+- no definition implies a stronger guarantee than construction establishes;
+- local vocabulary is marked as local and attributed to its established family;
+- observations record their scope and the moment they were taken;
+- abbreviations expand on first use;
+- links point to the authoritative rule or foundation.
+
+---
+
+## Source: `doctrines/0010-staged-protocols/references.md`
+
+# References
+
+Primary sources for the language mechanics this doctrine relies on, and the literature for the
+families it refines. Each entry states what the source establishes; repository governance
+supplies the obligations.
+
+## Language mechanics
+
+- [The Rust Reference: associated items](https://doc.rust-lang.org/reference/items/associated-items.html)
+  — establishes associated types and the trait bounds that may be placed on them, which is the
+  mechanism `RUST-DOC-0010-R003` requires for exposing a successor capability.
+- [The Rust Reference: traits](https://doc.rust-lang.org/reference/items/traits.html) — establishes
+  supertraits, `Self: Sized` requirements, and the conditions under which a trait is
+  dyn-compatible, which bound what a stage capability can express.
+- [The Rust Book: what is ownership](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html)
+  — establishes move semantics, the basis of the consuming transition in `RUST-DOC-0010-R005`
+  and the exact limit of the claim in `RUST-DOC-0010-R014`.
+- [The Rust Reference: visibility and privacy](https://doc.rust-lang.org/reference/visibility-and-privacy.html)
+  — establishes the field and constructor privacy that makes stage evidence unforgeable under
+  `RUST-DOC-0010-R010` and `RUST-DOC-0010-R011`.
+- [The Rust Reference: generic parameters](https://doc.rust-lang.org/reference/items/generics.html)
+  — establishes monomorphization, relevant to the cost assessment in `RUST-DOC-0010-R012`.
+- [`trybuild`](https://docs.rs/trybuild) — the harness used for the compiler-rejection evidence
+  required by `RUST-DOC-0010-R018`. Version scope: 1.0.118, checked 2026-08-04.
+
+## Families this doctrine refines
+
+- Strom and Yemini, "Typestate: A Programming Language Concept for Enhancing Software
+  Reliability," _IEEE Transactions on Software Engineering_ SE-12(1), 1986 — establishes
+  typestate as a compile-time discipline in which an object's legal operations depend on its
+  state. It is the origin of the family; it does not define the trait-based successor mechanism.
+- Aldrich, Sunshine, Saini, and Sparks, "Typestate-Oriented Programming," _OOPSLA Onward!_ 2009
+  — establishes state as a first-class unit with state-specific members, and the framing of
+  valid method-call sequences as an object protocol.
+- Honda, Vasconcelos, and Kubo, "Language Primitives and Type Discipline for Structured
+  Communication-Based Programming," _ESOP_ 1998 — establishes session types for communication
+  protocols with dual participants. A close relative; the distinction is recorded in the source
+  notes, and this doctrine governs an object's internal protocol rather than communication
+  duality.
+
+## Durability and concurrency
+
+- [PostgreSQL: transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html)
+  — establishes that concurrent readers observe snapshots and that serialization failures must be
+  retried, which is why an observation taken during one stage does not remain true at write time.
+- [PostgreSQL: MVCC introduction](https://www.postgresql.org/docs/current/mvcc-intro.html) —
+  establishes that readers obtain a copy of committed state rather than exclusive custody of it.
+  This is the mechanical basis of `RUST-DOC-0010-R014`: a Rust move consumes a local value, and
+  a row read into that value can be read again by another worker.
+- Gray and Cheriton, "Leases: An Efficient Fault-Tolerant Mechanism for Distributed File Cache
+  Consistency," _SOSP_ 1989 — establishes time-bounded distributed authority, relevant to the
+  fencing token required where durable advancement is contended. See also RFC-0001, which
+  records the repository's accepted position on time-based authority.
+
+## Attribution discipline
+
+Quotations are short and used only where wording matters; sources are otherwise summarized and
+linked. No external media, transcript, or specification text is mirrored here. Source notes
+under [`sources/0010-staged-protocols/`](../sources/0010-staged-protocols/source-notes.md)
+classify which ideas this package accepts, refines, rejects, and adds, and identify which
+vocabulary is local to this repository rather than external.
+
+References are informative. A normative obligation exists only where `doctrine.md` states it
+with a rule identifier. Changing facts, including tool versions and product behavior, carry the
+version or date checked and are rechecked when the package is maintained.
+
+---
+
 ## Source: `patterns/README.md`
 
 # Representation patterns
@@ -10980,17 +12372,18 @@ representation, and states both guarantees gained and guarantees not gained.
 Boundary, persistence, testing, and complexity sections prevent a local type
 shape from being mistaken for a complete system proof.
 
-| Pattern                                           | Primary fit                                    | Common overapplication                          |
-| ------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------- |
-| [Sum types](../patterns/sum-types.md)                         | mutually exclusive runtime states              | variant explosion for independent dimensions    |
-| [Opaque newtypes](../patterns/opaque-newtypes.md)             | one value with a stable local invariant        | names stronger than construction evidence       |
-| [Smart constructors](../patterns/smart-constructors.md)       | checked establishment and normalization        | incomplete checks split across callers          |
-| [Typestate](../patterns/typestate.md)                         | small, locally controlled protocol sequence    | persisted or externally determined state        |
-| [Capability types](../patterns/capability-types.md)           | possession represents authority                | cloneable handles with undefined revocation     |
-| [Consuming transitions](../patterns/consuming-transitions.md) | prevent reuse of prior lifecycle state         | losing recovery evidence on fallible transition |
-| [Validated collections](../patterns/validated-collections.md) | non-empty, bounded, sorted, or unique sets     | mutation paths that invalidate the wrapper      |
-| [Hybrid state machines](../patterns/hybrid-state-machines.md) | local typed workflow plus dynamic persistence  | duplicated state without conversion contract    |
-| [Explicit uncertainty](../patterns/explicit-uncertainty.md)   | external effect may have indeterminate outcome | treating unknown as generic error               |
+| Pattern                                             | Primary fit                                                               | Common overapplication                               |
+| --------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------- |
+| [Sum types](../patterns/sum-types.md)                           | mutually exclusive runtime states                                         | variant explosion for independent dimensions         |
+| [Opaque newtypes](../patterns/opaque-newtypes.md)               | one value with a stable local invariant                                   | names stronger than construction evidence            |
+| [Smart constructors](../patterns/smart-constructors.md)         | checked establishment and normalization                                   | incomplete checks split across callers               |
+| [Typestate](../patterns/typestate.md)                           | small, locally controlled protocol sequence                               | persisted or externally determined state             |
+| [Capability types](../patterns/capability-types.md)             | possession represents authority                                           | cloneable handles with undefined revocation          |
+| [Consuming transitions](../patterns/consuming-transitions.md)   | prevent reuse of prior lifecycle state                                    | losing recovery evidence on fallible transition      |
+| [Validated collections](../patterns/validated-collections.md)   | non-empty, bounded, sorted, or unique sets                                | mutation paths that invalidate the wrapper           |
+| [Hybrid state machines](../patterns/hybrid-state-machines.md)   | local typed workflow plus dynamic persistence                             | duplicated state without conversion contract         |
+| [Explicit uncertainty](../patterns/explicit-uncertainty.md)     | external effect may have indeterminate outcome                            | treating unknown as generic error                    |
+| [Successor capabilities](../patterns/successor-capabilities.md) | one capability, several implementations with differing successor evidence | bounds widened until the protocol edge is decorative |
 
 ## Selection rule
 
@@ -11002,6 +12395,8 @@ invariant:
 - collection invariant: validated wrapper;
 - locally controlled sequence with few states: typestate or consuming
   transition;
+- multi-stage sequence whose capabilities have several implementations with
+  differing successor evidence: successor capabilities;
 - authority: capability;
 - dynamic, heterogeneous, persisted, or externally observed state: runtime
   enum/state machine;
@@ -12333,6 +13728,215 @@ domain-specific evidence or safe action.
 - Is retention long enough for delayed acknowledgements and replay?
 - Are terminal operator decisions recorded as policy rather than fabricated
   proof?
+
+---
+
+## Source: `patterns/successor-capabilities.md`
+
+# Successor capabilities
+
+## 1. Problem
+
+A protocol has several stages, and more than one way to enter it. A self-service signup and an
+invitation-based signup both reach the same availability check, but each carries different
+evidence: a challenge identifier in one case, an invitation and its issuing account in the other.
+
+Plain typestate returns one concrete successor. Serving both entry paths then requires either one
+successor type carrying every possible proof as an option, which reintroduces the contradictory
+combinations the stages were built to remove, or a duplicated protocol per entry path. Neither
+expresses the actual contract: whatever the entry stage produces, it must be something the
+availability check accepts.
+
+## 2. Forces
+
+The protocol has few stable stages, controlled by one owner within one process. A capability may
+have several implementations whose successors differ in evidence but agree on what comes next.
+Transitions may perform fallible work. The stage graph will be refactored by people who did not
+design it. Diagnostics, monomorphization, and the reach of generic parameters into helper and
+test code all matter.
+
+## 3. Weak representation
+
+```rust
+pub trait Canonicalize {
+    /// Returns a value that can then be identity-checked.
+    fn canonicalize(self) -> Result<CanonicalRegistration, CanonicalizeError>;
+}
+```
+
+The successor is hardcoded, so a second implementation cannot carry different evidence. Worse,
+the sentence that makes this a protocol lives in a doc comment: nothing checks that
+`CanonicalRegistration` can in fact be identity-checked, and nothing notices when it stops being
+able to.
+
+## 4. Improved representation
+
+```rust
+pub trait Canonicalize: Sized {
+    type Next: CheckIdentity;
+    type Error;
+
+    fn canonicalize(self) -> Result<Self::Next, Self::Error>;
+}
+
+impl Canonicalize for SelfServiceSubmission {
+    type Next = CanonicalRegistration<SelfServiceOrigin>;
+    type Error = CanonicalizeError;
+    // ...
+}
+
+impl Canonicalize for InvitedSubmission {
+    type Next = CanonicalRegistration<InvitedOrigin>;
+    type Error = CanonicalizeError;
+    // ...
+}
+```
+
+The successor is now part of the contract and bounded by the capability it must satisfy. Two
+implementations produce different successors carrying different origin evidence, and both are
+statically required to lead into the identity check.
+
+A branching stage names one successor per outcome:
+
+```rust
+pub trait CheckIdentity: Sized {
+    type Available: AcceptPolicy;
+    type Conflicting: ResolveConflict;
+    type Error;
+
+    fn check_identity(
+        self,
+        directory: &IdentityDirectory,
+    ) -> Result<IdentityOutcome<Self::Available, Self::Conflicting>, Self::Error>;
+}
+```
+
+## 5. Exact guarantee gained
+
+Safe code cannot advance a stage through a capability that stage does not implement, cannot reuse
+a stage after a consuming transition, and cannot construct a later stage's evidence when its
+fields are private and no public constructor exists. The associated bound additionally guarantees
+that every implementation's successor satisfies the next capability, which a hardcoded return
+type cannot state and a doc comment cannot enforce.
+
+The bound is the protocol edge in checkable form. A refactor that redirects `type Next` elsewhere
+does not merely change a type: it either fails to satisfy the bound, or it silently changes the
+graph, which is why the pattern is completed by an executable topology assertion.
+
+## 6. Guarantees not gained
+
+Reaching a later stage proves the in-process protocol ran in order and nothing else. An
+availability observation proves no conflict was visible to one reader at one moment, not that the
+identity is still free when a row is written. A consent proof records that an offered version
+matched the version in force during the check, not that the policy is unchanged at write time.
+
+Most importantly, a consuming transition does not consume a durable fact. A move ends the
+caller's use of a local value; a stored row is read into a value and can be read again by another
+worker, so two workers can each hold a consumed handle for the same row. Durable advancement
+needs identity, stored state, and a version or fencing token re-checked at the authoritative
+store.
+
+## 7. Boundary considerations
+
+Untrusted input enters at the first stage and is canonicalized before any stage claims a checked
+value. Do not derive a decoder that produces a later stage: a decoded value asserts every proof
+that stage represents, and the decoder performed none of them. Where restoration is genuinely
+needed, a checked service inspects stored state and issues a typed stage whose claim is scoped to
+what it actually verified.
+
+Erase the protocol at one named boundary. A round trip through a map or a dynamic context in the
+middle of the graph ends static enforcement for every stage after it, while leaving the
+appearance of a typed protocol intact.
+
+## 8. Persistence considerations
+
+Persist a runtime representation, not the stage type. Stage markers are compile-time artifacts;
+their spelling in a column is not protocol evidence, and heterogeneous rows do not fit generic
+stage types comfortably. A hybrid design is the norm: a runtime enum owns the durable lifecycle,
+and the typed protocol covers one in-process pass issued through checked construction. See
+[hybrid state machines](../patterns/hybrid-state-machines.md).
+
+## 9. Testing evidence
+
+Unit-test each transition on success and failure, each branch variant, each recovery edge, and
+the survival of canonical values from first stage to last. Add compile-fail cases for the
+orderings the protocol claims are unrepresentable: skipping a stage, reusing a consumed stage,
+and constructing stage evidence from a literal.
+
+Then assert the topology executably, because compile-fail cases alone do not cover it. A
+redirected associated type can leave every existing negative test passing while the edge it
+protected no longer exists. A small set of generic functions, each of which compiles only if a
+named edge holds, closes that gap:
+
+```rust
+fn assert_canonicalize_edge<S, N>()
+where
+    S: Canonicalize<Next = N>,
+    N: CheckIdentity,
+{
+}
+```
+
+## 10. Costs
+
+Bounds make signatures longer and first-encounter diagnostics worse: a mismatch is reported as an
+unsatisfied bound rather than a plain type error. Generic stage parameters travel into helper
+functions, mocks, and sometimes public APIs. Each stage adds a type, a failure type, a ledger
+row, and an assertion. Monomorphization grows with stages multiplied by implementations.
+
+## 11. When not to use it
+
+Do not use it when one capability will only ever have one implementation, where a concrete
+successor return is simpler and equally safe. Do not use it for advisory ordering, for state
+determined externally or chosen at runtime, for durable multi-actor lifecycle, or where callers
+must hold heterogeneous stages in one collection. Do not add a stage for a transformation that
+establishes no fact a later stage consumes. A short pipeline of ordinary functions is often the
+better answer.
+
+## 12. Related doctrines
+
+RUST-DOC-0010 governs this mechanism, its bounds, branches, effect disclosure, erasure boundary,
+and the limit at which a local transition stops being durable evidence. RUST-DOC-0001 governs
+legal transitions and unrepresentable states generally. RUST-DOC-0002 governs the error taxonomy
+the stage-specific failures map into. RUST-DOC-0003 governs custody of the values being advanced.
+RUST-DOC-0004 governs cancellation of async transitions. RUST-DOC-0005 and RUST-DOC-0006 govern
+the durable and ambiguous halves this pattern defers.
+
+## 13. Executable example
+
+See [`../examples/staged-protocol/src/lib.rs`](../examples/staged-protocol/src/lib.rs) for the
+capability traits, two entry implementations with different successors, the branch and recovery
+edges, and the topology assertion. Compiler-rejection cases are under
+[`../examples/compile-fail/ui/`](../examples/compile-fail/ui/).
+
+## 14. Worked application
+
+A registration protocol canonicalizes a submission, checks identity availability, records policy
+consent, and prepares a persistable value. Two entry stages produce canonical registrations
+carrying different origin evidence; both satisfy the identity check.
+
+The check branches. Availability leads to the policy stage; conflict leads to a resolution stage
+whose revision edge is bounded back to the first capability, so a revised submission re-enters at
+canonicalization rather than skipping ahead. A directory that cannot be reached is neither
+branch: it is a stage-identifying failure carrying the address, so an operator can look the
+attempt up.
+
+Origin evidence is erased to a runtime discriminant exactly once, at the persistence boundary,
+and the protocol stops at a persistable value. It does not claim the row was written. That
+remains a durable operation which re-checks identity and state under its own concurrency control.
+
+## 15. Review prompts
+
+- Does each nonterminal capability name its successor as a bounded associated type?
+- Does any bound name a capability the successor does not actually establish?
+- Was a bound widened or removed to make an implementation compile?
+- Will more than one implementation produce a different successor, or is a concrete return simpler?
+- Is each material branch a named sum over distinct successors?
+- Does a revision edge re-enter at the correct stage?
+- Is an undetermined outcome distinguishable from both branches?
+- Can any conversion, derive, or public constructor produce a later stage?
+- Does the documented graph have an executable assertion covering every edge?
+- Is any local transition being presented as durable evidence?
 
 ---
 
@@ -13805,6 +15409,24 @@ runtime validation rather than presuming typestate wins.
 | TSR-48 | Are unknown outcomes and reconciliation tested?               | distributed tests     |
 | TSR-49 | Does documentation state exact guarantees and non-guarantees? | ledger/docs           |
 | TSR-50 | Does benefit exceed type/API complexity?                      | signed decision       |
+
+## Staged protocols and successor capabilities
+
+Apply this group when a capability trait exposes its legal successor as an associated type.
+RUST-DOC-0010 governs these questions and its review standard carries the complete gate set.
+
+| ID     | Question                                                              | Pass evidence          |
+| ------ | --------------------------------------------------------------------- | ---------------------- |
+| TSR-51 | Does each nonterminal capability name a bounded associated successor? | trait definitions      |
+| TSR-52 | Does any bound name capability the successor does not establish?      | evidence mapping       |
+| TSR-53 | Was a bound widened or removed to make an implementation compile?     | change record          |
+| TSR-54 | Would a concrete successor return be simpler and equally safe?        | alternative comparison |
+| TSR-55 | Is each material branch a named sum over distinct successors?         | branch enum            |
+| TSR-56 | Is an undetermined outcome distinct from both branches?               | failure type           |
+| TSR-57 | Does a revision or retry edge re-enter at the correct stage?          | successor bound        |
+| TSR-58 | Can a conversion, derive, or constructor produce a later stage?       | implementation audit   |
+| TSR-59 | Is the documented stage graph asserted executably?                    | topology assertion     |
+| TSR-60 | Is a local transition being presented as durable evidence?            | guarantee ledger       |
 
 ## Exit criteria
 

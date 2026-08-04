@@ -36,6 +36,7 @@ packs:
       - RUST-DOC-0005
       - RUST-DOC-0006
       - RUST-DOC-0008
+      - RUST-DOC-0010
     review_checklists:
       - reviews/pre-implementation.md
       - reviews/distributed-effects-review.md
@@ -59,6 +60,7 @@ packs:
       - RUST-DOC-0006
       - RUST-DOC-0007
       - RUST-DOC-0008
+      - RUST-DOC-0010
     review_checklists:
       - reviews/domain-model-review.md
       - reviews/boundary-review.md
@@ -83,6 +85,7 @@ packs:
       - RUST-DOC-0007
       - RUST-DOC-0008
       - RUST-DOC-0009
+      - RUST-DOC-0010
     review_checklists:
       - reviews/domain-model-review.md
       - reviews/boundary-review.md
@@ -109,6 +112,7 @@ packs:
       - RUST-DOC-0007
       - RUST-DOC-0008
       - RUST-DOC-0009
+      - RUST-DOC-0010
     review_checklists:
       - reviews/boundary-review.md
       - reviews/distributed-effects-review.md

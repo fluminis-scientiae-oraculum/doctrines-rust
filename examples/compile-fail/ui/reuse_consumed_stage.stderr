@@ -1,0 +1,19 @@
+error[E0382]: use of moved value: `canonical`
+ --> ui/reuse_consumed_stage.rs:8:19
+  |
+6 |     let canonical = SelfServiceSubmission { submission, challenge_id: "challenge-1".to_owned() }.canonicalize().expect("canonical va...
+  |         --------- move occurs because `canonical` has type `CanonicalRegistration<SelfServiceOrigin>`, which does not implement the `Copy` trait
+7 |     let _first = canonical.check_identity(&directory);
+  |                            -------------------------- `canonical` moved due to this method call
+8 |     let _second = canonical.check_identity(&directory);
+  |                   ^^^^^^^^^ value used here after move
+  |
+note: `check_identity` takes ownership of the receiver `self`, which moves `canonical`
+ --> $WORKSPACE/examples/staged-protocol/src/lib.rs
+  |
+  |         self,
+  |         ^^^^
+help: you can `clone` the value and consume it, but this might not be your desired behavior
+  |
+7 |     let _first = canonical.clone().check_identity(&directory);
+  |                           ++++++++

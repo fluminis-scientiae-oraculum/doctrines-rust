@@ -1,0 +1,5 @@
+error[E0451]: field `version` of struct `ConsentProof` is private
+ --> ui/forge_stage_evidence.rs:5:20
+  |
+5 |     ConsentProof { version };
+  |                    ^^^^^^^ private field

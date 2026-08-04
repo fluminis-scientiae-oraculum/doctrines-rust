@@ -82,6 +82,24 @@ runtime validation rather than presuming typestate wins.
 | TSR-49 | Does documentation state exact guarantees and non-guarantees? | ledger/docs           |
 | TSR-50 | Does benefit exceed type/API complexity?                      | signed decision       |
 
+## Staged protocols and successor capabilities
+
+Apply this group when a capability trait exposes its legal successor as an associated type.
+RUST-DOC-0010 governs these questions and its review standard carries the complete gate set.
+
+| ID     | Question                                                              | Pass evidence          |
+| ------ | --------------------------------------------------------------------- | ---------------------- |
+| TSR-51 | Does each nonterminal capability name a bounded associated successor? | trait definitions      |
+| TSR-52 | Does any bound name capability the successor does not establish?      | evidence mapping       |
+| TSR-53 | Was a bound widened or removed to make an implementation compile?     | change record          |
+| TSR-54 | Would a concrete successor return be simpler and equally safe?        | alternative comparison |
+| TSR-55 | Is each material branch a named sum over distinct successors?         | branch enum            |
+| TSR-56 | Is an undetermined outcome distinct from both branches?               | failure type           |
+| TSR-57 | Does a revision or retry edge re-enter at the correct stage?          | successor bound        |
+| TSR-58 | Can a conversion, derive, or constructor produce a later stage?       | implementation audit   |
+| TSR-59 | Is the documented stage graph asserted executably?                    | topology assertion     |
+| TSR-60 | Is a local transition being presented as durable evidence?            | guarantee ledger       |
+
 ## Exit criteria
 
 Approve typestate only when local sequencing is the real risk, construction is

@@ -1,14 +1,10 @@
 [package]
-name = "doctrine-compile-fail"
+name = "staged-protocol"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 publish = false
-
-[dev-dependencies]
-staged-protocol = { version = "0.3.0", path = "../staged-protocol" }
-trybuild.workspace = true
 
 [lints]
 workspace = true
