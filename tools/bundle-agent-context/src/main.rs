@@ -40,6 +40,7 @@ const PATTERN_FILES: &[&str] = &[
     "patterns/validated-collections.md",
     "patterns/hybrid-state-machines.md",
     "patterns/explicit-uncertainty.md",
+    "patterns/successor-capabilities.md",
 ];
 
 const BOUNDARY_FILES: &[&str] = &[

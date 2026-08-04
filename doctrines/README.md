@@ -14,17 +14,18 @@ substantial compatible guidance. A major release denotes normative
 incompatibility, removal, or contract change. Status and supersession are
 governed by the manifest and RFC process.
 
-| ID            | Doctrine                                                                              | Primary concern                                                |
-| ------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| RUST-DOC-0001 | [Making Invalid States Unrepresentable](0001-invalid-states/)                         | invariant discovery, representation, construction, transitions |
-| RUST-DOC-0002 | [Error Modeling as Domain Design](0002-error-modeling/)                               | actionable failures, recovery, source preservation             |
-| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](0003-ownership-and-capabilities/)              | custody, exclusivity, capability, resource lifecycle           |
-| RUST-DOC-0004 | [Concurrency and Async Correctness](0004-concurrency-and-async/)                      | task ownership, cancellation, backpressure, synchronization    |
-| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](0005-persistence-boundaries/)           | checked decoding, migration, transactions, durable intent      |
-| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](0006-distributed-uncertainty/) | ambiguous outcomes, retries, duplicates, reconciliation        |
-| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](0007-unsafe-rust/)                                | soundness, FFI, initialization, aliasing, dynamic evidence     |
-| RUST-DOC-0008 | [Testing as Layered Evidence](0008-testing-and-evidence/)                             | claim-linked evidence and proof limits                         |
-| RUST-DOC-0009 | [Performance Claims Require Measurement](0009-performance-and-measurement/)           | workloads, profiles, benchmarks, scoped claims                 |
+| ID            | Doctrine                                                                              | Primary concern                                                 |
+| ------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| RUST-DOC-0001 | [Making Invalid States Unrepresentable](0001-invalid-states/)                         | invariant discovery, representation, construction, transitions  |
+| RUST-DOC-0002 | [Error Modeling as Domain Design](0002-error-modeling/)                               | actionable failures, recovery, source preservation              |
+| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](0003-ownership-and-capabilities/)              | custody, exclusivity, capability, resource lifecycle            |
+| RUST-DOC-0004 | [Concurrency and Async Correctness](0004-concurrency-and-async/)                      | task ownership, cancellation, backpressure, synchronization     |
+| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](0005-persistence-boundaries/)           | checked decoding, migration, transactions, durable intent       |
+| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](0006-distributed-uncertainty/) | ambiguous outcomes, retries, duplicates, reconciliation         |
+| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](0007-unsafe-rust/)                                | soundness, FFI, initialization, aliasing, dynamic evidence      |
+| RUST-DOC-0008 | [Testing as Layered Evidence](0008-testing-and-evidence/)                             | claim-linked evidence and proof limits                          |
+| RUST-DOC-0009 | [Performance Claims Require Measurement](0009-performance-and-measurement/)           | workloads, profiles, benchmarks, scoped claims                  |
+| RUST-DOC-0010 | [Staged Protocols and Successor Capabilities](0010-staged-protocols/)                 | stage evidence, successor capability, branch and recovery edges |
 
 ## Dependency direction
 
@@ -42,6 +43,9 @@ the source of a doctrine change.
 
 Start with RUST-DOC-0001 for the core reasoning pipeline. Add RUST-DOC-0002 and
 RUST-DOC-0003 for failure and authority. Select boundary-specific doctrines
-from 0004–0007. Use 0008 for the evidence plan and 0009 whenever performance
-affects design. A reviewer should read the complete package for every doctrine
-that governs a consequential decision, not only its compact summary.
+from 0004–0007. Add RUST-DOC-0010 when operation order carries consequence and
+one stage's result is another stage's precondition; it depends on 0001 and 0003
+and defers its durable half to 0005 and 0006. Use 0008 for the evidence plan and
+0009 whenever performance affects design. A reviewer should read the complete
+package for every doctrine that governs a consequential decision, not only its
+compact summary.

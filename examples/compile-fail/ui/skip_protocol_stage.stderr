@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+ --> ui/skip_protocol_stage.rs:8:18
+  |
+8 |     policy_stage(canonical);
+  |     ------------ ^^^^^^^^^ expected `AvailableRegistration<SelfServiceOrigin>`, found `CanonicalRegistration<SelfServiceOrigin>`
+  |     |
+  |     arguments to this function are incorrect
+  |
+  = note: expected struct `AvailableRegistration<SelfServiceOrigin>`
+             found struct `CanonicalRegistration<SelfServiceOrigin>`
+note: function defined here
+ --> ui/skip_protocol_stage.rs:3:4
+  |
+3 | fn policy_stage(_stage: AvailableRegistration<SelfServiceOrigin>) {}
+  |    ^^^^^^^^^^^^ ------------------------------------------------

@@ -1,5 +1,5 @@
 schema_version: "1.0"
-repository_version: "0.2.0"
+repository_version: "0.3.0"
 doctrines:
   - id: RUST-DOC-0001
     slug: invalid-states
@@ -22,6 +22,7 @@ doctrines:
       - patterns/smart-constructors.md
       - patterns/typestate.md
       - patterns/explicit-uncertainty.md
+      - patterns/successor-capabilities.md
     related_boundaries:
       - boundaries/serde.md
       - boundaries/database-decoding.md
@@ -73,6 +74,7 @@ doctrines:
       - patterns/capability-types.md
       - patterns/consuming-transitions.md
       - patterns/typestate.md
+      - patterns/successor-capabilities.md
     related_boundaries:
       - boundaries/filesystem.md
       - boundaries/ffi.md
@@ -99,6 +101,7 @@ doctrines:
       - patterns/capability-types.md
       - patterns/consuming-transitions.md
       - patterns/hybrid-state-machines.md
+      - patterns/successor-capabilities.md
     related_boundaries:
       - boundaries/http-and-rpc.md
       - boundaries/messaging.md
@@ -125,6 +128,7 @@ doctrines:
       - patterns/sum-types.md
       - patterns/opaque-newtypes.md
       - patterns/hybrid-state-machines.md
+      - patterns/successor-capabilities.md
     related_boundaries:
       - boundaries/database-decoding.md
       - boundaries/serde.md
@@ -151,6 +155,7 @@ doctrines:
       - patterns/explicit-uncertainty.md
       - patterns/hybrid-state-machines.md
       - patterns/capability-types.md
+      - patterns/successor-capabilities.md
     related_boundaries:
       - boundaries/http-and-rpc.md
       - boundaries/messaging.md
@@ -234,5 +239,35 @@ doctrines:
     related_case_studies:
       - case-studies/message-delivery
       - case-studies/ui-workflow
+    supersedes: []
+    superseded_by: null
+  - id: RUST-DOC-0010
+    slug: staged-protocols
+    title: Staged Protocols and Successor Capabilities
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0010-staged-protocols
+    normative_path: doctrines/0010-staged-protocols/doctrine.md
+    applies_to: [planning, implementation, review, audit]
+    risk_domains: [protocol-design, state-machines, api-design, persistence]
+    foundation_dependencies:
+      - foundations/invariants.md
+      - foundations/evidence.md
+      - foundations/guarantee-honesty.md
+      - foundations/complexity-budget.md
+    related_patterns:
+      - patterns/successor-capabilities.md
+      - patterns/typestate.md
+      - patterns/consuming-transitions.md
+      - patterns/sum-types.md
+      - patterns/hybrid-state-machines.md
+    related_boundaries:
+      - boundaries/http-and-rpc.md
+      - boundaries/database-decoding.md
+      - boundaries/messaging.md
+    related_case_studies:
+      - case-studies/registration-onboarding
+      - case-studies/payment-lifecycle
+      - case-studies/authenticated-session
     supersedes: []
     superseded_by: null

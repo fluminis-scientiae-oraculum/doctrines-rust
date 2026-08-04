@@ -5,6 +5,7 @@ pub const EXAMPLE_PACKAGES: &[&str] = &[
     "domain-modeling",
     "validated-newtypes",
     "typestate",
+    "staged-protocol",
     "boundary-validation",
     "distributed-outcomes",
     "unsafe-evidence",
