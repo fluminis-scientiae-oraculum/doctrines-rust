@@ -61,6 +61,16 @@ The successor is now part of the contract and bounded by the capability it must 
 implementations produce different successors carrying different origin evidence, and both are
 statically required to lead into the identity check.
 
+**Local name.** This repository's local name for the chainable trait-oriented form is _Chainable
+Telescopic Typestate Traits_, abbreviated CT³. A chain gives order, `A → B → C`. A telescope gives
+containment: A holds the controlled opening into B, and B holds the controlled opening into C. The
+associated successor type is that opening, which is why the present capability carries both proof
+of a completed history and permission for a constrained future. The term is local vocabulary and
+not standardized terminology; the established families it refines are typestate-oriented
+programming, behavioral types, and object protocols, and `RUST-DOC-0010-R021` requires that
+attribution to travel with the name. Prefer the descriptive terms in new material, and use the
+abbreviation only where a reader arriving from an older internal document needs the bridge.
+
 A branching stage names one successor per outcome:
 
 ```rust
@@ -183,7 +193,10 @@ and the limit at which a local transition stops being durable evidence. RUST-DOC
 legal transitions and unrepresentable states generally. RUST-DOC-0002 governs the error taxonomy
 the stage-specific failures map into. RUST-DOC-0003 governs custody of the values being advanced.
 RUST-DOC-0004 governs cancellation of async transitions. RUST-DOC-0005 and RUST-DOC-0006 govern
-the durable and ambiguous halves this pattern defers.
+the durable and ambiguous halves this pattern defers. RUST-DOC-0011 governs which artifact is
+authoritative for each claim the protocol makes, and prohibits maintaining a prose copy of the
+graph beside the traits that enforce it; see
+[executable narrative](executable-narrative.md).
 
 ## 13. Executable example
 

@@ -247,7 +247,7 @@ literature, in which case the citation travels with it.
 ## Code offered as its own governance
 
 **Weak example.** A protocol enforces ordering, and the design note concludes that documentation
-of the ordering is therefore unnecessary and no decision record is required.
+of the ordering is therefore unnecessary and no rationale, ledger, or review evidence is required.
 
 **Why it fails.** The code records what is enforced. It does not record why this ordering was
 chosen over alternatives, what the stages deliberately do not prove, which residual risks were
@@ -257,8 +257,32 @@ mechanism and none of the reasoning.
 **Risk.** A guarantee is weakened in a refactor because the reason it existed was never written
 down.
 
-**Improved direction.** Let the code be authoritative for in-process ordering and keep the
-decision record, the guarantee ledger, and the review evidence alongside it.
+**Improved direction.** Let the code be authoritative for the in-process ordering it enforces, and
+keep the rationale, the guarantee ledger, and the review evidence beside it as the authority for
+what the code does not carry.
 
-**When justified.** Never as stated. The underlying observation, that prose alone should not be
-the only enforcement, is correct and is what the doctrine already requires.
+**When justified.** Never as stated. The underlying observation, that an enforceable obligation
+belongs in the mechanism that enforces it, is correct and is what `RUST-DOC-0010-R022` and
+RUST-DOC-0011 already require.
+
+## Doctrine offered as the account of current behavior
+
+**Weak example.** A reviewer answers "can this transition run before that one" by quoting the
+doctrine package, and a design note describes the stage graph in prose beside the traits that
+enforce it.
+
+**Why it fails.** This is the same error in the opposite direction. Doctrine states obligations;
+what a protocol currently permits is decided by the bounds, and the two can diverge in either
+direction without either artifact announcing it. The prose stage graph is additionally a second
+editable source, so a refactor updates one of them.
+
+**Risk.** A review that certifies the obligation and misses the violation, and a reader who plans
+against a graph the compiler abandoned two releases ago.
+
+**Improved direction.** Cite the trait bounds and the topology assertion for what the protocol
+permits, cite doctrine for whether that is what it ought to permit, and either generate the prose
+graph or delete it.
+
+**When justified.** Never as a substitute. Doctrine remains the authority for the obligation, the
+review process, and who may change the contract, which is the partition `RUST-DOC-0010-R022`
+states.

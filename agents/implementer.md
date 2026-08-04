@@ -107,6 +107,28 @@ Do not update snapshots or `.stderr` outputs blindly. Do not accept flaky tests
 through permanent retries. Benchmarks remain separate from correctness and
 follow doctrine 0009.
 
+## Obligation placement
+
+Encode the obligation rather than describing it. Under RUST-DOC-0011:
+
+- put ordering, invariants, construction restrictions, and capability boundaries into types,
+  visibility, schemas, manifests, and configuration;
+- add the negative evidence that demonstrates the claimed impossibility, since a claim asserted in
+  prose is not enforced by anything;
+- generate a derived view from its source, declare that source in the output, and add the drift
+  check; never hand-edit a generated artifact;
+- add no prose copy of a topology, interface, or invariant an artifact already enforces;
+- state the part of a claim the mechanism does not enforce separately, rather than letting the
+  enforced part imply it;
+- name the external system authoritative for each durable or remote fact, and the check that
+  consults it;
+- link any rare decision record to the artifacts that remain authoritative for current behavior,
+  and keep the record out of the code path it describes.
+
+Keep the enforcing artifact legible: domain names, states named for the facts they establish,
+disclosed effects, narrow capabilities, and erasure delayed to a named boundary. An authority
+nobody can read produces the prose duplicate this doctrine removes.
+
 ## Forbidden implementation claims
 
 Do not state that private fields alone prove constructor correctness; tests

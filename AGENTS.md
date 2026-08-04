@@ -18,8 +18,8 @@ example or tool README. Code changes can alter doctrine evidence even when prose
 ## Canonical source discipline
 
 Canonical sources live under `foundations/`, `doctrines/`, `patterns/`, `boundaries/`,
-`reviews/`, `agents/`, `case-studies/`, `templates/`, `rfcs/`, and `sources/`. Files under
-`dist/` are generated projections.
+`reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
+Files under `dist/` are generated projections.
 
 An agent MUST NOT edit `dist/` manually. After any canonical change, run:
 
@@ -47,6 +47,17 @@ manifest metadata and governance rather than renumbering history.
 Architecture claims must be contract-shaped: identify the concern and owner; state
 preconditions, postconditions, invariants, obligations, failure semantics, and evidence.
 Known context is evidence, not permission to publish facts unrelated to this repository.
+
+Before writing any document that describes an obligation, apply RUST-DOC-0011. Classify the
+claim, name the single artifact authoritative for it, and prefer moving an enforceable obligation
+into the mechanism that enforces it over describing it. Do not add a second manually maintained
+copy of something an artifact already enforces, and prefer a generated, drift-checked view to a
+synchronized one. Create a decision record only for a fact that cannot be represented, enforced,
+generated, or recovered from the artifacts, and then only with an owner, a revalidation trigger,
+an obsolescence condition, and links to the artifacts that stay authoritative; register it in
+`manifest/decision-records.yaml`. Do not cite an existing record against a change without
+confirming its constraint still applies. Where a rationale is unavailable, record it as unknown
+rather than inferring one from the implementation.
 
 ## Guarantee honesty
 

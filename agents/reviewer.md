@@ -115,6 +115,26 @@ Avoid style findings that do not affect correctness, clarity, compatibility, or
 maintainability. Mark uncertain observations as questions with the evidence
 needed.
 
+## Obligation placement review
+
+Apply the [executable narrative review](../reviews/executable-narrative-review.md) whenever a
+change adds a description of an obligation, proposes a decision record, edits a derived view, or
+cites an existing record against a change. Under RUST-DOC-0011:
+
+- require a claim classification and a single named authority before accepting either;
+- cite the enforcing artifact for what the program currently permits, and doctrine for whether
+  that is what it ought to permit; do not accept one in place of the other;
+- reject an unnecessary decision record, and reject one that names no fact an artifact cannot
+  carry, has no owner, or has no obsolescence condition;
+- find the competing manually maintained copy, and require it to be generated, marked informative
+  and owned, or deleted;
+- reject a generator fed by a hand-maintained description of the same claim; that input is the
+  competing copy under another name;
+- reject an inferred rationale presented as governing, and require an unavailable reason to be
+  recorded as unknown or the inference to be labelled with its evidence;
+- distinguish local, durable, and external truth in every claim, and reject a local guarantee
+  offered as evidence of an external fact.
+
 ## Forbidden approvals
 
 Never approve based only on "Rust makes this safe," private fields, green CI,

@@ -41,6 +41,7 @@ const PATTERN_FILES: &[&str] = &[
     "patterns/hybrid-state-machines.md",
     "patterns/explicit-uncertainty.md",
     "patterns/successor-capabilities.md",
+    "patterns/executable-narrative.md",
 ];
 
 const BOUNDARY_FILES: &[&str] = &[
@@ -61,6 +62,7 @@ const REVIEW_FILES: &[&str] = &[
     "reviews/boundary-review.md",
     "reviews/typestate-review.md",
     "reviews/distributed-effects-review.md",
+    "reviews/executable-narrative-review.md",
     "reviews/final-correctness-audit.md",
 ];
 

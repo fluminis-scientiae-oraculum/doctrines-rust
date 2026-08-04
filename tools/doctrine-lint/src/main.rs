@@ -28,9 +28,14 @@ const CANONICAL_ROOTS: &[&str] = &[
     "reviews",
     "agents",
     "case-studies",
+    "decisions",
     "rfcs",
     "sources",
 ];
+
+const ACTIVE_RECORD_DIRECTORY: &str = "decisions/active/";
+const ARCHIVED_RECORD_DIRECTORY: &str = "decisions/archive/";
+const ARCHIVAL_MARKER: &str = "NOT CURRENT OPERATIONAL AUTHORITY";
 
 const ROOT_DOCUMENTS: &[&str] = &[
     "README.md",
@@ -130,6 +135,33 @@ struct AgentManifest {
 }
 
 #[derive(Debug, Deserialize)]
+struct DecisionRecordRegistry {
+    schema_version: String,
+    active_decision_records: Vec<ActiveDecisionRecord>,
+    archived_decision_records: Vec<ArchivedDecisionRecord>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ActiveDecisionRecord {
+    id: String,
+    owner: String,
+    scope: String,
+    status: String,
+    path: String,
+    executable_authority: Vec<String>,
+    revalidate_on: Vec<String>,
+    obsolete_when: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ArchivedDecisionRecord {
+    id: String,
+    status: String,
+    path: String,
+    archived_reason: String,
+}
+
+#[derive(Debug, Deserialize)]
 struct AgentPack {
     id: String,
     purpose: String,
@@ -223,6 +255,7 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     check_doctrines(root, &doctrine_manifest, &mut diagnostics);
     check_repository_version(root, &doctrine_manifest, &mut diagnostics);
     check_agents(root, &agent_manifest, &doctrine_manifest, &mut diagnostics);
+    check_decision_records(root, &agent_manifest, &mut diagnostics);
     check_forbidden_markers(root, &mut diagnostics);
     check_normative_scope(root, &mut diagnostics);
     check_generated_files(root, &mut diagnostics);
@@ -811,6 +844,231 @@ fn check_agent_source(
     }
 }
 
+/// Validates the decision-record registry required by `RUST-DOC-0011-R007`.
+///
+/// The registry is the only entry point to the active set, so a record that is
+/// unowned, endless, or filed in the wrong place has to fail here rather than in a
+/// review that may never look.
+fn check_decision_records(root: &Path, agents: &AgentManifest, diagnostics: &mut Vec<Diagnostic>) {
+    let registry_path = root.join("manifest/decision-records.yaml");
+    let Some(registry_text) = read_text(&registry_path, diagnostics) else {
+        return;
+    };
+
+    validate_schema(
+        &registry_path,
+        &registry_text,
+        &root.join("manifest/schema/decision-record.schema.json"),
+        diagnostics,
+    );
+
+    let registry = match serde_yaml_ng::from_str::<DecisionRecordRegistry>(&registry_text) {
+        Ok(registry) => registry,
+        Err(error) => {
+            diagnostics.push(Diagnostic::new(
+                &registry_path,
+                format!("cannot parse decision-record registry: {error}"),
+            ));
+            return;
+        }
+    };
+    if registry.schema_version != "1.0" {
+        diagnostics.push(Diagnostic::new(
+            &registry_path,
+            "schema_version must be 1.0",
+        ));
+    }
+
+    let mut identifiers = BTreeSet::new();
+    for record in &registry.active_decision_records {
+        check_active_record(root, &registry_path, record, &mut identifiers, diagnostics);
+    }
+    for record in &registry.archived_decision_records {
+        check_archived_record(root, &registry_path, record, &mut identifiers, diagnostics);
+    }
+
+    check_agent_packs_exclude_archive(root, agents, diagnostics);
+}
+
+fn check_active_record(
+    root: &Path,
+    registry_path: &Path,
+    record: &ActiveDecisionRecord,
+    identifiers: &mut BTreeSet<String>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if !identifiers.insert(record.id.clone()) {
+        diagnostics.push(Diagnostic::new(
+            registry_path,
+            format!("decision record ID {} is duplicated", record.id),
+        ));
+    }
+    if record.status != "active" {
+        diagnostics.push(Diagnostic::new(
+            registry_path,
+            format!(
+                "active decision record {} has status {}",
+                record.id, record.status
+            ),
+        ));
+    }
+    for (field, value) in [("owner", &record.owner), ("scope", &record.scope)] {
+        if value.trim().is_empty() {
+            diagnostics.push(Diagnostic::new(
+                registry_path,
+                format!("active decision record {} has an empty {field}", record.id),
+            ));
+        }
+    }
+    for (field, values) in [
+        ("revalidate_on", &record.revalidate_on),
+        ("obsolete_when", &record.obsolete_when),
+        ("executable_authority", &record.executable_authority),
+    ] {
+        if values.is_empty() {
+            diagnostics.push(Diagnostic::new(
+                registry_path,
+                format!(
+                    "active decision record {} states no {field}; RUST-DOC-0011-R007 requires one",
+                    record.id
+                ),
+            ));
+        }
+    }
+    for authority in &record.executable_authority {
+        check_record_path(
+            root,
+            registry_path,
+            &record.id,
+            authority,
+            "executable authority",
+            None,
+            diagnostics,
+        );
+    }
+    check_record_path(
+        root,
+        registry_path,
+        &record.id,
+        &record.path,
+        "record",
+        Some(ACTIVE_RECORD_DIRECTORY),
+        diagnostics,
+    );
+}
+
+fn check_archived_record(
+    root: &Path,
+    registry_path: &Path,
+    record: &ArchivedDecisionRecord,
+    identifiers: &mut BTreeSet<String>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    if !identifiers.insert(record.id.clone()) {
+        diagnostics.push(Diagnostic::new(
+            registry_path,
+            format!("decision record ID {} is duplicated", record.id),
+        ));
+    }
+    if !matches!(
+        record.status.as_str(),
+        "superseded" | "expired" | "archival"
+    ) {
+        diagnostics.push(Diagnostic::new(
+            registry_path,
+            format!(
+                "archived decision record {} has status {}",
+                record.id, record.status
+            ),
+        ));
+    }
+    if record.archived_reason.trim().is_empty() {
+        diagnostics.push(Diagnostic::new(
+            registry_path,
+            format!("archived decision record {} states no reason", record.id),
+        ));
+    }
+    if !check_record_path(
+        root,
+        registry_path,
+        &record.id,
+        &record.path,
+        "record",
+        Some(ARCHIVED_RECORD_DIRECTORY),
+        diagnostics,
+    ) {
+        return;
+    }
+    let record_path = root.join(&record.path);
+    if let Some(text) = read_text(&record_path, diagnostics) {
+        if !text.contains(ARCHIVAL_MARKER) {
+            diagnostics.push(Diagnostic::new(
+                &record_path,
+                format!(
+                    "archived decision record {} must carry {ARCHIVAL_MARKER}",
+                    record.id
+                ),
+            ));
+        }
+    }
+}
+
+fn check_record_path(
+    root: &Path,
+    registry_path: &Path,
+    id: &str,
+    value: &str,
+    field: &str,
+    required_prefix: Option<&str>,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> bool {
+    if !valid_manifest_path(value) {
+        diagnostics.push(Diagnostic::new(
+            registry_path,
+            format!("decision record {id} {field} path is not normalized and repository-relative: {value}"),
+        ));
+        return false;
+    }
+    if let Some(prefix) = required_prefix {
+        if !value.starts_with(prefix) {
+            diagnostics.push(Diagnostic::new(
+                registry_path,
+                format!("decision record {id} {field} path must live under {prefix}"),
+            ));
+            return false;
+        }
+    }
+    if !root.join(value).is_file() {
+        diagnostics.push(Diagnostic::new(
+            root.join(value),
+            format!("decision record {id} {field} path does not resolve to a file"),
+        ));
+        return false;
+    }
+    true
+}
+
+fn check_agent_packs_exclude_archive(
+    root: &Path,
+    agents: &AgentManifest,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    let manifest_path = root.join("manifest/agents.yaml");
+    for pack in &agents.packs {
+        for path in pack.canonical_sources.iter().chain(&pack.review_checklists) {
+            if path.starts_with(ARCHIVED_RECORD_DIRECTORY) {
+                diagnostics.push(Diagnostic::new(
+                    &manifest_path,
+                    format!(
+                        "agent {} hydrates archived decision record {path}; RUST-DOC-0011-R018 excludes it",
+                        pack.id
+                    ),
+                ));
+            }
+        }
+    }
+}
+
 fn check_forbidden_markers(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     collect_repository_files(root, root, &mut |path| {
         scan_marker_file(path, diagnostics);
@@ -1041,10 +1299,208 @@ fn display_path(root: &Path, path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        RuleHeading, check_structured_field_register, contains_normative_term,
-        extract_rule_headings, front_matter, valid_manifest_path, valid_rule_id,
-        workspace_package_version,
+        ActiveDecisionRecord, AgentManifest, AgentPack, ArchivedDecisionRecord, RuleHeading,
+        check_active_record, check_agent_packs_exclude_archive, check_archived_record,
+        check_structured_field_register, contains_normative_term, extract_rule_headings,
+        front_matter, valid_manifest_path, valid_rule_id, workspace_package_version,
     };
+    use std::collections::BTreeSet;
+    use std::fs;
+    use std::path::{Path, PathBuf};
+
+    fn temporary_directory(name: &str) -> PathBuf {
+        let path =
+            std::env::temp_dir().join(format!("doctrines-rust-lint-{name}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&path);
+        fs::create_dir_all(&path).expect("create temporary test directory");
+        path
+    }
+
+    fn active_record() -> ActiveDecisionRecord {
+        ActiveDecisionRecord {
+            id: "ADR-0001".to_owned(),
+            owner: "platform-governance".to_owned(),
+            scope: "data-residency".to_owned(),
+            status: "active".to_owned(),
+            path: "decisions/active/adr-0001-residency.md".to_owned(),
+            executable_authority: vec!["decisions/README.md".to_owned()],
+            revalidate_on: vec!["contract-renewal".to_owned()],
+            obsolete_when: vec!["obligation-withdrawn".to_owned()],
+        }
+    }
+
+    fn agent_pack(canonical_sources: Vec<String>) -> AgentPack {
+        AgentPack {
+            id: "auditor".to_owned(),
+            purpose: "Adversarially locate ungoverned authority.".to_owned(),
+            maximum_verbosity: "exhaustive".to_owned(),
+            ordering: 50,
+            canonical_sources,
+            doctrine_selections: Vec::new(),
+            review_checklists: Vec::new(),
+            output_path: "dist/agents/auditor.md".to_owned(),
+        }
+    }
+
+    #[test]
+    fn active_record_without_owner_or_end_condition_is_rejected() {
+        let mut record = active_record();
+        record.owner = "  ".to_owned();
+        record.revalidate_on.clear();
+        record.obsolete_when.clear();
+        record.executable_authority.clear();
+
+        let mut diagnostics = Vec::new();
+        check_active_record(
+            Path::new("/nonexistent"),
+            Path::new("manifest/decision-records.yaml"),
+            &record,
+            &mut BTreeSet::new(),
+            &mut diagnostics,
+        );
+
+        let messages = diagnostics
+            .iter()
+            .map(|diagnostic| diagnostic.message.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(messages.contains("empty owner"), "{messages}");
+        assert!(messages.contains("no revalidate_on"), "{messages}");
+        assert!(messages.contains("no obsolete_when"), "{messages}");
+        assert!(messages.contains("no executable_authority"), "{messages}");
+    }
+
+    #[test]
+    fn active_record_must_be_filed_under_the_active_directory() {
+        let mut record = active_record();
+        record.path = "decisions/examples/justified-data-residency.md".to_owned();
+
+        let mut diagnostics = Vec::new();
+        check_active_record(
+            Path::new("/nonexistent"),
+            Path::new("manifest/decision-records.yaml"),
+            &record,
+            &mut BTreeSet::new(),
+            &mut diagnostics,
+        );
+
+        assert!(
+            diagnostics.iter().any(|diagnostic| diagnostic
+                .message
+                .contains("must live under decisions/active/")),
+            "{diagnostics:?}"
+        );
+    }
+
+    #[test]
+    fn duplicate_record_identifiers_are_rejected() {
+        let record = active_record();
+        let mut identifiers = BTreeSet::new();
+        let mut diagnostics = Vec::new();
+
+        for _ in 0..2 {
+            check_active_record(
+                Path::new("/nonexistent"),
+                Path::new("manifest/decision-records.yaml"),
+                &record,
+                &mut identifiers,
+                &mut diagnostics,
+            );
+        }
+
+        assert!(
+            diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.message.contains("ADR-0001 is duplicated")),
+            "{diagnostics:?}"
+        );
+    }
+
+    #[test]
+    fn archived_record_must_carry_the_archival_marker() {
+        let root = temporary_directory("archival-marker");
+        fs::create_dir_all(root.join("decisions/archive")).expect("create archive directory");
+        fs::write(
+            root.join("decisions/archive/adr-0002-old.md"),
+            "# ADR-0002\n\nThis file omits the marker.\n",
+        )
+        .expect("write archived record");
+
+        let record = ArchivedDecisionRecord {
+            id: "ADR-0002".to_owned(),
+            status: "expired".to_owned(),
+            path: "decisions/archive/adr-0002-old.md".to_owned(),
+            archived_reason: "the residency obligation was withdrawn".to_owned(),
+        };
+
+        let mut diagnostics = Vec::new();
+        check_archived_record(
+            &root,
+            Path::new("manifest/decision-records.yaml"),
+            &record,
+            &mut BTreeSet::new(),
+            &mut diagnostics,
+        );
+
+        assert!(
+            diagnostics.iter().any(|diagnostic| {
+                diagnostic
+                    .message
+                    .contains("NOT CURRENT OPERATIONAL AUTHORITY")
+            }),
+            "{diagnostics:?}"
+        );
+
+        fs::write(
+            root.join("decisions/archive/adr-0002-old.md"),
+            "# ADR-0002\n\nNOT CURRENT OPERATIONAL AUTHORITY\n",
+        )
+        .expect("rewrite archived record");
+        let mut diagnostics = Vec::new();
+        check_archived_record(
+            &root,
+            Path::new("manifest/decision-records.yaml"),
+            &record,
+            &mut BTreeSet::new(),
+            &mut diagnostics,
+        );
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+
+        fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    #[test]
+    fn agent_packs_may_not_hydrate_an_archived_record() {
+        let manifest = AgentManifest {
+            schema_version: "1.0".to_owned(),
+            packs: vec![agent_pack(vec![
+                "agents/shared.md".to_owned(),
+                "decisions/archive/adr-0002-old.md".to_owned(),
+            ])],
+        };
+
+        let mut diagnostics = Vec::new();
+        check_agent_packs_exclude_archive(Path::new("/nonexistent"), &manifest, &mut diagnostics);
+
+        assert_eq!(diagnostics.len(), 1);
+        assert!(
+            diagnostics[0].message.contains("RUST-DOC-0011-R018"),
+            "{diagnostics:?}"
+        );
+    }
+
+    #[test]
+    fn agent_packs_without_archived_records_pass() {
+        let manifest = AgentManifest {
+            schema_version: "1.0".to_owned(),
+            packs: vec![agent_pack(vec!["agents/shared.md".to_owned()])],
+        };
+
+        let mut diagnostics = Vec::new();
+        check_agent_packs_exclude_archive(Path::new("/nonexistent"), &manifest, &mut diagnostics);
+
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    }
 
     #[test]
     fn extracts_rule_headings_at_every_depth() {

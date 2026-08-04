@@ -1,0 +1,23 @@
+schema_version: "1.0"
+
+# The active set of architecture decision records for this repository, governed by
+# RUST-DOC-0011. Membership here is what makes a record citable as authority; a file
+# that is not listed is not in the active set. Both lists are validated by
+# `doctrine-lint` against manifest/schema/decision-record.schema.json and against the
+# obligations RUST-DOC-0011-R007 states.
+#
+# The active set is empty. Every architectural obligation this repository carries is
+# enforced by doctrine, the manifests, the JSON Schemas, the linter, the bundler, or
+# the example crates, so no fact remained that required a record. That is the outcome
+# RUST-DOC-0011-R006 predicts for a repository of this shape, and it is a statement
+# about the record set rather than a claim that no unrecorded constraint exists.
+#
+# Worked examples of a justified and an unjustified record live under
+# decisions/examples/. They are illustrations, not records, and are deliberately absent
+# from both lists below.
+active_decision_records: []
+
+# Records retained for a stated compatibility or audit obligation. An archived record is
+# not current operational authority, carries that marking in its own text, and is
+# excluded from generated agent context by RUST-DOC-0011-R018.
+archived_decision_records: []

@@ -26,6 +26,7 @@ governed by the manifest and RFC process.
 | RUST-DOC-0008 | [Testing as Layered Evidence](0008-testing-and-evidence/)                             | claim-linked evidence and proof limits                          |
 | RUST-DOC-0009 | [Performance Claims Require Measurement](0009-performance-and-measurement/)           | workloads, profiles, benchmarks, scoped claims                  |
 | RUST-DOC-0010 | [Staged Protocols and Successor Capabilities](0010-staged-protocols/)                 | stage evidence, successor capability, branch and recovery edges |
+| RUST-DOC-0011 | [Executable Narrative and Minimal Decision Records](0011-executable-narrative/)       | authority partition, duplication, generated views, records      |
 
 ## Dependency direction
 
@@ -45,7 +46,10 @@ Start with RUST-DOC-0001 for the core reasoning pipeline. Add RUST-DOC-0002 and
 RUST-DOC-0003 for failure and authority. Select boundary-specific doctrines
 from 0004–0007. Add RUST-DOC-0010 when operation order carries consequence and
 one stage's result is another stage's precondition; it depends on 0001 and 0003
-and defers its durable half to 0005 and 0006. Use 0008 for the evidence plan and
+and defers its durable half to 0005 and 0006. Read RUST-DOC-0011 before deciding
+where an obligation lives or whether a decision record is justified; it governs
+the authority partition the rest of the corpus relies on and is the doctrine most
+often reached for outside Rust-specific work. Use 0008 for the evidence plan and
 0009 whenever performance affects design. A reviewer should read the complete
 package for every doctrine that governs a consequential decision, not only its
 compact summary.

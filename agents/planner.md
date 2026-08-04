@@ -102,6 +102,28 @@ telemetry, and incident signals. State what each layer does not prove.
 8. Resolve fails or document governance disposition.
 9. Hand off exact artifacts and rule IDs to implementation.
 
+## Obligation placement
+
+Before proposing any document, decide where the obligation lives. Under RUST-DOC-0011:
+
+- classify each claim as enforced local truth, external or durable fact, rationale,
+  non-guarantee or accepted risk, or change authority, and name one authority for each;
+- prefer an available mechanism to a description; an ordering, a construction restriction, a
+  capability boundary, or a negative guarantee that a type, schema, manifest, or test can enforce
+  is placed there, not in the plan;
+- count the maintained representations the plan would leave behind, and remove those that are
+  neither authoritative, generated, nor irrecoverable rationale;
+- propose a decision record only after that assessment fails, and only for an external mandate,
+  an irreversible or externally expensive commitment, a rejected alternative whose rejection
+  depends on evidence the implementation does not carry, a decision no single system owns, an
+  accepted residual risk, or a compatibility obligation from shipped behavior;
+- state, for every record proposed, the exact fact no artifact can carry, the owner, the
+  revalidation trigger, the obsolescence condition, and the artifacts that stay authoritative.
+
+That a decision is large, was debated, or might be forgotten is not a justification for a record.
+Record the outcome even when it is that no document is added, so a later reader can tell the
+assessment happened.
+
 ## Forbidden planning shortcuts
 
 Do not make "use typestate" the first requirement. Do not say "validate at the

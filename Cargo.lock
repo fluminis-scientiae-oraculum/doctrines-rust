@@ -66,7 +66,7 @@ checksum = "dc0b364ead1874514c8c2855ab558056ebfeb775653e7ae45ff72f28f8f3166c"
 
 [[package]]
 name = "boundary-validation"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -81,7 +81,7 @@ checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
 
 [[package]]
 name = "bundle-agent-context"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "serde",
  "serde_yaml_ng",
@@ -118,11 +118,11 @@ dependencies = [
 
 [[package]]
 name = "distributed-outcomes"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "doctrine-compile-fail"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "staged-protocol",
  "trybuild",
@@ -130,11 +130,11 @@ dependencies = [
 
 [[package]]
 name = "doctrine-examples"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "doctrine-lint"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "jsonschema",
  "serde",
@@ -144,7 +144,7 @@ dependencies = [
 
 [[package]]
 name = "domain-modeling"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "email_address"
@@ -779,7 +779,7 @@ checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
 
 [[package]]
 name = "staged-protocol"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "strum"
@@ -916,7 +916,7 @@ dependencies = [
 
 [[package]]
 name = "typestate"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "unicode-general-category"
@@ -932,7 +932,7 @@ checksum = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
 
 [[package]]
 name = "unsafe-evidence"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "unsafe-libyaml"
@@ -958,7 +958,7 @@ dependencies = [
 
 [[package]]
 name = "validated-newtypes"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "version_check"

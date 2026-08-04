@@ -18,6 +18,7 @@ shape from being mistaken for a complete system proof.
 | [Hybrid state machines](hybrid-state-machines.md)   | local typed workflow plus dynamic persistence                             | duplicated state without conversion contract         |
 | [Explicit uncertainty](explicit-uncertainty.md)     | external effect may have indeterminate outcome                            | treating unknown as generic error                    |
 | [Successor capabilities](successor-capabilities.md) | one capability, several implementations with differing successor evidence | bounds widened until the protocol edge is decorative |
+| [Executable narrative](executable-narrative.md)     | placing an architectural obligation in the mechanism that enforces it     | deleting rationale that no artifact could carry      |
 
 ## Selection rule
 
@@ -36,6 +37,10 @@ invariant:
   enum/state machine;
 - external effect: `Result` plus explicit unknown/reconciliation state where
   execution can be ambiguous.
+
+Executable narrative is not an alternative to the mechanisms above; it is the
+question asked before choosing one. Which artifact should carry this obligation,
+which is authoritative for it, and is any other maintained copy of it needed?
 
 Patterns can combine. A payment workflow may use an opaque operation ID, a
 capability for capture authority, consuming local transitions, a persisted

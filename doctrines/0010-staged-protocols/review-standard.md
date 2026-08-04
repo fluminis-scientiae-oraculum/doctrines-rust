@@ -85,18 +85,20 @@ reference**. Blank status is not approval.
 
 ## Evidence, honesty, and governance
 
-| Gate | Question                                                    | Pass evidence           | Failure example                      | Severity | Remediation              |
-| ---- | ----------------------------------------------------------- | ----------------------- | ------------------------------------ | -------- | ------------------------ |
-| S49  | Does each claimed impossibility have compile-fail evidence? | compile-fail cases      | claim stated only in prose           | high     | add the case             |
-| S50  | Was each diagnostic inspected for its semantic cause?       | reviewed diagnostic     | fixture accepted mechanically        | high     | inspect and re-record    |
-| S51  | Do the cases reject at the intended boundary?               | diagnostic analysis     | case fails for an unrelated reason   | high     | rewrite the case         |
-| S52  | Is the documented stage graph asserted executably?          | topology assertion      | graph checked only by reading        | high     | add the assertion        |
-| S53  | Does the assertion cover every documented edge?             | coverage comparison     | branch edges unasserted              | medium   | extend the assertion     |
-| S54  | Does the assertion fail when an edge changes?               | deliberate break        | assertion passes after a redirect    | high     | strengthen the assertion |
-| S55  | Does every stage have a guarantee ledger row?               | completed ledger        | evidence absent from the ledger      | critical | complete the ledger      |
-| S56  | Does each row state what the stage does not prove?          | ledger column           | stage claims durable completion      | critical | narrow the claim         |
-| S57  | Is local vocabulary distinguished from standard terms?      | terminology definitions | a local coinage cited as established | medium   | attribute the family     |
-| S58  | Is the governing decision record identified?                | decision reference      | code presented as the whole contract | high     | record the decision      |
+| Gate | Question                                                    | Pass evidence            | Failure example                       | Severity | Remediation              |
+| ---- | ----------------------------------------------------------- | ------------------------ | ------------------------------------- | -------- | ------------------------ |
+| S49  | Does each claimed impossibility have compile-fail evidence? | compile-fail cases       | claim stated only in prose            | high     | add the case             |
+| S50  | Was each diagnostic inspected for its semantic cause?       | reviewed diagnostic      | fixture accepted mechanically         | high     | inspect and re-record    |
+| S51  | Do the cases reject at the intended boundary?               | diagnostic analysis      | case fails for an unrelated reason    | high     | rewrite the case         |
+| S52  | Is the documented stage graph asserted executably?          | topology assertion       | graph checked only by reading         | high     | add the assertion        |
+| S53  | Does the assertion cover every documented edge?             | coverage comparison      | branch edges unasserted               | medium   | extend the assertion     |
+| S54  | Does the assertion fail when an edge changes?               | deliberate break         | assertion passes after a redirect     | high     | strengthen the assertion |
+| S55  | Does every stage have a guarantee ledger row?               | completed ledger         | evidence absent from the ledger       | critical | complete the ledger      |
+| S56  | Does each row state what the stage does not prove?          | ledger column            | stage claims durable completion       | critical | narrow the claim         |
+| S57  | Is local vocabulary distinguished from standard terms?      | terminology definitions  | a local coinage cited as established  | medium   | attribute the family     |
+| S58  | Is each protocol claim assigned to exactly one authority?   | claim classification     | one artifact cited for every class    | critical | partition the claims     |
+| S61  | Is the enforced artifact cited for in-process ordering?     | trait bounds cited       | doctrine quoted for what code permits | high     | cite the mechanism       |
+| S62  | Does a hand-maintained prose copy of the graph exist?       | representation inventory | stage table beside the traits         | high     | generate or delete       |
 
 ## Outcome
 
@@ -126,5 +128,10 @@ cover `RUST-DOC-0010-R005`, `RUST-DOC-0010-R006`, and `RUST-DOC-0010-R007`. S23 
 `RUST-DOC-0010-R008`, `RUST-DOC-0010-R009`, and `RUST-DOC-0010-R012`. S31 to S38 cover
 `RUST-DOC-0010-R010`, `RUST-DOC-0010-R011`, and `RUST-DOC-0010-R017`. S39 to S48 cover
 `RUST-DOC-0010-R013`, `RUST-DOC-0010-R014`, `RUST-DOC-0010-R015`, and `RUST-DOC-0010-R016`. S49
-to S58 cover `RUST-DOC-0010-R018`, `RUST-DOC-0010-R019`, `RUST-DOC-0010-R020`,
-`RUST-DOC-0010-R021`, and `RUST-DOC-0010-R022`.
+to S58 and S61 to S62 cover `RUST-DOC-0010-R018`, `RUST-DOC-0010-R019`, `RUST-DOC-0010-R020`,
+`RUST-DOC-0010-R021`, and `RUST-DOC-0010-R022`. S59 and S60 sit with the transition group they
+extend, covering `RUST-DOC-0010-R005` and `RUST-DOC-0010-R007`.
+
+S58, S61, and S62 apply the authority partition to a staged protocol.
+[The executable narrative review](../../reviews/executable-narrative-review.md) is the general
+procedure for the same question, and RUST-DOC-0011 carries the rules it operationalizes.
