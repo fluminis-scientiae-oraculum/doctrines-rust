@@ -10977,7 +10977,7 @@ id: RUST-DOC-0010
 slug: staged-protocols
 title: Staged Protocols and Successor Capabilities
 status: active
-version: 0.1.0
+version: 0.2.0
 normative: true
 applies_to:
   - planning
@@ -11035,13 +11035,17 @@ versions.
 ## Normative status
 
 `doctrine.md` is normative and carries the stable rule identifiers. This package is version
-0.1.0 with status active. Rationale, decision framework, anti-patterns, glossary, and references
+0.2.0 with status active. Rationale, decision framework, anti-patterns, glossary, and references
 are informative and cannot create an obligation that `doctrine.md` does not state.
 
 Rules `RUST-DOC-0010-R012`, `RUST-DOC-0010-R016`, and `RUST-DOC-0010-R019` permit a waiver on
 the terms recorded in the normative waiver section. The rules governing successor bounds,
-construction bypass, durable claims, the guarantee ledger, terminology, and governance
-precedence do not.
+construction bypass, durable claims, the guarantee ledger, terminology, and the authority
+partition do not.
+
+`RUST-DOC-0010-R022` was restated in repository version 0.4.0 under RFC-0003. It keeps its
+identifier and its non-waivable status, and it now states an authority partition rather than a
+blanket governance precedence. RUST-DOC-0011 governs that partition generally.
 
 ## Prerequisite foundations
 
@@ -11057,9 +11061,15 @@ assessment required by `RUST-DOC-0010-R012`.
 Patterns: [successor capabilities](../patterns/successor-capabilities.md) is the mechanism
 this doctrine governs; [typestate](../patterns/typestate.md) and
 [consuming transitions](../patterns/consuming-transitions.md) are its foundation;
-[sum types](../patterns/sum-types.md) carry its branches; and
+[sum types](../patterns/sum-types.md) carry its branches;
 [hybrid state machines](../patterns/hybrid-state-machines.md) carry the durable half that
-`RUST-DOC-0010-R015` requires.
+`RUST-DOC-0010-R015` requires; and
+[executable narrative](../patterns/executable-narrative.md) is the general form of the
+placement question `RUST-DOC-0010-R022` answers for stages.
+
+Doctrines: [RUST-DOC-0011](../doctrines/0011-executable-narrative/) owns the authority partition,
+prohibits a competing manually maintained copy of an enforced claim, and governs when a decision
+record is justified. `RUST-DOC-0010-R022` is its application to staged protocols.
 
 Boundaries: [HTTP and RPC](../boundaries/http-and-rpc.md) for the untrusted input that enters
 the first stage, [database decoding](../boundaries/database-decoding.md) for restoration, and
@@ -11501,22 +11511,34 @@ used as standard when the citation is given.
 **Review evidence.** Terminology definitions, their family attribution, and the source notes
 recording which vocabulary is local.
 
-## RUST-DOC-0010-R022 — Keep governance precedence explicit
+## RUST-DOC-0010-R022 — Partition protocol authority explicitly
 
-**Statement.** An executable protocol is authoritative for the in-process ordering it enforces,
-and MUST NOT be treated as replacing doctrine obligations, recorded review evidence, or the
-decision process required to change a normative contract.
+**Statement.** Each claim a staged protocol makes MUST be classified as an in-process claim the
+executable protocol mechanically enforces, a durable or remote claim an external system owns, or
+a rationale, non-guarantee, waiver, or change-authority claim its governing records own. The
+executable protocol MUST be treated as authoritative for the ordering, successor constraints,
+construction restrictions, and negative capabilities it mechanically enforces. An artifact
+governing one of these classes MUST NOT be maintained as a second, independently edited source
+for another class.
 
-**Intent.** Keep the accurate observation that code enforces ordering from becoming the claim
-that code alone settles what a system is obliged to do.
+**Intent.** Replace a precedence contest with a partition. The accurate observation that code
+enforces ordering does not make code the source of rationale, accepted risk, or change authority;
+the accurate observation that doctrine governs change does not make doctrine a second description
+of what the program currently permits. `RUST-DOC-0010-R018` and `RUST-DOC-0010-R019` exist
+because prose cannot detect a widened bound or a redirected successor, and a rule subordinating
+the executable protocol to prose would contradict them.
 
-**Applicability.** Design notes, doctrine proposals, and agent instructions that describe a
-protocol as a living or self-documenting contract.
+**Applicability.** Design notes, doctrine text, decision records, review records, and agent
+instructions that state which artifact settles a question about a staged protocol. RUST-DOC-0011
+governs the partition generally, including the decision-record obligations; this rule applies it
+to stages, edges, and stage evidence.
 
-**Allowed exceptions.** None.
+**Allowed exceptions.** A generated or mechanically checked view of the executable protocol MAY
+restate its topology, because such a view cannot drift from the artifact it is derived from.
 
-**Review evidence.** The governing decision record, the review evidence for the protocol, and
-the guarantee ledger the code does not itself supply.
+**Review evidence.** The claim classification, the executable artifact cited for each in-process
+claim, the external check cited for each durable claim, and the governing record cited for each
+rationale, non-guarantee, waiver, or change-authority claim.
 
 ## Guarantee and non-guarantee requirements
 
@@ -11642,11 +11664,17 @@ typed stages.
 reader cites the name as established practice, treating a project convention as external
 consensus. `RUST-DOC-0010-R021` requires the family attribution to travel with the local name.
 
-**The protocol offered as its own governance.** A protocol enforces ordering, and this accurate
-observation grows into the claim that the code is the whole contract, so review evidence,
-guarantee ledgers, and the decision process become optional. Code enforces what it enforces; it
-does not record why the ordering was chosen, what the stages deliberately do not prove, or who
-accepted the residual risk. `RUST-DOC-0010-R022` keeps the precedence explicit.
+**The authority nobody partitioned.** A protocol enforces ordering, and the argument then runs in
+one of two directions, both wrong. In one, the accurate observation that code enforces ordering
+grows into the claim that code is the whole contract, so review evidence, guarantee ledgers, and
+the decision process become optional; code enforces what it enforces, and records neither why the
+ordering was chosen, nor what the stages deliberately do not prove, nor who accepted the residual
+risk. In the other, the accurate observation that doctrine governs change grows into a precedence
+of prose over the compiled graph, which would contradict `RUST-DOC-0010-R018` and
+`RUST-DOC-0010-R019`, both of which exist because prose cannot detect a widened bound.
+`RUST-DOC-0010-R022` partitions the claims instead of ranking the artifacts, and RUST-DOC-0011
+governs that partition generally. The earlier text of this rule asserted the second direction; the
+restatement is recorded in RFC-0003.
 
 ## Why weaker alternatives fail
 
@@ -11940,18 +11968,20 @@ reference**. Blank status is not approval.
 
 ## Evidence, honesty, and governance
 
-| Gate | Question                                                    | Pass evidence           | Failure example                      | Severity | Remediation              |
-| ---- | ----------------------------------------------------------- | ----------------------- | ------------------------------------ | -------- | ------------------------ |
-| S49  | Does each claimed impossibility have compile-fail evidence? | compile-fail cases      | claim stated only in prose           | high     | add the case             |
-| S50  | Was each diagnostic inspected for its semantic cause?       | reviewed diagnostic     | fixture accepted mechanically        | high     | inspect and re-record    |
-| S51  | Do the cases reject at the intended boundary?               | diagnostic analysis     | case fails for an unrelated reason   | high     | rewrite the case         |
-| S52  | Is the documented stage graph asserted executably?          | topology assertion      | graph checked only by reading        | high     | add the assertion        |
-| S53  | Does the assertion cover every documented edge?             | coverage comparison     | branch edges unasserted              | medium   | extend the assertion     |
-| S54  | Does the assertion fail when an edge changes?               | deliberate break        | assertion passes after a redirect    | high     | strengthen the assertion |
-| S55  | Does every stage have a guarantee ledger row?               | completed ledger        | evidence absent from the ledger      | critical | complete the ledger      |
-| S56  | Does each row state what the stage does not prove?          | ledger column           | stage claims durable completion      | critical | narrow the claim         |
-| S57  | Is local vocabulary distinguished from standard terms?      | terminology definitions | a local coinage cited as established | medium   | attribute the family     |
-| S58  | Is the governing decision record identified?                | decision reference      | code presented as the whole contract | high     | record the decision      |
+| Gate | Question                                                    | Pass evidence            | Failure example                       | Severity | Remediation              |
+| ---- | ----------------------------------------------------------- | ------------------------ | ------------------------------------- | -------- | ------------------------ |
+| S49  | Does each claimed impossibility have compile-fail evidence? | compile-fail cases       | claim stated only in prose            | high     | add the case             |
+| S50  | Was each diagnostic inspected for its semantic cause?       | reviewed diagnostic      | fixture accepted mechanically         | high     | inspect and re-record    |
+| S51  | Do the cases reject at the intended boundary?               | diagnostic analysis      | case fails for an unrelated reason    | high     | rewrite the case         |
+| S52  | Is the documented stage graph asserted executably?          | topology assertion       | graph checked only by reading         | high     | add the assertion        |
+| S53  | Does the assertion cover every documented edge?             | coverage comparison      | branch edges unasserted               | medium   | extend the assertion     |
+| S54  | Does the assertion fail when an edge changes?               | deliberate break         | assertion passes after a redirect     | high     | strengthen the assertion |
+| S55  | Does every stage have a guarantee ledger row?               | completed ledger         | evidence absent from the ledger       | critical | complete the ledger      |
+| S56  | Does each row state what the stage does not prove?          | ledger column            | stage claims durable completion       | critical | narrow the claim         |
+| S57  | Is local vocabulary distinguished from standard terms?      | terminology definitions  | a local coinage cited as established  | medium   | attribute the family     |
+| S58  | Is each protocol claim assigned to exactly one authority?   | claim classification     | one artifact cited for every class    | critical | partition the claims     |
+| S61  | Is the enforced artifact cited for in-process ordering?     | trait bounds cited       | doctrine quoted for what code permits | high     | cite the mechanism       |
+| S62  | Does a hand-maintained prose copy of the graph exist?       | representation inventory | stage table beside the traits         | high     | generate or delete       |
 
 ## Outcome
 
@@ -11981,8 +12011,13 @@ cover `RUST-DOC-0010-R005`, `RUST-DOC-0010-R006`, and `RUST-DOC-0010-R007`. S23 
 `RUST-DOC-0010-R008`, `RUST-DOC-0010-R009`, and `RUST-DOC-0010-R012`. S31 to S38 cover
 `RUST-DOC-0010-R010`, `RUST-DOC-0010-R011`, and `RUST-DOC-0010-R017`. S39 to S48 cover
 `RUST-DOC-0010-R013`, `RUST-DOC-0010-R014`, `RUST-DOC-0010-R015`, and `RUST-DOC-0010-R016`. S49
-to S58 cover `RUST-DOC-0010-R018`, `RUST-DOC-0010-R019`, `RUST-DOC-0010-R020`,
-`RUST-DOC-0010-R021`, and `RUST-DOC-0010-R022`.
+to S58 and S61 to S62 cover `RUST-DOC-0010-R018`, `RUST-DOC-0010-R019`, `RUST-DOC-0010-R020`,
+`RUST-DOC-0010-R021`, and `RUST-DOC-0010-R022`. S59 and S60 sit with the transition group they
+extend, covering `RUST-DOC-0010-R005` and `RUST-DOC-0010-R007`.
+
+S58, S61, and S62 apply the authority partition to a staged protocol.
+[The executable narrative review](../reviews/executable-narrative-review.md) is the general
+procedure for the same question, and RUST-DOC-0011 carries the rules it operationalizes.
 
 ---
 
@@ -12237,7 +12272,7 @@ literature, in which case the citation travels with it.
 ## Code offered as its own governance
 
 **Weak example.** A protocol enforces ordering, and the design note concludes that documentation
-of the ordering is therefore unnecessary and no decision record is required.
+of the ordering is therefore unnecessary and no rationale, ledger, or review evidence is required.
 
 **Why it fails.** The code records what is enforced. It does not record why this ordering was
 chosen over alternatives, what the stages deliberately do not prove, which residual risks were
@@ -12247,11 +12282,35 @@ mechanism and none of the reasoning.
 **Risk.** A guarantee is weakened in a refactor because the reason it existed was never written
 down.
 
-**Improved direction.** Let the code be authoritative for in-process ordering and keep the
-decision record, the guarantee ledger, and the review evidence alongside it.
+**Improved direction.** Let the code be authoritative for the in-process ordering it enforces, and
+keep the rationale, the guarantee ledger, and the review evidence beside it as the authority for
+what the code does not carry.
 
-**When justified.** Never as stated. The underlying observation, that prose alone should not be
-the only enforcement, is correct and is what the doctrine already requires.
+**When justified.** Never as stated. The underlying observation, that an enforceable obligation
+belongs in the mechanism that enforces it, is correct and is what `RUST-DOC-0010-R022` and
+RUST-DOC-0011 already require.
+
+## Doctrine offered as the account of current behavior
+
+**Weak example.** A reviewer answers "can this transition run before that one" by quoting the
+doctrine package, and a design note describes the stage graph in prose beside the traits that
+enforce it.
+
+**Why it fails.** This is the same error in the opposite direction. Doctrine states obligations;
+what a protocol currently permits is decided by the bounds, and the two can diverge in either
+direction without either artifact announcing it. The prose stage graph is additionally a second
+editable source, so a refactor updates one of them.
+
+**Risk.** A review that certifies the obligation and misses the violation, and a reader who plans
+against a graph the compiler abandoned two releases ago.
+
+**Improved direction.** Cite the trait bounds and the topology assertion for what the protocol
+permits, cite doctrine for whether that is what it ought to permit, and either generate the prose
+graph or delete it.
+
+**When justified.** Never as a substitute. Doctrine remains the authority for the obligation, the
+review process, and who may change the contract, which is the partition `RUST-DOC-0010-R022`
+states.
 
 ---
 
@@ -12332,8 +12391,21 @@ a guarantee-ledger entry.
 recognizable in older internal documents. It is not standardized external terminology. The
 established families it refines are typestate-oriented programming, behavioral types, and object
 protocols; the specific mechanism is a consuming transition with an associated successor type
-bounded by the next capability. Prefer the descriptive terms above in new material, per
+bounded by the next capability. Each word carries part of the mechanism. _Typestate_: the current
+type proves the current state. _Trait_: the stage exposes the behavioral capability legal at that
+state. _Chainable_: the legal happy path composes into a readable sequence, the collapsed view.
+_Telescopic_: a chain gives order, `A → B → C`, while a telescope gives containment — A holds the
+controlled opening into B, and B holds the controlled opening into C. The associated successor
+type is that opening, so a stage carries both proof of completed history and permission for a
+constrained future. Prefer the descriptive terms above in new material, per
 `RUST-DOC-0010-R021`.
+
+**Authority partition**
+: The assignment of each protocol claim to exactly one authority: the executable protocol for what
+it mechanically enforces, an external system for a durable or remote fact, and a governing record
+for rationale, non-guarantees, waivers, and change authority. Narrower than "precedence": the
+partition does not rank artifacts, it assigns claims. `RUST-DOC-0010-R022` states it for staged
+protocols and RUST-DOC-0011 governs it generally.
 
 ## Glossary review
 
@@ -12416,6 +12488,1407 @@ version or date checked and are rechecked when the package is maintained.
 
 ---
 
+## Source: `doctrines/0011-executable-narrative/README.md`
+
+---
+id: RUST-DOC-0011
+slug: executable-narrative
+title: Executable Narrative and Minimal Decision Records
+status: active
+version: 0.1.0
+normative: true
+applies_to:
+  - planning
+  - implementation
+  - review
+  - audit
+  - maintenance
+risk_domains:
+  - architecture-governance
+  - documentation-drift
+  - decision-records
+  - agent-context
+supersedes: []
+superseded_by: null
+---
+
+# Executable Narrative and Minimal Decision Records
+
+## Scope
+
+An architectural obligation that a mechanism can enforce belongs in that mechanism. This doctrine
+governs where an obligation lives, which artifact settles which class of claim, how a derived
+view is kept from drifting, and when a manually maintained decision record earns its permanent
+cost.
+
+Its distinctive concern is the second copy. A type, a schema, a manifest, or a test changes when
+the system changes and fails when it is contradicted. A hand-maintained description of the same
+obligation changes only when someone remembers, survives the constraint that produced it, and is
+still discoverable when a reader treats it as current authority. The doctrine names the artifact
+that is authoritative for each class of claim, prohibits a competing editable copy, prefers
+generation to synchronization, and makes a decision record the exception rather than the default
+artifact.
+
+## Out of scope
+
+It does not decide which invariants a domain has, which belongs to RUST-DOC-0001, nor how errors
+are modeled, which belongs to RUST-DOC-0002. It does not define custody or authority, which
+belong to RUST-DOC-0003, or cancellation, which belongs to RUST-DOC-0004. It does not govern
+durable decoding, migration, or transactions, which belong to RUST-DOC-0005, nor distributed
+ambiguity, which belongs to RUST-DOC-0006. It states no soundness obligation, which belongs to
+RUST-DOC-0007. It does not define evidence classes or their strength, which belong to
+RUST-DOC-0008, and it makes no cost claim, which belongs to RUST-DOC-0009. It does not design a
+staged protocol, which belongs to RUST-DOC-0010; it supplies the authority partition that
+doctrine's `RUST-DOC-0010-R022` applies to stages.
+
+It does not claim that documentation is worthless, that code explains an external constraint, or
+that a system with no decision records has no unrecorded constraints.
+
+## Intended readers
+
+Planners assess whether an obligation can be enforced before deciding how to describe it, and
+propose a decision record only after that assessment fails. Implementers encode the obligation,
+add the negative evidence, generate the derived views, and link the rare record to the artifacts
+that remain authoritative. Reviewers reject an unnecessary record, find the competing copy, and
+test whether an unenforced part of a claim was stated or assumed. Auditors enumerate the active
+records, find those whose reason has ended, and find historical records being cited as current
+authority. Maintainers archive what expired, revalidate what survived, and keep generated context
+free of architecture archaeology.
+
+## Normative status
+
+`doctrine.md` is normative and carries the stable rule identifiers. This package is version
+0.1.0 with status active. Rationale, decision framework, anti-patterns, glossary, and references
+are informative and cannot create an obligation that `doctrine.md` does not state.
+
+Rules `RUST-DOC-0011-R002`, `RUST-DOC-0011-R005`, `RUST-DOC-0011-R015`, `RUST-DOC-0011-R016`,
+and `RUST-DOC-0011-R017` permit a waiver on the terms recorded in the normative waiver section.
+The rules governing claim classification, operational authority, competing copies, record
+necessity and lifecycle, rationale honesty, external claims, agent hydration, and exception terms
+do not.
+
+## Prerequisite foundations
+
+Read [normative language](../foundations/normative-language.md) for requirement levels and
+waiver structure, [evidence](../foundations/evidence.md) for what each artifact class
+establishes, [guarantee honesty](../foundations/guarantee-honesty.md) for the discipline that
+separates a claim from its limits,
+[complexity budget](../foundations/complexity-budget.md) for the assessment
+`RUST-DOC-0011-R002` requires before an obligation is left prose-carried, and
+[invariants](../foundations/invariants.md) for classifying the obligations being placed.
+
+## Related material
+
+Patterns: [executable narrative](../patterns/executable-narrative.md) is the mechanism this
+doctrine governs; [successor capabilities](../patterns/successor-capabilities.md),
+[typestate](../patterns/typestate.md), and
+[opaque newtypes](../patterns/opaque-newtypes.md) are three of the mechanisms an obligation
+can move into.
+
+Boundaries: [database decoding](../boundaries/database-decoding.md) and
+[Serde](../boundaries/serde.md) carry obligations across persistence and wire boundaries, and
+[configuration](../boundaries/configuration.md) carries operational policy.
+
+Reviews: [executable narrative review](../reviews/executable-narrative-review.md) is the
+procedure for this doctrine, and
+[final correctness audit](../reviews/final-correctness-audit.md) aggregates it. Case studies:
+[registration onboarding](../case-studies/registration-onboarding/) shows an obligation
+carried by types rather than by a record, and
+[payment lifecycle](../case-studies/payment-lifecycle/) shows the durable and external claims
+this doctrine keeps outside the executable authority.
+
+Decision records, their template, and the worked examples live under
+[`decisions/`](../decisions/README.md); the active set is enumerated in
+[`manifest/decision-records.yaml`](../manifest/decision-records.yaml) and validated by
+`doctrine-lint`.
+
+## Reading order
+
+Start with this file for scope, then `doctrine.md` for the obligations and the authority
+partition. Read `rationale.md` for the failure modes this doctrine answers, then
+`decision-framework.md` before writing either a mechanism or a record. Use `review-standard.md`
+during review, `anti-patterns.md` when a proposed document feels close to a known failure,
+`glossary.md` for terms whose local meaning is narrower than ordinary usage, and `references.md`
+for provenance.
+
+## Compact doctrine summary
+
+Classify a claim before citing an authority for it. Put an enforceable obligation in the
+mechanism that enforces it, and treat that mechanism as authoritative for what it enforces. State
+the part it does not enforce rather than letting the enforced part imply it. Keep no second
+manually maintained copy of an enforced claim; generate a derived view, declare its source, and
+check it for drift. Name the external system authoritative for every durable or remote fact.
+
+Write a decision record only for the residue that no artifact can carry, and then only with an
+owner, a revalidation trigger, an obsolescence condition, and links to the artifacts that remain
+authoritative for current behavior. Retire a record when its reason ends, and confirm a record
+still applies before citing it against a change. Record rationale that cannot be recovered, and
+record an absent rationale as unknown rather than inferring one.
+
+The central non-guarantee: moving an obligation into a mechanism proves the obligation is now
+enforced, not that it is the right obligation. A generated view is current, not correct. An empty
+decision-record set is evidence about the record set, not about the constraints a system is
+under.
+
+## Package completion check
+
+- metadata agrees with `manifest/doctrines.yaml` and its JSON Schema;
+- rule IDs use `RUST-DOC-0011-RNNN` and every one appears in `review-standard.md`;
+- all eight files carry domain-specific substance;
+- references and source notes separate external facts from repository governance, and record the
+  originating claim accurately;
+- the decision-record registry, its schema, and the linter checks are linked;
+- generated bundles reproduce after the manifest update.
+
+---
+
+## Source: `doctrines/0011-executable-narrative/doctrine.md`
+
+# Normative doctrine
+
+## RUST-DOC-0011-R001 — Classify a claim before assigning its authority
+
+**Statement.** An architectural claim MUST be classified, before any artifact is cited as its
+authority, as an in-process claim that executable structures enforce, a durable or remote claim
+an external system owns, rationale or historical context, a stated non-guarantee or accepted
+residual risk, or a governance claim about who may change a contract. One artifact MUST NOT be
+cited as the authority for every class.
+
+**Intent.** Replace precedence arguments between code and documents with a partition, so that a
+question about what a program currently permits and a question about who accepted a residual risk
+are answered by different artifacts rather than by whichever artifact is nearer to hand.
+
+**Applicability.** Design notes, doctrine text, decision records, review records, and agent
+instructions that state what settles a question about a system's architecture.
+
+**Allowed exceptions.** None. A claim whose class cannot be named is evidence that the claim is
+not yet stated precisely enough to review.
+
+**Review evidence.** The claim classification and the single artifact cited as authority for each
+classified claim.
+
+## RUST-DOC-0011-R002 — Represent an enforceable obligation in the mechanism that enforces it
+
+**Statement.** An ordering, invariant, construction restriction, capability boundary, transition
+restriction, or negative guarantee that an available mechanism can enforce mechanically MUST be
+represented in that mechanism, and MUST NOT be carried by prose alone.
+
+**Intent.** Keep an obligation that a type, schema, constraint, manifest, or test could enforce
+from surviving only as a description that nothing contradicts when it is violated.
+
+**Applicability.** Architectural obligations in systems governed by this corpus, where a
+mechanism is available in the language, the schema, the build, or the deployment configuration.
+RUST-DOC-0001 governs which invariants are representable; this rule governs whether a
+representable obligation was in fact represented.
+
+**Allowed exceptions.** An obligation whose enforcement cost exceeds the assessment required by
+`foundations/complexity-budget.md` MAY remain prose-carried when the assessment, its owner, and
+the residual risk are recorded on the terms of RUST-DOC-0011-R020.
+
+**Review evidence.** The enforcing artifact, or the recorded assessment showing that no available
+mechanism enforces the obligation proportionately.
+
+## RUST-DOC-0011-R003 — Treat the enforcing artifact as the operational authority
+
+**Statement.** Where an executable or machine-checked artifact completely enforces a claim, that
+artifact MUST be treated as authoritative for the claim's current operational truth, and any
+prose description of the same claim MUST be treated as informative.
+
+**Intent.** Name the artifact a reader, reviewer, or agent should consult for what the system
+currently does, so that a stale description cannot be cited against a mechanism that is running.
+
+**Applicability.** Claims about legal ordering, available operations, construction restrictions,
+permitted conversions, schema constraints, canonical encodings, visibility boundaries, and
+negative guarantees.
+
+**Allowed exceptions.** Where an artifact enforces only part of a claim, prose remains
+authoritative for the unenforced part, which MUST be stated separately rather than left implied
+by the enforced part.
+
+**Review evidence.** The artifact cited for the claim, and the statement of any part of the claim
+it does not enforce.
+
+## RUST-DOC-0011-R004 — Keep no competing manually maintained copy of an enforced claim
+
+**Statement.** A manually maintained artifact MUST NOT restate an enforced topology, invariant,
+interface, or constraint as an independently editable normative source. A human-readable view of
+an enforced claim MAY exist only when it is generated from the enforcing artifact, mechanically
+checked against it, explicitly marked informative, or confined to rationale and non-guarantees.
+
+**Intent.** Remove the second source that drifts. Two editable descriptions of one obligation
+produce two obligations, one of which is wrong and neither of which announces which.
+
+**Applicability.** Protocol tables, state diagrams, interface listings, dependency descriptions,
+schema documentation, and architecture overviews that describe an enforced claim.
+
+**Allowed exceptions.** A dated, informative illustration that is not cited as authority MAY be
+hand-written. An excerpt quoted for explanation MAY appear in rationale when the enforcing
+artifact is named at the point of quotation.
+
+**Review evidence.** The generation command or drift check for each derived view, or the
+informative marking and the authority it points to.
+
+## RUST-DOC-0011-R005 — Generate a derived view and declare its source
+
+**Statement.** A derived view of a machine-readable source SHOULD be generated from that source
+and checked for drift rather than synchronized by hand, and a generated artifact MUST declare the
+source it was generated from and MUST NOT be edited in place.
+
+**Intent.** Convert a recurring synchronization obligation into a build step, so that a view is
+current because it was produced rather than because someone remembered.
+
+**Applicability.** Diagrams, tables, interface listings, dependency graphs, distribution bundles,
+and agent context packs derived from code, schemas, or manifests.
+
+**Allowed exceptions.** A view whose generator would itself require a hand-maintained input
+describing the same claim MUST NOT be generated, because that input is the competing copy
+RUST-DOC-0011-R004 prohibits. Such a view stays informative, or the claim is derived from the
+enforcing artifact directly.
+
+**Review evidence.** The generator, its declared source, the drift check, and the reason for any
+view left hand-written.
+
+## RUST-DOC-0011-R006 — Create a decision record only for what cannot live elsewhere
+
+**Statement.** A decision record MUST NOT be created when the decision can be represented,
+enforced, generated, tested, or recovered from executable and machine-readable artifacts. A
+record MAY be created only for the part that cannot be: an external mandate, an irreversible or
+externally expensive commitment, a rejected alternative whose rejection depends on evidence the
+implementation does not carry, a decision no single system owns, an accepted residual risk or
+waiver, or a compatibility obligation created by previously shipped behavior.
+
+**Intent.** Make the record the exception. A record duplicates the system, drifts independently
+of it, and outlives the constraint that produced it, so its permanent cost is only justified by a
+fact the system genuinely cannot carry.
+
+**Applicability.** Every proposal to create an architecture decision record, design note, or
+equivalent durable rationale artifact.
+
+**Allowed exceptions.** None. That a decision is large, was debated, is hard to understand, or
+may be forgotten is not a fact the executable artifacts cannot carry; those are arguments for
+better names, types, tests, generated views, and examples.
+
+**Review evidence.** The executability assessment, the artifact each recoverable part of the
+decision now lives in, and the justification required by RUST-DOC-0011-R007 for whatever remains.
+
+## RUST-DOC-0011-R007 — State the last-resort justification in the record
+
+**Statement.** An active decision record MUST state which fact cannot be represented executably
+and why, why a generated view is insufficient, the future decision the record protects, a named
+owner, a revalidation trigger, an obsolescence condition, and the executable artifacts that
+remain authoritative for current behavior.
+
+**Intent.** Make an active record auditable and removable. A record without an owner and an end
+condition cannot be retired, and a record that does not name the current authority invites a
+reader to treat it as one.
+
+**Applicability.** Every decision record in the active set, and every record proposed for it.
+
+**Allowed exceptions.** None. A record whose justification cannot be stated in these terms fails
+RUST-DOC-0011-R006 and is not created.
+
+**Review evidence.** The record's own metadata and the registry entry that makes it discoverable.
+
+## RUST-DOC-0011-R008 — Keep a decision record narrow
+
+**Statement.** A decision record MUST answer one decision question, MUST state what it does not
+govern, and MUST NOT be used as a general description of a system's architecture or as a home for
+decisions adjacent to the one it records.
+
+**Intent.** Keep the record's scope small enough that its obsolescence condition can be evaluated.
+A record covering several decisions expires in parts, so it never expires at all.
+
+**Applicability.** Every active decision record.
+
+**Allowed exceptions.** None. Several related decisions are several records, each with its own
+owner and expiry, or one record and an executable representation of the rest.
+
+**Review evidence.** The record's stated question, its stated exclusions, and the review record
+confirming no adjacent decision was folded in.
+
+## RUST-DOC-0011-R009 — Expire a record whose reason has ended
+
+**Statement.** A decision record whose external constraint, commitment, or accepted risk no
+longer applies MUST be marked expired or superseded and removed from active discovery, and MUST
+NOT remain in the active set because no one revisited it.
+
+**Intent.** A record's danger begins when its reason ends and its text does not. Survival by
+inattention is the mechanism by which a correct record becomes a false one.
+
+**Applicability.** Every active decision record, at each of its revalidation triggers and at any
+review that observes its obsolescence condition satisfied.
+
+**Allowed exceptions.** A record retained for a stated compatibility or audit obligation MAY
+remain discoverable when it is marked as archival and is excluded from the active set.
+
+**Review evidence.** The registry status, the archival marking, and the trigger or condition that
+was observed.
+
+## RUST-DOC-0011-R010 — Confirm applicability before citing a record as a constraint
+
+**Statement.** A decision record MUST NOT be cited to block or restrict a change unless its
+governing constraint is confirmed still applicable, its revalidation condition is satisfied, and
+the current implementation still depends on it.
+
+**Intent.** Remove the veto a historical choice otherwise acquires. A record states what was
+decided under conditions that held at the time; discoverability is not authority, and age is not
+consent.
+
+**Applicability.** Review comments, planning documents, and agent reasoning that cite a decision
+record as a reason a change cannot proceed.
+
+**Allowed exceptions.** None. A citation whose applicability cannot be confirmed is recorded as
+an open question rather than as a constraint.
+
+**Review evidence.** The confirmation of current applicability, its date, and the person or role
+that made it.
+
+## RUST-DOC-0011-R011 — Retire an implemented proposal from operational authority
+
+**Statement.** A proposal governs review and acceptance before implementation. After
+implementation the accepted proposal MUST be treated as decision history, and MUST NOT be
+maintained or cited as a current specification of behavior that canonical doctrine and executable
+artifacts now carry.
+
+**Intent.** Keep an accepted RFC from becoming a competing specification that future maintainers
+must reconcile against current behavior.
+
+**Applicability.** Accepted RFCs and equivalent proposal documents after their implementation has
+landed. This rule does not weaken the RFC obligations stated in `AGENTS.md` and
+`rfcs/README.md`, which govern the change process rather than the resulting contract.
+
+**Allowed exceptions.** A proposal MAY remain cited for its decision, its date, its owners, its
+accepted conditions, and its recorded alternatives, which are rationale rather than
+specification.
+
+**Review evidence.** The canonical doctrine and executable artifacts the proposal points to, and
+the absence of a normative obligation stated only in the proposal.
+
+## RUST-DOC-0011-R012 — Record only rationale that cannot be recovered
+
+**Statement.** Rationale MUST be recorded when it cannot be reconstructed safely from executable
+artifacts and remains material to a future decision, and MUST NOT restate the operational
+topology, interface, or invariant set as an independent contract.
+
+**Intent.** Confine prose to what only prose carries: the constraint that shaped a design, the
+alternative that was rejected and why the rejection still holds, and the risk somebody accepted.
+
+**Applicability.** Rationale sections, design notes, decision records, and source-provenance
+files.
+
+**Allowed exceptions.** Rationale MAY quote or reference an enforced artifact for explanation
+when the artifact is named as the authority at the point of reference.
+
+**Review evidence.** The rationale text, the artifact it points to, and the statement of why the
+recorded reason is not recoverable from that artifact.
+
+## RUST-DOC-0011-R013 — Do not invent rationale for an existing constraint
+
+**Statement.** Where the governing rationale for an enforced constraint is absent, a reviewer,
+author, or agent MUST record it as unknown, and MUST NOT infer a reason from the implementation
+and present that inference as the governing rationale.
+
+**Intent.** An inferred reason presented as governing is a fabricated authority. It is
+indistinguishable from a recorded one at the point of use, and it will be cited to block or
+justify a change that the absent original reason may not have supported.
+
+**Applicability.** Review records, documentation of existing systems, migration analyses, and
+agent-generated summaries of code whose history is unavailable.
+
+**Allowed exceptions.** An inference MAY be recorded when it is labelled as an inference, names
+its evidence, and states that the governing rationale is unknown.
+
+**Review evidence.** The unknown-rationale record, or the labelled inference with its evidence.
+
+## RUST-DOC-0011-R014 — Keep an external claim outside the executable authority
+
+**Statement.** A local executable guarantee MUST NOT be presented as evidence of a current
+durable, remote, or externally governed fact, and each such fact MUST name the external system
+that is authoritative for it.
+
+**Intent.** State the partition's external leg. A type proves what its construction established
+inside one process; committed state, remote acknowledgment, provider status, policy currency,
+lock ownership, and settlement are facts other systems own.
+
+**Applicability.** Claims about persisted state, remote effects, external identity, current
+policy, distributed locks, fencing tokens, delivery, and settlement. RUST-DOC-0006 governs
+ambiguity and reconciliation and RUST-DOC-0010-R014 governs durable advancement in a staged
+protocol; this rule adds the obligation to name the authoritative external system for each claim.
+
+**Allowed exceptions.** None. An external fact with no named authority is an unowned claim.
+
+**Review evidence.** The claim, the named external authority, and the check that consults it.
+
+## RUST-DOC-0011-R015 — Make a compatibility or migration promise executable
+
+**Statement.** A compatibility promise, migration obligation, or negative guarantee SHOULD be
+carried by a test, schema check, compile-fail fixture, or migration code, and where it is carried
+by prose alone the artifact stating it MUST record that no mechanism enforces it.
+
+**Intent.** Keep a promise from being read as a guarantee. A published compatibility statement
+with no check behind it is a claim about intent, and a reader is entitled to know which it is.
+
+**Applicability.** Published interfaces, wire formats, schemas, persisted representations, and
+documented negative guarantees.
+
+**Allowed exceptions.** A promise whose enforcement requires a system unavailable to the
+repository stating it MAY remain prose-carried when the gap is recorded on the terms of
+RUST-DOC-0011-R020.
+
+**Review evidence.** The enforcing test, check, fixture, or migration, or the recorded statement
+that the promise is unenforced.
+
+## RUST-DOC-0011-R016 — Keep the enforced structure readable as its domain story
+
+**Statement.** An executable structure relied on as the authority for an architectural claim MUST
+use domain names, MUST name its states for the facts they establish, MUST disclose its effects,
+MUST keep capabilities narrow, and MUST delay type erasure, so that the enforced obligation is
+legible without a parallel prose description.
+
+**Intent.** An authority nobody can read produces the duplicate this doctrine exists to remove.
+Legibility is not decoration here; it is the condition under which the executable artifact can
+actually serve as the shared account of what the system does.
+
+**Applicability.** Types, traits, schemas, manifests, and configuration relied on as the
+authority for an architectural claim. RUST-DOC-0010-R002 governs stage naming within a staged
+protocol; this rule generalizes the obligation to any artifact carrying architectural authority.
+
+**Allowed exceptions.** An internal artifact with a documented, narrow audience MAY use local
+abbreviations when they are defined at the artifact's entry point.
+
+**Review evidence.** Names, state definitions, effect disclosure, capability scope, and the
+location of any erasure boundary.
+
+## RUST-DOC-0011-R017 — Count and reduce the maintained representations of a claim
+
+**Statement.** A design review MUST identify every maintained representation of an architectural
+claim, and MUST remove those that are neither authoritative, generated, mechanically checked, nor
+required for irrecoverable rationale.
+
+**Intent.** Make duplication a reviewable quantity rather than a matter of taste. The count is the
+number of places a future change has to be made correctly, and it is the honest measure of the
+cost of an architectural decision.
+
+**Applicability.** Design reviews, doctrine changes, and any change that adds a description of an
+existing obligation.
+
+**Allowed exceptions.** A representation retained for a stated audience obligation MAY remain
+when it is generated, mechanically checked, or marked informative and owned.
+
+**Review evidence.** The representation inventory for the claim, and the disposition recorded for
+each entry.
+
+## RUST-DOC-0011-R018 — Hydrate agents from current authority
+
+**Statement.** Generated agent context MUST be built from current canonical and executable
+authority, and MUST NOT include expired, superseded, or archived decision records by default.
+
+**Intent.** Keep obsolete decisions out of the context an agent reasons from. An agent cannot
+apply RUST-DOC-0011-R010 to a record it was handed as background rather than as a citation.
+
+**Applicability.** Agent manifests, generated hydration packs, and any automated assembly of
+context for planning, implementation, review, audit, or maintenance.
+
+**Allowed exceptions.** An archived record MAY be included for a task whose scope is that record,
+when the inclusion is explicit and the archival status travels with it.
+
+**Review evidence.** The agent manifest, the generated pack contents, and the drift check.
+
+## RUST-DOC-0011-R019 — Govern a change without duplicating what it changes
+
+**Statement.** A normative change remains subject to the RFC, review, versioning, and migration
+obligations of this corpus, and a governance artifact MUST NOT thereby become a second
+operational specification of the contract it governs.
+
+**Intent.** Preserve the change process without letting it accumulate a parallel description of
+the system. Governance decides who may change a contract and on what evidence; it does not
+restate the contract.
+
+**Applicability.** RFCs, manifests, review records, waivers, and release notes.
+
+**Allowed exceptions.** A governance artifact MAY state the contract as it stands at the moment
+of decision, as the record of what was decided, when it is dated and is not maintained afterwards.
+
+**Review evidence.** The governance artifact, the canonical contract it governs, and the absence
+of a maintained restatement.
+
+## RUST-DOC-0011-R020 — Record the terms of a prose-only obligation
+
+**Statement.** An exception that leaves an obligation carried by prose alone, or that keeps a
+decision record in the active set, MUST name the owner, the consequence if the obligation is not
+met, the compensating control, the reconsideration trigger, and the removal condition.
+
+**Intent.** Give every unenforced obligation an end condition and somebody who owns it, so that
+the exception is a decision with a lifetime rather than an omission with a description.
+
+**Applicability.** Every exception claimed under RUST-DOC-0011-R002, RUST-DOC-0011-R005,
+RUST-DOC-0011-R009, RUST-DOC-0011-R015, and RUST-DOC-0011-R017.
+
+**Allowed exceptions.** None.
+
+**Review evidence.** The recorded exception with all five terms, and the review that confirmed the
+trigger has not fired.
+
+## Authority partition
+
+Every claim this doctrine governs belongs to exactly one of five classes, and each class has one
+kind of authority.
+
+Executable and machine-checked artifacts are authoritative for the in-process operational truths
+they enforce: legal ordering, available operations, successor relationships, construction
+restrictions, permitted conversions and casts, schema constraints, canonical encodings,
+visibility boundaries, runtime transition predicates, generated interface surfaces, and negative
+guarantees demonstrated by rejection. For these claims, prose is informative under
+RUST-DOC-0011-R003.
+
+External and durable systems are authoritative for facts outside local execution: committed
+state, remote acknowledgment, broker acceptance, provider identity status, current policy, the
+current time, distributed lock ownership, fencing-token validity, delivery, and settlement.
+RUST-DOC-0011-R014 keeps a local guarantee from standing in for any of them.
+
+Rationale artifacts are authoritative only for what cannot be recovered from the artifacts: the
+external constraint that shaped a design, a rejected alternative whose rejection remains
+material, an irreversible commitment, a regulatory interpretation, a contractual obligation, an
+accepted trade-off, and migration history that affects compatibility. RUST-DOC-0011-R012 keeps
+them from restating the topology.
+
+Non-guarantee and residual-risk statements are authoritative for what a design deliberately does
+not prove and who accepted the remainder, on the terms `foundations/guarantee-honesty.md` states.
+
+Governance artifacts are authoritative for who may change a normative contract, the required
+review, waiver ownership, versioning policy, migration obligations, release gates, and legal or
+regulatory approval. RUST-DOC-0011-R019 keeps them from becoming a second specification.
+
+## Decision-record requirements
+
+A decision record is created only for the residue identified by RUST-DOC-0011-R006, carries the
+justification required by RUST-DOC-0011-R007, answers one question under RUST-DOC-0011-R008, and
+ends under RUST-DOC-0011-R009. The active set is enumerated in a machine-readable registry so
+that it can be audited, and so that RUST-DOC-0011-R018 can exclude what is no longer current.
+
+A record is not a substitute for an RFC. An RFC proposes a change to a normative contract and is
+governed by RUST-DOC-0011-R011 and by `rfcs/README.md`; a decision record captures a fact that
+outlives the change and that no artifact carries.
+
+## Guarantee and non-guarantee requirements
+
+This doctrine states, for each claim it governs: the class the claim belongs to under
+RUST-DOC-0011-R001; the artifact authoritative for it under RUST-DOC-0011-R003 or
+RUST-DOC-0011-R014; the part of the claim no artifact enforces, stated separately under
+RUST-DOC-0011-R003 and RUST-DOC-0011-R015; the maintained representations that remain and why,
+under RUST-DOC-0011-R017; and the owner, trigger, and removal condition of every exception, under
+RUST-DOC-0011-R020.
+
+What this doctrine does not establish: that an obligation moved into a mechanism is thereby
+correct; that a generated view is correct because it is current; that a record with a stated
+justification has a good one; or that a system with no decision records has no unrecorded
+constraints. Absence of a record is evidence about the record set, not about the constraints.
+
+## Boundary requirements
+
+Where an obligation crosses a boundary, the enforcing mechanism changes and the authority moves
+with it. A wire contract is enforced by its canonical encoder, decoder, schema, and compatibility
+suite under `boundaries/serde.md` and `boundaries/http-and-rpc.md`. A persistence invariant is
+enforced by schema constraints, checked decoding, and transaction predicates under
+RUST-DOC-0005 and `boundaries/database-decoding.md`. An operational policy is enforced by
+deployable configuration and machine-checked manifests under `boundaries/configuration.md`. A
+claim that crosses into another system's ownership becomes an external claim governed by
+RUST-DOC-0011-R014.
+
+## Waiver requirements
+
+RUST-DOC-0011-R002, RUST-DOC-0011-R005, RUST-DOC-0011-R015, RUST-DOC-0011-R016, and
+RUST-DOC-0011-R017 MAY be waived for an obligation whose enforcement or review cost is
+disproportionate to its consequence. A waiver records the affected rule and claim, the owner
+accepting the risk, the consequence, the compensating control, an expiry or reconsideration
+trigger, and the removal condition, which are the same terms RUST-DOC-0011-R020 requires.
+
+RUST-DOC-0011-R001, RUST-DOC-0011-R003, RUST-DOC-0011-R004, RUST-DOC-0011-R006,
+RUST-DOC-0011-R007, RUST-DOC-0011-R008, RUST-DOC-0011-R009, RUST-DOC-0011-R010,
+RUST-DOC-0011-R011, RUST-DOC-0011-R012, RUST-DOC-0011-R013, RUST-DOC-0011-R014,
+RUST-DOC-0011-R018, RUST-DOC-0011-R019, and RUST-DOC-0011-R020 MUST NOT be waived. A waiver
+cannot make an obsolete record current, cannot make an inferred rationale a governing one, cannot
+make a local guarantee external evidence, and cannot authorize a second maintained source for a
+claim an artifact already enforces.
+
+---
+
+## Source: `doctrines/0011-executable-narrative/rationale.md`
+
+# Rationale
+
+## Failure modes
+
+**The obligation that only prose held.** A design states that authentication precedes
+authorization. Nothing enforces it. A refactor reorders two calls, every test passes because
+every test exercises the ordinary path, and the document still says the right thing while the
+program does the wrong one. The document's correctness is what makes this hard to find: a
+reviewer reads the sentence, believes the system, and never opens the call site.
+`RUST-DOC-0011-R002` moves an enforceable obligation into the mechanism that enforces it.
+
+**The second copy that drifted.** A protocol's stage graph is enforced by types and also
+described by a table in an architecture document. One of them is updated. Nothing announces which
+is now wrong, and a reader who consults the table forms a false model of the running system with
+no signal that anything is amiss. Two editable descriptions of one obligation are two obligations.
+`RUST-DOC-0011-R004` prohibits the second, and `RUST-DOC-0011-R005` prefers generation so the
+view cannot drift at all.
+
+**The record that outlived its reason.** A record states that a component was chosen over an
+alternative because of a constraint that held at the time. The constraint disappears; the record
+does not. It stays discoverable, it stays plausible, and a reviewer or an agent cites it against
+a change that is now clearly better. The improvement then requires arguing against a document
+rather than against a constraint, and the person best placed to know the constraint is gone has
+no standing that the document lacks. `RUST-DOC-0011-R009` requires an end condition and
+`RUST-DOC-0011-R010` requires applicability to be confirmed before the record is cited.
+
+**The record that was written because the decision felt large.** A team debates a choice at
+length, the discussion is valuable, and a record is written to preserve it. The record describes
+the module layout, the interfaces, and the ordering, all of which the code carries and enforces.
+Nothing in it is irrecoverable. What it produces is a second source that a future maintainer must
+reconcile against current behavior, and a permanent artifact whose only stated justification is
+that the decision mattered. `RUST-DOC-0011-R006` requires the residue to be named, and no rule in
+this package permits a record on the grounds that a decision was important, debated, complex, or
+memorable. Those are arguments for better names, types, tests, and examples.
+
+**The rationale that was inferred.** A constraint exists in code with no recorded reason. A
+reviewer reconstructs a plausible motive from the surrounding implementation and writes it down.
+The inference is now indistinguishable from a recorded decision at the point of use, and it will
+be cited to defend a constraint whose actual reason may have been different or may have expired.
+`RUST-DOC-0011-R013` requires the unknown to stay unknown, or the inference to be labelled as
+one.
+
+**The local guarantee read as an external fact.** A type proves that a local sequence ran. A
+reader concludes that a row was written, a message was delivered, or a provider agreed. The
+inference is natural because the local guarantee is the strongest one visibly available, and it
+is wrong because the external system was never consulted. `RUST-DOC-0011-R014` requires each
+external fact to name the system authoritative for it, and this doctrine's partition keeps the
+two classes apart by construction rather than by care.
+
+**The precedence rule that answered the wrong claim.** This corpus recorded a source claim as
+"code is a sufficient contract", rejected it, and encoded the rejection as a blanket precedence
+of governance over the executable protocol. The source had not made that claim. What resulted was
+a rule stating that the executable protocol does not settle what the system is obliged to do,
+sitting in a package whose `RUST-DOC-0010-R018` and `RUST-DOC-0010-R019` exist precisely because
+prose cannot detect a widened bound or a redirected successor. The package argued the partition
+and then denied it. The defect was live in this corpus until the restatement recorded in RFC-0003.
+
+**The index nobody regenerated.** `rfcs/accepted/README.md` listed RFC-0001 and omitted RFC-0002
+within a single release, because the index of accepted proposals is maintained by hand beside a
+directory that already contains the answer. The cost was small and the mechanism is the general
+one: a hand-maintained view of a machine-readable fact is wrong as soon as attention lapses.
+`RUST-DOC-0011-R005` prefers generation, and `RUST-DOC-0011-R017` makes the count of maintained
+representations something a review states rather than estimates.
+
+## Why weaker alternatives fail
+
+**"Documentation is important, and so is code."** True and useless. It resolves no question,
+because every disputed claim has two artifacts describing it and this position tells a reviewer
+nothing about which to trust. The partition is what makes the sentiment actionable: for an
+enforced claim the artifact wins, for an external fact the external system wins, and for a
+rejected alternative only the record has anything to say.
+
+**Blanket precedence in either direction.** "Code is the contract" cannot express an external
+mandate, an accepted residual risk, or who may change an interface. "Documentation governs" turns
+a stale sentence into an authority over a running mechanism. Both are attempts to answer a
+question about five classes of claim with one rule.
+
+**Diligence.** Requiring people to keep two representations synchronized assigns an obligation
+that has no failure signal. Nothing breaks when the copy goes stale, so nothing surfaces it, and
+the discovery happens later at a reader who trusted the wrong one.
+`RUST-DOC-0011-R005` removes the obligation rather than assigning it.
+
+**A record for every architectural change.** This is the practice the doctrine restricts, and its
+cost is not the writing. It is the accumulating set of plausible, discoverable, unowned documents
+that a future reader cannot distinguish from current constraints, and that an agent will hydrate
+as context. The set grows monotonically unless expiry is built in, which is why
+`RUST-DOC-0011-R007` and `RUST-DOC-0011-R009` are separate obligations from
+`RUST-DOC-0011-R006`.
+
+**Prohibiting records entirely.** An external mandate, an irreversible commitment, and an
+accepted residual risk are real facts that no artifact carries. Prohibiting the record does not
+remove the fact; it relocates it to a commit message or an issue thread, where it has no owner,
+no expiry, and no place in review.
+
+## Interaction with external reality
+
+The partition's external leg is the one most often crossed by accident, because the local
+guarantee is visible in the editor and the external one is not. Committed state, remote
+acknowledgment, provider identity status, current policy, the current time, lock ownership,
+fencing-token validity, delivery, and settlement are each owned by a system that has to be asked.
+A design that names the owner for each of them can be reviewed; a design that does not has an
+unowned claim, and the review has nothing to check it against.
+
+Rationale is also subject to external change. A regulatory interpretation, a contractual
+obligation, and a vendor restriction can all lapse without anything in the repository moving,
+which is why `RUST-DOC-0011-R009` attaches an obsolescence condition to the record rather than to
+a review calendar.
+
+## Costs and overapplication
+
+Classifying a claim before citing an authority for it is a real step, and on a small change it
+can cost more than the confusion it prevents. Counting maintained representations is a review
+obligation that adds time to design review. Generation adds a build step, a generator to
+maintain, and a drift check that fails on unrelated changes until it is understood.
+
+The doctrine is overapplied when it becomes an argument for deleting rationale. The rules that
+prohibit a competing copy are about copies of _enforced_ claims; the constraint that shaped a
+design, the alternative that was rejected, and the risk somebody accepted are not enforced by
+anything and have no other home. `RUST-DOC-0011-R012` and `RUST-DOC-0011-R013` are the guards,
+and a reviewer who cites this doctrine to remove an irrecoverable reason has inverted it.
+
+It is also overapplied when generation is demanded for a view whose generator would need a
+hand-maintained input describing the same claim. That input is the competing copy wearing the
+word "generated", and `RUST-DOC-0011-R005` names the case explicitly so it does not have to be
+rediscovered.
+
+## Guarantee ledger
+
+| Claim                                                          | Established by                                                 | Protected construction                                     | Boundary preservation                                     | Escape hatches                                    | Does not prove                                                    | Residual runtime risk                                        |
+| -------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------ |
+| An enforced claim has exactly one operational authority        | the classification under R001 and the citation under R003      | review gates E01 to E05                                    | the unenforced part is stated separately under R003       | recorded assessment under R002 and R020           | that the enforced obligation is the right obligation              | a claim nobody classified, so nobody noticed was unenforced  |
+| No competing manually maintained copy of an enforced claim     | the representation inventory under R017 and the ban under R004 | review gates E15 to E21                                    | derived views are generated and drift-checked under R005  | informative marking with a named owner            | that the remaining authority is current with the domain           | a copy in a system outside this repository's review scope    |
+| A generated view cannot silently diverge from its source       | generation plus drift detection under R005                     | the generator declares its source and output is not edited | `dist/` is regenerated, never hand-corrected              | none                                              | that the generated content is correct, only that it is current    | a canonical source that is itself a stale second copy        |
+| Every active decision record is owned and has an end condition | registry validation in `doctrine-lint` under R007              | the registry is the only active-record entry point         | archived records are excluded from agent packs under R018 | none                                              | that the record's stated justification is a good one              | a record whose justification is stated, auditable, and wrong |
+| An obsolete record is not current authority                    | status change under R009 and confirmation under R010           | archival marking travels with the record                   | generated packs exclude archived records                  | explicit inclusion for a record-scoped task       | that a reader will not open the archive and cite it anyway        | a record cited outside review, where no gate applies         |
+| An external fact names its authoritative system                | the external-authority requirement under R014                  | review gates E06 and E07                                   | the check that consults the external system is named      | none                                              | that the external system was consulted at the moment of the claim | staleness between the consultation and the use               |
+| Recorded rationale is genuinely irrecoverable                  | the recoverability check under R012                            | review gate E36                                            | rationale references the enforcing artifact by name       | quotation for explanation with the artifact named | that the recorded reason is the reason that actually governed     | a recorded reason that was itself an unlabelled inference    |
+| An absent rationale stays absent rather than invented          | the unknown record required by R013                            | review gates E37 and E38                                   | inferences are labelled with their evidence               | labelled inference                                | that the governing reason can be recovered later                  | an inference labelled once and cited later without its label |
+
+## Evidence limits
+
+Most of this doctrine is judgment. The linter validates that an active decision record has an
+owner, a revalidation trigger, an obsolescence condition, and executable authorities that resolve
+to real files. It cannot decide whether the record should exist, whether the stated justification
+is honest, or whether an obligation carried by prose could have been carried by a type. Those are
+`RUST-DOC-0011-R002`, `RUST-DOC-0011-R003`, `RUST-DOC-0011-R006`, `RUST-DOC-0011-R012`,
+`RUST-DOC-0011-R013`, `RUST-DOC-0011-R016`, and `RUST-DOC-0011-R017`, and they are supported by
+review gates rather than by executed evidence.
+
+Deterministic bundle generation with drift detection is real evidence for the mechanism
+`RUST-DOC-0011-R005` prefers, in this repository, for these bundles. It is not evidence that any
+view elsewhere is generated, and it is not evidence that the canonical sources feeding it are
+themselves free of duplication.
+
+The registry ships with an empty active set. That is the state this doctrine predicts for a
+repository whose obligations are carried by doctrine, manifests, schemas, and a linter, and the
+linter validates the registry as such. An empty set is evidence about the record set and not
+about the constraints this repository is under; an unrecorded constraint leaves no trace in a
+registry designed to hold only what somebody chose to record.
+
+---
+
+## Source: `doctrines/0011-executable-narrative/decision-framework.md`
+
+# Decision framework
+
+## Inputs
+
+- the claim, stated precisely enough that its truth could be checked;
+- the mechanisms available in the language, schema, build, and deployment configuration;
+- the systems that own any durable or remote fact the claim depends on;
+- the existing artifacts that already describe the claim, and who maintains each;
+- the complexity budget assessment from `foundations/complexity-budget.md`;
+- the audience that has to act on the claim, and what they consult today.
+
+## Questions
+
+1. Which class does the claim belong to: enforced local truth, external or durable fact,
+   rationale, non-guarantee or accepted risk, or change authority?
+2. Which available mechanism could enforce it, and what would that cost?
+3. If a mechanism enforces part of it, which part is left unenforced?
+4. Which artifacts already describe this claim, and how many of them are maintained by hand?
+5. Can a described view be generated from the artifact that enforces the claim?
+6. Would a generator need a hand-maintained input that describes the same claim?
+7. If a record is proposed, which exact fact in it cannot be represented, enforced, generated, or
+   recovered?
+8. What event makes that fact stop mattering, and who notices?
+9. Which artifact stays authoritative for current behavior after the record exists?
+10. Is the proposal actually a change proposal, and therefore an RFC rather than a record?
+
+## Decision table
+
+| Situation                                                          | Placement                                                | Rules                                      |
+| ------------------------------------------------------------------ | -------------------------------------------------------- | ------------------------------------------ |
+| Ordering, invariant, or construction restriction, mechanism exists | the mechanism; prose is informative                      | `RUST-DOC-0011-R002`, `RUST-DOC-0011-R003` |
+| Negative guarantee that can be demonstrated by rejection           | compile-fail fixture or rejected-case test               | `RUST-DOC-0011-R002`, `RUST-DOC-0011-R015` |
+| Enforceable, but enforcement cost exceeds the budget               | prose, with the assessment and the five exception terms  | `RUST-DOC-0011-R002`, `RUST-DOC-0011-R020` |
+| Human-readable view of an enforced claim                           | generated from the enforcing artifact, drift-checked     | `RUST-DOC-0011-R004`, `RUST-DOC-0011-R005` |
+| View whose generator needs a hand-maintained description           | leave informative and owned; do not call it generated    | `RUST-DOC-0011-R005`                       |
+| Durable, remote, or externally governed fact                       | the external system, named as the authority              | `RUST-DOC-0011-R014`                       |
+| Rejected alternative whose rejection still governs                 | rationale, with the evidence the code does not carry     | `RUST-DOC-0011-R012`                       |
+| Reason for an existing constraint is unavailable                   | record it as unknown, or label the inference             | `RUST-DOC-0011-R013`                       |
+| External mandate, irreversible commitment, or accepted risk        | a decision record, with owner, triggers, and authorities | `RUST-DOC-0011-R006`, `RUST-DOC-0011-R007` |
+| Proposal to change a normative contract                            | an RFC; retire it from authority once implemented        | `RUST-DOC-0011-R011`, `RUST-DOC-0011-R019` |
+| Onboarding difficulty                                              | names, types, tests, generated views, examples           | `RUST-DOC-0011-R006`, `RUST-DOC-0011-R016` |
+
+## Decision tree
+
+```text
+Is the claim about a durable, remote, or externally governed fact?
+  yes -> name the external authority and the check that consults it. R014. Stop.
+  no  -> continue
+
+Can an available mechanism enforce the claim, wholly or partly?
+  no  -> is the reason cost, or is the fact simply not enforceable by anything?
+           cost         -> prose, plus the budget assessment and the five terms. R002, R020.
+           unenforceable -> continue to the record test.
+  yes -> represent it in that mechanism. R002.
+         Does the mechanism enforce all of it?
+           yes -> the mechanism is the authority; any prose is informative. R003.
+           no  -> state the unenforced part separately, and label it unenforced. R003, R015.
+
+Does another maintained artifact also describe this claim?
+  yes -> can it be generated from the enforcing artifact?
+           yes -> generate it, declare the source, add the drift check. R005.
+           no  -> would the generator need a hand-maintained description of the claim?
+                    yes -> keep it informative and owned; do not call it generated. R005.
+                    no  -> delete it, or confine it to rationale and non-guarantees. R004.
+  no  -> continue
+
+Record test. Which exact fact cannot be represented, enforced, generated, or recovered?
+  none named        -> write no record. R006. Stop.
+  the decision is a proposal to change a contract -> file an RFC instead. R011.
+  a fact is named   -> is it an external mandate, an irreversible or externally expensive
+                       commitment, a rejected alternative whose rejection depends on evidence the
+                       implementation does not carry, a decision no single system owns, an
+                       accepted residual risk, or a compatibility obligation from shipped
+                       behavior?
+                         no  -> write no record. R006. Stop.
+                         yes -> write one narrow record. R008.
+                                State the last-resort justification, the owner, the revalidation
+                                trigger, the obsolescence condition, and the executable
+                                authorities that govern current behavior. R007.
+                                Register it in the active set so it can be audited and expired.
+                                R009, R018.
+```
+
+## Complexity check
+
+Count the representations of the claim after the decision, and compare with the count before it.
+An acceptable outcome reduces the count or holds it at one authoritative representation plus
+whatever is generated. An outcome that adds a maintained representation needs a reason stated in
+the review record under `RUST-DOC-0011-R017`.
+
+Moving an obligation into a mechanism has costs of its own. A type that enforces an ordering
+lengthens signatures and worsens first-encounter diagnostics; a schema constraint moves a failure
+from a readable message to a driver error; a generated view adds a generator and a drift check
+that fails on unrelated changes until it is understood. Where the enforcement cost exceeds the
+consequence of the obligation being violated, `RUST-DOC-0011-R002` permits the prose form with
+the assessment recorded, and `RUST-DOC-0011-R020` requires the exception to name an owner and an
+end condition. That is the honest exit, and it is preferable to a mechanism nobody can read,
+which `RUST-DOC-0011-R016` treats as its own failure.
+
+## Evidence selection
+
+| Claim class                                  | Evidence that fits                                               | Evidence that does not                         |
+| -------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------- |
+| Legal ordering or transition restriction     | types, compile-fail fixtures, contract assertions                | a document stating the order                   |
+| Construction restriction                     | private representation, checked constructor, visibility audit    | a naming convention                            |
+| Permitted conversion or cast                 | schema base types, explicit conversion functions, rejected cases | a comment naming the intended type             |
+| Persistence invariant                        | schema constraint, checked decoding, transaction predicate       | an application-layer assertion alone           |
+| Wire compatibility                           | canonical encoder and decoder, schema, compatibility suite       | a version note in a changelog                  |
+| Negative guarantee                           | compile-fail fixture, rejected input case                        | prose asserting impossibility                  |
+| Derived human-readable view                  | generator, declared source, drift check                          | a hand-updated diagram                         |
+| Durable or remote fact                       | the external system's own check, with its identity and token     | a local type reached by a consuming transition |
+| External mandate or accepted risk            | a registered decision record with owner and end condition        | a commit message or an issue thread            |
+| Reason a rejected alternative stays rejected | rationale naming the evidence, dated                             | an inference from the current implementation   |
+
+Choose the narrowest evidence class that matches the claim. A green suite, a passing build, or a
+generated bundle is never itself evidence that an obligation is enforced; each proves only what
+it exercised.
+
+---
+
+## Source: `doctrines/0011-executable-narrative/review-standard.md`
+
+# Review standard
+
+Mark every gate **pass**, **fail**, **not applicable**, or with an approved **waiver
+reference**. Blank status is not approval. There is no score: a total would let a strong result
+in a cheap category offset a critical failure in an expensive one.
+
+## Claim classification and authority
+
+| Gate | Question                                                      | Pass evidence         | Failure example                          | Severity | Remediation             |
+| ---- | ------------------------------------------------------------- | --------------------- | ---------------------------------------- | -------- | ----------------------- |
+| E01  | Is each architectural claim classified before it is cited?    | claim classification  | claim reviewed with no class named       | high     | classify first          |
+| E02  | Does each classified claim name one authority?                | authority mapping     | two artifacts cited for one claim        | high     | pick the authority      |
+| E03  | Is any one artifact cited as authority for every class?       | authority mapping     | doctrine cited for current behavior      | critical | partition the claims    |
+| E04  | Is the enforcing artifact cited for an enforced claim?        | source or schema path | prose cited for legal ordering           | critical | cite the mechanism      |
+| E05  | Is the unenforced part of a claim stated separately?          | scope statement       | partial enforcement read as complete     | critical | state the remainder     |
+| E06  | Does each external fact name its authoritative system?        | external check        | remote status inferred from a local type | critical | name the external owner |
+| E07  | Is a local guarantee presented as durable or remote evidence? | ledger rows           | consumed handle read as commit proof     | critical | narrow the claim        |
+
+## Executable representation
+
+| Gate | Question                                                          | Pass evidence         | Failure example                                 | Severity | Remediation             |
+| ---- | ----------------------------------------------------------------- | --------------------- | ----------------------------------------------- | -------- | ----------------------- |
+| E08  | Could this obligation be a type, constructor, or visibility rule? | executability test    | ordering enforced by convention                 | high     | move it into the type   |
+| E09  | Could it be a schema constraint, cast rule, or procedure?         | schema or migration   | identifier species mixed without a cast         | high     | constrain in the schema |
+| E10  | Could it be a test, fixture, or manifest entry?                   | test or manifest      | negative guarantee asserted in prose            | high     | add the check           |
+| E11  | Is a prose-only obligation recorded with its assessment?          | complexity assessment | prose obligation with no reason recorded        | high     | record or enforce       |
+| E12  | Does a compatibility promise have a mechanism behind it?          | test or schema check  | published promise with no check                 | high     | enforce or label        |
+| E13  | Is an unenforced promise labelled as unenforced?                  | explicit statement    | intent stated as a guarantee                    | critical | label the claim         |
+| E14  | Is the authoritative structure legible in domain terms?           | names and states      | positional names, hidden effects, early erasure | medium   | rename and disclose     |
+
+## Duplication and generated views
+
+| Gate | Question                                                    | Pass evidence            | Failure example                          | Severity | Remediation                |
+| ---- | ----------------------------------------------------------- | ------------------------ | ---------------------------------------- | -------- | -------------------------- |
+| E15  | Does a manually maintained copy of an enforced claim exist? | representation inventory | hand-written stage table beside the code | high     | generate or delete         |
+| E16  | Is each derived view generated or drift-checked?            | generator and check      | diagram updated by hand after a change   | high     | generate the view          |
+| E17  | Does each generated artifact declare its source?            | banner or header         | generated file with no provenance        | medium   | declare the source         |
+| E18  | Was any generated artifact edited in place?                 | drift check              | manual fix applied to generated output   | high     | fix the source             |
+| E19  | Is a hand-written view marked informative and owned?        | marking and owner        | informal diagram cited as authority      | medium   | mark or remove             |
+| E20  | Would the generator need a hand-maintained input?           | generator input          | edge list retyped to feed a generator    | high     | derive or stay informative |
+| E21  | Is the representation count for the claim recorded?         | inventory disposition    | duplication assessed by impression       | medium   | count the representations  |
+
+## Decision-record necessity
+
+| Gate | Question                                                    | Pass evidence       | Failure example                      | Severity | Remediation                |
+| ---- | ----------------------------------------------------------- | ------------------- | ------------------------------------ | -------- | -------------------------- |
+| E22  | Which exact fact cannot live in an executable artifact?     | named fact          | record justified as "important"      | critical | name the fact or drop it   |
+| E23  | Why is a generated view insufficient for it?                | stated reason       | generation never considered          | high     | assess generation          |
+| E24  | Which future decision does the record protect?              | stated risk         | record protects nothing identifiable | high     | state the risk or drop it  |
+| E25  | Is the record a restatement of a decision the code carries? | comparison          | record describes the module layout   | critical | delete the record          |
+| E26  | Is the record actually a proposal, so an RFC instead?       | governance route    | change proposal filed as a record    | medium   | route to the RFC process   |
+| E27  | Is the record onboarding prose in decision form?            | audience check      | record explains how the system works | high     | improve names and examples |
+| E28  | Does the record answer exactly one decision question?       | stated question     | one record covering four decisions   | high     | split the record           |
+| E29  | Does the record state what it does not govern?              | exclusion statement | scope left to the reader             | high     | state the exclusions       |
+
+## Record lifecycle and historical veto
+
+| Gate | Question                                                           | Pass evidence       | Failure example                            | Severity | Remediation            |
+| ---- | ------------------------------------------------------------------ | ------------------- | ------------------------------------------ | -------- | ---------------------- |
+| E30  | Does each active record name an owner?                             | registry entry      | record with no accountable role            | critical | assign an owner        |
+| E31  | Does it name a revalidation trigger and an obsolescence condition? | registry entry      | record active with no end condition        | critical | state both             |
+| E32  | Does it link the executable authorities for current behavior?      | linked paths        | record silent on what governs behavior now | high     | link the authorities   |
+| E33  | Has a record whose reason ended been expired or archived?          | status change       | obsolete record still active               | critical | expire the record      |
+| E34  | Was a record cited as a constraint without confirming it?          | confirmation record | old record cited to block a change         | critical | confirm or withdraw    |
+| E35  | Is an implemented proposal still cited as a specification?         | citation audit      | accepted RFC treated as current contract   | high     | cite doctrine and code |
+
+## Rationale honesty, agents, and governance
+
+| Gate | Question                                                      | Pass evidence        | Failure example                            | Severity | Remediation            |
+| ---- | ------------------------------------------------------------- | -------------------- | ------------------------------------------ | -------- | ---------------------- |
+| E36  | Is recorded rationale genuinely irrecoverable from artifacts? | recoverability check | rationale restates the type signatures     | medium   | trim to what is unique |
+| E37  | Is an absent rationale recorded as unknown?                   | unknown record       | a reason inferred from the implementation  | critical | record unknown         |
+| E38  | Is any inference labelled as an inference with its evidence?  | labelled inference   | inference presented as governing rationale | critical | label or remove        |
+| E39  | Do generated agent packs exclude archived records?            | pack contents        | expired record hydrated as context         | high     | exclude from the packs |
+| E40  | Does every exception carry all five recorded terms?           | exception record     | exception with no removal condition        | high     | complete the terms     |
+
+## Outcome
+
+Critical failures block merge. A valid waiver identifies the affected rule and claim, the owner
+accepting the risk, the consequence, the compensating control and its evidence, an expiry or
+reconsideration trigger, and the removal condition. A waiver cannot make an obsolete record
+current, cannot make an inferred rationale a governing one, cannot make a local guarantee
+external evidence, and cannot authorize a second maintained source for a claim an artifact
+already enforces. Remediation is verified by re-running the gate against the changed artifact,
+not by asserting that the change was made.
+
+## Normative rule traceability
+
+The review record cites each applicable rule ID beside its gate result. Gate questions
+operationalize the rules; they do not replace a rule's statement, applicability, or allowed
+exceptions. Complete package coverage is:
+
+- `RUST-DOC-0011-R001`, `RUST-DOC-0011-R002`, `RUST-DOC-0011-R003`, `RUST-DOC-0011-R004`
+- `RUST-DOC-0011-R005`, `RUST-DOC-0011-R006`, `RUST-DOC-0011-R007`, `RUST-DOC-0011-R008`
+- `RUST-DOC-0011-R009`, `RUST-DOC-0011-R010`, `RUST-DOC-0011-R011`, `RUST-DOC-0011-R012`
+- `RUST-DOC-0011-R013`, `RUST-DOC-0011-R014`, `RUST-DOC-0011-R015`, `RUST-DOC-0011-R016`
+- `RUST-DOC-0011-R017`, `RUST-DOC-0011-R018`, `RUST-DOC-0011-R019`, `RUST-DOC-0011-R020`
+
+Gate groups map to rules as follows. E01 to E07 cover `RUST-DOC-0011-R001`,
+`RUST-DOC-0011-R003`, and `RUST-DOC-0011-R014`. E08 to E14 cover `RUST-DOC-0011-R002`,
+`RUST-DOC-0011-R015`, and `RUST-DOC-0011-R016`. E15 to E21 cover `RUST-DOC-0011-R004`,
+`RUST-DOC-0011-R005`, and `RUST-DOC-0011-R017`. E22 to E29 cover `RUST-DOC-0011-R006`,
+`RUST-DOC-0011-R007`, and `RUST-DOC-0011-R008`. E30 to E35 cover `RUST-DOC-0011-R009`,
+`RUST-DOC-0011-R010`, and `RUST-DOC-0011-R011`. E36 to E40 cover `RUST-DOC-0011-R012`,
+`RUST-DOC-0011-R013`, `RUST-DOC-0011-R018`, `RUST-DOC-0011-R019`, and `RUST-DOC-0011-R020`.
+
+---
+
+## Source: `doctrines/0011-executable-narrative/anti-patterns.md`
+
+# Anti-pattern catalogue
+
+## Ordering held only by a document
+
+**Weak example.** A design document states that authentication precedes authorization, and the
+call sites depend on developers reading it.
+
+**Why it fails.** Nothing contradicts the document when the code stops matching it. The sequence
+is enforceable by types, so the obligation had a mechanism available and was left in the one
+place that cannot fail.
+
+**Risk.** A reordering passes review because the reviewer read the sentence and believed the
+system.
+
+**Improved direction.** Make the successor of authentication something only authorization
+accepts, and let the document explain why the order exists rather than assert that it holds.
+
+**When justified.** When the ordering is advisory, or when the stages are chosen externally at
+runtime, in which case the runtime model owns it and the document says so.
+
+## Architecture document that restates the enforced graph
+
+**Weak example.** A protocol's stages are enforced by types and also tabulated in an architecture
+overview, kept current by whoever remembers.
+
+**Why it fails.** Two editable descriptions of one obligation are two obligations. When they
+diverge, neither announces it, and the reader who consults the table forms a false model with no
+signal.
+
+**Risk.** A design decision made against a stale table, then defended by citing it.
+
+**Improved direction.** Generate the view from the enforcing artifact and check it for drift, or
+mark it informative, name its owner, and point it at the authority.
+
+**When justified.** Never as an independently maintained normative source. A generated view, a
+drift-checked view, or a dated informative illustration is the acceptable form.
+
+## Generator fed by a hand-maintained description
+
+**Weak example.** A protocol diagram is generated from an edge list that a developer types in and
+updates by hand after changing the traits.
+
+**Why it fails.** The edge list is the competing copy the doctrine prohibits, and calling the
+output generated conceals that. The generator proves the diagram matches the list, not that the
+list matches the code.
+
+**Risk.** Confidence in a view whose only guarantee is internal consistency with a second
+manually maintained artifact.
+
+**Improved direction.** Derive the view from the enforcing artifact, or leave it informative and
+owned and stop describing it as generated.
+
+**When justified.** When the input is itself the authority, as a manifest is, and the code is
+validated against it rather than the other way round.
+
+## Decision record for a decision the code carries
+
+**Weak example.** A record titled "we will validate input at the boundary" describes the module
+layout, the interfaces, and the ordering, all of which the types enforce.
+
+**Why it fails.** Nothing in the record is irrecoverable. It creates a second source, drifts
+independently, and gives a future maintainer something to reconcile against current behavior.
+
+**Risk.** A record cited years later as the reason a boundary cannot move, when the code has long
+since moved it.
+
+**Improved direction.** Delete the record. If the design is hard to follow, improve the names, the
+types, the tests, and the worked examples.
+
+**When justified.** Never for the recoverable part. If some fact in the same decision is genuinely
+external, that fact becomes a narrow record and the rest does not.
+
+## Record justified by the importance of the decision
+
+**Weak example.** "This was a major architectural decision, so it deserves a record."
+
+**Why it fails.** Importance is not a property that makes a fact irrecoverable. The justification
+names no fact that cannot live elsewhere, so it cannot be evaluated, and no future reader can
+tell when the record stops applying.
+
+**Risk.** A record set that grows monotonically, each entry plausible and none removable.
+
+**Improved direction.** Name the exact fact that no artifact can carry. If naming it is not
+possible, that is the answer.
+
+**When justified.** Never. The valid categories are external mandate, irreversible or externally
+expensive commitment, a rejected alternative whose rejection depends on evidence the code does
+not carry, a decision no single system owns, accepted residual risk, and a compatibility
+obligation from shipped behavior.
+
+## Active record with no owner and no end
+
+**Weak example.** A record states a constraint, names no accountable role, and has no condition
+under which it stops applying.
+
+**Why it fails.** Nobody can retire it, so it survives every review that does not specifically
+attack it. Its authority grows with age because nothing about it changes while everything around
+it does.
+
+**Risk.** An obsolete constraint enforced by deference.
+
+**Improved direction.** Give every active record an owner, a revalidation trigger, an obsolescence
+condition, and links to the artifacts that are authoritative for current behavior.
+
+**When justified.** Never for an active record. A record with no owner belongs in the archive,
+marked as not current authority.
+
+## Historical record used to block an improvement
+
+**Weak example.** A reviewer rejects a change by citing a record from three years ago, without
+checking whether its constraint still holds.
+
+**Why it fails.** The record states what was decided under conditions that held then.
+Discoverability is not authority, and the person proposing the improvement is asked to argue
+against a document that may describe nothing current.
+
+**Risk.** Improvement blocked by an expired constraint, and the reviewer's citation treated as
+governance because it is written down.
+
+**Improved direction.** Confirm the constraint is still applicable, the revalidation condition is
+satisfied, and the implementation still depends on it. If confirmation is not available, record
+the citation as an open question rather than as a constraint.
+
+**When justified.** When the constraint is confirmed current, in which case the confirmation and
+its date belong in the review record.
+
+## Accepted proposal kept as a specification
+
+**Weak example.** An accepted RFC continues to be cited for what the system does, after doctrine
+and code have carried the contract for several releases.
+
+**Why it fails.** The proposal described an intended change at a point in time. Maintaining it as
+a description of current behavior creates the reconciliation obligation the doctrine exists to
+remove.
+
+**Risk.** A maintainer implementing to the proposal rather than to the contract.
+
+**Improved direction.** Cite doctrine and the executable artifacts for current behavior, and cite
+the proposal for its decision, date, owners, conditions, and rejected alternatives.
+
+**When justified.** For the decision history itself, which is rationale and has no other home.
+
+## Rationale inferred from the implementation
+
+**Weak example.** A reviewer cannot find why a constraint exists, reconstructs a plausible motive
+from the surrounding code, and writes it into the documentation as the reason.
+
+**Why it fails.** The inference is indistinguishable from a recorded decision at the point of use.
+It will be cited to defend the constraint, and the actual reason may have been different or may
+have expired years ago.
+
+**Risk.** A fabricated authority, created in good faith, that outlives every person who could
+correct it.
+
+**Improved direction.** Record the rationale as unknown. If the inference is useful, label it as
+an inference, name its evidence, and state that the governing reason is unavailable.
+
+**When justified.** Never unlabelled. A labelled inference with its evidence is honest and useful.
+
+## Local guarantee presented as an external fact
+
+**Weak example.** A design states that a record was persisted because a local transition consumed
+its handle and produced a persistable value.
+
+**Why it fails.** The local guarantee describes one process. The durable fact is owned by a store
+that was never consulted, and no local mechanism can establish it.
+
+**Risk.** A system that reports success for an effect that did not occur, with a type signature
+that appears to justify the report.
+
+**Improved direction.** Name the external system authoritative for the fact and the check that
+consults it, and keep the local claim scoped to the sequence it actually proves.
+
+**When justified.** Never. The two claims are different classes and stay separate.
+
+## Doctrine cited for what the program currently permits
+
+**Weak example.** A reviewer answers "can this call happen before that one" by quoting a doctrine
+package rather than by reading the trait bounds that decide it.
+
+**Why it fails.** Doctrine states obligations. What a program currently permits is decided by the
+program, and a doctrine sentence can be correct about the obligation while the code has drifted
+from it, or stale while the code is right.
+
+**Risk.** A review that certifies the obligation and misses the violation.
+
+**Improved direction.** Cite the enforcing artifact for what the program permits, and cite
+doctrine for whether that is what it ought to permit. Both answers are needed; they are answers
+to different questions.
+
+**When justified.** Never as a substitute. Doctrine remains the authority for the obligation, for
+the review process, and for who may change the contract.
+
+## Deleting rationale in the name of executable architecture
+
+**Weak example.** A cleanup removes a design note explaining why an alternative was rejected,
+citing this doctrine's preference for executable artifacts.
+
+**Why it fails.** The prohibition covers manually maintained copies of _enforced_ claims. A
+rejected alternative, an external constraint, and an accepted risk are enforced by nothing and
+have no other home, so removing them destroys the only record of them.
+
+**Risk.** A future team re-adopting a rejected alternative because the reason for rejecting it was
+deleted as duplication.
+
+**Improved direction.** Trim the parts that restate the enforced topology, keep the parts that
+cannot be recovered, and name the enforcing artifact where the two meet.
+
+**When justified.** Never for irrecoverable rationale. Removing a restatement of the enforced
+graph from the same document is the correct edit.
+
+---
+
+## Source: `doctrines/0011-executable-narrative/glossary.md`
+
+# Glossary
+
+Terms whose meaning here is narrower than ordinary architecture usage. Shared vocabulary lives in
+the foundations.
+
+**Executable narrative**
+: An architectural obligation carried by the mechanism that enforces it, in a form a reader can
+follow as the domain's own account of what the system does. Narrower than "self-documenting
+code": the obligation is enforced, not merely described, and legibility is a requirement of the
+enforcing artifact rather than a hoped-for property of it.
+
+**Authority partition**
+: The assignment of each class of architectural claim to exactly one kind of authority. Narrower
+than "separation of concerns": the partition is about which artifact settles a disputed claim, not
+about how responsibilities are divided.
+
+**Operational authority**
+: The artifact that decides what a system currently does, for the claims it mechanically
+enforces. Distinct from governance authority, which decides who may change the contract, and from
+external authority, which owns durable and remote facts.
+
+**Enforced claim**
+: A claim a mechanism rejects violations of. A claim that a mechanism merely describes is not
+enforced, however precisely it is written.
+
+**Maintained representation**
+: A description of a claim that a person has to update when the claim changes. A generated view
+is not a maintained representation; a hand-updated table is, whether or not anyone updates it.
+
+**Derived view**
+: A human-readable projection of a machine-readable source, produced by a generator and checked
+for drift. A view produced from a hand-written description of the same claim is not derived; the
+description is a maintained representation with a generator attached.
+
+**Competing copy**
+: A manually maintained artifact that restates an enforced claim as an independently editable
+normative source. It is the object of `RUST-DOC-0011-R004`, and it is defined by editability
+rather than by format.
+
+**Irrecoverable rationale**
+: A reason that cannot be reconstructed safely from the artifacts: an external constraint, a
+rejected alternative and the evidence for rejecting it, an irreversible commitment, an accepted
+risk, and who accepted it. Narrower than "why the code is like this", most of which the code and
+its tests answer.
+
+**Decision record**
+: A durable artifact recording irrecoverable rationale for one decision, with an owner, a
+revalidation trigger, an obsolescence condition, and links to the artifacts authoritative for
+current behavior. Narrower than the general architecture-decision-record practice this doctrine
+restricts: here a record is the residue left after the executability test, not the default
+artifact of a decision.
+
+**Active set**
+: The decision records currently claimed as authority, enumerated in a machine-readable registry.
+Membership is what makes a record citable; a file in the archive is not in the active set.
+
+**Archival record**
+: A record retained for a stated compatibility or audit obligation, marked as not current
+operational authority and excluded from generated agent context.
+
+**Revalidation trigger**
+: A named event on whose occurrence a record's constraint is re-examined. A calendar date is one
+form; a dependency major version, a regulatory renewal, an architecture-boundary change, or a
+migration completion are others.
+
+**Obsolescence condition**
+: The stated condition under which a record stops applying and is expired or archived. Distinct
+from a revalidation trigger: the trigger prompts a check, the condition ends the record.
+
+**Historical veto**
+: The authority a discoverable but unconfirmed record acquires when it is cited against a change.
+`RUST-DOC-0011-R010` removes it by requiring current applicability to be confirmed first.
+
+**Executability test**
+: The assessment required before a record is created, asking which part of the decision can be
+represented, enforced, generated, or recovered from the artifacts, and which part cannot.
+
+**Representation count**
+: The number of maintained representations of one claim. It is the number of places a future
+change has to be made correctly, and `RUST-DOC-0011-R017` makes it a stated review quantity.
+
+**Labelled inference**
+: A reconstructed reason recorded as an inference, with its evidence, alongside a statement that
+the governing rationale is unknown. The only permitted form of an unrecorded reason under
+`RUST-DOC-0011-R013`.
+
+## Glossary review
+
+- every normative term is defined in the foundations or here;
+- no definition implies a stronger guarantee than the artifact establishes;
+- the difference between enforced and described is preserved in every entry;
+- local vocabulary is marked as local and attributed to its established family;
+- abbreviations expand on first use;
+- links point to the authoritative rule or foundation.
+
+---
+
+## Source: `doctrines/0011-executable-narrative/references.md`
+
+# References
+
+References identify where a mechanical fact or an established practice comes from. They do not
+transfer authority to this doctrine's obligations, which are repository governance.
+
+## Practices this doctrine restricts
+
+The architecture decision record was introduced by Michael Nygard as a lightweight, numbered file
+capturing the context, decision, and consequences of one architecturally significant choice, and
+was later collected and extended by Joel Parker Henderson and others. The form is cited here for
+what it is, not as an endorsement of the restriction this doctrine places on it. Nygard's original
+proposal was a reaction to unread architecture documents and already argued for small, dated,
+single-decision files; the additional obligations here, that a record must name the fact no
+artifact can carry, must carry an owner and an end condition, and must not be cited without
+confirming applicability, are this repository's.
+
+Documentation-generation practice, in which a human-readable view is produced from the artifact
+it describes rather than maintained beside it, is long established across tooling ecosystems.
+Rust's own `rustdoc` and the doc-test mechanism are the instance nearest to hand: the
+documentation is derived from the item it documents, and the examples in it are compiled and run,
+so a divergence fails the build rather than accumulating. That mechanism is cited as an existence
+proof for `RUST-DOC-0011-R005`, not as a claim that every derived view can be produced so cheaply.
+
+## Mechanisms an obligation can move into
+
+Rust language mechanics for visibility, module privacy, traits and their bounds, associated
+items, and move semantics are cited from the Rust Reference and the Rust Book, maintained by the
+Rust project under their published terms, for the pinned toolchain 1.97.1 and the minimum
+supported version 1.85.0, checked 2026-08-04. These supply the construction restrictions,
+capability boundaries, and ordering constraints that `RUST-DOC-0011-R002` prefers over prose.
+
+PostgreSQL documentation is cited for base types, domains, constraints, and explicit casts, which
+carry a nominal distinction between identifier species into the schema so that comparing two of
+them requires a stated conversion. The claim borrowed here is only the mechanical one; persistence
+obligations are governed by RUST-DOC-0005.
+
+JSON Schema Draft 2020-12 is cited for the machine-readable validation of the decision-record
+registry, consistent with the doctrine and agent-pack manifests already validated in this
+repository.
+
+## Related repository material
+
+`foundations/guarantee-honesty.md` supplies the discipline that separates a claim from its
+limits, which is what `RUST-DOC-0011-R003` relies on when it requires the unenforced part of a
+claim to be stated separately. `foundations/evidence.md` supplies the evidence classes the
+decision framework selects between. `foundations/complexity-budget.md` supplies the assessment
+`RUST-DOC-0011-R002` requires before an obligation is left prose-carried.
+
+RUST-DOC-0010 applies this doctrine's partition to staged protocols in `RUST-DOC-0010-R022`, and
+its `RUST-DOC-0010-R018` and `RUST-DOC-0010-R019` are worked instances of an obligation moved into
+an executable artifact because prose could not detect its violation.
+
+## Research limit
+
+This package records the sources actually used. It does not claim exhaustive coverage of
+architecture-documentation literature, knowledge-management research, technical-debt studies, or
+the empirical work on documentation decay. The absence of a source is not a judgment about it.
+
+No quotation long enough to require separate license analysis is reproduced. No external media,
+transcript, or specification text is mirrored. Repository licensing applies to the original
+doctrine prose here and makes no claim over the cited works.
+
+---
+
 ## Source: `patterns/README.md`
 
 # Representation patterns
@@ -12438,6 +13911,7 @@ shape from being mistaken for a complete system proof.
 | [Hybrid state machines](../patterns/hybrid-state-machines.md)   | local typed workflow plus dynamic persistence                             | duplicated state without conversion contract         |
 | [Explicit uncertainty](../patterns/explicit-uncertainty.md)     | external effect may have indeterminate outcome                            | treating unknown as generic error                    |
 | [Successor capabilities](../patterns/successor-capabilities.md) | one capability, several implementations with differing successor evidence | bounds widened until the protocol edge is decorative |
+| [Executable narrative](../patterns/executable-narrative.md)     | placing an architectural obligation in the mechanism that enforces it     | deleting rationale that no artifact could carry      |
 
 ## Selection rule
 
@@ -12456,6 +13930,10 @@ invariant:
   enum/state machine;
 - external effect: `Result` plus explicit unknown/reconciliation state where
   execution can be ambiguous.
+
+Executable narrative is not an alternative to the mechanisms above; it is the
+question asked before choosing one. Which artifact should carry this obligation,
+which is authoritative for it, and is any other maintained copy of it needed?
 
 Patterns can combine. A payment workflow may use an opaque operation ID, a
 capability for capture authority, consuming local transitions, a persisted
@@ -13850,6 +15328,16 @@ The successor is now part of the contract and bounded by the capability it must 
 implementations produce different successors carrying different origin evidence, and both are
 statically required to lead into the identity check.
 
+**Local name.** This repository's local name for the chainable trait-oriented form is _Chainable
+Telescopic Typestate Traits_, abbreviated CT³. A chain gives order, `A → B → C`. A telescope gives
+containment: A holds the controlled opening into B, and B holds the controlled opening into C. The
+associated successor type is that opening, which is why the present capability carries both proof
+of a completed history and permission for a constrained future. The term is local vocabulary and
+not standardized terminology; the established families it refines are typestate-oriented
+programming, behavioral types, and object protocols, and `RUST-DOC-0010-R021` requires that
+attribution to travel with the name. Prefer the descriptive terms in new material, and use the
+abbreviation only where a reader arriving from an older internal document needs the bridge.
+
 A branching stage names one successor per outcome:
 
 ```rust
@@ -13972,7 +15460,10 @@ and the limit at which a local transition stops being durable evidence. RUST-DOC
 legal transitions and unrepresentable states generally. RUST-DOC-0002 governs the error taxonomy
 the stage-specific failures map into. RUST-DOC-0003 governs custody of the values being advanced.
 RUST-DOC-0004 governs cancellation of async transitions. RUST-DOC-0005 and RUST-DOC-0006 govern
-the durable and ambiguous halves this pattern defers.
+the durable and ambiguous halves this pattern defers. RUST-DOC-0011 governs which artifact is
+authoritative for each claim the protocol makes, and prohibits maintaining a prose copy of the
+graph beside the traits that enforce it; see
+[executable narrative](../patterns/executable-narrative.md).
 
 ## 13. Executable example
 
@@ -14011,6 +15502,276 @@ remains a durable operation which re-checks identity and state under its own con
 - Does the documented graph have a contract assertion, not only edge assertions?
 - Does deleting a successor bound actually break the build?
 - Is any local transition being presented as durable evidence?
+
+---
+
+## Source: `patterns/executable-narrative.md`
+
+# Executable narrative
+
+## 1. Problem
+
+An architectural obligation has to be somewhere. A team decides that authentication precedes
+authorization, that a transaction identifier is never compared with a wallet identifier, or that a
+capture cannot be attempted twice. Each of these is a sentence someone can write down, and each is
+also something a mechanism could reject.
+
+Written down, the sentence is cheap and immediately readable, and nothing contradicts it when the
+code stops matching. Enforced, it changes when the system changes and fails loudly when it is
+violated, but it is only useful if a reader can still follow it. The problem is not choosing
+between the two. It is deciding which artifact settles which claim, and then not maintaining a
+second editable copy of the answer.
+
+## 2. Forces
+
+Obligations differ in whether a mechanism exists for them. Some are enforceable by types, some
+only by a schema, some only by a deployment check, and some by nothing available. Readers differ
+too: an implementer wants the mechanism, a reviewer wants the reason, an auditor wants the owner.
+Records outlive the constraints that produced them, and discoverability turns into authority
+without anybody deciding that it should. Generation removes a synchronization obligation but adds
+a generator, and a generator fed by a hand-written description has removed nothing. Agents hydrate
+whatever context is offered and cannot distinguish a current constraint from an expired one unless
+the artifacts do.
+
+## 3. Weak representation
+
+A design document, maintained by hand, states the obligation and describes the enforced structure
+beside it:
+
+```text
+## Registration protocol
+
+Stages run in this order:
+
+  1. Canonicalize    -> produces CanonicalRegistration
+  2. Check identity  -> produces AvailableRegistration or ConflictingRegistration
+  3. Accept policy   -> produces ConsentedRegistration
+  4. Prepare         -> produces PersistableRegistration
+
+Authentication must precede authorization. Transaction identifiers must never be
+compared with wallet identifiers.
+```
+
+Three separate failures live in that block. The stage list duplicates a graph the compiler already
+enforces, so the two can diverge with no signal. The ordering sentence is enforceable and is not
+enforced, so it is a description of an intention. The identifier sentence is enforceable in the
+type system and in the schema, and is enforced in neither.
+
+## 4. Improved representation
+
+Move each obligation into the mechanism that rejects violations of it, and keep the document for
+what only it can carry.
+
+The ordering becomes the successor bound, so a stage that stops leading anywhere legal fails to
+compile:
+
+```rust
+pub trait Authenticate: Sized {
+    type Next: Authorize;
+    type Error;
+
+    fn authenticate(self) -> Result<Self::Next, Self::Error>;
+}
+```
+
+The negative guarantee becomes a rejected program rather than a claim of impossibility:
+
+```rust
+// examples/compile-fail/ui/skip_protocol_stage.rs
+// Reaching authorization without authenticating is a compiler error, and the
+// committed diagnostic is the evidence that it still is.
+```
+
+The identifier distinction becomes nominal in both type systems, so mixing two species requires a
+conversion somebody wrote on purpose:
+
+```rust
+pub struct TransactionId(Uuid); // private field, checked constructor
+pub struct WalletId(Uuid);
+```
+
+```sql
+-- The same distinction, carried into the schema. A comparison across species
+-- needs an explicit cast, so it is visible in review rather than silent.
+CREATE DOMAIN transaction_id AS uuid;
+CREATE DOMAIN wallet_id      AS uuid;
+```
+
+What the document keeps is the part no mechanism carries: why this ordering was chosen, what the
+stages deliberately do not prove, which residual risks were accepted, and who accepted them.
+
+## 5. Exact guarantee gained
+
+For each obligation moved into a mechanism, a violation now fails: at compile time for a bound or
+a visibility restriction, at test time for a rejected program or input, at deploy time for a
+schema constraint or a machine-checked manifest. The claim and its enforcement change together
+because they are the same artifact, so the class of defect where a correct document describes an
+incorrect system is removed for that obligation.
+
+For each derived view that is generated and drift-checked, divergence from its source fails the
+build. That is a guarantee about currency, and it holds without anybody remembering.
+
+## 6. Guarantees not gained
+
+An enforced obligation is not thereby a correct obligation. The compiler agrees that the graph is
+the graph; it has no opinion about whether that graph matches the business process, which stays a
+review judgment.
+
+A generated view is current, not correct. It faithfully reflects a source that may itself be
+wrong, and generating it removes drift without removing error.
+
+An empty decision-record set is evidence about the record set. A constraint nobody recorded leaves
+no trace in a registry that holds only what somebody chose to record, so absence of records is not
+absence of constraints.
+
+Legibility is not proved by anything mechanical. `RUST-DOC-0011-R016` states the obligation, and
+review is the only check on it.
+
+## 7. Boundary considerations
+
+The enforcing mechanism changes at each boundary, and the authority moves with it. Inside the
+process, types and visibility carry the obligation. At the wire, the canonical encoder, the
+decoder, the schema, and the compatibility suite carry it. At the database, schema constraints,
+checked decoding, and transaction predicates carry it. At deployment, machine-checked
+configuration carries it.
+
+A claim that crosses into another system's ownership stops being an in-process claim at that
+point. Committed state, remote acknowledgment, provider status, current policy, lock ownership,
+and settlement are owned by systems that have to be asked, and no local artifact can be cited for
+them.
+
+## 8. Persistence considerations
+
+Persist the fact, not the enforcement artifact. A stage marker, a type name, and a trait bound are
+compile-time artifacts whose spelling in a column establishes nothing. The durable representation
+is a runtime model, and the obligation at the persistence boundary is carried by constraints,
+checked decoding, and predicates.
+
+The schema is a mechanism in its own right, and often the strongest one available for an
+obligation that several services share. A nominal distinction expressed only in one service's
+types is enforced for that service; expressed as a base type or domain in the schema, it is
+enforced for every writer.
+
+## 9. Testing evidence
+
+Test what the mechanism rejects, not only what it accepts. A compile-fail fixture for a claimed
+impossibility, a rejected-input case for a checked constructor, and a rejected-cast case for a
+schema distinction are each the evidence that the negative guarantee is real. A green suite of
+positive tests demonstrates that the ordinary path works and says nothing about the obligation.
+
+Add a drift check for each generated view. Generation without a check is a convention; generation
+with a check is a guarantee that the view matches its source at build time.
+
+An assertion or gate that has never been observed failing is not evidence. Delete the thing it
+protects, confirm the build breaks, and restore it. That step is what distinguishes a real check
+from a decoration, and it is cheap.
+
+## 10. Costs
+
+Enforcement costs are real and specific. A bound lengthens signatures and reports a mismatch as an
+unsatisfied bound rather than as a plain type error. A schema constraint moves a failure from a
+readable domain message into a driver error. A generated view adds a generator to maintain and a
+drift check that fails on unrelated changes until its cause is understood. Classification adds a
+step to every review, and counting representations adds another.
+
+The offsetting saving is that the common outcome of the executability test is that no record is
+written at all, and every record not written is a permanent artifact nobody has to revalidate,
+expire, or reconcile.
+
+## 11. When not to use it
+
+Do not force enforcement where the cost exceeds the consequence. An advisory ordering, a
+convention with no failure mode, and a preference that has never been violated are all reasonable
+to leave in prose with the assessment recorded.
+
+Do not generate a view whose generator would need a hand-maintained description of the same
+claim. That input is the competing copy under another name, and an informative hand-written
+diagram with a named owner is the more honest artifact.
+
+Do not use this pattern as an argument for deleting rationale. The prohibition covers copies of
+enforced claims. A rejected alternative, an external constraint, and an accepted risk have no
+other home, and removing them destroys the only record of them.
+
+Do not read it as a prohibition on decision records. The residue is real, and pushing it into a
+commit message or an issue thread relocates the fact to somewhere with no owner and no expiry.
+
+## 12. Related doctrines
+
+RUST-DOC-0011 governs this pattern, the authority partition, the prohibition on competing copies,
+and the decision-record policy. RUST-DOC-0010 applies the partition to staged protocols in
+`RUST-DOC-0010-R022`, and its compile-fail and topology-assertion rules are worked instances of an
+obligation moved into an artifact because prose could not detect its violation. RUST-DOC-0001
+governs which invariants are representable at all. RUST-DOC-0005 governs the persistence
+mechanisms an obligation moves into at the database boundary. RUST-DOC-0006 governs the ambiguity
+that remains once a claim becomes external. RUST-DOC-0008 governs which evidence class supports
+which claim.
+
+## 13. Executable example
+
+This repository is its own worked instance of the generated-view half.
+`tools/bundle-agent-context` builds every [generated distribution](README.md) from the canonical
+sources named in [`../manifest/doctrines.yaml`](../manifest/doctrines.yaml) and
+[`../manifest/agents.yaml`](../manifest/agents.yaml), stamps each output with a banner naming the
+canonical roots, and its `check` mode fails on drift. No file under `dist/` is edited by hand, and
+the drift check is part of the ordinary validation set.
+
+`tools/doctrine-lint` is the enforcement half. It validates the decision-record registry at
+[`../manifest/decision-records.yaml`](../manifest/decision-records.yaml) against its schema and
+against the obligations `RUST-DOC-0011-R007` states, so a record without an owner, a revalidation
+trigger, an obsolescence condition, or resolvable executable authorities fails the build rather
+than a review.
+
+No protocol-graph generator is shipped. A generator that derived the stage graph from the trait
+definitions would be a further instance of this pattern; one fed by a hand-written edge list would
+be the competing copy this pattern prohibits, wearing the word "generated". The graph obligation
+is carried instead by the contract and edge assertions in
+[`../examples/staged-protocol/src/lib.rs`](../examples/staged-protocol/src/lib.rs), which fail the
+build when an edge changes.
+
+## 14. Worked application
+
+**A decision that needs no record.** A team decides that authentication precedes authorization.
+The executability test finds a mechanism for every part of it: the ordering becomes a successor
+bound, the impossibility of skipping becomes a committed compile-fail diagnostic, and the graph
+becomes a contract assertion that fails if the bound is deleted. Nothing remains that an artifact
+cannot carry, so no record is written. Someone who later asks why the order is what it is finds a
+short comment and a doctrine cross-reference; someone who asks whether the order holds reads the
+bound.
+
+**A decision that needs a narrow record.** A system is required to keep a class of data inside one
+jurisdiction because of an obligation a regulator and a customer contract impose. Deployment
+regions, storage endpoints, and replica placement are enforceable, and they become
+policy-as-code with a machine-checked manifest. What no artifact carries is the interpretation of
+the obligation, the accountable owner, and the condition under which it lapses.
+
+That residue is one narrow record. It states the single question it answers, states that it does
+not govern the deployment topology, links the policy-as-code that is authoritative for current
+behavior, names the owner, and names a revalidation trigger and an obsolescence condition. It is
+registered in the active set so it can be audited and expired. The worked form is in
+[`../decisions/examples/justified-data-residency.md`](../decisions/examples/justified-data-residency.md).
+
+**A record that should not exist.** A proposed record titled "Authentication must happen before
+authorization" restates an obligation the successor bound enforces. It names no fact an artifact
+cannot carry, so it fails the test at the first question and is not written. The rejected form,
+with the reasoning, is in
+[`../decisions/examples/rejected-authentication-order.md`](../decisions/examples/rejected-authentication-order.md).
+
+## 15. Review prompts
+
+- Which class does this claim belong to, and which single artifact is authoritative for it?
+- Is there a mechanism that could reject a violation, and was it used?
+- If the mechanism enforces part of the claim, is the remainder stated separately?
+- How many maintained representations of this claim exist, and which are neither authoritative,
+  generated, nor irrecoverable rationale?
+- Is any derived view synchronized by hand, and could it be generated instead?
+- Would the generator need a hand-maintained description of the same claim?
+- Does every generated artifact declare its source, and does a drift check cover it?
+- Which fact in this proposed record cannot be represented, enforced, generated, or recovered?
+- Who owns the record, what event revalidates it, and what condition ends it?
+- Is this record actually a change proposal, and therefore an RFC?
+- Was any record cited against a change without confirming its constraint still applies?
+- Is any recorded reason an inference from the implementation rather than a governing rationale?
+- Does any local guarantee stand in for a durable, remote, or externally governed fact?
 
 ---
 
@@ -15074,14 +16835,15 @@ residual risk only where governance permits it.
 
 ## Procedures
 
-| Procedure                                                   | Use                                                    |
-| ----------------------------------------------------------- | ------------------------------------------------------ |
-| [Pre-implementation](../reviews/pre-implementation.md)                 | before representation and API commitments              |
-| [Domain model review](../reviews/domain-model-review.md)               | values, states, construction, transition, authority    |
-| [Boundary review](../reviews/boundary-review.md)                       | DTO, Serde, database, protocol, size, version, secrecy |
-| [Typestate review](../reviews/typestate-review.md)                     | proportional use of type-level sequencing              |
-| [Distributed-effects review](../reviews/distributed-effects-review.md) | timeout, retry, duplicate, reconciliation, ordering    |
-| [Final correctness audit](../reviews/final-correctness-audit.md)       | release/merge guarantee ledger and aggregate gates     |
+| Procedure                                                     | Use                                                          |
+| ------------------------------------------------------------- | ------------------------------------------------------------ |
+| [Pre-implementation](../reviews/pre-implementation.md)                   | before representation and API commitments                    |
+| [Domain model review](../reviews/domain-model-review.md)                 | values, states, construction, transition, authority          |
+| [Boundary review](../reviews/boundary-review.md)                         | DTO, Serde, database, protocol, size, version, secrecy       |
+| [Typestate review](../reviews/typestate-review.md)                       | proportional use of type-level sequencing                    |
+| [Distributed-effects review](../reviews/distributed-effects-review.md)   | timeout, retry, duplicate, reconciliation, ordering          |
+| [Executable narrative review](../reviews/executable-narrative-review.md) | where an obligation lives, and whether a record is justified |
+| [Final correctness audit](../reviews/final-correctness-audit.md)         | release/merge guarantee ledger and aggregate gates           |
 
 ## Evidence rule
 
@@ -15611,6 +17373,138 @@ applicable**, or **waiver reference**.
 Approval requires stable identity, exact outcome semantics, bounded safe retry,
 durable reconciliation, duplicate/order handling, honest transaction scope,
 auditable compensation, sensitive-data minimization, and failure-point evidence.
+
+---
+
+## Source: `reviews/executable-narrative-review.md`
+
+# Executable narrative review
+
+## Record
+
+Use whenever a change adds a description of an architectural obligation, proposes a decision
+record, adds or edits a derived view, or cites an existing record as a reason a change cannot
+proceed. Record **pass**, **fail**, **not applicable**, or **waiver reference**. There is no
+score: a total would let a strong result in a cheap category offset a critical failure in an
+expensive one.
+
+The review answers a question that precedes every gate below: which claim is under review, and
+which single artifact is authoritative for it. A review that cannot state the claim precisely has
+nothing to check.
+
+## Source-of-truth inventory
+
+| ID     | Question                                                              | Pass evidence            |
+| ------ | --------------------------------------------------------------------- | ------------------------ |
+| ENR-01 | Is the claim stated precisely enough that its truth could be checked? | claim statement          |
+| ENR-02 | Which class does the claim belong to?                                 | classification           |
+| ENR-03 | Which single artifact is authoritative for it?                        | authority mapping        |
+| ENR-04 | Which other artifacts describe the same claim?                        | representation inventory |
+| ENR-05 | Which of those are maintained by hand?                                | maintenance owner list   |
+| ENR-06 | Can any of them be generated, or deleted outright?                    | disposition per entry    |
+| ENR-07 | Is the representation count after this change recorded?               | review record            |
+
+## Executability test
+
+| ID     | Question                                                           | Pass evidence           |
+| ------ | ------------------------------------------------------------------ | ----------------------- |
+| ENR-08 | Can the claim become a type, a bound, or a visibility restriction? | signature or module     |
+| ENR-09 | Can it become a checked constructor or a private representation?   | constructor audit       |
+| ENR-10 | Can it become a schema constraint, a domain, or a cast rule?       | schema or migration     |
+| ENR-11 | Can it become a test, a fixture, or a rejected-input case?         | test path               |
+| ENR-12 | Can it become a manifest entry or machine-checked configuration?   | manifest or policy file |
+| ENR-13 | Can the human-readable view of it be generated and drift-checked?  | generator and check     |
+| ENR-14 | Can it become an executable topology or contract assertion?        | assertion path          |
+| ENR-15 | If a mechanism enforces only part of it, is the rest stated?       | scope statement         |
+| ENR-16 | If it stays prose, is the budget assessment recorded?              | complexity assessment   |
+
+## Decision-record necessity test
+
+| ID     | Question                                                        | Pass evidence          |
+| ------ | --------------------------------------------------------------- | ---------------------- |
+| ENR-17 | Which exact fact cannot be executable, generated, or recovered? | named fact             |
+| ENR-18 | Why is that fact material to a future decision?                 | stated risk            |
+| ENR-19 | Which future mistake does the record prevent?                   | failure scenario       |
+| ENR-20 | Could a short comment, a manifest field, or an example suffice? | alternative comparison |
+| ENR-21 | Is this a proposal to change a contract, and therefore an RFC?  | governance route       |
+| ENR-22 | Is this onboarding prose in decision form?                      | audience check         |
+| ENR-23 | Does the record answer one question and state its exclusions?   | scope statement        |
+| ENR-24 | Does it link the artifacts authoritative for current behavior?  | linked paths           |
+
+## Improvement-friction test
+
+| ID     | Question                                                              | Pass evidence          |
+| ------ | --------------------------------------------------------------------- | ---------------------- |
+| ENR-25 | Does this artifact make a future improvement need permission from it? | dependency reading     |
+| ENR-26 | Could a future reader or agent mistake it for permanent authority?    | status marking         |
+| ENR-27 | Does it preserve a constraint that may disappear?                     | obsolescence condition |
+| ENR-28 | Who revalidates it, and on what trigger?                              | owner and trigger      |
+| ENR-29 | Is active discovery limited to currently valid records?               | registry contents      |
+| ENR-30 | Was a record cited against a change without confirming it applies?    | confirmation record    |
+| ENR-31 | Is an implemented proposal still cited as a current specification?    | citation audit         |
+
+## Durable-truth test
+
+| ID     | Question                                                           | Pass evidence          |
+| ------ | ------------------------------------------------------------------ | ---------------------- |
+| ENR-32 | Is a local guarantee being read as durable or remote evidence?     | ledger rows            |
+| ENR-33 | Does each external fact name the system authoritative for it?      | external authority map |
+| ENR-34 | Is the check that consults that system named?                      | query or call site     |
+| ENR-35 | Are concurrency, fencing, and identity explicit where state moves? | token and predicate    |
+| ENR-36 | Is a wire or database scalar type being read as lifecycle state?   | schema and model       |
+
+## Narrative test
+
+| ID     | Question                                                         | Pass evidence     |
+| ------ | ---------------------------------------------------------------- | ----------------- |
+| ENR-37 | Do the enforcing artifacts read as the domain's own account?     | names and states  |
+| ENR-38 | Are states named for the facts they establish?                   | state definitions |
+| ENR-39 | Are effects disclosed where they occur?                          | effect inventory  |
+| ENR-40 | Are branches explicit rather than implied by optional fields?    | branch types      |
+| ENR-41 | Is type erasure delayed to a named boundary?                     | erasure boundary  |
+| ENR-42 | Does generated documentation agree with the enforcing artifacts? | drift check       |
+
+## Rationale honesty
+
+| ID     | Question                                                                                | Pass evidence        |
+| ------ | --------------------------------------------------------------------------------------- | -------------------- |
+| ENR-43 | Is recorded rationale genuinely irrecoverable from the artifacts?                       | recoverability check |
+| ENR-44 | Where a reason is unavailable, is it recorded as unknown?                               | unknown record       |
+| ENR-45 | Is any inference labelled as an inference, with its evidence?                           | labelled inference   |
+| ENR-46 | Does every exception carry owner, consequence, control, trigger, and removal condition? | exception record     |
+
+## Severity guidance
+
+Treat as **critical**: one artifact cited as authority for every class; a local guarantee
+presented as an external fact; an inferred rationale presented as governing; an obsolete record
+still in the active set; a record cited against a change without confirming applicability; an
+unenforced part of a claim left implied by the enforced part.
+
+Treat as **high**: an enforceable obligation left in prose with no recorded assessment; a
+manually maintained copy of an enforced claim; a derived view synchronized by hand; a record whose
+irrecoverable fact is not named; an implemented proposal cited as a current specification; an
+archived record hydrated into agent context.
+
+Treat as **medium**: a hand-written view that is unmarked or unowned; a generated artifact with no
+declared source; a representation count assessed by impression rather than stated; rationale that
+restates the enforced structure without contradicting it.
+
+## Outcome
+
+Critical failures block merge. A valid waiver identifies the affected rule and claim, the owner
+accepting the risk, the consequence, the compensating control and its evidence, an expiry or
+reconsideration trigger, and the removal condition. A waiver cannot make an obsolete record
+current, cannot make an inferred rationale a governing one, cannot make a local guarantee
+external evidence, and cannot authorize a second maintained source for a claim an artifact
+already enforces.
+
+The most common correct outcome of this review is that no artifact is added: the obligation moves
+into a mechanism, the derived view is generated, and the proposed record is not written. Record
+that outcome explicitly, because a review that produces no document is easily mistaken for a
+review that did not happen.
+
+Rules exercised: `RUST-DOC-0011-R001` through `RUST-DOC-0011-R020`, with
+`RUST-DOC-0010-R022` where the claim concerns a staged protocol.
 
 ---
 
