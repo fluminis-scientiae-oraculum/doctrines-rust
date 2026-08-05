@@ -37,6 +37,24 @@ or doctrine version changes.
   narrative review, or the maintainer's decision-record obligations.
 - `doctrines/0004-concurrency-and-async/README.md` referred to "the 0.1.0
   workspace".
+- `EVIDENCE.md` was absent from the linter's root-document list, so it had never
+  been scanned for normative-term scope, and the new counted-claim check silently
+  skipped the corpus document carrying the most derived numbers. Every Markdown
+  file at the repository root is now scanned.
+
+### Added in 0.4.1
+
+- A counted-claim check. Prose stating a number of normative rules, doctrine
+  packages, or active doctrines is compared against the recomputed corpus, so a
+  hand-maintained number cannot silently disagree with the manifest.
+- A rule-citation check. Every `RUST-DOC-NNNN-RNNN` cited in maintained canonical
+  Markdown must resolve to a rule a doctrine defines. The corpus already required
+  each rule to appear in its own review standard; nothing checked the reverse, so
+  a renamed or removed rule left dangling citations that read as authoritative.
+- Both checks exempt dated records — `rfcs/` and `CHANGELOG.md` — which state the
+  contract as it stood when a decision was taken and are not maintained
+  afterwards, as `RUST-DOC-0011-R011` and `RUST-DOC-0011-R019` permit. Rewriting
+  them to satisfy a linter would destroy the record.
 
 ## [0.4.0] — 2026-08-04
 

@@ -39,12 +39,16 @@ const ACTIVE_RECORD_DIRECTORY: &str = "decisions/active/";
 const ARCHIVED_RECORD_DIRECTORY: &str = "decisions/archive/";
 const ARCHIVAL_MARKER: &str = "NOT CURRENT OPERATIONAL AUTHORITY";
 
+/// Every Markdown file at the repository root. `EVIDENCE.md` was absent until the
+/// counted-claim check was written, so neither that check nor the normative-scope
+/// scan had ever read the corpus document that carries the most derived numbers.
 const ROOT_DOCUMENTS: &[&str] = &[
     "README.md",
     "AGENTS.md",
     "CONTRIBUTING.md",
     "CHANGELOG.md",
     "CODE_OF_CONDUCT.md",
+    "EVIDENCE.md",
     "SECURITY.md",
 ];
 
@@ -283,8 +287,10 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
         }
     };
 
-    check_doctrines(root, &doctrine_manifest, &mut diagnostics);
+    let rule_ids = check_doctrines(root, &doctrine_manifest, &mut diagnostics);
     check_doctrine_index(root, &doctrine_manifest, &mut diagnostics);
+    check_stated_counts(root, &doctrine_manifest, &rule_ids, &mut diagnostics);
+    check_rule_citations(root, &rule_ids, &mut diagnostics);
     check_repository_version(root, &doctrine_manifest, &mut diagnostics);
     check_agents(root, &agent_manifest, &doctrine_manifest, &mut diagnostics);
     check_decision_records(root, &agent_manifest, &mut diagnostics);
@@ -345,7 +351,14 @@ fn validate_schema(
     }
 }
 
-fn check_doctrines(root: &Path, manifest: &DoctrineManifest, diagnostics: &mut Vec<Diagnostic>) {
+/// Returns the rule identifiers actually defined across the corpus, so later checks
+/// compare citations and counted claims against what exists rather than against a
+/// second list.
+fn check_doctrines(
+    root: &Path,
+    manifest: &DoctrineManifest,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> BTreeSet<String> {
     if manifest.schema_version != "1.0" {
         diagnostics.push(Diagnostic::new(
             root.join("manifest/doctrines.yaml"),
@@ -368,6 +381,7 @@ fn check_doctrines(root: &Path, manifest: &DoctrineManifest, diagnostics: &mut V
     for entry in &manifest.doctrines {
         check_doctrine_entry(root, entry, &known_ids, &mut global_rule_ids, diagnostics);
     }
+    global_rule_ids
 }
 
 fn check_doctrine_entry(
@@ -552,6 +566,170 @@ fn check_structured_field_register(
             ));
         }
     }
+}
+
+/// A dated record states the contract as it stood when a decision was taken and is
+/// not maintained afterwards, which `RUST-DOC-0011-R011` and `RUST-DOC-0011-R019`
+/// permit. A stale count or a citation of a since-removed rule inside one is
+/// history rather than drift, so both checks below skip these files. Rewriting them
+/// to satisfy a linter would destroy the record.
+fn is_dated_record(relative: &str) -> bool {
+    relative.starts_with("rfcs/") || relative == "CHANGELOG.md"
+}
+
+/// Files both drift checks scan: maintained canonical Markdown plus the root
+/// documents, excluding dated records.
+fn maintained_markdown(root: &Path) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    for document in ROOT_DOCUMENTS {
+        if !is_dated_record(document) {
+            let path = root.join(document);
+            if path.is_file() {
+                paths.push(path);
+            }
+        }
+    }
+    for directory in CANONICAL_ROOTS {
+        collect_files(&root.join(directory), &mut |path| {
+            if path.extension().and_then(|extension| extension.to_str()) != Some("md") {
+                return;
+            }
+            let relative = path
+                .strip_prefix(root)
+                .unwrap_or(path)
+                .to_string_lossy()
+                .replace('\\', "/");
+            if !is_dated_record(&relative) {
+                paths.push(path.to_path_buf());
+            }
+        });
+    }
+    paths
+}
+
+/// Rejects a counted claim in prose that disagrees with the corpus.
+///
+/// "The 207 normative rules" is a machine-derivable fact restated by hand, which is
+/// the shape of drift that `RUST-DOC-0011-R004` prohibits and that no reader can
+/// detect. The count is recomputed and compared rather than trusted.
+fn check_stated_counts(
+    root: &Path,
+    manifest: &DoctrineManifest,
+    rule_ids: &BTreeSet<String>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    let active_packages = manifest
+        .doctrines
+        .iter()
+        .filter(|entry| entry.status == "active")
+        .count();
+    let expectations: [(&str, usize); 3] = [
+        ("normative rules", rule_ids.len()),
+        ("doctrine packages", active_packages),
+        ("active doctrines", active_packages),
+    ];
+
+    for path in maintained_markdown(root) {
+        let Some(text) = read_text(&path, diagnostics) else {
+            continue;
+        };
+        for (line_index, line) in text.lines().enumerate() {
+            for (phrase, expected) in expectations {
+                for stated in stated_counts(line, phrase) {
+                    if stated != expected {
+                        diagnostics.push(Diagnostic::new(
+                            &path,
+                            format!(
+                                "line {} states {stated} {phrase}; the corpus has {expected}",
+                                line_index + 1
+                            ),
+                        ));
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Integers immediately preceding `phrase` on one line.
+fn stated_counts(line: &str, phrase: &str) -> Vec<usize> {
+    let mut counts = Vec::new();
+    for (offset, _) in line.match_indices(phrase) {
+        let prefix = line[..offset].trim_end();
+        let digits: String = prefix
+            .chars()
+            .rev()
+            .take_while(char::is_ascii_digit)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect();
+        if digits.is_empty() {
+            continue;
+        }
+        // "0.4.1 normative rules" is a version, not a count.
+        if prefix[..prefix.len() - digits.len()].ends_with('.') {
+            continue;
+        }
+        if let Ok(value) = digits.parse::<usize>() {
+            counts.push(value);
+        }
+    }
+    counts
+}
+
+/// Rejects a citation of a rule identifier no doctrine defines.
+///
+/// The corpus already checks that every rule appears in its own review standard.
+/// Nothing checked the other direction, so a renamed or removed rule left dangling
+/// citations that read as authoritative.
+fn check_rule_citations(
+    root: &Path,
+    rule_ids: &BTreeSet<String>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    for path in maintained_markdown(root) {
+        let Some(text) = read_text(&path, diagnostics) else {
+            continue;
+        };
+        for cited in extract_rule_citations(&text) {
+            if !rule_ids.contains(&cited) {
+                diagnostics.push(Diagnostic::new(
+                    &path,
+                    format!("cites {cited}, which no doctrine defines"),
+                ));
+            }
+        }
+    }
+}
+
+/// Rule identifiers cited anywhere in a document, in `RUST-DOC-NNNN-RNNN` form.
+///
+/// Template material uses letter positions such as `RUST-DOC-NNNN-R001`, which does
+/// not match and is therefore never reported.
+fn extract_rule_citations(text: &str) -> BTreeSet<String> {
+    let mut cited = BTreeSet::new();
+    for (offset, _) in text.match_indices("RUST-DOC-") {
+        let rest = &text[offset + "RUST-DOC-".len()..];
+        let doctrine: String = rest.chars().take(4).collect();
+        if doctrine.len() != 4 || !doctrine.bytes().all(|byte| byte.is_ascii_digit()) {
+            continue;
+        }
+        let after = &rest[doctrine.len()..];
+        let Some(after) = after.strip_prefix("-R") else {
+            continue;
+        };
+        let rule: String = after.chars().take(3).collect();
+        if rule.len() != 3 || !rule.bytes().all(|byte| byte.is_ascii_digit()) {
+            continue;
+        }
+        // Reject a longer run of digits, so `-R0011` is not read as `-R001`.
+        if after[rule.len()..].starts_with(|character: char| character.is_ascii_digit()) {
+            continue;
+        }
+        cited.insert(format!("RUST-DOC-{doctrine}-R{rule}"));
+    }
+    cited
 }
 
 /// Checks the reader-facing doctrine index against the manifest.
@@ -1449,8 +1627,9 @@ mod tests {
         AgentManifest, AgentPack, DOCTRINE_INDEX, DoctrineEntry, DoctrineManifest, RecordBucket,
         RuleHeading, check_agent_packs_exclude_archive, check_doctrine_index,
         check_registered_record, check_structured_field_register, contains_normative_term,
-        extract_doctrine_ids, extract_rule_headings, front_matter, valid_manifest_path,
-        valid_record_id, valid_rule_id, workspace_package_version,
+        extract_doctrine_ids, extract_rule_citations, extract_rule_headings, front_matter,
+        is_dated_record, stated_counts, valid_manifest_path, valid_record_id, valid_rule_id,
+        workspace_package_version,
     };
     use std::collections::BTreeSet;
     use std::fs;
@@ -1799,6 +1978,61 @@ mod tests {
         check_agent_packs_exclude_archive(Path::new("/nonexistent"), &manifest, &mut diagnostics);
 
         assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    }
+
+    #[test]
+    fn stated_counts_read_the_integer_before_the_phrase() {
+        assert_eq!(
+            stated_counts("The 207 normative rules define", "normative rules"),
+            [207]
+        );
+        assert_eq!(
+            stated_counts("from 187 to 207 normative rules", "normative rules"),
+            [207]
+        );
+        assert_eq!(
+            stated_counts("no digits here normative rules", "normative rules"),
+            [] as [usize; 0]
+        );
+        // A version is not a count.
+        assert_eq!(
+            stated_counts("shipped with 0.4.1 normative rules", "normative rules"),
+            [] as [usize; 0]
+        );
+    }
+
+    #[test]
+    fn rule_citations_ignore_template_and_longer_identifiers() {
+        let cited = extract_rule_citations(concat!(
+            "Applies under `RUST-DOC-0011-R004` and RUST-DOC-0010-R022.\n",
+            "Template material writes RUST-DOC-NNNN-R001.\n",
+            "A longer run such as RUST-DOC-0011-R0011 is not a citation.\n",
+        ));
+        assert!(cited.contains("RUST-DOC-0011-R004"), "{cited:?}");
+        assert!(cited.contains("RUST-DOC-0010-R022"), "{cited:?}");
+        assert_eq!(cited.len(), 2, "{cited:?}");
+    }
+
+    #[test]
+    fn dated_records_are_exempt_from_both_drift_checks() {
+        assert!(is_dated_record(
+            "rfcs/accepted/RFC-0001-isolation-and-time-assumptions.md"
+        ));
+        assert!(is_dated_record("CHANGELOG.md"));
+        assert!(!is_dated_record("EVIDENCE.md"));
+        assert!(!is_dated_record("doctrines/README.md"));
+    }
+
+    #[test]
+    fn every_root_markdown_file_is_scanned() {
+        // EVIDENCE.md was missing from this list, so the counted-claim check silently
+        // skipped the document carrying the most derived numbers.
+        for document in ["README.md", "AGENTS.md", "CONTRIBUTING.md", "EVIDENCE.md"] {
+            assert!(
+                super::ROOT_DOCUMENTS.contains(&document),
+                "{document} is not scanned"
+            );
+        }
     }
 
     #[test]
