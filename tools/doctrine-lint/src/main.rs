@@ -33,6 +33,8 @@ const CANONICAL_ROOTS: &[&str] = &[
     "sources",
 ];
 
+const DOCTRINE_INDEX: &str = "doctrines/README.md";
+
 const ACTIVE_RECORD_DIRECTORY: &str = "decisions/active/";
 const ARCHIVED_RECORD_DIRECTORY: &str = "decisions/archive/";
 const ARCHIVAL_MARKER: &str = "NOT CURRENT OPERATIONAL AUTHORITY";
@@ -282,6 +284,7 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     };
 
     check_doctrines(root, &doctrine_manifest, &mut diagnostics);
+    check_doctrine_index(root, &doctrine_manifest, &mut diagnostics);
     check_repository_version(root, &doctrine_manifest, &mut diagnostics);
     check_agents(root, &agent_manifest, &doctrine_manifest, &mut diagnostics);
     check_decision_records(root, &agent_manifest, &mut diagnostics);
@@ -549,6 +552,74 @@ fn check_structured_field_register(
             ));
         }
     }
+}
+
+/// Checks the reader-facing doctrine index against the manifest.
+///
+/// `RUST-DOC-0011-R004` permits a human-readable view of an enforced claim only
+/// when it is generated or mechanically checked. This index carries a prose concern
+/// column the manifest does not hold, so it stays hand-written and is checked here
+/// instead: a doctrine cannot be added without the index following it.
+fn check_doctrine_index(
+    root: &Path,
+    manifest: &DoctrineManifest,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    let index_path = root.join(DOCTRINE_INDEX);
+    let Some(index) = read_text(&index_path, diagnostics) else {
+        return;
+    };
+
+    for entry in &manifest.doctrines {
+        if entry.status != "active" {
+            continue;
+        }
+        // A row, not a passing mention: the identifier and the manifest title have to
+        // appear on one line, so a cross-reference in prose cannot satisfy the check.
+        let has_row = index
+            .lines()
+            .any(|line| line.contains(&entry.id) && line.contains(&entry.title));
+        if !has_row {
+            diagnostics.push(Diagnostic::new(
+                &index_path,
+                format!(
+                    "doctrine index has no row naming {} with its manifest title {:?}",
+                    entry.id, entry.title
+                ),
+            ));
+        }
+    }
+
+    for id in extract_doctrine_ids(&index) {
+        if !manifest
+            .doctrines
+            .iter()
+            .any(|entry| entry.id == id && entry.status == "active")
+        {
+            diagnostics.push(Diagnostic::new(
+                &index_path,
+                format!("doctrine index lists {id}, which is not an active doctrine"),
+            ));
+        }
+    }
+}
+
+/// Doctrine identifiers named by the index, ignoring rule identifiers such as
+/// `RUST-DOC-0011-R004` so a cross-reference is not mistaken for an index row.
+fn extract_doctrine_ids(text: &str) -> BTreeSet<String> {
+    let mut ids = BTreeSet::new();
+    for (offset, _) in text.match_indices("RUST-DOC-") {
+        let rest = &text[offset + "RUST-DOC-".len()..];
+        let digits: String = rest.chars().take(4).collect();
+        if digits.len() != 4 || !digits.bytes().all(|byte| byte.is_ascii_digit()) {
+            continue;
+        }
+        if rest[digits.len()..].starts_with("-R") {
+            continue;
+        }
+        ids.insert(format!("RUST-DOC-{digits}"));
+    }
+    ids
 }
 
 fn check_repository_version(
@@ -1375,10 +1446,11 @@ fn display_path(root: &Path, path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        AgentManifest, AgentPack, RecordBucket, RuleHeading, check_agent_packs_exclude_archive,
+        AgentManifest, AgentPack, DOCTRINE_INDEX, DoctrineEntry, DoctrineManifest, RecordBucket,
+        RuleHeading, check_agent_packs_exclude_archive, check_doctrine_index,
         check_registered_record, check_structured_field_register, contains_normative_term,
-        extract_rule_headings, front_matter, valid_manifest_path, valid_record_id, valid_rule_id,
-        workspace_package_version,
+        extract_doctrine_ids, extract_rule_headings, front_matter, valid_manifest_path,
+        valid_record_id, valid_rule_id, workspace_package_version,
     };
     use std::collections::BTreeSet;
     use std::fs;
@@ -1431,6 +1503,47 @@ mod tests {
             .into_iter()
             .map(|diagnostic| diagnostic.message)
             .collect()
+    }
+
+    fn doctrine_entry(id: &str, slug: &str, title: &str, status: &str) -> DoctrineEntry {
+        DoctrineEntry {
+            id: id.to_owned(),
+            slug: slug.to_owned(),
+            title: title.to_owned(),
+            status: status.to_owned(),
+            version: "0.1.0".to_owned(),
+            package_path: format!("doctrines/{slug}"),
+            normative_path: format!("doctrines/{slug}/doctrine.md"),
+            applies_to: vec!["review".to_owned()],
+            risk_domains: vec!["domain-modeling".to_owned()],
+            foundation_dependencies: vec!["foundations/invariants.md".to_owned()],
+            related_patterns: Vec::new(),
+            related_boundaries: Vec::new(),
+            related_case_studies: Vec::new(),
+            supersedes: Vec::new(),
+            superseded_by: None,
+        }
+    }
+
+    fn doctrine_manifest() -> DoctrineManifest {
+        DoctrineManifest {
+            schema_version: "1.0".to_owned(),
+            repository_version: "0.4.0".to_owned(),
+            doctrines: vec![
+                doctrine_entry(
+                    "RUST-DOC-0001",
+                    "0001-invalid-states",
+                    "Making Invalid States Unrepresentable",
+                    "active",
+                ),
+                doctrine_entry(
+                    "RUST-DOC-0002",
+                    "0002-error-modeling",
+                    "Error Modeling as Domain Design",
+                    "active",
+                ),
+            ],
+        }
     }
 
     fn agent_pack(canonical_sources: Vec<String>) -> AgentPack {
@@ -1686,6 +1799,96 @@ mod tests {
         check_agent_packs_exclude_archive(Path::new("/nonexistent"), &manifest, &mut diagnostics);
 
         assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    }
+
+    #[test]
+    fn doctrine_index_ids_ignore_rule_cross_references() {
+        let index = concat!(
+            "| RUST-DOC-0001 | [Making Invalid States Unrepresentable](0001-invalid-states/) |\n",
+            "Applied by `RUST-DOC-0011-R004` and `RUST-DOC-0010-R022`.\n",
+        );
+        let ids = extract_doctrine_ids(index);
+        assert!(ids.contains("RUST-DOC-0001"), "{ids:?}");
+        assert_eq!(ids.len(), 1, "rule cross-references must not count as rows");
+    }
+
+    #[test]
+    fn doctrine_index_must_list_every_active_doctrine_with_its_title() {
+        let manifest = doctrine_manifest();
+        let root = temporary_directory("doctrine-index");
+        fs::create_dir_all(root.join("doctrines")).expect("create doctrines directory");
+
+        // A prose cross-reference must not satisfy the row requirement, which is the
+        // way the shipped index hid a missing row.
+        fs::write(
+            root.join(DOCTRINE_INDEX),
+            concat!(
+                "| RUST-DOC-0001 | Making Invalid States Unrepresentable |\n",
+                "Read RUST-DOC-0002 when failure modelling matters.\n",
+                "Error Modeling as Domain Design is worth reading early.\n",
+            ),
+        )
+        .expect("write index");
+        let mut diagnostics = Vec::new();
+        check_doctrine_index(&root, &manifest, &mut diagnostics);
+        let messages = diagnostics
+            .iter()
+            .map(|diagnostic| diagnostic.message.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(
+            messages.contains("no row naming RUST-DOC-0002"),
+            "{messages}"
+        );
+
+        fs::write(
+            root.join(DOCTRINE_INDEX),
+            concat!(
+                "| RUST-DOC-0001 | Making Invalid States Unrepresentable |\n",
+                "| RUST-DOC-0002 | An Invented Title |\n",
+            ),
+        )
+        .expect("rewrite index");
+        let mut diagnostics = Vec::new();
+        check_doctrine_index(&root, &manifest, &mut diagnostics);
+        assert!(
+            diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.message.contains("no row naming RUST-DOC-0002")),
+            "{diagnostics:?}"
+        );
+
+        fs::write(
+            root.join(DOCTRINE_INDEX),
+            concat!(
+                "| RUST-DOC-0001 | Making Invalid States Unrepresentable |\n",
+                "| RUST-DOC-0002 | Error Modeling as Domain Design |\n",
+                "| RUST-DOC-0099 | A Doctrine That Does Not Exist |\n",
+            ),
+        )
+        .expect("rewrite index");
+        let mut diagnostics = Vec::new();
+        check_doctrine_index(&root, &manifest, &mut diagnostics);
+        assert!(
+            diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.message.contains("RUST-DOC-0099, which is not")),
+            "{diagnostics:?}"
+        );
+
+        fs::write(
+            root.join(DOCTRINE_INDEX),
+            concat!(
+                "| RUST-DOC-0001 | Making Invalid States Unrepresentable |\n",
+                "| RUST-DOC-0002 | Error Modeling as Domain Design |\n",
+            ),
+        )
+        .expect("rewrite index");
+        let mut diagnostics = Vec::new();
+        check_doctrine_index(&root, &manifest, &mut diagnostics);
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+
+        fs::remove_dir_all(root).expect("remove temporary test directory");
     }
 
     #[test]

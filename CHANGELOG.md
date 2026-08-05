@@ -4,6 +4,40 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.4.1] — 2026-08-05
+
+Documentation coherency only. No normative rule, statement, allowed exception,
+or doctrine version changes.
+
+### Fixed in 0.4.1
+
+- The root `README.md` doctrine index listed nine doctrines while claiming to be
+  synchronized with `manifest/doctrines.yaml`, which by then held eleven. That
+  table was a third representation of a fact the manifest owns and
+  `doctrines/README.md` already presented, and it also propagated into
+  `dist/full-doctrine.md`. The duplicate is removed; the root README now links to
+  the doctrine index instead of repeating it.
+- `doctrine-lint` now checks the surviving doctrine index against the manifest:
+  every active doctrine needs a row naming its identifier and its exact manifest
+  title on one line, and the index may not list a doctrine the manifest does not
+  carry as active. A prose cross-reference does not satisfy the row requirement,
+  which is how the shipped index concealed a missing row.
+- The root `README.md` claimed repository version `0.2.0`. It now names no
+  version number at all and points at the manifest, so the same defect cannot
+  recur there.
+- `doctrines/README.md` said the repository release and every doctrine were at
+  `0.1.0`; repository and doctrine versions have since diverged.
+- The generated-file set was described as `dist/` alone in `README.md`,
+  `CONTRIBUTING.md`, `agents/shared.md`, and the pull-request template, although
+  `rfcs/accepted/README.md` became generated in 0.4.0. All four now name both,
+  and the documented drift-gate command covers both paths.
+- `decisions/` was absent from the canonical-root list and the architecture
+  section of `README.md`.
+- The reading paths in `README.md` did not mention RUST-DOC-0011, the executable
+  narrative review, or the maintainer's decision-record obligations.
+- `doctrines/0004-concurrency-and-async/README.md` referred to "the 0.1.0
+  workspace".
+
 ## [0.4.0] — 2026-08-04
 
 ### Changed in 0.4.0

@@ -7,12 +7,18 @@ focused glossary, and source references. Foundations define shared vocabulary;
 patterns offer reusable mechanisms; boundary guides describe where evidence is
 established; review procedures operationalize checks.
 
-The repository release and every initial doctrine are version `0.1.0`.
-Repository and doctrine versions may later diverge. A patch release clarifies
-without changing normative meaning. A minor release may add normative rules or
-substantial compatible guidance. A major release denotes normative
+Every doctrine started at version `0.1.0`; repository and doctrine versions have
+since diverged, and each doctrine's current version lives in
+`manifest/doctrines.yaml` and in that package's front matter. A patch release
+clarifies without changing normative meaning. A minor release may add normative
+rules or substantial compatible guidance. A major release denotes normative
 incompatibility, removal, or contract change. Status and supersession are
 governed by the manifest and RFC process.
+
+This table is the reader-facing view of `manifest/doctrines.yaml`, and
+`doctrine-lint` checks it against the manifest: every active doctrine's
+identifier and exact title has to appear here. The root `README.md` deliberately
+links to this index rather than repeating it.
 
 | ID            | Doctrine                                                                              | Primary concern                                                 |
 | ------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------- |

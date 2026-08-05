@@ -19,7 +19,8 @@ example or tool README. Code changes can alter doctrine evidence even when prose
 
 Canonical sources live under `foundations/`, `doctrines/`, `patterns/`, `boundaries/`,
 `reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
-Files under `dist/` are generated projections.
+Files under `dist/`, and the accepted-RFC index `rfcs/accepted/README.md`, are generated
+projections.
 
 An agent MUST NOT edit a generated file manually. `dist/` is generated in full, and
 `rfcs/accepted/README.md` is generated from `rfcs/accepted/overview.md` and each RFC's front
@@ -119,7 +120,7 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
 cargo run -p doctrine-lint -- check
 cargo run -p bundle-agent-context -- generate
-git diff --exit-code -- dist/
+git diff --exit-code -- dist/ rfcs/accepted/README.md
 cargo run -p bundle-agent-context -- check
 cargo deny check
 lychee --no-progress '**/*.md'
@@ -127,7 +128,7 @@ git diff --check
 ```
 
 Before bundle generation, run `npm run format:markdown` after editing canonical or governance
-Markdown. Prettier deliberately excludes `dist/`; never use a formatter to rewrite generated
+Markdown. Prettier deliberately excludes every generated file; never use a formatter to rewrite
 bundles directly. The Markdown lint configuration uses narrow documented structural
 exceptions and MUST NOT be weakened merely to make a change pass.
 

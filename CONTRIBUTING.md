@@ -88,9 +88,9 @@ npm run format:markdown
 npm run lint:markdown
 ```
 
-Prettier preserves prose wrapping and excludes `dist/`, dependency trees, and Rust build
-output. Do not format generated bundles directly. After formatting canonical Markdown,
-regenerate `dist/` so its bytes remain a deterministic projection. Configuration exceptions
+Prettier preserves prose wrapping and excludes every generated file, dependency trees, and Rust
+build output. Do not format generated files directly. After formatting canonical Markdown,
+regenerate them so their bytes remain a deterministic projection. Configuration exceptions
 must describe a repository structure that cannot satisfy the default rule; do not suppress a
 rule solely to avoid repairing content.
 
@@ -102,7 +102,10 @@ resolves to a patched version without it.
 
 ## Generated content
 
-`dist/` is generated. Edit canonical sources or bundler behavior, then run:
+Two sets of files are generated: everything under `dist/`, and the accepted-RFC index
+`rfcs/accepted/README.md`, built from `rfcs/accepted/overview.md` and each accepted RFC's front
+matter. Both are excluded from Prettier and markdownlint, and both carry a banner naming their
+sources. Edit canonical sources or bundler behavior, then run:
 
 ```bash
 cargo run -p bundle-agent-context -- generate

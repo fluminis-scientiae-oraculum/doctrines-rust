@@ -1,7 +1,7 @@
 # Repository evidence map
 
 This inventory describes executable evidence shipped with repository version
-0.4.0. It is a claim ledger, not a coverage percentage. The 207 normative rules
+0.4.1. It is a claim ledger, not a coverage percentage. The 207 normative rules
 define review obligations; no test count implies one test per rule or universal
 proof.
 
@@ -11,8 +11,9 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Twenty-four tooling tests exercise doctrine linting, decision-record
-  validation, and deterministic bundle generation.
+- Twenty-six tooling tests exercise doctrine linting, decision-record
+  validation, doctrine-index agreement with the manifest, and deterministic
+  bundle generation.
 - A dedicated CI job reruns the five `unsafe-evidence` unit tests under Miri on
   pinned nightly `nightly-2026-07-13`.
 
