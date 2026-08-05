@@ -1,5 +1,5 @@
 schema_version: "1.0"
-repository_version: "0.3.0"
+repository_version: "0.4.0"
 doctrines:
   - id: RUST-DOC-0001
     slug: invalid-states
@@ -245,7 +245,7 @@ doctrines:
     slug: staged-protocols
     title: Staged Protocols and Successor Capabilities
     status: active
-    version: "0.1.0"
+    version: "0.2.0"
     package_path: doctrines/0010-staged-protocols
     normative_path: doctrines/0010-staged-protocols/doctrine.md
     applies_to: [planning, implementation, review, audit]
@@ -261,6 +261,7 @@ doctrines:
       - patterns/consuming-transitions.md
       - patterns/sum-types.md
       - patterns/hybrid-state-machines.md
+      - patterns/executable-narrative.md
     related_boundaries:
       - boundaries/http-and-rpc.md
       - boundaries/database-decoding.md
@@ -269,5 +270,33 @@ doctrines:
       - case-studies/registration-onboarding
       - case-studies/payment-lifecycle
       - case-studies/authenticated-session
+    supersedes: []
+    superseded_by: null
+  - id: RUST-DOC-0011
+    slug: executable-narrative
+    title: Executable Narrative and Minimal Decision Records
+    status: active
+    version: "0.1.0"
+    package_path: doctrines/0011-executable-narrative
+    normative_path: doctrines/0011-executable-narrative/doctrine.md
+    applies_to: [planning, implementation, review, audit, maintenance]
+    risk_domains: [architecture-governance, documentation-drift, decision-records, agent-context]
+    foundation_dependencies:
+      - foundations/invariants.md
+      - foundations/evidence.md
+      - foundations/guarantee-honesty.md
+      - foundations/complexity-budget.md
+    related_patterns:
+      - patterns/executable-narrative.md
+      - patterns/successor-capabilities.md
+      - patterns/typestate.md
+      - patterns/opaque-newtypes.md
+    related_boundaries:
+      - boundaries/database-decoding.md
+      - boundaries/serde.md
+      - boundaries/configuration.md
+    related_case_studies:
+      - case-studies/registration-onboarding
+      - case-studies/payment-lifecycle
     supersedes: []
     superseded_by: null

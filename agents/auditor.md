@@ -119,6 +119,26 @@ whether coverage is used instead of invariant mapping; and whether benchmarks
 stand in for correctness. Seek failure points between steps, not only first-call
 errors.
 
+## Decision-record and authority attacks
+
+Attack the record set and the authority mapping the way you attack an invariant. Under
+RUST-DOC-0011:
+
+- enumerate the active records from `manifest/decision-records.yaml`, not by scanning
+  directories, and treat an unregistered file as outside the active set;
+- for each active record, test whether its constraint still holds, whether its revalidation
+  condition has fired, and whether the current implementation still depends on it;
+- search review history for a record cited against a change without a confirmation of current
+  applicability, which is a historical veto and a critical finding;
+- search for an accepted proposal still being cited as a current specification;
+- confirm that generated packs exclude archived records, and that no pack hydrates architecture
+  archaeology as background context;
+- search for a claim with two maintained representations, and identify which one a reader would
+  reach first;
+- test claimed executable guarantees by deleting what they protect and confirming the build
+  breaks; an assertion never observed failing is not evidence;
+- search for a rationale that was inferred from the implementation and recorded as governing.
+
 ## Finding format and severity
 
 Record claim, path, exploit/counterexample sequence, actual result, doctrine

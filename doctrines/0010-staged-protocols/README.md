@@ -3,7 +3,7 @@ id: RUST-DOC-0010
 slug: staged-protocols
 title: Staged Protocols and Successor Capabilities
 status: active
-version: 0.1.0
+version: 0.2.0
 normative: true
 applies_to:
   - planning
@@ -61,13 +61,17 @@ versions.
 ## Normative status
 
 `doctrine.md` is normative and carries the stable rule identifiers. This package is version
-0.1.0 with status active. Rationale, decision framework, anti-patterns, glossary, and references
+0.2.0 with status active. Rationale, decision framework, anti-patterns, glossary, and references
 are informative and cannot create an obligation that `doctrine.md` does not state.
 
 Rules `RUST-DOC-0010-R012`, `RUST-DOC-0010-R016`, and `RUST-DOC-0010-R019` permit a waiver on
 the terms recorded in the normative waiver section. The rules governing successor bounds,
-construction bypass, durable claims, the guarantee ledger, terminology, and governance
-precedence do not.
+construction bypass, durable claims, the guarantee ledger, terminology, and the authority
+partition do not.
+
+`RUST-DOC-0010-R022` was restated in repository version 0.4.0 under RFC-0003. It keeps its
+identifier and its non-waivable status, and it now states an authority partition rather than a
+blanket governance precedence. RUST-DOC-0011 governs that partition generally.
 
 ## Prerequisite foundations
 
@@ -83,9 +87,15 @@ assessment required by `RUST-DOC-0010-R012`.
 Patterns: [successor capabilities](../../patterns/successor-capabilities.md) is the mechanism
 this doctrine governs; [typestate](../../patterns/typestate.md) and
 [consuming transitions](../../patterns/consuming-transitions.md) are its foundation;
-[sum types](../../patterns/sum-types.md) carry its branches; and
+[sum types](../../patterns/sum-types.md) carry its branches;
 [hybrid state machines](../../patterns/hybrid-state-machines.md) carry the durable half that
-`RUST-DOC-0010-R015` requires.
+`RUST-DOC-0010-R015` requires; and
+[executable narrative](../../patterns/executable-narrative.md) is the general form of the
+placement question `RUST-DOC-0010-R022` answers for stages.
+
+Doctrines: [RUST-DOC-0011](../0011-executable-narrative/) owns the authority partition,
+prohibits a competing manually maintained copy of an enforced claim, and governs when a decision
+record is justified. `RUST-DOC-0010-R022` is its application to staged protocols.
 
 Boundaries: [HTTP and RPC](../../boundaries/http-and-rpc.md) for the untrusted input that enters
 the first stage, [database decoding](../../boundaries/database-decoding.md) for restoration, and

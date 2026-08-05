@@ -71,7 +71,35 @@ they cite.
 
 **Terminology.** The source's own caution about its coinage is accepted and made binding.
 `RUST-DOC-0010-R021` requires local vocabulary to travel with its family attribution; the
-glossary records CT³ as local vocabulary so older internal documents remain readable.
+glossary records CT³ as local vocabulary, and `patterns/successor-capabilities.md` states the term
+and explains what each of its words carries, so older internal documents remain readable.
+
+**Executable authority.** The source argues that an enforceable architectural obligation should
+live in the mechanism that enforces it rather than survive only as prose. The repository accepts
+that claim for current operational truth: legal ordering, available capabilities, construction
+restrictions, and negative guarantees.
+
+The claim does not extend to external reality, rationale that cannot be recovered from the
+implementation, accepted risk, or change authority. Those remain separate authorities.
+
+The repository therefore adopts an authority partition. It rejects both "code explains
+everything" and "documentation has blanket precedence". `RUST-DOC-0010-R022` states the partition
+for staged protocols and `RUST-DOC-0011` governs it generally.
+
+The source also treats manually maintained decision records as a last resort, because they
+duplicate the system, drift independently, and can harden obsolete decisions into barriers to
+improvement. That stance is stronger than "documentation should not be the only enforcement", is
+accepted as stated, and became `RUST-DOC-0011-R006` through `RUST-DOC-0011-R010`.
+
+**Correction of an earlier entry in this file.** Until repository version 0.4.0 this section's
+neighbouring "Rejected claims" list carried an item headed "Code as sufficient contract". It
+summarized the source as arguing that the executable protocol is the authoritative live contract
+and that documentation should not be the only enforcement, accepted the second half, and rejected
+the first. The source had not made the rejected claim, and the rejection was then encoded as a
+blanket governance precedence in `RUST-DOC-0010-R022`, which contradicted `RUST-DOC-0010-R018`
+and `RUST-DOC-0010-R019` in the same package. RFC-0003 restates the rule and this entry replaces
+the mischaracterization. The correction is recorded here rather than applied silently, because a
+provenance file whose errors are edited out teaches nothing about how they happened.
 
 ## Rejected claims
 
@@ -81,13 +109,6 @@ categories and reading the total as a verdict, with bands from "ordinary runtime
 reference, and `reviews/README.md` states that blank status is not approval. A numeric total lets
 strong scores in cheap categories offset a critical failure in an expensive one, which is
 precisely what the severity model exists to prevent. The rubric is not adopted in any form.
-
-**Code as sufficient contract.** The source argues that the executable protocol is the
-authoritative live contract and that documentation should not be the only enforcement. The second
-half is correct and is already the repository's position. The first half is rejected as stated:
-code records what is enforced, not why the ordering was chosen, what the stages deliberately do
-not prove, which residual risks were accepted, or who accepted them. `RUST-DOC-0010-R022` keeps
-the precedence explicit.
 
 **Stage-per-step granularity.** Several of the source's worked flows introduce a stage for
 transformations that establish no fact a later stage consumes. `RUST-DOC-0010-R012` requires a

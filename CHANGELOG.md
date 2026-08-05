@@ -4,6 +4,93 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.4.0] — 2026-08-04
+
+### Changed in 0.4.0
+
+- Restated RUST-DOC-0010-R022. It keeps its identifier and its non-waivable
+  status, and now states an authority partition rather than a blanket
+  governance precedence: the executable protocol is authoritative for the
+  ordering, successor constraints, construction restrictions, and negative
+  capabilities it mechanically enforces; external systems are authoritative for
+  durable and remote facts; governing records are authoritative for rationale,
+  non-guarantees, waivers, and change authority; and no artifact is maintained
+  as a competing source for another's class of claim. The previous text
+  contradicted RUST-DOC-0010-R018 and RUST-DOC-0010-R019 in the same package.
+  RUST-DOC-0010 advances to 0.2.0.
+- Corrected the source provenance for RUST-DOC-0010. The earlier notes recorded
+  the originating document as claiming "code as sufficient contract" and
+  rejected it; the document had made no such claim. The corrected
+  classification records executable authority as accepted and refined, records
+  the source's stronger last-resort stance on decision records, and states the
+  earlier error in place rather than deleting it.
+- Made CT³ visible where the mechanism is taught. `patterns/successor-capabilities.md`
+  now states the local name and explains what each of its words carries,
+  including the containment that "telescopic" names; the package glossary entry
+  carries the same explanation. The term remains local vocabulary with its
+  established families attributed, per RUST-DOC-0010-R021.
+- Added the authority-partition gates S58, S61, and S62 to the RUST-DOC-0010
+  review standard, and a second failure direction to its rationale and
+  anti-pattern catalogue.
+- Selected RUST-DOC-0011 for every agent pack, added the new review procedure to
+  five of them, and gave each role file its obligation-placement section.
+
+### Added in 0.4.0
+
+- RUST-DOC-0011 "Executable Narrative and Minimal Decision Records", an
+  eleventh doctrine governing where an architectural obligation lives, which
+  artifact settles which class of claim, how a derived view is kept from
+  drifting, and when a manually maintained decision record earns its permanent
+  cost. It adds twenty rules covering claim classification, executable
+  authority, the prohibition on a competing manually maintained copy,
+  generation over synchronization, the decision-record last-resort test and
+  lifecycle, the historical-veto prohibition, rationale honesty, external
+  authority, representation counting, and agent hydration.
+- A forty-gate review standard for the new doctrine, and the
+  `reviews/executable-narrative-review.md` procedure.
+- The `patterns/executable-narrative.md` pattern guide.
+- A `decisions/` tree holding the record template and two worked examples: one
+  decision whose residue justifies a narrow record, and one that should not be
+  written at all. Both are illustrations and are absent from the registry.
+- `manifest/decision-records.yaml` and its Draft 2020-12 schema, enumerating the
+  active and archived record sets. The active set is empty, which is the outcome
+  RUST-DOC-0011-R006 predicts for this repository.
+- Six `doctrine-lint` checks for the registry, each with a unit test: owner,
+  revalidation trigger, obsolescence condition and resolvable executable
+  authorities on an active record; the directory each status is filed under;
+  identifier uniqueness; the archival marking; and the prohibition on an agent
+  pack hydrating an archived record. Each check was observed failing on a seeded
+  violation before being accepted as evidence.
+- RFC-0003 recording the accepted decision, including the previous position, the
+  corrected position, and the reason the earlier wording was wrong.
+- A generated accepted-RFC index. `rfcs/accepted/README.md` is now produced by
+  `bundle-agent-context` from `rfcs/accepted/overview.md` and each RFC's own
+  front matter, and is drift-checked; it had omitted RFC-0002 while
+  hand-maintained.
+
+### Fixed before release in 0.4.0
+
+Review of the initial revision found three defects. All were corrected before
+merge:
+
+- The decision-record registry duplicated the metadata each record already
+  carries in its front matter, and the linter validated only the registry row.
+  A record could omit or contradict its own owner, scope, authorities, or
+  triggers while the build stayed green, which both overstated the guarantee and
+  created the competing copy RUST-DOC-0011-R004 prohibits, inside the
+  enforcement for that rule. The registry now enumerates membership only; the
+  linter opens each listed record and validates RUST-DOC-0011-R007 from its
+  front matter. The one overlapping fact, list membership versus declared
+  `status`, is compared rather than trusted, and a mismatch test covers it.
+- The accepted-RFC index was left hand-maintained on the stated ground that a
+  generator would need another hand-written list. That reason was wrong: the
+  directory supplies the file set and each RFC's front matter supplies its
+  identifier, title, and status, so the view is generated with no competing
+  source.
+- RFC-0003 said ten existing rule statements were preserved. RUST-DOC-0010 has
+  twenty-two rules and only R022 changes, so twenty-one are preserved in that
+  package and 165 in the nine others.
+
 ## [0.3.0] — 2026-08-04
 
 ### Added in 0.3.0

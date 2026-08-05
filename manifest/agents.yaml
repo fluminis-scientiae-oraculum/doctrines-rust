@@ -16,6 +16,7 @@ packs:
       - RUST-DOC-0002
       - RUST-DOC-0006
       - RUST-DOC-0008
+      - RUST-DOC-0011
     review_checklists:
       - reviews/final-correctness-audit.md
     output_path: dist/agents/shared.md
@@ -37,9 +38,11 @@ packs:
       - RUST-DOC-0006
       - RUST-DOC-0008
       - RUST-DOC-0010
+      - RUST-DOC-0011
     review_checklists:
       - reviews/pre-implementation.md
       - reviews/distributed-effects-review.md
+      - reviews/executable-narrative-review.md
     output_path: dist/agents/planner.md
   - id: implementer
     purpose: Build protected construction paths, honest failure models, and executable evidence.
@@ -61,10 +64,12 @@ packs:
       - RUST-DOC-0007
       - RUST-DOC-0008
       - RUST-DOC-0010
+      - RUST-DOC-0011
     review_checklists:
       - reviews/domain-model-review.md
       - reviews/boundary-review.md
       - reviews/typestate-review.md
+      - reviews/executable-narrative-review.md
     output_path: dist/agents/implementer.md
   - id: reviewer
     purpose: Test construction, transition, boundary, failure, and complexity claims against evidence.
@@ -86,11 +91,13 @@ packs:
       - RUST-DOC-0008
       - RUST-DOC-0009
       - RUST-DOC-0010
+      - RUST-DOC-0011
     review_checklists:
       - reviews/domain-model-review.md
       - reviews/boundary-review.md
       - reviews/typestate-review.md
       - reviews/distributed-effects-review.md
+      - reviews/executable-narrative-review.md
       - reviews/final-correctness-audit.md
     output_path: dist/agents/reviewer.md
   - id: auditor
@@ -113,9 +120,11 @@ packs:
       - RUST-DOC-0008
       - RUST-DOC-0009
       - RUST-DOC-0010
+      - RUST-DOC-0011
     review_checklists:
       - reviews/boundary-review.md
       - reviews/distributed-effects-review.md
+      - reviews/executable-narrative-review.md
       - reviews/final-correctness-audit.md
     output_path: dist/agents/auditor.md
   - id: maintainer
@@ -133,6 +142,8 @@ packs:
       - RUST-DOC-0007
       - RUST-DOC-0008
       - RUST-DOC-0009
+      - RUST-DOC-0011
     review_checklists:
+      - reviews/executable-narrative-review.md
       - reviews/final-correctness-audit.md
     output_path: dist/agents/maintainer.md

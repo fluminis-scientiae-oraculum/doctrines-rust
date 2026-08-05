@@ -73,8 +73,21 @@ a guarantee-ledger entry.
 recognizable in older internal documents. It is not standardized external terminology. The
 established families it refines are typestate-oriented programming, behavioral types, and object
 protocols; the specific mechanism is a consuming transition with an associated successor type
-bounded by the next capability. Prefer the descriptive terms above in new material, per
+bounded by the next capability. Each word carries part of the mechanism. _Typestate_: the current
+type proves the current state. _Trait_: the stage exposes the behavioral capability legal at that
+state. _Chainable_: the legal happy path composes into a readable sequence, the collapsed view.
+_Telescopic_: a chain gives order, `A → B → C`, while a telescope gives containment — A holds the
+controlled opening into B, and B holds the controlled opening into C. The associated successor
+type is that opening, so a stage carries both proof of completed history and permission for a
+constrained future. Prefer the descriptive terms above in new material, per
 `RUST-DOC-0010-R021`.
+
+**Authority partition**
+: The assignment of each protocol claim to exactly one authority: the executable protocol for what
+it mechanically enforces, an external system for a durable or remote fact, and a governing record
+for rationale, non-guarantees, waivers, and change authority. Narrower than "precedence": the
+partition does not rank artifacts, it assigns claims. `RUST-DOC-0010-R022` states it for staged
+protocols and RUST-DOC-0011 governs it generally.
 
 ## Glossary review
 

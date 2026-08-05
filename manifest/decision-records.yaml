@@ -1,0 +1,30 @@
+schema_version: "1.0"
+
+# Membership only. This file records which decision records are in the active set and
+# which are archived; it states nothing a record already states. Each record's own front
+# matter is the authority for its identifier, title, owner, scope, executable
+# authorities, revalidation trigger, and obsolescence condition, and `doctrine-lint`
+# reads those fields from the record rather than from here.
+#
+# The one fact both artifacts express is which list a record appears in versus the
+# `status` it declares. That is compared mechanically rather than trusted, which is the
+# checked-view exception RUST-DOC-0011-R004 allows.
+#
+# Membership here is what makes a record citable as authority: a file that is not listed
+# is not in the active set, whatever it contains.
+#
+# The active set is empty. Every architectural obligation this repository carries is
+# enforced by doctrine, the manifests, the JSON Schemas, the linter, the bundler, or the
+# example crates, so no fact remained that required a record. That is the outcome
+# RUST-DOC-0011-R006 predicts for a repository of this shape, and it is a statement about
+# the record set rather than a claim that no unrecorded constraint exists.
+#
+# Worked examples of a justified and an unjustified record live under decisions/examples/.
+# They are illustrations, not records, and are deliberately absent from both lists below.
+active_decision_records: []
+
+# Records retained for a stated compatibility or audit obligation. An archived record is
+# not current operational authority, carries that marking in its own text, states its
+# archived_reason in its own front matter, and is excluded from generated agent context
+# by RUST-DOC-0011-R018.
+archived_decision_records: []

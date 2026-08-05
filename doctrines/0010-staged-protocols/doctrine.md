@@ -386,22 +386,34 @@ used as standard when the citation is given.
 **Review evidence.** Terminology definitions, their family attribution, and the source notes
 recording which vocabulary is local.
 
-## RUST-DOC-0010-R022 — Keep governance precedence explicit
+## RUST-DOC-0010-R022 — Partition protocol authority explicitly
 
-**Statement.** An executable protocol is authoritative for the in-process ordering it enforces,
-and MUST NOT be treated as replacing doctrine obligations, recorded review evidence, or the
-decision process required to change a normative contract.
+**Statement.** Each claim a staged protocol makes MUST be classified as an in-process claim the
+executable protocol mechanically enforces, a durable or remote claim an external system owns, or
+a rationale, non-guarantee, waiver, or change-authority claim its governing records own. The
+executable protocol MUST be treated as authoritative for the ordering, successor constraints,
+construction restrictions, and negative capabilities it mechanically enforces. An artifact
+governing one of these classes MUST NOT be maintained as a second, independently edited source
+for another class.
 
-**Intent.** Keep the accurate observation that code enforces ordering from becoming the claim
-that code alone settles what a system is obliged to do.
+**Intent.** Replace a precedence contest with a partition. The accurate observation that code
+enforces ordering does not make code the source of rationale, accepted risk, or change authority;
+the accurate observation that doctrine governs change does not make doctrine a second description
+of what the program currently permits. `RUST-DOC-0010-R018` and `RUST-DOC-0010-R019` exist
+because prose cannot detect a widened bound or a redirected successor, and a rule subordinating
+the executable protocol to prose would contradict them.
 
-**Applicability.** Design notes, doctrine proposals, and agent instructions that describe a
-protocol as a living or self-documenting contract.
+**Applicability.** Design notes, doctrine text, decision records, review records, and agent
+instructions that state which artifact settles a question about a staged protocol. RUST-DOC-0011
+governs the partition generally, including the decision-record obligations; this rule applies it
+to stages, edges, and stage evidence.
 
-**Allowed exceptions.** None.
+**Allowed exceptions.** A generated or mechanically checked view of the executable protocol MAY
+restate its topology, because such a view cannot drift from the artifact it is derived from.
 
-**Review evidence.** The governing decision record, the review evidence for the protocol, and
-the guarantee ledger the code does not itself supply.
+**Review evidence.** The claim classification, the executable artifact cited for each in-process
+claim, the external check cited for each durable claim, and the governing record cited for each
+rationale, non-guarantee, waiver, or change-authority claim.
 
 ## Guarantee and non-guarantee requirements
 

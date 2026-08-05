@@ -86,11 +86,17 @@ typed stages.
 reader cites the name as established practice, treating a project convention as external
 consensus. `RUST-DOC-0010-R021` requires the family attribution to travel with the local name.
 
-**The protocol offered as its own governance.** A protocol enforces ordering, and this accurate
-observation grows into the claim that the code is the whole contract, so review evidence,
-guarantee ledgers, and the decision process become optional. Code enforces what it enforces; it
-does not record why the ordering was chosen, what the stages deliberately do not prove, or who
-accepted the residual risk. `RUST-DOC-0010-R022` keeps the precedence explicit.
+**The authority nobody partitioned.** A protocol enforces ordering, and the argument then runs in
+one of two directions, both wrong. In one, the accurate observation that code enforces ordering
+grows into the claim that code is the whole contract, so review evidence, guarantee ledgers, and
+the decision process become optional; code enforces what it enforces, and records neither why the
+ordering was chosen, nor what the stages deliberately do not prove, nor who accepted the residual
+risk. In the other, the accurate observation that doctrine governs change grows into a precedence
+of prose over the compiled graph, which would contradict `RUST-DOC-0010-R018` and
+`RUST-DOC-0010-R019`, both of which exist because prose cannot detect a widened bound.
+`RUST-DOC-0010-R022` partitions the claims instead of ranking the artifacts, and RUST-DOC-0011
+governs that partition generally. The earlier text of this rule asserted the second direction; the
+restatement is recorded in RFC-0003.
 
 ## Why weaker alternatives fail
 

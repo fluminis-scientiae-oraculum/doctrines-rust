@@ -115,6 +115,24 @@ Before release or push, run the documented commands, regenerate, inspect
 `git diff --check`, full file inventory, forbidden-marker scan, secret/PII scan,
 and clean status. Claims in a PR body must match commands actually run.
 
+## Decision-record lifecycle
+
+Under RUST-DOC-0011, the record set is maintained, not accumulated:
+
+- revalidate each active record at its stated trigger, and record the confirmation and its date;
+- expire or archive a record whose external constraint, commitment, or accepted risk no longer
+  applies; a record does not stay active because nobody revisited it;
+- move an archived record under `decisions/archive/`, mark it as not current operational
+  authority in its own text, and update the registry entry with the reason;
+- keep the active set narrow, and keep archived records out of generated agent context;
+- regenerate the bundles after any change to the registry or the canonical sources, and inspect
+  the generated difference rather than trusting it;
+- when retiring a record, check whether the obligation it carried can now be enforced by an
+  artifact instead, and prefer that to a replacement record.
+
+Do not let the archive become the default destination. A record whose reason has ended and that
+carries no compatibility or audit obligation is deleted.
+
 ## Escalation and completion
 
 Escalate uncertain normative meaning, incompatible migration, licensing,

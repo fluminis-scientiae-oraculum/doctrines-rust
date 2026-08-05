@@ -16,14 +16,15 @@ residual risk only where governance permits it.
 
 ## Procedures
 
-| Procedure                                                   | Use                                                    |
-| ----------------------------------------------------------- | ------------------------------------------------------ |
-| [Pre-implementation](pre-implementation.md)                 | before representation and API commitments              |
-| [Domain model review](domain-model-review.md)               | values, states, construction, transition, authority    |
-| [Boundary review](boundary-review.md)                       | DTO, Serde, database, protocol, size, version, secrecy |
-| [Typestate review](typestate-review.md)                     | proportional use of type-level sequencing              |
-| [Distributed-effects review](distributed-effects-review.md) | timeout, retry, duplicate, reconciliation, ordering    |
-| [Final correctness audit](final-correctness-audit.md)       | release/merge guarantee ledger and aggregate gates     |
+| Procedure                                                     | Use                                                          |
+| ------------------------------------------------------------- | ------------------------------------------------------------ |
+| [Pre-implementation](pre-implementation.md)                   | before representation and API commitments                    |
+| [Domain model review](domain-model-review.md)                 | values, states, construction, transition, authority          |
+| [Boundary review](boundary-review.md)                         | DTO, Serde, database, protocol, size, version, secrecy       |
+| [Typestate review](typestate-review.md)                       | proportional use of type-level sequencing                    |
+| [Distributed-effects review](distributed-effects-review.md)   | timeout, retry, duplicate, reconciliation, ordering          |
+| [Executable narrative review](executable-narrative-review.md) | where an obligation lives, and whether a record is justified |
+| [Final correctness audit](final-correctness-audit.md)         | release/merge guarantee ledger and aggregate gates           |
 
 ## Evidence rule
 

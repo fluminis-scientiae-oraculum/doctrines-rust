@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fluminis-scientiae-oraculum/doctrines-rust/raw/main/manifest/schema/decision-record.schema.json",
+  "title": "doctrines-rust decision-record registry",
+  "description": "Membership only. Each record's own front matter is the authority for its metadata, so this file lists paths and nothing a record already states.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "active_decision_records", "archived_decision_records"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "active_decision_records": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/activePath"
+      }
+    },
+    "archived_decision_records": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/archivedPath"
+      }
+    }
+  },
+  "$defs": {
+    "activePath": {
+      "type": "string",
+      "pattern": "^decisions/active/[a-z0-9_-]+(?:\\.[a-z0-9_-]+)*\\.md$"
+    },
+    "archivedPath": {
+      "type": "string",
+      "pattern": "^decisions/archive/[a-z0-9_-]+(?:\\.[a-z0-9_-]+)*\\.md$"
+    }
+  }
+}
