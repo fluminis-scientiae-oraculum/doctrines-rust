@@ -649,19 +649,27 @@ boundary map appropriate to the risk.
 ## RUST-DOC-0001-R002 — Represent mutually exclusive state as a sum type
 
 **Statement.** Contradictory field combinations MUST be replaced by an enum or equivalent sum
-type when domain states are mutually exclusive and carry state-specific data.
+type when domain states are mutually exclusive and carry state-specific data. A single field
+whose value selects among a closed, known set of mutually exclusive alternatives MUST likewise
+be decoded into a type that cannot hold a value outside that set, rather than retained as an
+unconstrained string or integer.
 
 **Intent.** Remove combinations such as `is_paid = true` with no receipt or simultaneous paid
-and failed flags from ordinary construction.
+and failed flags from ordinary construction, and remove the unconstrained discriminant, whose
+out-of-vocabulary values survive decoding to be compared against literals at every use.
 
 **Applicability.** Booleans, nullable fields, option groups, string discriminants, or structs
-whose validity depends on exclusive combinations.
+whose validity depends on exclusive combinations. A scalar constrained only in format, an open
+vocabulary, and a value that selects among no alternatives are outside the second obligation.
 
 **Allowed exceptions.** A foreign persistence or wire DTO may retain its external shape if it
-is untrusted and converted into a validated domain enum before use.
+is untrusted and converted into a validated domain enum before use. A vocabulary too large or
+too volatile to enumerate may use a validated newtype that rejects an unknown value at
+construction, provided the rejection is tested.
 
 **Review evidence.** State table, exhaustive matching, invalid-combination rejection at the
-boundary, and persistence evolution policy.
+boundary, decoding rejection of an unknown discriminant value, and persistence evolution
+policy.
 
 ## RUST-DOC-0001-R003 — Protect trusted newtype representation
 

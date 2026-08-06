@@ -43,3 +43,4 @@ the index.
 | [RFC-0001](RFC-0001-isolation-and-time-assumptions.md) | Make isolation anomalies and time assumptions enforceable | accepted |
 | [RFC-0002](RFC-0002-staged-protocols-and-successor-capabilities.md) | Add a doctrine for staged protocols and successor capabilities | accepted |
 | [RFC-0003](RFC-0003-executable-narrative-and-authority-partition.md) | Partition architectural authority and make decision records a last resort | accepted |
+| [RFC-0004](RFC-0004-closed-vocabulary-discriminants.md) | Make R002 reach the lone string discriminant its applicability already names | accepted |

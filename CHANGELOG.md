@@ -4,13 +4,35 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
-## [0.4.2] — 2026-08-06
+## [0.5.0] — 2026-08-06
 
-Repository tooling only. No normative rule, statement, allowed exception, or
-doctrine version changes. The corpus's own Rust code was audited against the
-corpus, and the defects below are the divergences that reproduced.
+The corpus's own Rust code was audited against the corpus. The defects below are
+the divergences that reproduced. Writing up the first of them exposed a defect in
+the doctrine rather than the code: no rule could be cited against it. RFC-0004
+amends `RUST-DOC-0001-R002` accordingly, which moves that doctrine to `0.2.0` and
+makes this a minor release rather than a patch.
 
-### Fixed in 0.4.2
+### Changed in 0.5.0
+
+- `RUST-DOC-0001-R002` gains a second obligation. Its applicability named string
+  discriminants while its statement reached only contradictory field combinations
+  carrying state-specific data, so a lone `status` field over four unit states
+  satisfied the applicability and the statement asked nothing of it. The rule was
+  applicable and vacuous, which is why the manifest defect below could not be
+  reported against it. A single field whose value selects among a closed, known
+  set of mutually exclusive alternatives must now be decoded into a type that
+  cannot hold a value outside that set. A new allowed exception routes a
+  vocabulary too large or too volatile to enumerate to a validated newtype whose
+  rejection of an unknown value is tested, so the rule does not require
+  enumerating every constrained string.
+
+  The rule keeps its identifier, title, and position, so existing citations
+  resolve. No rule is added, removed, or weakened, and the corpus keeps 207
+  normative rules. A system whose closed vocabulary reaches the domain as an
+  unconstrained scalar was conforming before and is not conforming now, which is
+  the minor version change. See `rfcs/accepted/RFC-0004-closed-vocabulary-discriminants.md`.
+
+### Fixed in 0.5.0
 
 - `bundle-agent-context` decoded the manifest `status` field as a `String` and
   never validated the manifest against `manifest/schema/doctrine.schema.json`,
@@ -48,6 +70,22 @@ corpus, and the defects below are the divergences that reproduced.
   `unsafe_code = "forbid"` twice, in `Cargo.toml` and as an inner attribute.
   The manifest declaration is kept and named as the scoped exception under
   `RUST-DOC-0001-R016`.
+- `RfcMetadata.status` was the one closed vocabulary still decoded as a string
+  after the sweep above. It is now a type, checked by test against the `rfcs/`
+  state directories that own the lifecycle. This is the amended
+  `RUST-DOC-0001-R002` applied to the corpus's own code, so the repository
+  conforms to the rule it publishes in the same release that publishes it.
+- `doctrine-lint` skipped a file it could not read during the repository-wide
+  forbidden-marker scan. Only directory-enumeration failures were reported, so a
+  single unreadable file left `check` exiting zero and calling the repository
+  valid. The read is now reported. Content that is not UTF-8 stays silent, since
+  the markers are Markdown filler and a binary file carries none.
+- `bundle-agent-context` turned a directory it could not enumerate into an empty
+  list, and discarded per-entry read failures. With `rfcs/accepted` unlistable,
+  `generate` rewrote the accepted-RFC index from its three rows to "no accepted
+  RFCs" and exited zero. The walk is now fallible and aborts generation. This is
+  the same class as the `doctrine-lint` fix above, which had been applied to only
+  one of the two tools.
 
 ## [0.4.1] — 2026-08-05
 

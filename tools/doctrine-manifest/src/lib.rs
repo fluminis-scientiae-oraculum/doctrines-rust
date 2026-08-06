@@ -168,6 +168,46 @@ impl fmt::Display for RecordStatus {
     }
 }
 
+/// Lifecycle an RFC declares in its own front matter.
+///
+/// The authority for this vocabulary is the set of state directories under `rfcs/`,
+/// which `rfcs/README.md` describes as the lifecycle an RFC moves through. The test
+/// below checks the variants against those directories rather than restating them.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd)]
+#[serde(rename_all = "lowercase")]
+pub enum RfcStatus {
+    Accepted,
+    Proposed,
+    Rejected,
+    Superseded,
+}
+
+impl RfcStatus {
+    /// Every state an RFC can be in, in the order the directories sort.
+    pub const ALL: [Self; 4] = [
+        Self::Accepted,
+        Self::Proposed,
+        Self::Rejected,
+        Self::Superseded,
+    ];
+
+    /// The wire spelling of this status.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Accepted => "accepted",
+            Self::Proposed => "proposed",
+            Self::Rejected => "rejected",
+            Self::Superseded => "superseded",
+        }
+    }
+}
+
+impl fmt::Display for RfcStatus {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
 /// `manifest/doctrines.yaml`.
 #[derive(Debug, Deserialize)]
 pub struct DoctrineManifest {
@@ -303,7 +343,7 @@ pub fn front_matter(text: &str) -> Result<&str, FrontMatterError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{AgentRole, DoctrineStatus, FrontMatterError, Verbosity, front_matter};
+    use super::{AgentRole, DoctrineStatus, FrontMatterError, RfcStatus, Verbosity, front_matter};
     use serde_json::Value;
     use std::fs;
     use std::path::PathBuf;
@@ -379,6 +419,34 @@ mod tests {
         let modelled: Vec<String> = Verbosity::ALL
             .iter()
             .map(|verbosity| verbosity.as_str().to_owned())
+            .collect();
+        assert_eq!(declared, modelled);
+    }
+
+    /// The `rfcs/` state directories are the authority for the RFC lifecycle, so the
+    /// variants are checked against them rather than restated from `rfcs/README.md`.
+    /// A new state directory without a matching variant fails here.
+    #[test]
+    fn rfc_status_variants_match_the_state_directories() {
+        let rfcs = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .join("rfcs");
+        let mut declared: Vec<String> = fs::read_dir(&rfcs)
+            .unwrap_or_else(|error| panic!("read {}: {error}", rfcs.display()))
+            .map(|entry| entry.expect("read a directory entry").path())
+            .filter(|path| path.is_dir())
+            .map(|path| {
+                path.file_name()
+                    .expect("directory name")
+                    .to_string_lossy()
+                    .into_owned()
+            })
+            .collect();
+        declared.sort();
+
+        let modelled: Vec<String> = RfcStatus::ALL
+            .iter()
+            .map(|status| status.as_str().to_owned())
             .collect();
         assert_eq!(declared, modelled);
     }

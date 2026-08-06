@@ -19,16 +19,21 @@ residual uncertainty.
 
 ## Gate 2 — Mutually exclusive states
 
-**Question.** Can booleans, options, or discriminants express contradictory states?
+**Question.** Can booleans, options, or discriminants express contradictory states, and can a
+field carrying a closed vocabulary hold a value outside it?
 
 **Pass evidence.** Enum variants carry only relevant data; external DTO contradiction is
-rejected during conversion.
+rejected during conversion; a closed vocabulary is decoded into a type that cannot hold an
+unknown value, or into a validated newtype whose rejection of one is tested.
 
-**Failure examples.** Paid without receipt; failed and submitted simultaneously.
+**Failure examples.** Paid without receipt; failed and submitted simultaneously; a status field
+decoded as a string and compared against literals, so a misspelled value matches no branch and
+is silently treated as absent.
 
 **Severity.** Major.
 
-**Remediation.** Introduce a sum type and migration plan.
+**Remediation.** Introduce a sum type and migration plan; decode the vocabulary at the boundary
+and replace literal comparisons with matching.
 
 ## Gate 3 — Construction protection
 

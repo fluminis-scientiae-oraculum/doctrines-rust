@@ -1,4 +1,4 @@
-use doctrine_manifest::{AgentManifest, AgentPack, DoctrineManifest, front_matter};
+use doctrine_manifest::{AgentManifest, AgentPack, DoctrineManifest, RfcStatus, front_matter};
 use serde::Deserialize;
 use std::collections::BTreeSet;
 use std::env;
@@ -86,7 +86,7 @@ rfcs/accepted/RFC-*.md.\n-->\n";
 struct RfcMetadata {
     id: String,
     title: String,
-    status: String,
+    status: RfcStatus,
 }
 
 #[derive(Debug, Eq, PartialEq)]
