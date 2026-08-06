@@ -1,6 +1,7 @@
 use doctrine_manifest::{
     AgentManifest, AgentPack, AgentRole, DecisionRecordMetadata, DecisionRecordRegistry,
-    DoctrineEntry, DoctrineManifest, DoctrineMetadata, RecordStatus, front_matter,
+    DoctrineEntry, DoctrineManifest, DoctrineMetadata, RecordStatus, SourcePolicy, Verbosity,
+    front_matter, markers, states_obligations,
 };
 use serde_json::Value;
 use std::collections::BTreeSet;
@@ -228,6 +229,7 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     let rules = check_doctrines(root, &doctrine_manifest, &mut diagnostics);
     check_doctrine_index(root, &doctrine_manifest, &mut diagnostics);
     check_stated_counts(root, &doctrine_manifest, &rules, &mut diagnostics);
+    check_evidence_rule_counts(root, &doctrine_manifest, &rules, &mut diagnostics);
     check_rule_citations(root, &rules.all, &mut diagnostics);
     check_validation_sequence_copies(root, &mut diagnostics);
     check_repository_version(root, &doctrine_manifest, &mut diagnostics);
@@ -235,6 +237,9 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     check_decision_records(root, &agent_manifest, &mut diagnostics);
     check_forbidden_markers(root, &mut diagnostics);
     check_normative_scope(root, &mut diagnostics);
+    check_verbosity_annotations(root, &doctrine_manifest, &agent_manifest, &mut diagnostics);
+    check_reserved_ceiling(root, &agent_manifest, &mut diagnostics);
+    check_alert_vocabulary(root, &mut diagnostics);
     check_generated_files(root, &mut diagnostics);
     diagnostics
 }
@@ -1183,8 +1188,9 @@ fn check_agent_pack<'a>(
             format!("agent {} purpose is too short", pack.id),
         ));
     }
-    // `maximum_verbosity` needs no check here. It decodes into `Verbosity`, so a value
-    // outside the schema's vocabulary fails when the manifest is parsed.
+    // `maximum_verbosity` needs no vocabulary check here. It decodes into `Verbosity`, so
+    // a value outside the schema fails when the manifest is parsed. Which tiers a pack may
+    // declare is a separate question, answered by `check_reserved_ceiling`.
     if !orderings.insert(pack.ordering) {
         diagnostics.push(Diagnostic::new(
             manifest_path,
@@ -1617,6 +1623,168 @@ fn contains_normative_term(line: &str) -> bool {
         .any(|word| matches!(word, "MUST" | "SHOULD" | "MAY"))
 }
 
+/// The generated files that live inside a canonical root rather than under `dist/`.
+///
+/// Each carries a banner comment naming its sources, so each is exempt from the scan that
+/// treats an HTML comment as a candidate verbosity annotation. They are named rather than
+/// pattern-matched, so a hand-written file cannot acquire the exemption by resembling one.
+const GENERATED_IN_CANONICAL_ROOTS: &[&str] = &["rfcs/accepted/README.md", "doctrines/map.md"];
+
+/// The alert vocabulary the corpus uses, and what each one asserts.
+///
+/// A callout is closed to these five because the idiomatic use of a callout is to restate
+/// the key point, and a hand-written restatement of an enforced claim is what
+/// `RUST-DOC-0011-R004` prohibits. Each entry here instead marks a distinction the corpus
+/// already draws, so the device carries meaning rather than emphasis.
+const ALERT_VOCABULARY: &[&str] = &["NOTE", "TIP", "IMPORTANT", "WARNING", "CAUTION"];
+
+/// The evidence map, which carries one hand-written rule count per doctrine.
+const EVIDENCE_MAP: &str = "EVIDENCE.md";
+
+/// Rejects a per-doctrine rule count in the evidence map that disagrees with the corpus.
+///
+/// `check_stated_counts` only sees an integer immediately before one of three literal
+/// phrases, so a bare `| 22 |` in a table cell was invisible to it. That left eleven
+/// machine-derivable integers maintained by hand with nothing checking them, which is the
+/// drift `RUST-DOC-0011-R004` prohibits. Recomputing them is what makes the column a
+/// checked view rather than a second source.
+fn check_evidence_rule_counts(
+    root: &Path,
+    manifest: &DoctrineManifest,
+    rules: &RuleInventory,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    let path = root.join(EVIDENCE_MAP);
+    let Some(text) = read_text(&path, diagnostics) else {
+        return;
+    };
+    let rows: Vec<Vec<String>> = text.lines().filter_map(table_row_cells).collect();
+
+    for entry in manifest.active() {
+        let prefix = format!("{}-R", entry.id);
+        let expected = rules
+            .all
+            .iter()
+            .filter(|rule| rule.starts_with(&prefix))
+            .count();
+        let stated = rows
+            .iter()
+            .find(|cells| cells.iter().any(|cell| cell.contains(&entry.id)))
+            .and_then(|cells| cells.iter().find_map(|cell| cell.parse::<usize>().ok()));
+        match stated {
+            Some(count) if count == expected => {}
+            Some(count) => diagnostics.push(Diagnostic::new(
+                &path,
+                format!(
+                    "states {count} rules for {}; the corpus has {expected}",
+                    entry.id
+                ),
+            )),
+            None => diagnostics.push(Diagnostic::new(
+                &path,
+                format!("has no table row stating a rule count for {}", entry.id),
+            )),
+        }
+    }
+}
+
+/// Rejects an HTML comment in maintained canonical Markdown that is not a well-formed
+/// verbosity annotation.
+///
+/// The sentinel is the comment opener rather than the word the annotation uses, so a near
+/// miss is reported instead of silently doing nothing. The grammar itself lives in
+/// `doctrine-manifest` and is called rather than restated, so this tool and the bundler
+/// cannot disagree about which lines are annotations.
+fn check_verbosity_annotations(
+    root: &Path,
+    doctrines: &DoctrineManifest,
+    agents: &AgentManifest,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    for path in maintained_markdown(root, diagnostics) {
+        let relative = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        if GENERATED_IN_CANONICAL_ROOTS.contains(&relative.as_str()) {
+            continue;
+        }
+        let Some(text) = read_text(&path, diagnostics) else {
+            continue;
+        };
+        // Validation does not consult a ceiling; only whether the file states obligations
+        // changes what is accepted. The ceiling a pack applies is the bundler's concern.
+        let policy = if states_obligations(&relative, doctrines, agents) {
+            SourcePolicy::Normative
+        } else {
+            SourcePolicy::Tiered(Verbosity::Exhaustive)
+        };
+        if let Err(error) = markers(&text, policy) {
+            diagnostics.push(Diagnostic::new(&path, error.to_string()));
+        }
+    }
+}
+
+/// Rejects an agent pack declared at the widest verbosity the schema permits.
+///
+/// The widest tier is reserved so that a section annotated with it reaches
+/// `dist/full-doctrine.md` and no agent pack. That reservation is what lets the corpus
+/// gain reader-facing material without any pack growing, so it is enforced here rather
+/// than left as a convention a one-word manifest edit could end.
+fn check_reserved_ceiling(root: &Path, agents: &AgentManifest, diagnostics: &mut Vec<Diagnostic>) {
+    let Some(reserved) = Verbosity::ALL.last() else {
+        return;
+    };
+    let path = root.join("manifest/agents.yaml");
+    for pack in &agents.packs {
+        if pack.maximum_verbosity == *reserved {
+            diagnostics.push(Diagnostic::new(
+                &path,
+                format!(
+                    "agent {} declares the reserved {reserved} ceiling; that tier carries \
+                     reader-facing material to dist/full-doctrine.md and no pack",
+                    pack.id
+                ),
+            ));
+        }
+    }
+}
+
+/// Rejects an alert outside the closed vocabulary.
+///
+/// An unrecognized alert renders as an ordinary blockquote on every viewer, so the
+/// mistake is invisible in the rendered document and only a scan finds it.
+fn check_alert_vocabulary(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
+    for path in maintained_markdown(root, diagnostics) {
+        let Some(text) = read_text(&path, diagnostics) else {
+            continue;
+        };
+        for (index, line) in text.lines().enumerate() {
+            if let Some(name) = unknown_alert(line) {
+                diagnostics.push(Diagnostic::new(
+                    &path,
+                    format!(
+                        "line {} uses the alert {name:?}, which is outside the corpus vocabulary",
+                        index + 1
+                    ),
+                ));
+            }
+        }
+    }
+}
+
+/// The alert name on a line, when that name is outside the corpus vocabulary.
+fn unknown_alert(line: &str) -> Option<&str> {
+    let rest = line.trim_start().strip_prefix("> [!")?;
+    let name = rest.split(']').next()?;
+    if ALERT_VOCABULARY.contains(&name) {
+        None
+    } else {
+        Some(name)
+    }
+}
+
 fn check_generated_files(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     let dist = root.join("dist");
     if !dist.is_dir() {
@@ -1846,8 +2014,9 @@ mod tests {
         workspace_package_version,
     };
     use super::{
-        RuleInventory, check_stated_counts, collect_files, doctrine_index_rows, root_documents,
-        scan_marker_file, table_row_cells, validation_sequence_copies,
+        GENERATED_IN_CANONICAL_ROOTS, RuleInventory, check_reserved_ceiling, check_stated_counts,
+        collect_files, doctrine_index_rows, maintained_markdown, root_documents, scan_marker_file,
+        table_row_cells, unknown_alert, validation_sequence_copies,
     };
     use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity};
     use std::collections::BTreeSet;
@@ -1942,6 +2111,72 @@ mod tests {
                 ),
             ],
         }
+    }
+
+    /// The widest tier carries reader-facing material into `dist/full-doctrine.md` and no
+    /// pack. Enforcing that reservation is what lets the corpus gain navigation and
+    /// commentary without any generated pack growing.
+    #[test]
+    fn the_reserved_ceiling_rejects_only_the_widest_tier() {
+        let reserved = *Verbosity::ALL.last().expect("a verbosity vocabulary");
+        for verbosity in Verbosity::ALL {
+            let mut pack = agent_pack(Vec::new());
+            pack.maximum_verbosity = verbosity;
+            let manifest = AgentManifest {
+                schema_version: "1.0".to_owned(),
+                packs: vec![pack],
+            };
+            let mut diagnostics = Vec::new();
+            check_reserved_ceiling(Path::new("."), &manifest, &mut diagnostics);
+            assert_eq!(
+                diagnostics.len(),
+                usize::from(verbosity == reserved),
+                "{verbosity} was judged wrongly"
+            );
+        }
+    }
+
+    #[test]
+    fn an_alert_outside_the_vocabulary_is_named() {
+        assert_eq!(unknown_alert("> [!HINT]"), Some("HINT"));
+        assert_eq!(unknown_alert("> [!Note]"), Some("Note"));
+        for name in ["NOTE", "TIP", "IMPORTANT", "WARNING", "CAUTION"] {
+            assert_eq!(unknown_alert(&format!("> [!{name}]")), None);
+        }
+        assert_eq!(unknown_alert("> An ordinary blockquote."), None);
+        assert_eq!(unknown_alert("Prose mentioning [!HINT] inline."), None);
+    }
+
+    /// The annotation scan treats every HTML comment as a candidate, which is only free
+    /// while the corpus carries none outside the generated files that declare their own
+    /// sources.
+    ///
+    /// The assertion is containment rather than equality. A generated file is produced by
+    /// `bundle-agent-context`, so a working tree that has not been regenerated legitimately
+    /// lacks one the constant names, and requiring equality would make this test depend on
+    /// whether generation had run.
+    #[test]
+    fn the_corpus_carries_no_html_comment_outside_the_generated_files() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let permitted: BTreeSet<&str> = GENERATED_IN_CANONICAL_ROOTS.iter().copied().collect();
+        let carriers: BTreeSet<String> = maintained_markdown(&root, &mut Vec::new())
+            .into_iter()
+            .filter(|path| fs::read_to_string(path).is_ok_and(|text| text.contains("<!--")))
+            .map(|path| {
+                path.strip_prefix(&root)
+                    .unwrap_or(&path)
+                    .to_string_lossy()
+                    .replace('\\', "/")
+            })
+            .collect();
+        let unexpected: Vec<&String> = carriers
+            .iter()
+            .filter(|path| !permitted.contains(path.as_str()))
+            .collect();
+        assert!(
+            unexpected.is_empty(),
+            "a new HTML comment in canonical Markdown must be a verbosity annotation: {unexpected:?}"
+        );
     }
 
     fn agent_pack(canonical_sources: Vec<String>) -> AgentPack {
