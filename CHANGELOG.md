@@ -32,6 +32,15 @@ restructuring rather than for added obligations.
 - Breadcrumb navigation on the fifty case-study and source-note leaves, which
   previously had no path to their own index, and live links throughout the root
   README reading paths and the package `Related material` sections.
+- Orientation pages for twenty-one directories that held content and no index:
+  each case study, each source package, `templates/`, `manifest/`, and
+  `manifest/schema/`. They carry only what is not stated elsewhere — the
+  subject, an ordered path through the directory, and a pointer to the single
+  description of what each file holds — because the four-file arc and the
+  provenance file roles are each already described once, and repeating them per
+  directory is the duplication `RUST-DOC-0011-R017` asks a review to remove.
+  None reaches a generated pack: no manifest references these directories, so
+  they are reader-facing by location rather than by annotation.
 - A closed callout vocabulary. An alert marks a distinction the corpus already draws
   rather than restating a claim, and `doctrine-lint` rejects any other alert name.
 
