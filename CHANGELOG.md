@@ -4,6 +4,71 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.4.1] — 2026-08-05
+
+Documentation coherency only. No normative rule, statement, allowed exception,
+or doctrine version changes.
+
+### Fixed in 0.4.1
+
+- The root `README.md` doctrine index listed nine doctrines while claiming to be
+  synchronized with `manifest/doctrines.yaml`, which by then held eleven. That
+  table was a third representation of a fact the manifest owns and
+  `doctrines/README.md` already presented, and it also propagated into
+  `dist/full-doctrine.md`. The duplicate is removed; the root README now links to
+  the doctrine index instead of repeating it.
+- `doctrine-lint` now checks the surviving doctrine index against the manifest:
+  every active doctrine needs a row naming its identifier and its exact manifest
+  title on one line, and the index may not list a doctrine the manifest does not
+  carry as active. A prose cross-reference does not satisfy the row requirement,
+  which is how the shipped index concealed a missing row.
+- The root `README.md` claimed repository version `0.2.0`. It now names no
+  version number at all and points at the manifest, so the same defect cannot
+  recur there.
+- `doctrines/README.md` said the repository release and every doctrine were at
+  `0.1.0`; repository and doctrine versions have since diverged.
+- The generated-file set was described as `dist/` alone in `README.md`,
+  `CONTRIBUTING.md`, `agents/shared.md`, and the pull-request template, although
+  `rfcs/accepted/README.md` became generated in 0.4.0. All four now name both,
+  and the documented drift-gate command covers both paths.
+- `decisions/` was absent from the canonical-root list and the architecture
+  section of `README.md`.
+- The reading paths in `README.md` did not mention RUST-DOC-0011, the executable
+  narrative review, or the maintainer's decision-record obligations.
+- `doctrines/0004-concurrency-and-async/README.md` referred to "the 0.1.0
+  workspace".
+- `EVIDENCE.md` was absent from the linter's root-document list, so it had never
+  been scanned for normative-term scope, and the new counted-claim check silently
+  skipped the corpus document carrying the most derived numbers. Every Markdown
+  file at the repository root is now scanned.
+
+### Added in 0.4.1
+
+- A counted-claim check. Prose stating a number of normative rules, doctrine
+  packages, or active doctrines is compared against the recomputed corpus, so a
+  hand-maintained number cannot silently disagree with the manifest.
+- A rule-citation check. Every `RUST-DOC-NNNN-RNNN` cited in maintained canonical
+  Markdown must resolve to a rule a doctrine defines. The corpus already required
+  each rule to appear in its own review standard; nothing checked the reverse, so
+  a renamed or removed rule left dangling citations that read as authoritative.
+- Both checks exempt dated records, which state the contract as it stood when a
+  decision was taken and are not maintained afterwards, as
+  `RUST-DOC-0011-R011` and `RUST-DOC-0011-R019` permit. Rewriting them to satisfy
+  a linter would destroy the record. The exemption follows artifact lifecycle
+  rather than directory membership: the RFC documents themselves in any lifecycle
+  state, archived decision records, and `CHANGELOG.md`. Maintained governance
+  around them stays scanned, including `rfcs/README.md`, the state-directory
+  READMEs, and `rfcs/accepted/overview.md`, which cites live rule identifiers.
+- A duplicated-validation-sequence check. The local validation sequence was
+  carried in full by `README.md`, `AGENTS.md`, and the pull-request template at
+  once, so a change to any gate had to be made in three places correctly with
+  nothing announcing a miss. `README.md` now owns it, the other two link to it,
+  and `doctrine-lint` counts fenced blocks carrying three or more validation
+  commands and requires exactly one, in the owner.
+- Root Markdown files are discovered from the directory rather than listed in a
+  constant, so a future root document is covered on the day it is added rather
+  than when someone remembers the inventory.
+
 ## [0.4.0] — 2026-08-04
 
 ### Changed in 0.4.0

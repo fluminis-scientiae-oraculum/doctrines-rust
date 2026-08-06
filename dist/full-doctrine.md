@@ -121,6 +121,8 @@ Canonical content has distinct responsibilities:
 - `examples/` provides positive tests, compiler-rejection evidence, and an
   isolated unsafe abstraction checked under Miri.
 - `sources/` records provenance, accepted ideas, refinements, and doctrine additions.
+- `decisions/` holds the architecture decision records that survive the last-resort test in
+  RUST-DOC-0011, with their template and worked examples. The active set is currently empty.
 - `templates/` and `rfcs/` govern future doctrine work.
 - `manifest/` exposes doctrine and agent-pack discovery through YAML validated against Draft
   2020-12 JSON Schemas.
@@ -137,21 +139,25 @@ evidence by doctrine and names the material gaps that remain.
 ## Canonical and generated content
 
 Canonical doctrine lives under `foundations/`, `doctrines/`, `patterns/`, `boundaries/`,
-`reviews/`, `agents/`, `case-studies/`, `templates/`, `rfcs/`, and `sources/`. Generated
-hydration bundles live under `dist/`.
+`reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
 
-Files in `dist/` are deterministic projections of canonical sources. Every generated file
-contains a warning banner and source-path provenance headings. Do not edit those files
-directly. After a canonical change, run:
+Two kinds of file are generated and are never edited by hand:
+
+- everything under `dist/`, the hydration bundles projected from canonical sources;
+- `rfcs/accepted/README.md`, the accepted-RFC index, built from `rfcs/accepted/overview.md`
+  and the front matter of each accepted RFC.
+
+Every generated file carries a banner naming the sources it was built from. After a canonical
+change, run:
 
 ```bash
 cargo run -p bundle-agent-context -- generate
 cargo run -p bundle-agent-context -- check
 ```
 
-`check` reconstructs expected bytes in memory and fails if a tracked distribution differs.
-This separation permits compact agent loading without creating a second manually maintained
-doctrine.
+`check` reconstructs expected bytes in memory and fails if any generated file differs, whether
+or not it lives under `dist/`. This separation permits compact agent loading, and a current
+index, without creating a second manually maintained doctrine.
 
 ## Reading paths
 
@@ -174,7 +180,13 @@ under `dist/agents/` combine those overlays with selected canonical rules.
   unchecked decoding, authority leakage, unsafe retry, and misleading claims.
 - A maintainer reads `foundations/normative-language.md`, `agents/maintainer.md`,
   `rfcs/README.md`, and the affected source notes before changing meaning, versions,
-  manifests, or generated outputs.
+  manifests, or generated outputs. It also revalidates or expires active decision records under
+  `decisions/`.
+- Any role about to write a document first applies RUST-DOC-0011 and
+  `reviews/executable-narrative-review.md`: classify the claim, name the single artifact
+  authoritative for it, prefer moving an enforceable obligation into the mechanism that enforces
+  it, and write a decision record only for a fact no artifact can carry. The most common correct
+  outcome is that no document is added.
 - A human architect normally reads all foundations, Doctrine 0001, the doctrines relevant to
   the system's risks, the decision frameworks, and one structurally similar case study.
 
@@ -188,27 +200,23 @@ hydration bundle.
 
 ## Doctrine index
 
-This index is synchronized with `manifest/doctrines.yaml`, which is the machine-readable
-discovery source.
+`manifest/doctrines.yaml` is the machine-readable discovery source, and
+[`doctrines/README.md`](../doctrines/README.md) is the reader-facing index derived from it. This
+file deliberately does not repeat that table. It previously did, and the copy was wrong within
+one release: two doctrines were added and the table still listed nine while claiming to be
+synchronized with the manifest. `doctrine-lint` now checks the surviving index against the
+manifest, so a doctrine cannot be added without the index following.
 
-| ID            | Active doctrine                                                                                          | Principal concern                                                                  |
-| ------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| RUST-DOC-0001 | [Making Invalid States Unrepresentable](../doctrines/0001-invalid-states/README.md)                         | Invariant discovery, representation, construction, transitions, honest uncertainty |
-| RUST-DOC-0002 | [Error Modeling as Domain Design](../doctrines/0002-error-modeling/README.md)                               | Structured failure, recoverability, retryability, panic boundaries                 |
-| RUST-DOC-0003 | [Ownership as Authority and Lifecycle](../doctrines/0003-ownership-and-capabilities/README.md)              | Exclusive custody, capabilities, transfer, revocation, secrets                     |
-| RUST-DOC-0004 | [Concurrency and Async Correctness](../doctrines/0004-concurrency-and-async/README.md)                      | Cancellation, backpressure, task ownership, synchronization                        |
-| RUST-DOC-0005 | [Persistence Boundaries and Domain Integrity](../doctrines/0005-persistence-boundaries/README.md)           | Decoding, migrations, transactions, historical data                                |
-| RUST-DOC-0006 | [Distributed Effects, Uncertainty, and Reconciliation](../doctrines/0006-distributed-uncertainty/README.md) | Idempotency, ambiguity, duplicates, reconciliation                                 |
-| RUST-DOC-0007 | [Unsafe Rust as a Proof Obligation](../doctrines/0007-unsafe-rust/README.md)                                | Safety invariants, encapsulation, FFI, validation tooling                          |
-| RUST-DOC-0008 | [Testing as Layered Evidence](../doctrines/0008-testing-and-evidence/README.md)                             | Evidence scope, forbidden programs, faults, model checking                         |
-| RUST-DOC-0009 | [Performance Claims Require Measurement](../doctrines/0009-performance-and-measurement/README.md)           | Workloads, profiling, distributions, regressions                                   |
+That is `RUST-DOC-0011-R004` and `RUST-DOC-0011-R017` applied to this repository's own front
+page: one authority, one mechanically checked view, and no third copy to keep in step.
 
-All doctrines began at version `0.1.0`. Repository `0.2.0` adds compatible
-normative requirements but does not claim `1.0` semantic stability. Patch
-releases clarify without changing normative meaning; minor releases add
-normative requirements or substantial compatible material; major releases may
-make normative contracts incompatible. Individual doctrines version
-independently.
+The corpus does not claim `1.0` semantic stability, and doctrines version independently of the
+repository and of each other. Patch releases clarify without changing normative meaning; minor
+releases add normative requirements or substantial compatible material; major releases may make
+normative contracts incompatible. The current repository version is `repository_version` in
+`manifest/doctrines.yaml`, which `doctrine-lint` holds equal to the workspace package version;
+per-doctrine versions and status live in the same manifest and in each package's front matter.
+This file names no version number, for the same reason it no longer repeats the index.
 
 ## Local validation
 
@@ -227,7 +235,7 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
 cargo run -p doctrine-lint -- check
 cargo run -p bundle-agent-context -- generate
-git diff --exit-code -- dist/
+git diff --exit-code -- dist/ rfcs/accepted/README.md
 cargo run -p bundle-agent-context -- check
 cargo deny check
 lychee --no-progress '**/*.md'
@@ -235,9 +243,10 @@ git diff --check
 ```
 
 Run `npm run format:markdown` to format canonical and repository-governance Markdown before
-regenerating bundles. Prettier deliberately ignores `dist/`; generated Markdown changes only
-through `bundle-agent-context`. The workspace test command includes the `trybuild` compile-fail
-suite. CI exposes Markdown dependency audit, format, and lint as a distinct pull-request gate,
+regenerating bundles. Prettier deliberately ignores every generated file, `dist/` and the
+accepted-RFC index alike; generated Markdown changes only through `bundle-agent-context`. The
+workspace test command includes the `trybuild` compile-fail suite. CI exposes Markdown
+dependency audit, format, and lint as a distinct pull-request gate,
 then repeats Rust formatting, Clippy, tests, schema validation, bundle drift detection,
 dependency policy, and link checks with read-only repository permissions. CI confirms locally
 discovered behavior; it is not the first compiler, linter, or formatter.
@@ -4530,7 +4539,7 @@ can be rolled back.
 
 ## Executable evidence status
 
-The 0.1.0 workspace demonstrates ownership-consuming transitions, a fallible
+The example workspace demonstrates ownership-consuming transitions, a fallible
 connection protocol, and compiler rejection of sending through a locally closed
 connection. It does not include an async-runtime integration, cancellation
 harness, deadlock detector, Loom model, or backpressure load test. Systems
@@ -17755,7 +17764,9 @@ Never claim:
 
 ## Canonical and generated sources
 
-Never edit `dist/` manually. Change canonical material, update manifests where
+Never edit a generated file manually: everything under `dist/`, and the
+accepted-RFC index `rfcs/accepted/README.md`. Each carries a banner naming its
+sources. Change canonical material, update manifests where
 selection changes, regenerate, and check deterministic output. Generated text
 must retain its banner and source provenance. A bundle mismatch is a failed
 repository state.

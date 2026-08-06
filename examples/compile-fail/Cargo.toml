@@ -7,7 +7,7 @@ rust-version.workspace = true
 publish = false
 
 [dev-dependencies]
-staged-protocol = { version = "0.4.0", path = "../staged-protocol" }
+staged-protocol = { version = "0.4.1", path = "../staged-protocol" }
 trybuild.workspace = true
 
 [lints]

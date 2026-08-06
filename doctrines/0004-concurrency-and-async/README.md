@@ -107,7 +107,7 @@ can be rolled back.
 
 ## Executable evidence status
 
-The 0.1.0 workspace demonstrates ownership-consuming transitions, a fallible
+The example workspace demonstrates ownership-consuming transitions, a fallible
 connection protocol, and compiler rejection of sending through a locally closed
 connection. It does not include an async-runtime integration, cancellation
 harness, deadlock detector, Loom model, or backpressure load test. Systems

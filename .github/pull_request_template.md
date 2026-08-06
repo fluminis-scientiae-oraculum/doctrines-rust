@@ -18,8 +18,8 @@
 - [ ] Compiler `.stderr` changes were inspected for semantic cause, not accepted mechanically.
 - [ ] Canonical sources were changed before generated bundles.
 - [ ] Canonical and governance Markdown passes the pinned formatter and linter.
-- [ ] `cargo run -p bundle-agent-context -- generate` regenerated `dist/`.
-- [ ] No file under `dist/` was edited directly.
+- [ ] `cargo run -p bundle-agent-context -- generate` regenerated every generated file.
+- [ ] No generated file was edited directly (`dist/**`, `rfcs/accepted/README.md`).
 
 ## Guarantee ledger
 
@@ -29,23 +29,12 @@
 
 ## Local validation
 
-Record exact commands and observed outcomes.
+Run the complete local validation sequence in the root
+[`README.md`](../README.md#local-validation), then record the exact commands and their
+observed outcomes here. Do not restate the sequence: it is maintained in one place.
 
 ```text
-npm ci --ignore-scripts --no-audit
-npm audit --audit-level=high
-npm run check:markdown-format
-npm run lint:markdown
-cargo fmt --all --check
-cargo clippy --workspace --all-targets --all-features -- -D warnings
-cargo test --workspace --all-features
-cargo run -p doctrine-lint -- check
-cargo run -p bundle-agent-context -- generate
-git diff --exit-code -- dist/
-cargo run -p bundle-agent-context -- check
-cargo deny check
-lychee --no-progress '**/*.md'
-git diff --check
+<command>    <observed result>
 ```
 
 ## Review evidence
