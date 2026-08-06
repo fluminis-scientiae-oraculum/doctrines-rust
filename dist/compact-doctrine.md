@@ -6,6 +6,12 @@ Canonical sources live under /foundations, /doctrines, /patterns,
 
 # Compact Rust doctrine hydration
 
+## Assembly
+
+Ceiling `focused`, the narrowest the schema declares, applied by `bundle-agent-context`. A section annotated above that ceiling is withheld here. Nothing was withheld at this ceiling.
+
+Obligations are never withheld. A doctrine's normative file, every foundation, and every review checklist carry no annotation, and generation rejects one. Canonical sources carry every section, and `dist/full-doctrine.md` carries the corpus with no ceiling applied.
+
 ---
 
 ## Source: `agents/compact-core.md`
@@ -76,8 +82,8 @@ aspiration.
 # Foundations
 
 Foundations define the vocabulary and reasoning contracts used by every doctrine in this
-repository. They are separate because a doctrine should not privately redefine “invariant,”
-“evidence,” “trusted,” “guarantee,” or the force of `MUST`. A shared definition lets rule IDs
+repository. They are separate because a doctrine should not privately redefine "invariant,"
+"evidence," "trusted," "guarantee," or the force of `MUST`. A shared definition lets rule IDs
 compose across domain modeling, errors, persistence, distributed effects, unsafe code,
 testing, and performance.
 
@@ -164,7 +170,7 @@ are representations from outside the current domain proof.
 ### Review procedure
 
 A review procedure is operational. Each item must be recorded as pass, fail, not applicable,
-or a waiver reference. A prose assertion such as “validation looks adequate” is weaker than
+or a waiver reference. A prose assertion such as "validation looks adequate" is weaker than
 evidence naming every constructor and decoding route. Review does not manufacture proof; it
 checks whether the mechanism and evidence support the claim.
 
@@ -364,8 +370,8 @@ compiler diagnostics without semantic inspection weakens evidence.
 
 ## Language discipline
 
-Prefer “establishes,” “prevents through safe public construction,” “records that,” and “was
-observed” over absolute terms such as “ensures forever.” Pair a guarantee with its
+Prefer "establishes," "prevents through safe public construction," "records that," and "was
+observed" over absolute terms such as "ensures forever." Pair a guarantee with its
 non-guarantee in the same section. If a type name repeatedly invites a stronger inference,
 rename it rather than relying on distant caveats.
 
@@ -400,7 +406,7 @@ The first selection table is:
 | External success/failure              | `Result`                                           |
 | Indeterminate distributed outcome     | explicit unknown/reconciliation state              |
 
-“Preferred” means first candidate, not automatic answer. Multiple mechanisms often compose.
+"Preferred" means first candidate, not automatic answer. Multiple mechanisms often compose.
 
 ## Operational decision tree
 

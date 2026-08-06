@@ -18,13 +18,13 @@ All files under `/dist` are deterministic outputs of
 
 Generate with:
 
-```text
+```bash
 cargo run -p bundle-agent-context -- generate
 ```
 
 Check for drift with:
 
-```text
+```bash
 cargo run -p bundle-agent-context -- check
 ```
 

@@ -4,6 +4,53 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.6.0] — 2026-08-06
+
+A declared field that enforced nothing became real, and the corpus became navigable.
+`manifest/agents.yaml` has always declared a `maximum_verbosity` per agent pack; the
+bundler had never read it, and the measured pack sizes ran contrary to the order it
+declared, with the pack labelled most focused thirty-five percent larger than one
+labelled less focused. RFC-0005 gives the field an effect and reserves its widest
+tier, which is what lets the corpus gain reading aids without any generated pack
+growing. No normative rule changes, so this is a minor release for distribution
+restructuring rather than for added obligations.
+
+### Added in 0.6.0
+
+- A verbosity annotation for a Markdown section, parsed once in `doctrine-manifest`
+  and used by both tools. A generated output receives a section only when its ceiling
+  is at least the annotation's tier, and every annotation is stripped from generated
+  output. Comments inside fenced code are ignored, so a document can show the syntax
+  without the example being read as an instruction.
+- An `## Assembly` note in every filtered distribution, naming the ceiling applied,
+  where it is declared, and how much it withheld. It is emitted even when nothing was
+  withheld, so a reader can distinguish that from a forgotten disclosure. Each
+  withheld run is replaced in place by a receipt naming the sections and their tiers.
+- `doctrines/map.md`, a generated coverage map showing which doctrine each role pack
+  hydrates. It is the transpose of six `doctrine_selections` lists, which the corpus
+  carried but no document presented.
+- Breadcrumb navigation on the fifty case-study and source-note leaves, which
+  previously had no path to their own index, and live links throughout the root
+  README reading paths and the package `Related material` sections.
+- A closed callout vocabulary. An alert marks a distinction the corpus already draws
+  rather than restating a claim, and `doctrine-lint` rejects any other alert name.
+
+### Changed in 0.6.0
+
+- The `auditor` pack moves from `exhaustive` to `detailed`. The widest tier is now
+  reserved from every pack: a pack at that ceiling withholds nothing by definition, so
+  it would absorb the whole of any canonical growth and get strictly larger.
+- Double quotes are normalized to the corpus majority and eighteen em dashes gain the
+  spacing the other two hundred and seventy-eight already use. Shell blocks under
+  `agents/` are fenced as `bash` rather than `text`.
+
+### Fixed in 0.6.0
+
+- The per-doctrine rule counts in `EVIDENCE.md` were eleven machine-derivable integers
+  maintained by hand with nothing checking them. `check_stated_counts` could not see
+  them, because it only matches an integer immediately before one of three literal
+  phrases and these sit alone in a table cell. They are recomputed and compared now.
+
 ## [0.5.0] — 2026-08-06
 
 The corpus's own Rust code was audited against the corpus. The defects below are

@@ -8,6 +8,12 @@ Canonical sources live under /foundations, /doctrines, /patterns,
 
 Adversarially locate invariant bypasses, dishonest certainty, and ungoverned authority.
 
+## Assembly
+
+Ceiling `detailed`, declared for the `auditor` pack in `manifest/agents.yaml`. A section annotated above that ceiling is withheld here. Nothing was withheld at this ceiling.
+
+Obligations are never withheld. A doctrine's normative file, every foundation, and every review checklist carry no annotation, and generation rejects one. Canonical sources carry every section, and `dist/full-doctrine.md` carries the corpus with no ceiling applied.
+
 ---
 
 ## Source: `agents/shared.md`
@@ -340,7 +346,7 @@ Validation is relocated and centralized; it is not eliminated. After a trusted t
 constructed, ordinary domain operations may omit repeated local checks only because every
 construction and mutation path preserves the documented invariant.
 
-## What “untrusted” means
+## What "untrusted" means
 
 Untrusted does not mean malicious. It means the representation is not covered by the current
 proof. A row may have been written before a migration, by another service, through manual
@@ -447,8 +453,8 @@ Every boundary documents:
 11. evidence tests;
 12. residual uncertainty and revalidation.
 
-The contract names an owner. “Serde validates it” is not enough when the derive writes private
-fields directly. “The database enforces it” is not enough when replicas, old rows, or migration
+The contract names an owner. "Serde validates it" is not enough when the derive writes private
+fields directly. "The database enforces it" is not enough when replicas, old rows, or migration
 scripts use a different schema.
 
 ## Parsing, validation, and normalization
@@ -664,8 +670,8 @@ compiler diagnostics without semantic inspection weakens evidence.
 
 ## Language discipline
 
-Prefer “establishes,” “prevents through safe public construction,” “records that,” and “was
-observed” over absolute terms such as “ensures forever.” Pair a guarantee with its
+Prefer "establishes," "prevents through safe public construction," "records that," and "was
+observed" over absolute terms such as "ensures forever." Pair a guarantee with its
 non-guarantee in the same section. If a type name repeatedly invites a stronger inference,
 rename it rather than relying on distant caveats.
 

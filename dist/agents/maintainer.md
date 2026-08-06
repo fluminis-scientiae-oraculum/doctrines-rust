@@ -8,6 +8,12 @@ Canonical sources live under /foundations, /doctrines, /patterns,
 
 Evolve doctrine versions and generated artifacts without eroding guarantees or provenance.
 
+## Assembly
+
+Ceiling `operational`, declared for the `maintainer` pack in `manifest/agents.yaml`. A section annotated above that ceiling is withheld here. Nothing was withheld at this ceiling.
+
+Obligations are never withheld. A doctrine's normative file, every foundation, and every review checklist carry no annotation, and generation rejects one. Canonical sources carry every section, and `dist/full-doctrine.md` carries the corpus with no ceiling applied.
+
 ---
 
 ## Source: `agents/shared.md`
@@ -215,7 +221,7 @@ Never mirror external media or transcripts.
 
 Never edit `/dist` directly. After canonical or manifest changes:
 
-```text
+```bash
 cargo run -p bundle-agent-context -- generate
 cargo run -p bundle-agent-context -- check
 ```
@@ -328,7 +334,7 @@ performs no validation.
 
 **SHOULD** states the recommended choice when its applicability holds. A different choice can
 be conforming only when the work records a concrete reason, analyzes the resulting risk,
-identifies compensating evidence where needed, and survives review. “Preference” alone is
+identifies compensating evidence where needed, and survives review. "Preference" alone is
 insufficient.
 
 **SHOULD NOT** marks a normally prohibited choice whose exceptional use requires the same
@@ -345,7 +351,7 @@ Normative vocabulary is selected by meaning, not by a target distribution. A doc
 not need to contain every term. `SHOULD NOT` is appropriate only for a normally prohibited
 choice that can remain conforming after an explicit risk argument; a strict prohibition with
 bounded applicability instead uses `MUST NOT` and its allowed-exceptions field. `MAY` marks a
-permission that would otherwise be unclear. Lowercase “may” can still describe uncertainty or
+permission that would otherwise be unclear. Lowercase "may" can still describe uncertainty or
 possibility without granting a new permission.
 
 Reviewers examine whether each chosen force matches consequence and available exceptions.
@@ -361,7 +367,7 @@ database adapter that constructs a domain value is a trusted-construction path e
 placed in an infrastructure crate. A background task that captures payment is an external
 effect even if called from a method named `advance`.
 
-“Not applicable” is a review result, not an omission. The reviewer records why the triggering
+"Not applicable" is a review result, not an omission. The reviewer records why the triggering
 conditions do not exist. If the system later changes, the applicability decision must be
 revisited.
 
@@ -398,7 +404,7 @@ A test named after a rule is not evidence when it never exercises the violation 
 
 ## Exceptions
 
-A rule's “allowed exceptions” section defines conditions under which its default statement
+A rule's "allowed exceptions" section defines conditions under which its default statement
 does not apply or a reviewed deviation may be accepted. Exceptions must be narrow enough to
 test. They should name the changed threat or domain assumption, not merely state that the
 implementation is special.
@@ -421,7 +427,7 @@ A waiver is explicit, reviewed, scoped, time-aware, and documented. It includes:
 - remediation or removal plan;
 - reviewer and approval reference.
 
-Silence, an inline allow attribute, a generic “legacy” label, or a passing CI job is not a
+Silence, an inline allow attribute, a generic "legacy" label, or a passing CI job is not a
 waiver. A waiver does not change the doctrine for other work. Repeated waivers can reveal that
 a rule is wrong or adoption is blocked; that observation should trigger doctrine review, not
 automatic normalization.
@@ -433,7 +439,7 @@ A normative rule uses one stable ID such as `RUST-DOC-0001-R004` and includes:
 - **Statement:** one testable obligation or tightly related contract.
 - **Intent:** the failure mode or invariant protected.
 - **Applicability:** the systems, paths, or conditions that trigger it.
-- **Allowed exceptions:** bounded conditions or “none.”
+- **Allowed exceptions:** bounded conditions or "none."
 - **Review evidence:** artifacts and observations sufficient to assess it.
 
 The applicability and review-evidence fields use capitalized noun-phrase lists consistently.
@@ -441,7 +447,7 @@ This register keeps machine extraction predictable while the statement, intent, 
 fields carry complete propositions.
 
 Avoid combining unrelated requirements merely to reduce rule count. Avoid vague verbs such as
-“handle appropriately” without defining outcomes. Name owners and failure semantics. A rule
+"handle appropriately" without defining outcomes. Name owners and failure semantics. A rule
 about timeouts should say whether the result is confirmed failure, cancellation, or
 indeterminate effect; a rule about validation should name construction and decoding paths.
 
@@ -613,8 +619,8 @@ compiler diagnostics without semantic inspection weakens evidence.
 
 ## Language discipline
 
-Prefer “establishes,” “prevents through safe public construction,” “records that,” and “was
-observed” over absolute terms such as “ensures forever.” Pair a guarantee with its
+Prefer "establishes," "prevents through safe public construction," "records that," and "was
+observed" over absolute terms such as "ensures forever." Pair a guarantee with its
 non-guarantee in the same section. If a type name repeatedly invites a stronger inference,
 rename it rather than relying on distant caveats.
 

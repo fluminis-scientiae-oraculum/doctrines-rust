@@ -6,6 +6,12 @@ Canonical sources live under /foundations, /doctrines, /patterns,
 
 # Full Rust doctrine corpus
 
+## Assembly
+
+Ceiling `exhaustive`, the widest the schema declares, applied by `bundle-agent-context`. A section annotated above that ceiling is withheld here. Nothing was withheld at this ceiling.
+
+Obligations are never withheld. A doctrine's normative file, every foundation, and every review checklist carry no annotation, and generation rejects one. Canonical sources carry every section, and `dist/full-doctrine.md` carries the corpus with no ceiling applied.
+
 ---
 
 ## Source: `README.md`
@@ -143,11 +149,14 @@ evidence by doctrine and names the material gaps that remain.
 Canonical doctrine lives under `foundations/`, `doctrines/`, `patterns/`, `boundaries/`,
 `reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
 
-Two kinds of file are generated and are never edited by hand:
+Three kinds of file are generated and are never edited by hand:
 
-- everything under `dist/`, the hydration bundles projected from canonical sources;
-- `rfcs/accepted/README.md`, the accepted-RFC index, built from `rfcs/accepted/overview.md`
-  and the front matter of each accepted RFC.
+- everything under [`dist/`](README.md), the hydration bundles projected from canonical
+  sources;
+- [`rfcs/accepted/README.md`](../rfcs/accepted/README.md), the accepted-RFC index, built from
+  `rfcs/accepted/overview.md` and the front matter of each accepted RFC;
+- [`doctrines/map.md`](../doctrines/map.md), the doctrine coverage map, built from
+  `doctrines/map-overview.md` and the two manifests.
 
 Every generated file carries a banner naming the sources it was built from. After a canonical
 change, run:
@@ -166,31 +175,46 @@ index, without creating a second manually maintained doctrine.
 The role packs under `agents/` state exact required inputs and outputs. The generated versions
 under `dist/agents/` combine those overlays with selected canonical rules.
 
-- A planner begins with `foundations/invariants.md`, `foundations/trust-boundaries.md`,
-  `foundations/complexity-budget.md`, `agents/planner.md`, and
-  `reviews/pre-implementation.md`. Its output is an invariant inventory, boundary map, state
-  graph, authority map, effect and uncertainty inventory, persistence choice, complexity
-  decision, and evidence plan.
-- An implementer reads the relevant doctrine package, `agents/implementer.md`, the applicable
-  boundary guide, and the matching example crate. It protects constructors, retains external
-  fallibility, and supplies positive, negative, and compiler-rejection evidence where useful.
-- A reviewer reads `foundations/guarantee-honesty.md`, `agents/reviewer.md`, the relevant
-  doctrine review standard, and the operational review documents. It inspects construction
-  paths and bypasses rather than approving merely idiomatic syntax.
-- An auditor loads `agents/auditor.md`, all applicable boundary guides, and
-  `reviews/final-correctness-audit.md`. It searches adversarially for forged evidence,
-  unchecked decoding, authority leakage, unsafe retry, and misleading claims.
-- A maintainer reads `foundations/normative-language.md`, `agents/maintainer.md`,
-  `rfcs/README.md`, and the affected source notes before changing meaning, versions,
-  manifests, or generated outputs. It also revalidates or expires active decision records under
-  `decisions/`.
-- Any role about to write a document first applies RUST-DOC-0011 and
-  `reviews/executable-narrative-review.md`: classify the claim, name the single artifact
-  authoritative for it, prefer moving an enforceable obligation into the mechanism that enforces
-  it, and write a decision record only for a fact no artifact can carry. The most common correct
-  outcome is that no document is added.
-- A human architect normally reads all foundations, Doctrine 0001, the doctrines relevant to
-  the system's risks, the decision frameworks, and one structurally similar case study.
+- A planner begins with [`foundations/invariants.md`](../foundations/invariants.md),
+  [`foundations/trust-boundaries.md`](../foundations/trust-boundaries.md),
+  [`foundations/complexity-budget.md`](../foundations/complexity-budget.md),
+  [`agents/planner.md`](../agents/planner.md), and
+  [`reviews/pre-implementation.md`](../reviews/pre-implementation.md). Its output is an invariant
+  inventory, boundary map, state graph, authority map, effect and uncertainty inventory,
+  persistence choice, complexity decision, and evidence plan.
+- An implementer reads the relevant doctrine package,
+  [`agents/implementer.md`](../agents/implementer.md), the applicable
+  [boundary guide](../boundaries/README.md), and the matching [example crate](../examples/README.md).
+  It protects constructors, retains external fallibility, and supplies positive, negative, and
+  compiler-rejection evidence where useful.
+- A reviewer reads [`foundations/guarantee-honesty.md`](../foundations/guarantee-honesty.md),
+  [`agents/reviewer.md`](../agents/reviewer.md), the relevant doctrine review standard, and the
+  [operational review documents](../reviews/README.md). It inspects construction paths and bypasses
+  rather than approving merely idiomatic syntax.
+- An auditor loads [`agents/auditor.md`](../agents/auditor.md), all applicable
+  [boundary guides](../boundaries/README.md), and
+  [`reviews/final-correctness-audit.md`](../reviews/final-correctness-audit.md). It searches
+  adversarially for forged evidence, unchecked decoding, authority leakage, unsafe retry, and
+  misleading claims.
+- A maintainer reads [`foundations/normative-language.md`](../foundations/normative-language.md),
+  [`agents/maintainer.md`](../agents/maintainer.md), [`rfcs/README.md`](../rfcs/README.md), and the
+  affected [source notes](../sources/README.md) before changing meaning, versions, manifests, or
+  generated outputs. It also revalidates or expires active decision records under
+  [`decisions/`](../decisions/README.md).
+- Any role about to write a document first applies
+  [RUST-DOC-0011](../doctrines/0011-executable-narrative/README.md) and
+  [`reviews/executable-narrative-review.md`](../reviews/executable-narrative-review.md): classify
+  the claim, name the single artifact authoritative for it, prefer moving an enforceable
+  obligation into the mechanism that enforces it, and write a decision record only for a fact no
+  artifact can carry. The most common correct outcome is that no document is added.
+- A human architect normally reads all [foundations](../foundations/README.md),
+  [Doctrine 0001](../doctrines/0001-invalid-states/README.md), the doctrines relevant to the
+  system's risks, the decision frameworks, and one structurally similar
+  [case study](../case-studies/README.md).
+
+> [!TIP]
+> [`doctrines/map.md`](../doctrines/map.md) shows which doctrine each role pack hydrates. A doctrine
+> a role does not carry is one that role cannot apply, and the blanks are the interesting cells.
 
 For constrained context windows, `dist/compact-doctrine.md` contains the shared thesis,
 classification and boundary pipelines, every active doctrine's normative rules, the central
@@ -211,6 +235,8 @@ manifest, so a doctrine cannot be added without the index following.
 
 That is `RUST-DOC-0011-R004` and `RUST-DOC-0011-R017` applied to this repository's own front
 page: one authority, one mechanically checked view, and no third copy to keep in step.
+[`doctrines/map.md`](../doctrines/map.md) is a second view of the same manifests, and it is
+generated for the same reason rather than written.
 
 The corpus does not claim `1.0` semantic stability, and doctrines version independently of the
 repository and of each other. Patch releases clarify without changing normative meaning; minor
@@ -268,8 +294,8 @@ guarantee-overclaim issue form.
 
 ## License
 
-Documentation—including Markdown doctrine, manifests, schemas, and generated doctrine
-bundles—is licensed under Creative Commons Attribution 4.0 International; see
+Documentation — including Markdown doctrine, manifests, schemas, and generated doctrine
+bundles — is licensed under Creative Commons Attribution 4.0 International; see
 `LICENSE-DOCS`. Rust source, test fixtures, repository tools, and reusable workflow or
 configuration code are available under MIT OR Apache-2.0 at the recipient's option; see
 `LICENSE-CODE`. External quotations and linked source material remain subject to their
@@ -282,8 +308,8 @@ respective rights.
 # Foundations
 
 Foundations define the vocabulary and reasoning contracts used by every doctrine in this
-repository. They are separate because a doctrine should not privately redefine “invariant,”
-“evidence,” “trusted,” “guarantee,” or the force of `MUST`. A shared definition lets rule IDs
+repository. They are separate because a doctrine should not privately redefine "invariant,"
+"evidence," "trusted," "guarantee," or the force of `MUST`. A shared definition lets rule IDs
 compose across domain modeling, errors, persistence, distributed effects, unsafe code,
 testing, and performance.
 
@@ -370,7 +396,7 @@ are representations from outside the current domain proof.
 ### Review procedure
 
 A review procedure is operational. Each item must be recorded as pass, fail, not applicable,
-or a waiver reference. A prose assertion such as “validation looks adequate” is weaker than
+or a waiver reference. A prose assertion such as "validation looks adequate" is weaker than
 evidence naming every constructor and decoding route. Review does not manufacture proof; it
 checks whether the mechanism and evidence support the claim.
 
@@ -443,7 +469,7 @@ performs no validation.
 
 **SHOULD** states the recommended choice when its applicability holds. A different choice can
 be conforming only when the work records a concrete reason, analyzes the resulting risk,
-identifies compensating evidence where needed, and survives review. “Preference” alone is
+identifies compensating evidence where needed, and survives review. "Preference" alone is
 insufficient.
 
 **SHOULD NOT** marks a normally prohibited choice whose exceptional use requires the same
@@ -460,7 +486,7 @@ Normative vocabulary is selected by meaning, not by a target distribution. A doc
 not need to contain every term. `SHOULD NOT` is appropriate only for a normally prohibited
 choice that can remain conforming after an explicit risk argument; a strict prohibition with
 bounded applicability instead uses `MUST NOT` and its allowed-exceptions field. `MAY` marks a
-permission that would otherwise be unclear. Lowercase “may” can still describe uncertainty or
+permission that would otherwise be unclear. Lowercase "may" can still describe uncertainty or
 possibility without granting a new permission.
 
 Reviewers examine whether each chosen force matches consequence and available exceptions.
@@ -476,7 +502,7 @@ database adapter that constructs a domain value is a trusted-construction path e
 placed in an infrastructure crate. A background task that captures payment is an external
 effect even if called from a method named `advance`.
 
-“Not applicable” is a review result, not an omission. The reviewer records why the triggering
+"Not applicable" is a review result, not an omission. The reviewer records why the triggering
 conditions do not exist. If the system later changes, the applicability decision must be
 revisited.
 
@@ -513,7 +539,7 @@ A test named after a rule is not evidence when it never exercises the violation 
 
 ## Exceptions
 
-A rule's “allowed exceptions” section defines conditions under which its default statement
+A rule's "allowed exceptions" section defines conditions under which its default statement
 does not apply or a reviewed deviation may be accepted. Exceptions must be narrow enough to
 test. They should name the changed threat or domain assumption, not merely state that the
 implementation is special.
@@ -536,7 +562,7 @@ A waiver is explicit, reviewed, scoped, time-aware, and documented. It includes:
 - remediation or removal plan;
 - reviewer and approval reference.
 
-Silence, an inline allow attribute, a generic “legacy” label, or a passing CI job is not a
+Silence, an inline allow attribute, a generic "legacy" label, or a passing CI job is not a
 waiver. A waiver does not change the doctrine for other work. Repeated waivers can reveal that
 a rule is wrong or adoption is blocked; that observation should trigger doctrine review, not
 automatic normalization.
@@ -548,7 +574,7 @@ A normative rule uses one stable ID such as `RUST-DOC-0001-R004` and includes:
 - **Statement:** one testable obligation or tightly related contract.
 - **Intent:** the failure mode or invariant protected.
 - **Applicability:** the systems, paths, or conditions that trigger it.
-- **Allowed exceptions:** bounded conditions or “none.”
+- **Allowed exceptions:** bounded conditions or "none."
 - **Review evidence:** artifacts and observations sufficient to assess it.
 
 The applicability and review-evidence fields use capitalized noun-phrase lists consistently.
@@ -556,7 +582,7 @@ This register keeps machine extraction predictable while the statement, intent, 
 fields carry complete propositions.
 
 Avoid combining unrelated requirements merely to reduce rule count. Avoid vague verbs such as
-“handle appropriately” without defining outcomes. Name owners and failure semantics. A rule
+"handle appropriately" without defining outcomes. Name owners and failure semantics. A rule
 about timeouts should say whether the result is confirmed failure, cancellation, or
 indeterminate effect; a rule about validation should name construction and decoding paths.
 
@@ -583,10 +609,10 @@ is considered valid. Its value comes from precision: the statement identifies wh
 histories are legal, who owns the truth, where it may be established, and what evidence can
 support it.
 
-“The invoice is correct” is not a useful invariant. “A paid invoice carries a receipt issued
-for that invoice” is a state invariant. “Capture can occur only after authorization” is a
-transition invariant. “Only a capability created by the authorization service permits
-capture” adds an authority invariant. Each can receive a different enforcement mechanism and
+"The invoice is correct" is not a useful invariant. "A paid invoice carries a receipt issued
+for that invoice" is a state invariant. "Capture can occur only after authorization" is a
+transition invariant. "Only a capability created by the authorization service permits
+capture" adds an authority invariant. Each can receive a different enforcement mechanism and
 different evidence.
 
 ## Invariant categories
@@ -667,8 +693,8 @@ the local design.
 
 ### Distributed invariants
 
-A distributed invariant spans independent failure domains, such as “at most one capture is
-accepted for an idempotency key” or “every committed outbox record is eventually attempted.”
+A distributed invariant spans independent failure domains, such as "at most one capture is
+accepted for an idempotency key" or "every committed outbox record is eventually attempted."
 The precise boundary matters. Network partitions, duplicate delivery, partial failure, and
 concurrent actors often prevent a simple global proof. Protocol, durable identity, atomic
 local transactions, deduplication, reconciliation, and audit trails provide bounded
@@ -683,10 +709,10 @@ configuration or authority. An **assumption** is relied upon but enforced elsewh
 enforced. An **observation** is evidence gathered at a time and may become stale. A **desired
 outcome** is a goal, not a guarantee.
 
-Consider `Connection<Open>`. “The local connect transition returned success” is historical
-evidence encoded by the state. “The remote peer is reachable now” is a mutable observation,
-not a lasting invariant of the value. “`send` is called only after local connection” is a
-sequencing invariant. “The next send succeeds” is a desired outcome and must remain fallible.
+Consider `Connection<Open>`. "The local connect transition returned success" is historical
+evidence encoded by the state. "The remote peer is reachable now" is a mutable observation,
+not a lasting invariant of the value. "`send` is called only after local connection" is a
+sequencing invariant. "The next send succeeds" is a desired outcome and must remain fallible.
 
 Confusing these categories creates false guarantees. A successful authentication observation
 does not establish perpetual authorization. A database schema constraint does not prove old
@@ -844,7 +870,7 @@ they must not silently rename a lower level as a higher one.
 
 Raw input is bytes, text, loosely typed JSON, a database row, an environment variable, an FFI
 pointer, or another representation not yet interpreted by the domain. Size limits and
-resource controls may be required before parsing. Raw input is not “bad”; it is simply
+resource controls may be required before parsing. Raw input is not "bad"; it is simply
 untrusted for domain use.
 
 ### Parsed value
@@ -1034,7 +1060,7 @@ Validation is relocated and centralized; it is not eliminated. After a trusted t
 constructed, ordinary domain operations may omit repeated local checks only because every
 construction and mutation path preserves the documented invariant.
 
-## What “untrusted” means
+## What "untrusted" means
 
 Untrusted does not mean malicious. It means the representation is not covered by the current
 proof. A row may have been written before a migration, by another service, through manual
@@ -1141,8 +1167,8 @@ Every boundary documents:
 11. evidence tests;
 12. residual uncertainty and revalidation.
 
-The contract names an owner. “Serde validates it” is not enough when the derive writes private
-fields directly. “The database enforces it” is not enough when replicas, old rows, or migration
+The contract names an owner. "Serde validates it" is not enough when the derive writes private
+fields directly. "The database enforces it" is not enough when replicas, old rows, or migration
 scripts use a different schema.
 
 ## Parsing, validation, and normalization
@@ -1358,8 +1384,8 @@ compiler diagnostics without semantic inspection weakens evidence.
 
 ## Language discipline
 
-Prefer “establishes,” “prevents through safe public construction,” “records that,” and “was
-observed” over absolute terms such as “ensures forever.” Pair a guarantee with its
+Prefer "establishes," "prevents through safe public construction," "records that," and "was
+observed" over absolute terms such as "ensures forever." Pair a guarantee with its
 non-guarantee in the same section. If a type name repeatedly invites a stronger inference,
 rename it rather than relying on distant caveats.
 
@@ -1540,7 +1566,7 @@ runtime checks. An explicit function with a structured error can be more honest 
 whose proof becomes stale.
 
 The important questions are whether validation is centralized, every boundary uses it,
-failure is represented, and evidence covers violation. “Compile time” is not automatically
+failure is represented, and evidence covers violation. "Compile time" is not automatically
 stronger when the fact exists only at runtime.
 
 ## Measuring complexity
@@ -1608,9 +1634,9 @@ decoding, and review of consequential invariants in Rust systems. It covers mutu
 domain state, refined values, collection rules, locally controlled protocols, authority,
 persistence, external effects, and distributed uncertainty.
 
-Its core question is not “Can Rust encode this in a type?” The question is “Which invalid
+Its core question is not "Can Rust encode this in a type?" The question is "Which invalid
 programs are consequential, which facts are structurally enforceable, where must runtime
-validation remain, and what evidence supports the resulting claim?”
+validation remain, and what evidence supports the resulting claim?"
 
 ## Out of scope
 
@@ -1650,16 +1676,31 @@ Read, in order:
 
 ## Related material
 
-Related patterns are sum types, opaque newtypes, smart constructors, validated collections,
-consuming transitions, typestate, capability types, hybrid state machines, and explicit
-uncertainty. Primary boundary guides are Serde, database decoding, HTTP/RPC, and messaging.
-Operational reviews are domain-model, boundary, typestate, distributed-effects, and final
-correctness review.
+Related patterns are [sum types](../patterns/sum-types.md),
+[opaque newtypes](../patterns/opaque-newtypes.md),
+[smart constructors](../patterns/smart-constructors.md),
+[validated collections](../patterns/validated-collections.md),
+[consuming transitions](../patterns/consuming-transitions.md), typestate,
+[capability types](../patterns/capability-types.md),
+[hybrid state machines](../patterns/hybrid-state-machines.md), and
+[explicit uncertainty](../patterns/explicit-uncertainty.md). Primary boundary guides are
+[Serde](../boundaries/serde.md), [database decoding](../boundaries/database-decoding.md),
+[HTTP/RPC](../boundaries/http-and-rpc.md), and messaging. Operational reviews are
+[domain-model](../reviews/domain-model-review.md), boundary, typestate,
+[distributed-effects](../reviews/distributed-effects-review.md), and
+[final correctness](../reviews/final-correctness-audit.md) review.
 
-Executable examples live under `examples/domain-modeling`, `examples/validated-newtypes`,
-`examples/typestate`, `examples/boundary-validation`, `examples/distributed-outcomes`, and
-`examples/compile-fail`. Case studies apply the doctrine to invoices, payments, transactions,
-message delivery, authenticated sessions, and UI workflows.
+Executable examples live under [`examples/domain-modeling`](../examples/domain-modeling/),
+[`examples/validated-newtypes`](../examples/validated-newtypes/),
+[`examples/typestate`](../examples/typestate/),
+[`examples/boundary-validation`](../examples/boundary-validation/),
+[`examples/distributed-outcomes`](../examples/distributed-outcomes/), and
+[`examples/compile-fail`](../examples/compile-fail/). Case studies apply the doctrine to
+[invoices](../case-studies/invoice/), [payments](../case-studies/payment-lifecycle/),
+[transactions](../case-studies/database-transaction/),
+[message delivery](../case-studies/message-delivery/),
+[authenticated sessions](../case-studies/authenticated-session/), and
+[UI workflows](../case-studies/ui-workflow/).
 
 ## Reading order
 
@@ -2194,8 +2235,8 @@ schema, updated transactionally, and evolved as providers add outcomes. A runtim
 honest primary representation. A hybrid design may create a short-lived `AuthorizedPayment`
 capability for one local capture call while retaining a persisted `PaymentStatus`.
 
-State explosion is a stop condition. If a workflow has many orthogonal dimensions—validation,
-authorization, fraud review, capture, settlement, reversal, dispute, provider state—generic
+State explosion is a stop condition. If a workflow has many orthogonal dimensions — validation,
+authorization, fraud review, capture, settlement, reversal, dispute, provider state — generic
 cross-products can obscure rather than protect. Runtime state plus validated transition
 functions and transactional constraints can be simpler and stronger.
 
@@ -2259,7 +2300,7 @@ provider, then produces new evidence. Compensation is a later effect, not rollba
 
 Message delivery has the same shape. A broker may accept a message and lose the acknowledgement.
 At-least-once delivery means duplicates must be expected. An idempotency key and durable inbox
-can constrain effects, but claims must define scope and retention. “Exactly once” is meaningful
+can constrain effects, but claims must define scope and retention. "Exactly once" is meaningful
 only at a precise boundary with a mechanism.
 
 Database commit can be ambiguous around connection loss. The transaction handle being consumed
@@ -2329,7 +2370,7 @@ The first selection table is:
 | External success/failure              | `Result`                                           |
 | Indeterminate distributed outcome     | explicit unknown/reconciliation state              |
 
-“Preferred” means first candidate, not automatic answer. Multiple mechanisms often compose.
+"Preferred" means first candidate, not automatic answer. Multiple mechanisms often compose.
 
 ## Operational decision tree
 
@@ -2522,7 +2563,7 @@ revisiting the representation.
 
 # Review standard
 
-Record each gate as pass, fail, not applicable, or a waiver reference. “Looks idiomatic” is
+Record each gate as pass, fail, not applicable, or a waiver reference. "Looks idiomatic" is
 not evidence.
 
 ## Gate 1 — Invariant inventory
@@ -2762,7 +2803,7 @@ residual risk complete?
 
 **Pass evidence.** Ledger entries trace to exact code and tests.
 
-**Failure examples.** Documentation states “impossible” while public bypass or external
+**Failure examples.** Documentation states "impossible" while public bypass or external
 mutation exists.
 
 **Severity.** Critical for misleading safety/security claims; otherwise major.
@@ -3095,8 +3136,8 @@ Primary and authoritative sources:
   for compiler-rejection evidence.
 - [RFC 2008: non-exhaustive types](https://rust-lang.github.io/rfcs/2008-non-exhaustive.html)
   informs public enum evolution and unknown future cases.
-- [Gray and Cheriton, “Leases: An Efficient Fault-Tolerant Mechanism for Distributed File
-  Cache Consistency”](https://dl.acm.org/doi/10.1145/74850.74870) is a foundational treatment
+- [Gray and Cheriton, "Leases: An Efficient Fault-Tolerant Mechanism for Distributed File
+  Cache Consistency"](https://dl.acm.org/doi/10.1145/74850.74870) is a foundational treatment
   of time-bounded distributed authority and uncertainty.
 - [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110) defines method semantics,
   retries, and idempotency terminology used at HTTP boundaries.
@@ -3160,9 +3201,17 @@ operationalize it.
 
 ## Prerequisites and related material
 
-Read invariant, evidence, trust-boundary, and guarantee-honesty foundations. Related doctrines
-are 0001, 0004, 0005, 0006, and 0008. Related guides include sum types, explicit uncertainty,
-HTTP/RPC, messaging, database decoding, and distributed-effects review.
+Read the [invariant](../foundations/invariants.md), [evidence](../foundations/evidence.md),
+[trust-boundary](../foundations/trust-boundaries.md), and
+[guarantee-honesty](../foundations/guarantee-honesty.md) foundations. Related doctrines are
+[0001](../doctrines/0001-invalid-states/), [0004](../doctrines/0004-concurrency-and-async/),
+[0005](../doctrines/0005-persistence-boundaries/), [0006](../doctrines/0006-distributed-uncertainty/), and
+[0008](../doctrines/0008-testing-and-evidence/). Related guides include
+[sum types](../patterns/sum-types.md),
+[explicit uncertainty](../patterns/explicit-uncertainty.md),
+[HTTP/RPC](../boundaries/http-and-rpc.md), [messaging](../boundaries/messaging.md),
+[database decoding](../boundaries/database-decoding.md), and
+[distributed-effects review](../reviews/distributed-effects-review.md).
 
 ## Reading order and summary
 
@@ -3437,7 +3486,7 @@ poor primary library contract when callers need action.
 Retry is semantic. A connection refusal before sending a request may be retriable. A timeout
 after sending a non-idempotent capture may require reconciliation. A conflict may be retriable
 only after reloading state. A validation error is generally repaired, not retried unchanged.
-A provider rejection may carry its own retry window. Generic “transient” labels are evidence
+A provider rejection may carry its own retry window. Generic "transient" labels are evidence
 only when defined by the operation's protocol.
 
 Panics express a different contract: safe continuation through the current call stack is not
@@ -3445,9 +3494,9 @@ expected. They fit impossible internal states caused by programmer error, not ma
 missing files, provider timeouts, or database conflicts. Even an internal invariant panic
 needs consideration of unwind versus abort, locks, FFI, and process supervision.
 
-`expect` can document a proof close to code—for example, a regex literal compiled once when
-the literal is fixed and known valid—but it should not replace a fallible path for
-configuration or user input. “Cannot fail” requires an invariant, not optimism.
+`expect` can document a proof close to code — for example, a regex literal compiled once when
+the literal is fixed and known valid — but it should not replace a fallible path for
+configuration or user input. "Cannot fail" requires an invariant, not optimism.
 
 Errors also have recipients. A user needs safe corrective information. An operator needs
 correlation and category. Telemetry needs bounded fields. A security audit may need protected
@@ -3479,7 +3528,7 @@ category remains validation. The mapping should be exhaustive and tested so a ne
 variant cannot silently become a generic server error.
 
 Authentication and authorization deserve particular care. Public policy may intentionally
-coarsen “resource absent” and “resource forbidden” to avoid disclosure. Internally, the audit
+coarsen "resource absent" and "resource forbidden" to avoid disclosure. Internally, the audit
 record still needs to distinguish missing resource, invalid credential, denied capability,
 and policy failure. Coarsening for one recipient is not permission to discard evidence
 globally.
@@ -3518,7 +3567,7 @@ error after later success loses latency and reliability evidence.
 The design should also define equality and cloning deliberately. Many errors contain sources
 that are not comparable or cloneable. Forcing `Clone` merely to satisfy a queue may erase the
 source into text. A durable job record should store a stable failure category, safe fields,
-attempt metadata, and correlation—not pretend to serialize an arbitrary in-memory error
+attempt metadata, and correlation — not pretend to serialize an arbitrary in-memory error
 object.
 
 ---
@@ -3828,9 +3877,17 @@ Planners map authority and lifecycle. Implementers design issuance and transfer.
 inspect clones, borrows, interior mutability, destruction, and revocation. Auditors search for
 forged or leaked authority. `doctrine.md` is normative.
 
-Read foundations on invariants, evidence, boundaries, guarantee honesty, and complexity.
-Related material: capability types, consuming transitions, typestate, filesystem and FFI
-guides, concurrency doctrine, and authenticated-session and transaction case studies.
+Read foundations on [invariants](../foundations/invariants.md),
+[evidence](../foundations/evidence.md), [boundaries](../foundations/trust-boundaries.md),
+[guarantee honesty](../foundations/guarantee-honesty.md), and
+[complexity](../foundations/complexity-budget.md). Related material:
+[capability types](../patterns/capability-types.md),
+[consuming transitions](../patterns/consuming-transitions.md),
+[typestate](../patterns/typestate.md), [filesystem](../boundaries/filesystem.md) and
+[FFI](../boundaries/ffi.md) guides,
+[concurrency doctrine](../doctrines/0004-concurrency-and-async/), and
+[authenticated-session](../case-studies/authenticated-session/) and
+[transaction](../case-studies/database-transaction/) case studies.
 
 ## Summary
 
@@ -4189,7 +4246,7 @@ shutdown unless that surprising contract is unavoidable and prominent.
 Transferring a handle through a channel moves custody only when send succeeds. A failed send
 returns the value, leaving the sender responsible. Once received, channel closure and task
 panic determine recovery. Tests should cover send failure, receiver cancellation, and
-supervisor shutdown—not only the successful handoff.
+supervisor shutdown — not only the successful handoff.
 
 ## Choosing less machinery
 
@@ -4293,7 +4350,7 @@ Record pass, fail, not applicable, or waiver.
 | RAII                | Is drop limited to local/best-effort cleanup?         | explicit fallible close     | drop claims rollback            | critical | expose completion      |
 | Secret debug        | Are formatting paths redacted?                        | trait/redaction tests       | derived debug token             | critical | custom debug           |
 | Secret copies       | Are clone and serialization minimized?                | call-site inventory         | secret freely cloneable         | critical | scope exposure         |
-| Zeroization         | Is claim limited to controlled buffers?               | guarantee ledger            | “all traces removed”            | major    | narrow claim           |
+| Zeroization         | Is claim limited to controlled buffers?               | guarantee ledger            | "all traces removed"            | major    | narrow claim           |
 | Shared state        | Was ownership designed before lock choice?            | alternatives/lock invariant | global `Arc<Mutex<_>>`          | major    | choose owner           |
 | Lock scope          | Are external awaits/effects outside lock?             | code trace/test             | network call under lock         | critical | split critical section |
 | Interior mutability | Is aliasing need explicit?                            | reentrancy/sync analysis    | `RefCell` to appease compiler   | major    | redesign ownership     |
@@ -4436,8 +4493,8 @@ recipient and lifetime.
   borrow checking.
 - [The Rustonomicon: Send and Sync](https://doc.rust-lang.org/nomicon/send-and-sync.html)
   explains concurrency marker obligations.
-- [Dennis and Van Horn, “Programming Semantics for Multiprogrammed
-  Computations”](https://dl.acm.org/doi/10.1145/360303.360308) is a foundational capability
+- [Dennis and Van Horn, "Programming Semantics for Multiprogrammed
+  Computations"](https://dl.acm.org/doi/10.1145/360303.360308) is a foundational capability
   reference.
 - [RFC 6819, OAuth threat model](https://www.rfc-editor.org/rfc/rfc6819) describes token
   leakage, replay, and lifecycle threats relevant to bearer capabilities.
@@ -4526,13 +4583,17 @@ Read these documents before applying the rules:
 
 ## Related material
 
-- Patterns: capability types, consuming transitions, hybrid state machines, and
-  explicit uncertainty.
-- Boundaries: messaging, HTTP/RPC, database decoding, filesystems, and FFI.
-- Reviews: pre-implementation, distributed-effects, and final correctness
-  audit.
-- Case studies: message delivery, payment lifecycle, database transaction, and
-  authenticated session.
+- Patterns: [capability types](../patterns/capability-types.md),
+  [consuming transitions](../patterns/consuming-transitions.md),
+  [hybrid state machines](../patterns/hybrid-state-machines.md), and
+  [explicit uncertainty](../patterns/explicit-uncertainty.md). - Boundaries: messaging,
+  [HTTP/RPC](../boundaries/http-and-rpc.md),
+  [database decoding](../boundaries/database-decoding.md), filesystems, and FFI. - Reviews:
+  [pre-implementation](../reviews/pre-implementation.md),
+  [distributed-effects](../reviews/distributed-effects-review.md), and
+  [final correctness](../reviews/final-correctness-audit.md) audit. - Case studies:
+  [message delivery](../case-studies/message-delivery/), payment lifecycle, database transaction,
+  and authenticated session.
 
 ## Reading order
 
@@ -5086,7 +5147,7 @@ supervision remain necessary.
 The simplest correct design may be sequential code with a bounded worker pool.
 Concurrency is justified by workload and latency evidence, not by language
 capability. Its complexity budget includes failure analysis, tests, operator
-visibility, and future maintenance—not only source-line count.
+visibility, and future maintenance — not only source-line count.
 
 ---
 
@@ -5714,12 +5775,15 @@ remains true in mutable external reality.
 
 ## Related material
 
-- Patterns: opaque newtypes, smart constructors, sum types, validated
-  collections, hybrid state machines, and explicit uncertainty.
-- Boundaries: database decoding, Serde, messaging, configuration, and
-  filesystems.
-- Reviews: domain model, boundary, distributed effects, and final audit.
-- Case studies: database transaction, payment lifecycle, invoice, and message
+- Patterns: [opaque newtypes](../patterns/opaque-newtypes.md),
+  [smart constructors](../patterns/smart-constructors.md),
+  [sum types](../patterns/sum-types.md),
+  [validated collections](../patterns/validated-collections.md),
+  [hybrid state machines](../patterns/hybrid-state-machines.md), and
+  [explicit uncertainty](../patterns/explicit-uncertainty.md). - Boundaries:
+  [database decoding](../boundaries/database-decoding.md), [Serde](../boundaries/serde.md),
+  messaging, configuration, and filesystems. - Reviews: domain model, boundary, distributed effects,
+  and final audit. - Case studies: database transaction, payment lifecycle, invoice, and message
   delivery.
 
 ## Reading order
@@ -6723,8 +6787,8 @@ to similarly named levels.
 - [PostgreSQL documentation: transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html)
   describes phenomena and guarantees for its isolation levels. Other databases
   require their own primary documentation.
-- [Berenson et al., “A Critique of ANSI SQL Isolation
-  Levels”](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf)
+- [Berenson et al., "A Critique of ANSI SQL Isolation
+  Levels"](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf)
   defines snapshot isolation and write skew and distinguishes them from the
   original ANSI phenomena.
 - [PostgreSQL documentation: explicit locking](https://www.postgresql.org/docs/current/explicit-locking.html)
@@ -6817,12 +6881,15 @@ evidence levels.
 
 ## Related material
 
-- Patterns: explicit uncertainty, consuming transitions, capability types, and
-  hybrid state machines.
-- Boundaries: HTTP/RPC, messaging, database decoding, and filesystems.
-- Reviews: distributed effects, boundary, and final correctness audit.
-- Case studies: payment lifecycle, message delivery, database transaction,
-  invoice, and UI workflow.
+- Patterns: [explicit uncertainty](../patterns/explicit-uncertainty.md),
+  [consuming transitions](../patterns/consuming-transitions.md),
+  [capability types](../patterns/capability-types.md), and
+  [hybrid state machines](../patterns/hybrid-state-machines.md). - Boundaries:
+  [HTTP/RPC](../boundaries/http-and-rpc.md), messaging,
+  [database decoding](../boundaries/database-decoding.md), and filesystems. - Reviews: distributed
+  effects, boundary, and [final correctness](../reviews/final-correctness-audit.md) audit. - Case
+  studies: payment lifecycle, [message delivery](../case-studies/message-delivery/), database
+  transaction, invoice, and UI workflow.
 
 ## Reading order
 
@@ -7822,8 +7889,8 @@ success or definitive rejection.
   response replay semantics for one API.
 - [Amazon Builders' Library: making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/)
   explains production API identity and retry design.
-- [Gray and Cheriton, “Leases: An Efficient Fault-Tolerant Mechanism for
-  Distributed File Cache Consistency”](https://dl.acm.org/doi/10.1145/74850.74870)
+- [Gray and Cheriton, "Leases: An Efficient Fault-Tolerant Mechanism for
+  Distributed File Cache Consistency"](https://dl.acm.org/doi/10.1145/74850.74870)
   is foundational literature on time-bounded distributed authority and its
   clock assumptions.
 - [PostgreSQL documentation: transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html)
@@ -7903,10 +7970,11 @@ requires the Rust Reference and Rustonomicon material cited in
 
 ## Related material
 
-- Patterns: opaque newtypes, capability types, and consuming transitions.
-- Boundaries: FFI and filesystem.
-- Reviews: pre-implementation, boundary, domain model, and final audit.
-- Doctrines: ownership/capabilities, concurrency/async, testing/evidence, and
+- Patterns: [opaque newtypes](../patterns/opaque-newtypes.md),
+  [capability types](../patterns/capability-types.md), and
+  [consuming transitions](../patterns/consuming-transitions.md). - Boundaries: FFI and filesystem.
+- Reviews: [pre-implementation](../reviews/pre-implementation.md), boundary, domain model, and
+  final audit. - Doctrines: ownership/capabilities, concurrency/async, testing/evidence, and
   performance/measurement.
 
 ## Reading order
@@ -8543,12 +8611,12 @@ Mark each gate **pass**, **fail**, **not applicable**, or with an approved
 | U02  | Is unsafe inventory complete?                   | tool/search inventory               | macro-generated unsafe missed           | critical | enumerate                 |
 | U03  | Is lexical scope minimal?                       | small block                         | whole function marked unsafe            | high     | narrow block              |
 | U04  | Is API visibility minimal?                      | private module/helper               | raw constructor public                  | critical | encapsulate               |
-| U05  | Does every block state invariant?               | `SAFETY:` argument                  | “pointer seems valid”                   | critical | write proof               |
+| U05  | Does every block state invariant?               | `SAFETY:` argument                  | "pointer seems valid"                   | critical | write proof               |
 | U06  | Does comment cover each operation?              | operation-to-premise mapping        | one generic comment                     | critical | split or expand           |
 | U07  | Are safe callers adversarially considered?      | call-sequence analysis              | intended use only                       | critical | test full safe surface    |
-| U08  | Are hidden caller obligations absent?           | signature enforces rules            | safe method says “must not call twice”  | critical | encode/check/mark unsafe  |
+| U08  | Are hidden caller obligations absent?           | signature enforces rules            | safe method says "must not call twice"  | critical | encode/check/mark unsafe  |
 | U09  | Does unsafe API have `# Safety` docs?           | complete section                    | caller obligations omitted              | critical | document                  |
-| U10  | Are obligations non-circular?                   | concrete predicates                 | “call only when safe”                   | critical | specify facts             |
+| U10  | Are obligations non-circular?                   | concrete predicates                 | "call only when safe"                   | critical | specify facts             |
 | U11  | Is pointer origin known?                        | allocation/foreign provenance       | integer address guessed                 | critical | trace origin              |
 | U12  | Is nullability checked?                         | check or non-null contract          | dereference nullable result             | critical | validate                  |
 | U13  | Is alignment established?                       | layout or runtime check             | byte offset cast blindly                | critical | align/copy                |
@@ -8592,7 +8660,7 @@ Mark each gate **pass**, **fail**, **not applicable**, or with an approved
 | U51  | Are unsafe dependencies inventoried?            | dependency audit                    | transitive FFI crate ignored            | high     | review                    |
 | U52  | Are advisories and maintenance current?         | audit evidence                      | abandoned critical crate                | high     | update/replace            |
 | U53  | Are target assumptions tested?                  | target matrix                       | only developer architecture             | high     | cross-test                |
-| U54  | Is performance justification measured?          | benchmark/profile                   | “faster” assertion                      | high     | measure                   |
+| U54  | Is performance justification measured?          | benchmark/profile                   | "faster" assertion                      | high     | measure                   |
 | U55  | Is re-audit trigger documented?                 | assumption list                     | compiler upgrade ignored                | high     | define trigger            |
 | U56  | Does guarantee ledger state non-guarantees?     | completed ledger                    | safe wrapper claims foreign correctness | critical | narrow claim              |
 
@@ -8632,7 +8700,7 @@ values, or encode lifecycle.
 **When justified.** Self-referential or intrusive structures may require unsafe
 after pinning and movement proofs are complete.
 
-## “It seems safe”
+## "It seems safe"
 
 **Weak example.** A safety comment expresses confidence without facts.
 
@@ -8943,7 +9011,7 @@ the observed set.
 
 - Patterns: every pattern's testing-evidence section.
 - Boundaries: each boundary guide's positive and adversarial cases.
-- Reviews: all operational checklists, especially final correctness audit.
+- Reviews: all operational checklists, especially [final correctness](../reviews/final-correctness-audit.md) audit.
 - Case studies: guarantee ledgers connect design claims to evidence.
 
 ## Reading order
@@ -10003,12 +10071,13 @@ difference between benchmark and correctness evidence.
 
 ## Related material
 
-- Patterns: validated collections, opaque newtypes, typestate, and hybrid state
-  machines all have runtime and compile-time costs.
-- Boundaries: serialization, database, HTTP/RPC, messaging, and filesystem.
-- Reviews: pre-implementation, typestate, distributed effects, and final audit.
-- Case studies: performance choices remain subordinate to each guarantee
-  ledger.
+- Patterns: [validated collections](../patterns/validated-collections.md),
+  [opaque newtypes](../patterns/opaque-newtypes.md), typestate, and
+  [hybrid state machines](../patterns/hybrid-state-machines.md) all have runtime and compile-time
+  costs. - Boundaries: serialization, database, [HTTP/RPC](../boundaries/http-and-rpc.md),
+  messaging, and filesystem. - Reviews: [pre-implementation](../reviews/pre-implementation.md),
+  typestate, distributed effects, and final audit. - Case studies: performance choices remain
+  subordinate to each guarantee ledger.
 
 ## Reading order
 
@@ -10666,7 +10735,7 @@ reference**.
 
 | Gate | Question                                      | Pass evidence             | Failure example                         | Severity | Remediation            |
 | ---- | --------------------------------------------- | ------------------------- | --------------------------------------- | -------- | ---------------------- |
-| M01  | Is objective quantified?                      | metric and target         | “make faster”                           | critical | define outcome         |
+| M01  | Is objective quantified?                      | metric and target         | "make faster"                           | critical | define outcome         |
 | M02  | Is workload representative?                   | input distribution        | tiny synthetic only                     | critical | sample/model reality   |
 | M03  | Is concurrency specified?                     | range and nominal load    | single-thread claim generalized         | high     | sweep                  |
 | M04  | Are correctness constraints fixed?            | invariant list            | errors dropped for speed                | critical | restore semantics      |
@@ -10702,7 +10771,7 @@ reference**.
 | M34  | Are allocations counted?                      | count/bytes               | clone syntax used as proof              | high     | measure                |
 | M35  | Is peak and retained memory considered?       | heap/RSS profile          | fewer allocs retain huge buffer         | high     | measure lifetimes      |
 | M36  | Is allocator identified?                      | environment               | cross-allocator comparison              | medium   | record                 |
-| M37  | Is copy claim scoped?                         | data-flow                 | “zero-copy” broad claim                 | critical | enumerate copies       |
+| M37  | Is copy claim scoped?                         | data-flow                 | "zero-copy" broad claim                 | critical | enumerate copies       |
 | M38  | Are lifetime/retention costs assessed?        | ownership analysis        | slice pins large buffer                 | high     | compare total          |
 | M39  | Are serialization costs profiled?             | component trace           | iterator optimized instead              | high     | target boundary        |
 | M40  | Are syscalls/round-trips counted?             | trace                     | source CPU blamed                       | high     | measure system path    |
@@ -10724,7 +10793,7 @@ reference**.
 | M56  | Is threshold above noise and meaningful?      | rationale                 | arbitrary one percent                   | high     | calibrate              |
 | M57  | Does rerun policy avoid cherry-picking?       | aggregate policy          | keep fastest rerun                      | critical | predefine method       |
 | M58  | Are commands reproducible?                    | checked-in harness/docs   | manual GUI steps only                   | high     | script                 |
-| M59  | Are results retained with provenance?         | record/raw format         | PR says “much faster”                   | high     | attach evidence        |
+| M59  | Are results retained with provenance?         | record/raw format         | PR says "much faster"                   | high     | attach evidence        |
 | M60  | Is claim no broader than evidence?            | guarantee ledger          | microbench generalized                  | critical | narrow                 |
 
 Critical failures block the performance claim and any complexity justified by
@@ -16429,7 +16498,7 @@ historical facts may no longer authorize current actions.
 - Is stable message identity separate from aggregate/business identity?
 - Does inbox claim share an atomic boundary with the protected local effect?
 - Are acknowledgement crash points and replay retention explicitly tested?
-- Which order exists per producer, aggregate, or partition—and nowhere else?
+- Which order exists per producer, aggregate, or partition — and nowhere else?
 - Can a privileged replay tool alter identity or bypass current validation?
 - Are poison records bounded, access-controlled, and owned through resolution?
 
