@@ -114,7 +114,9 @@ Canonical content has distinct responsibilities:
 - `templates/` and `rfcs/` govern future doctrine work.
 - `manifest/` exposes doctrine and agent-pack discovery through YAML validated against Draft
   2020-12 JSON Schemas.
-- `tools/` contains the doctrine linter and deterministic context bundler.
+- `tools/` contains the doctrine linter, the deterministic context bundler, and the
+  `doctrine-manifest` crate both decode the manifests through, so one schema-owned
+  vocabulary has one decoder rather than one per tool.
 
 Definitions flow into doctrine; doctrine constrains patterns, boundary guides, reviews, and
 agent work. A case study may demonstrate doctrine but cannot silently redefine it. Source

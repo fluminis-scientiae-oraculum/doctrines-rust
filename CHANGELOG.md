@@ -4,6 +4,51 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.4.2] — 2026-08-06
+
+Repository tooling only. No normative rule, statement, allowed exception, or
+doctrine version changes. The corpus's own Rust code was audited against the
+corpus, and the defects below are the divergences that reproduced.
+
+### Fixed in 0.4.2
+
+- `bundle-agent-context` decoded the manifest `status` field as a `String` and
+  never validated the manifest against `manifest/schema/doctrine.schema.json`,
+  which constrains it to four values. A misspelled status therefore matched no
+  filter and silently excluded that doctrine from `dist/full-doctrine.md`,
+  `dist/compact-doctrine.md`, and every agent pack, while `generate` reported
+  success and exited zero. Seeding `status: activ` on the first entry removed
+  1901 lines from the bundles without a diagnostic. The vocabulary is now an
+  enum decoded once, so the same input fails to parse in every consumer. This
+  is `RUST-DOC-0001-R006`: deserialization must not bypass documented
+  validation.
+- `doctrine-lint` restated two schema-owned vocabularies in Rust: the six agent
+  role identifiers and the four `maximum_verbosity` values, each a hand-written
+  copy of an `enum` array in `manifest/schema/agent-pack.schema.json` that the
+  same run had already validated. Both copies are removed; the values decode
+  into types, and three tests assert those types against the schema files, so a
+  vocabulary change fails the build instead of drifting. This is
+  `RUST-DOC-0011-R017` applied to the tool that enforces it elsewhere.
+- The manifest types, the status vocabularies, and the front-matter parser were
+  each declared twice, once per tool, because the two binaries shared no
+  library. The two `front_matter` implementations had already diverged, and the
+  copy specialized to say "README" was being used to report malformed decision
+  records. All of it now lives in a new `doctrine-manifest` crate.
+- `doctrine-lint` treated a directory it could not read as an empty directory.
+  An unreadable repository root would have scanned no root documents and let
+  every root-document check pass while still reporting the repository valid.
+  Directory walks now report a directory that exists and cannot be
+  enumerated; an absent directory stays silent, because absence is genuinely
+  empty and is already reported against its manifest entry.
+- `bundle-agent-context` validated its command argument and then matched the
+  raw string a second time, needing an `unreachable!` arm to restate a
+  guarantee the first check had established. The argument is parsed into a
+  `Command` and the dispatch is exhaustive.
+- `unsafe-evidence` declared its escape hatch from the workspace's
+  `unsafe_code = "forbid"` twice, in `Cargo.toml` and as an inner attribute.
+  The manifest declaration is kept and named as the scoped exception under
+  `RUST-DOC-0001-R016`.
+
 ## [0.4.1] — 2026-08-05
 
 Documentation coherency only. No normative rule, statement, allowed exception,
