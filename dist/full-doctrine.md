@@ -10,7 +10,7 @@ Canonical sources live under /foundations, /doctrines, /patterns,
 
 Ceiling `exhaustive`, the widest the schema declares, applied by `bundle-agent-context`. A section annotated above that ceiling is withheld here. Nothing was withheld at this ceiling.
 
-Obligations are never withheld. A doctrine's normative file, every foundation, and every review checklist carry no annotation, and generation rejects one. Canonical sources carry every section, and `dist/full-doctrine.md` carries the corpus with no ceiling applied.
+Obligations are never withheld. A doctrine's normative file, every foundation, every agent overlay, and every review checklist carry no annotation, and generation rejects one. Canonical sources carry every section, and `dist/full-doctrine.md` carries the corpus with no ceiling applied.
 
 ---
 
@@ -214,7 +214,8 @@ under `dist/agents/` combine those overlays with selected canonical rules.
 
 > [!TIP]
 > [`doctrines/map.md`](../doctrines/map.md) shows which doctrine each role pack hydrates. A doctrine
-> a role does not carry is one that role cannot apply, and the blanks are the interesting cells.
+> a pack omits is one that is not available from that pack alone and has to be loaded from its
+> canonical source; the exclusions are the interesting cells.
 
 For constrained context windows, `dist/compact-doctrine.md` contains the shared thesis,
 classification and boundary pipelines, every active doctrine's normative rules, the central
@@ -263,7 +264,7 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
 cargo run -p doctrine-lint -- check
 cargo run -p bundle-agent-context -- generate
-git diff --exit-code -- dist/ rfcs/accepted/README.md
+git diff --exit-code -- dist/ rfcs/accepted/README.md doctrines/map.md
 cargo run -p bundle-agent-context -- check
 cargo deny check
 lychee --no-progress '**/*.md'
@@ -4586,14 +4587,14 @@ Read these documents before applying the rules:
 - Patterns: [capability types](../patterns/capability-types.md),
   [consuming transitions](../patterns/consuming-transitions.md),
   [hybrid state machines](../patterns/hybrid-state-machines.md), and
-  [explicit uncertainty](../patterns/explicit-uncertainty.md). - Boundaries: messaging,
-  [HTTP/RPC](../boundaries/http-and-rpc.md),
-  [database decoding](../boundaries/database-decoding.md), filesystems, and FFI. - Reviews:
-  [pre-implementation](../reviews/pre-implementation.md),
+  [explicit uncertainty](../patterns/explicit-uncertainty.md).
+- Boundaries: messaging, [HTTP/RPC](../boundaries/http-and-rpc.md),
+  [database decoding](../boundaries/database-decoding.md), filesystems, and FFI.
+- Reviews: [pre-implementation](../reviews/pre-implementation.md),
   [distributed-effects](../reviews/distributed-effects-review.md), and
-  [final correctness](../reviews/final-correctness-audit.md) audit. - Case studies:
-  [message delivery](../case-studies/message-delivery/), payment lifecycle, database transaction,
-  and authenticated session.
+  [final correctness](../reviews/final-correctness-audit.md) audit.
+- Case studies: [message delivery](../case-studies/message-delivery/), payment lifecycle,
+  database transaction, and authenticated session.
 
 ## Reading order
 
@@ -5780,11 +5781,11 @@ remains true in mutable external reality.
   [sum types](../patterns/sum-types.md),
   [validated collections](../patterns/validated-collections.md),
   [hybrid state machines](../patterns/hybrid-state-machines.md), and
-  [explicit uncertainty](../patterns/explicit-uncertainty.md). - Boundaries:
-  [database decoding](../boundaries/database-decoding.md), [Serde](../boundaries/serde.md),
-  messaging, configuration, and filesystems. - Reviews: domain model, boundary, distributed effects,
-  and final audit. - Case studies: database transaction, payment lifecycle, invoice, and message
-  delivery.
+  [explicit uncertainty](../patterns/explicit-uncertainty.md).
+- Boundaries: [database decoding](../boundaries/database-decoding.md),
+  [Serde](../boundaries/serde.md), messaging, configuration, and filesystems.
+- Reviews: domain model, boundary, distributed effects, and final audit.
+- Case studies: database transaction, payment lifecycle, invoice, and message delivery.
 
 ## Reading order
 
@@ -6884,12 +6885,13 @@ evidence levels.
 - Patterns: [explicit uncertainty](../patterns/explicit-uncertainty.md),
   [consuming transitions](../patterns/consuming-transitions.md),
   [capability types](../patterns/capability-types.md), and
-  [hybrid state machines](../patterns/hybrid-state-machines.md). - Boundaries:
-  [HTTP/RPC](../boundaries/http-and-rpc.md), messaging,
-  [database decoding](../boundaries/database-decoding.md), and filesystems. - Reviews: distributed
-  effects, boundary, and [final correctness](../reviews/final-correctness-audit.md) audit. - Case
-  studies: payment lifecycle, [message delivery](../case-studies/message-delivery/), database
-  transaction, invoice, and UI workflow.
+  [hybrid state machines](../patterns/hybrid-state-machines.md).
+- Boundaries: [HTTP/RPC](../boundaries/http-and-rpc.md), messaging,
+  [database decoding](../boundaries/database-decoding.md), and filesystems.
+- Reviews: distributed effects, boundary, and
+  [final correctness](../reviews/final-correctness-audit.md) audit.
+- Case studies: payment lifecycle, [message delivery](../case-studies/message-delivery/),
+  database transaction, invoice, and UI workflow.
 
 ## Reading order
 
@@ -7972,9 +7974,11 @@ requires the Rust Reference and Rustonomicon material cited in
 
 - Patterns: [opaque newtypes](../patterns/opaque-newtypes.md),
   [capability types](../patterns/capability-types.md), and
-  [consuming transitions](../patterns/consuming-transitions.md). - Boundaries: FFI and filesystem.
+  [consuming transitions](../patterns/consuming-transitions.md).
+- Boundaries: FFI and filesystem.
 - Reviews: [pre-implementation](../reviews/pre-implementation.md), boundary, domain model, and
-  final audit. - Doctrines: ownership/capabilities, concurrency/async, testing/evidence, and
+  final audit.
+- Doctrines: ownership/capabilities, concurrency/async, testing/evidence, and
   performance/measurement.
 
 ## Reading order
@@ -10074,10 +10078,12 @@ difference between benchmark and correctness evidence.
 - Patterns: [validated collections](../patterns/validated-collections.md),
   [opaque newtypes](../patterns/opaque-newtypes.md), typestate, and
   [hybrid state machines](../patterns/hybrid-state-machines.md) all have runtime and compile-time
-  costs. - Boundaries: serialization, database, [HTTP/RPC](../boundaries/http-and-rpc.md),
-  messaging, and filesystem. - Reviews: [pre-implementation](../reviews/pre-implementation.md),
-  typestate, distributed effects, and final audit. - Case studies: performance choices remain
-  subordinate to each guarantee ledger.
+  costs.
+- Boundaries: serialization, database, [HTTP/RPC](../boundaries/http-and-rpc.md), messaging, and
+  filesystem.
+- Reviews: [pre-implementation](../reviews/pre-implementation.md), typestate, distributed
+  effects, and final audit.
+- Case studies: performance choices remain subordinate to each guarantee ledger.
 
 ## Reading order
 
@@ -17849,12 +17855,16 @@ Never claim:
 
 ## Canonical and generated sources
 
-Never edit a generated file manually: everything under `dist/`, and the
-accepted-RFC index `rfcs/accepted/README.md`. Each carries a banner naming its
-sources. Change canonical material, update manifests where
-selection changes, regenerate, and check deterministic output. Generated text
-must retain its banner and source provenance. A bundle mismatch is a failed
-repository state.
+Never edit a generated file manually: everything under `dist/`, the accepted-RFC
+index `rfcs/accepted/README.md`, and the doctrine coverage map
+`doctrines/map.md`. Each carries a banner naming its sources. Change canonical
+material, update manifests where selection changes, regenerate, and check
+deterministic output. Generated text must retain its banner and source
+provenance. A bundle mismatch is a failed repository state.
+
+A pack carries the doctrine its role routinely applies. A doctrine absent from
+this pack is not thereby out of force: read the applicable canonical doctrine
+from `doctrines/` when the work turns on it.
 
 ## Escalation
 

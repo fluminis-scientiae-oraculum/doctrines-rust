@@ -109,17 +109,30 @@ withheld, never the reverse.
 
 `RUST-DOC-0011-R018` requires generated agent context to be built from current authority. A ceiling
 able to withhold a rule statement would remove an obligation from an agent's view while the receipt
-described it as detail. Three classes are therefore projected whole, and an annotation in one of
+described it as detail. Four classes are therefore projected whole, and an annotation in one of
 them stops generation:
 
 - every doctrine's `normative_path`, which states rules directly;
 - everything under `foundations/`, which states them in lowercase prose. The nine questions
   `foundations/guarantee-honesty.md` requires every type-level design to answer are an obligation
   that no scan for uppercase requirement terms detects;
+- everything under `agents/`, because an overlay is an obligation document rather than commentary.
+  `agents/shared.md` is titled "Shared agent obligations" and carries sections named "Boundary
+  obligations", "Forbidden claims", and "Evidence obligations";
 - every path any pack lists in `review_checklists`, which states the evidence a gate demands.
 
 The set is derived from the manifests rather than from file names, and both tools call one
 implementation of the test.
+
+The third class was added after review. An earlier draft omitted `agents/`, and an annotation
+placed under `## Boundary obligations` in `agents/shared.md` was accepted by both tools: every role
+pack replaced those rules with a withholding receipt, and because the widest tier is reserved from
+every pack, the obligation reached none of them. That is recorded here rather than quietly
+corrected, because it is the exact failure the class list exists to prevent and it survived the
+first round of positive controls.
+
+The consequence is stated in **Complexity impact** below and is not small: with `agents/` included,
+every source any role pack currently lists falls into one of the four classes.
 
 ### The reserved tier
 
@@ -231,11 +244,23 @@ dependency. The alternative that avoids it entirely is splitting files, and its 
 document structure instead of in code.
 
 The limit is worth stating plainly, because the proposal would otherwise be read as a general
-mechanism for shrinking packs. It is not. A doctrine's normative file is between a half and three
-quarters of every pack and can never be annotated; extending the untierable set to the foundations
-and the review checklists, which honesty requires, leaves under a tenth of existing pack content
-eligible. This proposal makes new reader-facing material free. Shrinking what packs already carry
-is the work of the first alternative above.
+mechanism for shrinking packs. It is not, and after review it is narrower still.
+
+Every source any role pack lists is a doctrine `normative_path`, a foundation, an agent overlay, or
+a review checklist. All four are untierable. **No section of any role pack is eligible to be
+withheld today, and the ceiling therefore removes nothing from one.** A test asserts that against
+the real manifests, so the statement stays true or the build fails.
+
+What the mechanism still does: it makes the declared field enforce something instead of nothing; it
+governs `dist/compact-doctrine.md`, whose sources include tierable material; it reserves the widest
+tier so reader-facing additions cannot grow a pack; and it makes every projection disclose what it
+withheld. What it does not do is reduce what the packs carry.
+
+Restoring a lever means one of the two alternatives above: curating `canonical_sources`, or
+splitting reader-only prose out of an overlay into a separate tierable file. The second is the one
+that would make this mechanism bite, and it is recorded as the follow-up rather than attempted
+here, because moving prose out of an obligation document is a change to what agents receive and
+deserves its own review.
 
 ## Evidence plan
 
@@ -248,7 +273,10 @@ is the work of the first alternative above.
   inside a section the ceiling withholds, which pins the ordering that makes link validation
   independent of what any pack receives;
 - `doctrine-lint` tests that only the widest tier is reserved, that the alert vocabulary is closed,
-  and that the corpus carries no HTML comment outside the generated index;
+  and that the corpus carries no HTML comment outside the generated files;
+- `doctrine-lint` asserts against the real manifests that every source any role pack lists states
+  obligations, so a pack source that could be withheld fails the build. That is the end-to-end
+  regression for the omitted-overlay defect described above;
 - positive controls were run against the real files each check protects: an annotation seeded into
   a doctrine's normative file, a foundation, and a review checklist was rejected by both tools with
   distinct messages, and one annotation in `agents/shared.md` was observed withheld from the four

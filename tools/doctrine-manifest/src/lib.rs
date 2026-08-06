@@ -371,25 +371,39 @@ pub enum SourcePolicy {
     Tiered(Verbosity),
 }
 
-/// The directory whose documents state obligations in lowercase prose.
-const OBLIGATION_DIRECTORY: &str = "foundations/";
+/// Directories whose documents state obligations in lowercase prose.
+///
+/// `agents/` is here because an overlay is an obligation document, not commentary:
+/// `agents/shared.md` is titled "Shared agent obligations" and carries sections named
+/// "Boundary obligations", "Forbidden claims", and "Evidence obligations". Omitting it let
+/// an annotation withhold those rules from every role pack while both tools exited zero,
+/// which is the defect this constant exists to prevent.
+const OBLIGATION_DIRECTORIES: &[&str] = &["foundations/", "agents/"];
 
 /// Whether a repository-relative path states obligations, and is therefore projected under
 /// [`SourcePolicy::Normative`] into every generated output.
 ///
-/// Three classes qualify, and the wider two are why this is a manifest query rather than a
-/// test on the file name. A doctrine's normative file states rules directly.
-/// `foundations/` states them in lowercase prose: `foundations/guarantee-honesty.md`
-/// requires that every type-level design answer nine named questions, which no scan for
-/// uppercase requirement terms detects. Every review checklist states the evidence a gate
-/// demands. Withholding any of the three would drop an obligation from an agent's view
-/// while the receipt described it as detail.
+/// Four classes qualify, and the wider three are why this is a manifest query rather than a
+/// test on the file name. A doctrine's normative file states rules directly. `foundations/`
+/// states them in lowercase prose: `foundations/guarantee-honesty.md` requires that every
+/// type-level design answer nine named questions, which no scan for uppercase requirement
+/// terms detects. `agents/` states the obligations of a role. Every review checklist states
+/// the evidence a gate demands. Withholding any of the four would drop an obligation from
+/// an agent's view while the receipt described it as detail.
+///
+/// The consequence is worth stating rather than discovering: every source any role pack
+/// currently lists falls into one of these classes, so no section of any role pack is
+/// eligible to be withheld. The ceiling still governs `dist/compact-doctrine.md` and any
+/// future tierable source, and reader-only prose split out of an overlay into its own file
+/// would become eligible. What it does not do is reduce what the role packs carry today.
 pub fn states_obligations(
     relative: &str,
     doctrines: &DoctrineManifest,
     agents: &AgentManifest,
 ) -> bool {
-    relative.starts_with(OBLIGATION_DIRECTORY)
+    OBLIGATION_DIRECTORIES
+        .iter()
+        .any(|directory| relative.starts_with(directory))
         || doctrines
             .doctrines
             .iter()

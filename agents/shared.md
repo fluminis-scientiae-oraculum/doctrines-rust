@@ -108,12 +108,16 @@ Never claim:
 
 ## Canonical and generated sources
 
-Never edit a generated file manually: everything under `dist/`, and the
-accepted-RFC index `rfcs/accepted/README.md`. Each carries a banner naming its
-sources. Change canonical material, update manifests where
-selection changes, regenerate, and check deterministic output. Generated text
-must retain its banner and source provenance. A bundle mismatch is a failed
-repository state.
+Never edit a generated file manually: everything under `dist/`, the accepted-RFC
+index `rfcs/accepted/README.md`, and the doctrine coverage map
+`doctrines/map.md`. Each carries a banner naming its sources. Change canonical
+material, update manifests where selection changes, regenerate, and check
+deterministic output. Generated text must retain its banner and source
+provenance. A bundle mismatch is a failed repository state.
+
+A pack carries the doctrine its role routinely applies. A doctrine absent from
+this pack is not thereby out of force: read the applicable canonical doctrine
+from `doctrines/` when the work turns on it.
 
 ## Escalation
 

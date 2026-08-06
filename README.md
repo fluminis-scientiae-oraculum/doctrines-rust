@@ -196,7 +196,8 @@ under `dist/agents/` combine those overlays with selected canonical rules.
 
 > [!TIP]
 > [`doctrines/map.md`](doctrines/map.md) shows which doctrine each role pack hydrates. A doctrine
-> a role does not carry is one that role cannot apply, and the blanks are the interesting cells.
+> a pack omits is one that is not available from that pack alone and has to be loaded from its
+> canonical source; the exclusions are the interesting cells.
 
 For constrained context windows, `dist/compact-doctrine.md` contains the shared thesis,
 classification and boundary pipelines, every active doctrine's normative rules, the central
@@ -245,7 +246,7 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
 cargo run -p doctrine-lint -- check
 cargo run -p bundle-agent-context -- generate
-git diff --exit-code -- dist/ rfcs/accepted/README.md
+git diff --exit-code -- dist/ rfcs/accepted/README.md doctrines/map.md
 cargo run -p bundle-agent-context -- check
 cargo deny check
 lychee --no-progress '**/*.md'

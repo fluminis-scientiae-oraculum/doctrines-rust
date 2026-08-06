@@ -81,14 +81,14 @@ Read these documents before applying the rules:
 - Patterns: [capability types](../../patterns/capability-types.md),
   [consuming transitions](../../patterns/consuming-transitions.md),
   [hybrid state machines](../../patterns/hybrid-state-machines.md), and
-  [explicit uncertainty](../../patterns/explicit-uncertainty.md). - Boundaries: messaging,
-  [HTTP/RPC](../../boundaries/http-and-rpc.md),
-  [database decoding](../../boundaries/database-decoding.md), filesystems, and FFI. - Reviews:
-  [pre-implementation](../../reviews/pre-implementation.md),
+  [explicit uncertainty](../../patterns/explicit-uncertainty.md).
+- Boundaries: messaging, [HTTP/RPC](../../boundaries/http-and-rpc.md),
+  [database decoding](../../boundaries/database-decoding.md), filesystems, and FFI.
+- Reviews: [pre-implementation](../../reviews/pre-implementation.md),
   [distributed-effects](../../reviews/distributed-effects-review.md), and
-  [final correctness](../../reviews/final-correctness-audit.md) audit. - Case studies:
-  [message delivery](../../case-studies/message-delivery/), payment lifecycle, database transaction,
-  and authenticated session.
+  [final correctness](../../reviews/final-correctness-audit.md) audit.
+- Case studies: [message delivery](../../case-studies/message-delivery/), payment lifecycle,
+  database transaction, and authenticated session.
 
 ## Reading order
 

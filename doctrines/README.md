@@ -24,7 +24,9 @@ repeating it.
 > [!TIP]
 > [`map.md`](map.md) answers the other question this table cannot: which agent
 > role packs hydrate each doctrine. It is generated from both manifests, so a
-> selection change reaches it without anyone editing it.
+> selection change reaches it without anyone editing it. An unselected doctrine
+> is one a pack does not carry, not one its role may disregard; canonical
+> sources remain available to load separately.
 
 | ID            | Doctrine                                                                              | Primary concern                                                 |
 | ------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------- |

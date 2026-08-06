@@ -72,12 +72,13 @@ evidence levels.
 - Patterns: [explicit uncertainty](../../patterns/explicit-uncertainty.md),
   [consuming transitions](../../patterns/consuming-transitions.md),
   [capability types](../../patterns/capability-types.md), and
-  [hybrid state machines](../../patterns/hybrid-state-machines.md). - Boundaries:
-  [HTTP/RPC](../../boundaries/http-and-rpc.md), messaging,
-  [database decoding](../../boundaries/database-decoding.md), and filesystems. - Reviews: distributed
-  effects, boundary, and [final correctness](../../reviews/final-correctness-audit.md) audit. - Case
-  studies: payment lifecycle, [message delivery](../../case-studies/message-delivery/), database
-  transaction, invoice, and UI workflow.
+  [hybrid state machines](../../patterns/hybrid-state-machines.md).
+- Boundaries: [HTTP/RPC](../../boundaries/http-and-rpc.md), messaging,
+  [database decoding](../../boundaries/database-decoding.md), and filesystems.
+- Reviews: distributed effects, boundary, and
+  [final correctness](../../reviews/final-correctness-audit.md) audit.
+- Case studies: payment lifecycle, [message delivery](../../case-studies/message-delivery/),
+  database transaction, invoice, and UI workflow.
 
 ## Reading order
 

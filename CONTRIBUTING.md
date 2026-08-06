@@ -102,10 +102,11 @@ resolves to a patched version without it.
 
 ## Generated content
 
-Two sets of files are generated: everything under `dist/`, and the accepted-RFC index
+Three sets of files are generated: everything under `dist/`; the accepted-RFC index
 `rfcs/accepted/README.md`, built from `rfcs/accepted/overview.md` and each accepted RFC's front
-matter. Both are excluded from Prettier and markdownlint, and both carry a banner naming their
-sources. Edit canonical sources or bundler behavior, then run:
+matter; and the doctrine coverage map `doctrines/map.md`, built from `doctrines/map-overview.md`
+and both manifests. All three are excluded from Prettier and markdownlint, and each carries a
+banner naming its sources. Edit canonical sources or bundler behavior, then run:
 
 ```bash
 cargo run -p bundle-agent-context -- generate

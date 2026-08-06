@@ -2018,7 +2018,7 @@ mod tests {
         collect_files, doctrine_index_rows, maintained_markdown, root_documents, scan_marker_file,
         table_row_cells, unknown_alert, validation_sequence_copies,
     };
-    use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity};
+    use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity, states_obligations};
     use std::collections::BTreeSet;
     use std::fs;
     use std::path::{Path, PathBuf};
@@ -2134,6 +2134,48 @@ mod tests {
                 "{verbosity} was judged wrongly"
             );
         }
+    }
+
+    /// End-to-end against the real manifests: no source any role pack lists may be
+    /// withheld from it.
+    ///
+    /// The regression this pins is concrete. An earlier obligation classifier omitted
+    /// `agents/`, so an annotation under `## Boundary obligations` in `agents/shared.md`
+    /// was accepted by both tools and replaced those rules with a receipt in every role
+    /// pack. Because the widest tier is reserved from every pack, the obligation then
+    /// reached none of them.
+    #[test]
+    fn every_source_a_role_pack_lists_states_obligations() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let doctrines: DoctrineManifest = serde_yaml_ng::from_str(
+            &fs::read_to_string(root.join("manifest/doctrines.yaml")).expect("read doctrines"),
+        )
+        .expect("parse doctrines");
+        let agents: AgentManifest = serde_yaml_ng::from_str(
+            &fs::read_to_string(root.join("manifest/agents.yaml")).expect("read agents"),
+        )
+        .expect("parse agents");
+
+        let mut tierable = Vec::new();
+        for pack in &agents.packs {
+            for path in pack.canonical_sources.iter().chain(&pack.review_checklists) {
+                if !states_obligations(path, &doctrines, &agents) {
+                    tierable.push(format!("{} lists {path}", pack.id));
+                }
+            }
+            for id in &pack.doctrine_selections {
+                let Some(entry) = doctrines.doctrines.iter().find(|entry| &entry.id == id) else {
+                    continue;
+                };
+                if !states_obligations(&entry.normative_path, &doctrines, &agents) {
+                    tierable.push(format!("{} selects {id}", pack.id));
+                }
+            }
+        }
+        assert!(
+            tierable.is_empty(),
+            "a role pack source that can be withheld: {tierable:?}"
+        );
     }
 
     #[test]

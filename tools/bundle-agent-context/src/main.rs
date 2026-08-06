@@ -186,9 +186,9 @@ fn assembly_note(projection: &Projection, authority: &str) -> String {
     format!(
         "\n## Assembly\n\nCeiling `{}`, {authority}. A section annotated above that ceiling is \
          withheld here. {withheld}\n\nObligations are never withheld. A doctrine's normative \
-         file, every foundation, and every review checklist carry no annotation, and generation \
-         rejects one. Canonical sources carry every section, and `dist/full-doctrine.md` carries \
-         the corpus with no ceiling applied.\n",
+         file, every foundation, every agent overlay, and every review checklist carry no \
+         annotation, and generation rejects one. Canonical sources carry every section, and \
+         `dist/full-doctrine.md` carries the corpus with no ceiling applied.\n",
         projection.ceiling
     )
 }
@@ -512,28 +512,52 @@ fn build_doctrine_map(
     let mut output = String::from(DOCTRINE_MAP_BANNER);
     output.push('\n');
     output.push_str(overview.trim_end());
-    output.push_str("\n\n## Pack coverage\n\n| Doctrine |");
+    output.push_str("\n\n## Pack coverage\n\n| Doctrine | Status |");
     for pack in &agents.packs {
-        write!(output, " {} |", pack.id)
-            .map_err(|error| format!("cannot render the coverage map: {error}"))?;
+        // The header links to the pack it names, so a reader can move from a row straight
+        // to the artifact the row describes.
+        let output_path = pack
+            .output_path
+            .strip_prefix("doctrines/")
+            .unwrap_or(&pack.output_path);
+        write!(
+            output,
+            " [{}](../{}) |",
+            title_case(pack.id.as_str()),
+            output_path
+        )
+        .map_err(|error| format!("cannot render the coverage map: {error}"))?;
     }
-    output.push_str("\n| --- |");
+    output.push_str("\n| --- | --- |");
     for _ in &agents.packs {
         output.push_str(" --- |");
     }
     output.push('\n');
 
-    for doctrine in doctrines.active() {
+    // Every doctrine that is active, plus any a pack selects regardless of status. A pack
+    // may select a non-active doctrine and `build_role_pack` will hydrate it, so listing
+    // only the active ones would let a row disappear from this view while the pack that
+    // carries it is unchanged.
+    for doctrine in doctrines.doctrines.iter().filter(|entry| {
+        entry.status.is_active()
+            || agents
+                .packs
+                .iter()
+                .any(|pack| pack.doctrine_selections.contains(&entry.id))
+    }) {
         write!(
             output,
-            "| [{}]({}/README.md) |",
+            "| [{}]({}/README.md) | {} |",
             doctrine.id,
-            relative_package(doctrine)
+            relative_package(doctrine),
+            doctrine.status
         )
         .map_err(|error| format!("cannot render the coverage map: {error}"))?;
         for pack in &agents.packs {
+            // An excluded cell is rendered rather than left blank, so the row reads the
+            // same in a screen reader as it does in a rendered table.
             let carried = pack.doctrine_selections.contains(&doctrine.id);
-            output.push_str(if carried { " yes |" } else { " |" });
+            output.push_str(if carried { " yes |" } else { " — |" });
         }
         output.push('\n');
     }
@@ -1203,14 +1227,24 @@ mod tests {
     fn an_annotation_in_a_file_that_states_obligations_stops_generation() {
         let temporary = scratch("normative");
         fs::create_dir_all(temporary.join("foundations")).expect("create foundations");
+        fs::create_dir_all(temporary.join("agents")).expect("create agents");
         let annotated = "# Rules\n\n## Detail\n\n<!-- verbosity: exhaustive -->\n\nProse.\n";
         fs::write(temporary.join("rules.md"), annotated).expect("write normative source");
         fs::write(temporary.join("foundations/x.md"), annotated).expect("write foundation");
+        // An overlay is an obligation document: `agents/shared.md` is titled "Shared agent
+        // obligations". Omitting this class let an annotation withhold those rules from
+        // every role pack while both tools exited zero.
+        fs::write(temporary.join("agents/shared.md"), annotated).expect("write overlay");
         fs::write(temporary.join("gate.md"), annotated).expect("write checklist");
 
         let (doctrines, agents) = manifests(&["rules.md"], &["gate.md"]);
         let output_path = PathBuf::from("dist/output.md");
-        for relative in ["rules.md", "foundations/x.md", "gate.md"] {
+        for relative in [
+            "rules.md",
+            "foundations/x.md",
+            "agents/shared.md",
+            "gate.md",
+        ] {
             let mut projection = Projection::new(
                 &temporary,
                 &output_path,

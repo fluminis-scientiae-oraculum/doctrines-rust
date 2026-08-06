@@ -75,11 +75,11 @@ remains true in mutable external reality.
   [sum types](../../patterns/sum-types.md),
   [validated collections](../../patterns/validated-collections.md),
   [hybrid state machines](../../patterns/hybrid-state-machines.md), and
-  [explicit uncertainty](../../patterns/explicit-uncertainty.md). - Boundaries:
-  [database decoding](../../boundaries/database-decoding.md), [Serde](../../boundaries/serde.md),
-  messaging, configuration, and filesystems. - Reviews: domain model, boundary, distributed effects,
-  and final audit. - Case studies: database transaction, payment lifecycle, invoice, and message
-  delivery.
+  [explicit uncertainty](../../patterns/explicit-uncertainty.md).
+- Boundaries: [database decoding](../../boundaries/database-decoding.md),
+  [Serde](../../boundaries/serde.md), messaging, configuration, and filesystems.
+- Reviews: domain model, boundary, distributed effects, and final audit.
+- Case studies: database transaction, payment lifecycle, invoice, and message delivery.
 
 ## Reading order
 

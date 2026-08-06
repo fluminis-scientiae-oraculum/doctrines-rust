@@ -19,7 +19,7 @@
 - [ ] Canonical sources were changed before generated bundles.
 - [ ] Canonical and governance Markdown passes the pinned formatter and linter.
 - [ ] `cargo run -p bundle-agent-context -- generate` regenerated every generated file.
-- [ ] No generated file was edited directly (`dist/**`, `rfcs/accepted/README.md`).
+- [ ] No generated file was edited directly (`dist/**`, `rfcs/accepted/README.md`, `doctrines/map.md`).
 
 ## Guarantee ledger
 

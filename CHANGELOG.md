@@ -55,6 +55,21 @@ restructuring rather than for added obligations.
 
 ### Fixed in 0.6.0
 
+- Agent overlays are obligation documents and are now untierable. An earlier
+  classifier covered only doctrine normative files, the foundations, and the
+  review checklists, so an annotation under `## Boundary obligations` in
+  `agents/shared.md` was accepted by both tools and replaced those rules with a
+  withholding receipt in every role pack. Because the widest tier is reserved
+  from every pack, the obligation then reached none of them. Found in review.
+  The consequence is stated rather than absorbed: every source any role pack
+  lists now falls into an untierable class, so the ceiling removes nothing from
+  a role pack today, and a test asserts that against the real manifests.
+- The coverage map listed only active doctrines while `build_role_pack` hydrates
+  any selected doctrine regardless of status, so a deprecated but selected
+  doctrine would vanish from the map while the pack carrying it was unchanged.
+  The map now covers every doctrine that is active or selected, and states each
+  one's status.
+
 - The per-doctrine rule counts in `EVIDENCE.md` were eleven machine-derivable integers
   maintained by hand with nothing checking them. `check_stated_counts` could not see
   them, because it only matches an integer immediately before one of three literal
