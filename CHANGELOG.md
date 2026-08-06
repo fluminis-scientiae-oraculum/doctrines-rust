@@ -39,6 +39,17 @@ restructuring rather than for added obligations.
   retrieval index, and the three things an agent has to be told alongside it: the
   bundle is hydration and not authority, a role pack is a subset, and the corpus
   is versioned.
+- A release workflow. A `v*` tag publishes the committed `dist/` bundles as a
+  tarball, a zip, a checksum file, and the two whole-corpus bundles individually.
+  It refuses to publish unless the tag matches `repository_version` and
+  `bundle-agent-context -- check` confirms the bundles still match canonical
+  source, so a stale commit cannot ship as though it were current. Asset names
+  carry no version, because `releases/latest/download/<asset>` matches an exact
+  filename and a versioned name would leave every documented download command
+  pointing at a missing file one release later. This is the only workflow that is
+  not read-only: `contents: write` is granted on the publishing job rather than
+  the file, and `CONTRIBUTING.md` now says so instead of claiming CI is read-only
+  throughout.
 - A generated size table in `dist/README.md`, so choosing a bundle against a
   context window uses a current number rather than a hand-copied one. The index
   is built last and excludes itself from its own table, which is what makes the

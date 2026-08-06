@@ -142,9 +142,16 @@ idempotency, duplicate, and reconciliation review.
 ## Validation
 
 Run the complete command set in the root README and record exact successful commands in the
-pull request. The distinct Markdown CI gate checks both formatting drift and lint. CI uses
-read-only permissions and also rejects high-severity npm advisories. It confirms local checks.
-Do not push work whose first formatter, compiler, test, linter, or dependency audit will be CI.
+pull request. The distinct Markdown CI gate checks both formatting drift and lint. Every
+validation workflow uses read-only permissions and also rejects high-severity npm advisories.
+It confirms local checks. Do not push work whose first formatter, compiler, test, linter, or
+dependency audit will be CI.
+
+One workflow is not read-only. `release.yml` runs on a `v*` tag and needs `contents: write`
+to publish. The grant is on that job rather than the file, and the job publishes nothing until
+the tag matches `repository_version` and `bundle-agent-context -- check` confirms the committed
+bundles still match canonical source. It builds no artifact of its own: it packages the `dist/`
+files already committed at that tag.
 
 ## Reporting a guarantee overclaim
 

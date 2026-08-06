@@ -16,6 +16,22 @@ Everything under `/dist` is a deterministic output of `bundle-agent-context`. Ca
 sources live under `/foundations`, `/doctrines`, `/patterns`, `/boundaries`, `/reviews`,
 and `/agents`.
 
+## Getting the bundles
+
+Clone the repository, or download them without cloning:
+
+```bash
+curl -fsSLO https://github.com/fluminis-scientiae-oraculum/doctrines-rust/releases/latest/download/doctrines-rust-dist.tar.gz
+curl -fsSLO https://github.com/fluminis-scientiae-oraculum/doctrines-rust/releases/latest/download/doctrines-rust-dist.sha256
+sha256sum --check --ignore-missing doctrines-rust-dist.sha256
+tar --extract --gzip --file doctrines-rust-dist.tar.gz
+```
+
+Each release is published from a `v*` tag, and the workflow refuses to publish unless the
+tag matches `repository_version` and the committed bundles still match canonical source.
+`full-doctrine.md` and `compact-doctrine.md` are also attached individually, so a single
+bundle can be fetched without the archive.
+
 ## Loading the doctrine into an agent
 
 Pick one file. Do not concatenate several: they overlap heavily, and the overlap is
@@ -49,6 +65,50 @@ system prompt accepts them.
   first so your task-specific text is the more recent context.
 - **A retrieval index** — split on the `## Source:` headings. Each carries the canonical
   path it came from, so a retrieved chunk stays attributable.
+
+### Worked example: Claude Code
+
+Claude Code reads `CLAUDE.md` from the project root on every turn. An implementer agent
+working in a Rust project:
+
+```bash
+mkdir -p .claude/doctrine
+cp dist/agents/implementer.md .claude/doctrine/
+```
+
+Then put the framing in `CLAUDE.md` and reference the pack rather than pasting it, so the
+file stays readable and the pack stays replaceable. Fill in the version you downloaded; it
+is the release tag, and also `repository_version` in `manifest/doctrines.yaml`:
+
+```markdown
+## Rust engineering doctrine
+
+`.claude/doctrine/implementer.md` is the implementer pack of doctrines-rust <version>. Apply
+it to Rust work in this repository.
+
+It is hydration, not authority. Cite rules by their `RUST-DOC-####-R###` identifier. If a
+rule seems to forbid something this project needs, quote the rule's allowed exceptions
+before concluding it does; do not work around it silently. A doctrine the pack does not
+carry is not out of force, it is one this pack omits.
+```
+
+### Worked example: Codex
+
+Codex reads `AGENTS.md`. It has no per-file include, so the pack goes in the file:
+
+```bash
+{
+  echo "# Agent instructions"
+  echo
+  echo "The doctrine below is the doctrines-rust implementer pack. It is hydration, not"
+  echo "authority: cite rules by their RUST-DOC-####-R### identifier, and quote a rule's"
+  echo "allowed exceptions before concluding it forbids something."
+  echo
+  cat dist/agents/implementer.md
+} > AGENTS.md
+```
+
+Put the framing above the pack, not below it. A reader that truncates keeps the beginning.
 
 ### Tell the agent three things alongside it
 
