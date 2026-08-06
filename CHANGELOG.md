@@ -86,6 +86,27 @@ makes this a minor release rather than a patch.
   RFCs" and exited zero. The walk is now fallible and aborts generation. This is
   the same class as the `doctrine-lint` fix above, which had been applied to only
   one of the two tools.
+- Both tools classified directory entries with `Path::is_dir` and `Path::is_file`,
+  which follow symbolic links and report `false` for a metadata error. A link was
+  therefore treated as whatever it pointed at, and a classification failure was
+  indistinguishable from an entry that was neither. A symbolic link added under
+  `rfcs/accepted` made `generate` publish a second index row for a target the
+  repository does not contain, and exit zero. Entries are now classified with
+  `DirEntry::file_type`, a link is reported and not followed, and a classification
+  failure is reported. The linter also reported no per-entry read failure, which
+  `filter_map(Result::ok)` discarded; those are reported too.
+- `doctrines/0001-invalid-states/README.md` stated "All rules are version `0.1.0`
+  and active", which the `R002` amendment made false and which bundle generation
+  propagated into `dist/full-doctrine.md`. The sentence restated a version the
+  file's own front matter and the manifest already carry, so it is replaced with
+  the stable-identifier wording the other doctrine READMEs use, which names no
+  version and cannot go stale. That is `RUST-DOC-0011-R004` applied to a package
+  README.
+- `rfcs/accepted/RFC-0004-closed-vocabulary-discriminants.md` carried a prose
+  paragraph where `rfcs/template.md` requires a decision record with decision,
+  date, decision owners, rationale, conditions, and supersession. The record now
+  states all six, so the acceptance authority for a normative change is on the
+  record rather than implied.
 
 ## [0.4.1] — 2026-08-05
 

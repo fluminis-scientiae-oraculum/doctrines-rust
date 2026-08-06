@@ -11,7 +11,7 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Forty-six tooling tests exercise doctrine linting, decision-record
+- Forty-eight tooling tests exercise doctrine linting, decision-record
   validation, doctrine-index agreement with the manifest, counted-claim,
   rule-citation and duplicated-validation-sequence drift detection, and
   deterministic bundle generation.
@@ -23,6 +23,9 @@ proof.
   reported rather than skipped, and that an absent directory and content that is
   not UTF-8 are not reported, so the checks cannot be satisfied by reporting
   every path that fails to open.
+- Two more assert that a symbolic link is reported and not followed, in both the
+  linter's walk and the bundler's, so an entry naming a target outside the
+  repository cannot reach a scan or a generated bundle.
 - A dedicated CI job reruns the five `unsafe-evidence` unit tests under Miri on
   pinned nightly `nightly-2026-07-13`.
 

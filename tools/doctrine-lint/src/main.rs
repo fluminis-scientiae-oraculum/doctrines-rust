@@ -571,7 +571,12 @@ fn is_dated_record(relative: &str) -> bool {
 ///
 /// A directory that cannot be read is reported rather than treated as empty. An
 /// unreadable root would otherwise scan nothing and let every root-document check
-/// pass, which is the same silent-omission failure the enumeration replaced.
+/// pass, which is the same silent-omission failure the enumeration replaced. Unlike
+/// the canonical-root walks, an absent root is reported too: this directory is the
+/// repository, so its absence is never a legitimate empty.
+///
+/// Entries are classified by `DirEntry::file_type` for the reasons `classified_entries`
+/// states, so a symbolic link is reported rather than scanned as its target.
 fn root_documents(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Vec<PathBuf> {
     let entries = match fs::read_dir(root) {
         Ok(entries) => entries,
@@ -583,13 +588,37 @@ fn root_documents(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Vec<PathBuf
             return Vec::new();
         }
     };
-    let mut paths: Vec<PathBuf> = entries
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .filter(|path| {
-            path.is_file() && path.extension().and_then(|value| value.to_str()) == Some("md")
-        })
-        .collect();
+
+    let mut paths = Vec::new();
+    for entry in entries {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(error) => {
+                diagnostics.push(Diagnostic::new(
+                    root,
+                    format!("cannot read a repository-root entry: {error}"),
+                ));
+                continue;
+            }
+        };
+        let path = entry.path();
+        if path.extension().and_then(|value| value.to_str()) != Some("md") {
+            continue;
+        }
+        match entry.file_type() {
+            Ok(file_type) if file_type.is_symlink() => diagnostics.push(Diagnostic::new(
+                &path,
+                "symbolic link is not scanned; a root document must be a regular file \
+                 inside the repository",
+            )),
+            Ok(file_type) if file_type.is_file() => paths.push(path),
+            Ok(_) => {}
+            Err(error) => diagnostics.push(Diagnostic::new(
+                &path,
+                format!("cannot classify a repository-root entry: {error}"),
+            )),
+        }
+    }
     paths.sort();
     paths
 }
@@ -1633,26 +1662,10 @@ fn collect_files(
     unreadable: &mut Vec<Diagnostic>,
     visit: &mut impl FnMut(&Path),
 ) {
-    let entries = match fs::read_dir(directory) {
-        Ok(entries) => entries,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return,
-        Err(error) => {
-            unreadable.push(Diagnostic::new(
-                directory,
-                format!("cannot enumerate directory: {error}"),
-            ));
-            return;
-        }
-    };
-    let mut paths: Vec<PathBuf> = entries
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .collect();
-    paths.sort();
-    for path in paths {
-        if path.is_dir() {
+    for (path, file_type) in classified_entries(directory, unreadable) {
+        if file_type.is_dir() {
             collect_files(&path, unreadable, visit);
-        } else if path.is_file() {
+        } else if file_type.is_file() {
             visit(&path);
         }
     }
@@ -1664,25 +1677,8 @@ fn collect_repository_files(
     unreadable: &mut Vec<Diagnostic>,
     visit: &mut impl FnMut(&Path),
 ) {
-    let entries = match fs::read_dir(directory) {
-        Ok(entries) => entries,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return,
-        Err(error) => {
-            unreadable.push(Diagnostic::new(
-                directory,
-                format!("cannot enumerate directory: {error}"),
-            ));
-            return;
-        }
-    };
-    let mut paths = entries
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .collect::<Vec<_>>();
-    paths.sort();
-
-    for path in paths {
-        if path.is_dir() {
+    for (path, file_type) in classified_entries(directory, unreadable) {
+        if file_type.is_dir() {
             let relative = path.strip_prefix(root).unwrap_or(&path);
             let top = relative
                 .components()
@@ -1695,10 +1691,73 @@ fn collect_repository_files(
                 continue;
             }
             collect_repository_files(root, &path, unreadable, visit);
-        } else if path.is_file() {
+        } else if file_type.is_file() {
             visit(&path);
         }
     }
+}
+
+/// One directory's entries as sorted `(path, file type)`, reporting what it cannot
+/// read or classify.
+///
+/// `Path::is_dir` and `Path::is_file` follow symbolic links and report `false` for a
+/// metadata error, so a link is classified as whatever it points at and a
+/// classification failure is indistinguishable from "neither". `DirEntry::file_type`
+/// describes the entry itself and reports its own failure.
+///
+/// A symbolic link is reported and not followed. The corpus is built from regular
+/// files inside the repository, and a link can name a target outside it, so following
+/// one would let content the repository does not contain reach a scan or a bundle.
+/// This repository contains no symbolic links, so the policy costs nothing today and
+/// states itself rather than being implied by whatever `is_dir` happened to return.
+///
+/// A per-entry failure is reported rather than dropped, which `filter_map(Result::ok)`
+/// did: one unreadable entry vanished from the walk as quietly as an unreadable parent
+/// removed all of them.
+fn classified_entries(
+    directory: &Path,
+    unreadable: &mut Vec<Diagnostic>,
+) -> Vec<(PathBuf, fs::FileType)> {
+    let entries = match fs::read_dir(directory) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Vec::new(),
+        Err(error) => {
+            unreadable.push(Diagnostic::new(
+                directory,
+                format!("cannot enumerate directory: {error}"),
+            ));
+            return Vec::new();
+        }
+    };
+
+    let mut classified = Vec::new();
+    for entry in entries {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(error) => {
+                unreadable.push(Diagnostic::new(
+                    directory,
+                    format!("cannot read a directory entry: {error}"),
+                ));
+                continue;
+            }
+        };
+        let path = entry.path();
+        match entry.file_type() {
+            Ok(file_type) if file_type.is_symlink() => unreadable.push(Diagnostic::new(
+                &path,
+                "symbolic link is not followed; the corpus is built from regular files \
+                 inside the repository",
+            )),
+            Ok(file_type) => classified.push((path, file_type)),
+            Err(error) => unreadable.push(Diagnostic::new(
+                &path,
+                format!("cannot classify directory entry: {error}"),
+            )),
+        }
+    }
+    classified.sort_by(|left, right| left.0.cmp(&right.0));
+    classified
 }
 
 fn read_text(path: &Path, diagnostics: &mut Vec<Diagnostic>) -> Option<String> {
@@ -2323,6 +2382,43 @@ mod tests {
 
         assert!(diagnostics.is_empty(), "{diagnostics:?}");
         fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    /// A symbolic link is reported and not followed, while regular entries beside it
+    /// are still visited. `Path::is_file` classifies a link as its target, so a linked
+    /// document would be scanned as though the repository contained it.
+    #[cfg(unix)]
+    #[test]
+    fn a_symbolic_link_is_reported_and_not_followed() {
+        let root = temporary_directory("symlink-entry");
+        let outside = root.join("outside.md");
+        fs::write(&outside, "outside the walk\n").expect("write link target");
+        let directory = root.join("walk");
+        fs::create_dir_all(&directory).expect("create directory");
+        fs::write(directory.join("real.md"), "body\n").expect("write regular file");
+        std::os::unix::fs::symlink(&outside, directory.join("linked.md"))
+            .expect("create symbolic link");
+
+        let mut unreadable = Vec::new();
+        let mut visited = Vec::new();
+        collect_files(&directory, &mut unreadable, &mut |path| {
+            visited.push(
+                path.file_name()
+                    .expect("file name")
+                    .to_string_lossy()
+                    .into_owned(),
+            );
+        });
+
+        fs::remove_dir_all(&root).expect("remove temporary test directory");
+        assert_eq!(visited, vec!["real.md".to_owned()]);
+        assert_eq!(unreadable.len(), 1, "{unreadable:?}");
+        assert!(
+            unreadable[0]
+                .message
+                .contains("symbolic link is not followed"),
+            "{unreadable:?}"
+        );
     }
 
     /// An absent directory is genuinely empty and stays silent, so the check above

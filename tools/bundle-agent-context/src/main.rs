@@ -787,9 +787,23 @@ fn collect_files(directory: &Path, files: &mut Vec<PathBuf>) -> Result<(), Strin
         let entry = entry
             .map_err(|error| format!("cannot read an entry of {}: {error}", directory.display()))?;
         let path = entry.path();
-        if path.is_dir() {
+        // `Path::is_dir` and `Path::is_file` follow symbolic links and report `false`
+        // for a metadata error, so a link is classified as whatever it points at and a
+        // classification failure is indistinguishable from "neither". `file_type`
+        // describes the entry itself and reports its own failure.
+        let file_type = entry
+            .file_type()
+            .map_err(|error| format!("cannot classify {}: {error}", path.display()))?;
+        if file_type.is_symlink() {
+            return Err(format!(
+                "{} is a symbolic link; generated output is built only from regular files \
+                 inside the repository, because a link can name a target outside it",
+                path.display()
+            ));
+        }
+        if file_type.is_dir() {
             collect_files(&path, files)?;
-        } else if path.is_file() {
+        } else if file_type.is_file() {
             files.push(path);
         }
     }
@@ -910,6 +924,30 @@ mod tests {
             let error = walked.expect_err("an unlistable directory must abort the walk");
             assert!(error.contains("cannot enumerate"), "{error}");
         }
+    }
+
+    /// A symbolic link must abort the walk rather than be classified as its target.
+    /// `Path::is_file` follows the link, so one placed in `rfcs/accepted` published a
+    /// second index row for content the repository does not contain.
+    #[cfg(unix)]
+    #[test]
+    fn a_symbolic_link_aborts_the_walk() {
+        let temporary = std::env::temp_dir().join(format!(
+            "doctrines-rust-bundler-symlink-{}",
+            std::process::id()
+        ));
+        let directory = temporary.join("walk");
+        fs::create_dir_all(&directory).expect("create directory");
+        let outside = temporary.join("outside.md");
+        fs::write(&outside, "outside the walk\n").expect("write link target");
+        std::os::unix::fs::symlink(&outside, directory.join("linked.md"))
+            .expect("create symbolic link");
+
+        let walked = all_files(&directory);
+
+        fs::remove_dir_all(&temporary).expect("remove temporary test directory");
+        let error = walked.expect_err("a symbolic link must abort the walk");
+        assert!(error.contains("is a symbolic link"), "{error}");
     }
 
     #[test]

@@ -200,6 +200,25 @@ than a citable source for this specific rule, and is not claimed as one.
 
 ## Decision record
 
-Accepted. The amendment is implemented in the same change set as the tooling migration that
-exposed the defect, so the corpus and its own code move together rather than leaving the corpus
-stating an obligation its tooling does not meet.
+- Decision: accepted
+- Date: 2026-08-06
+- Decision owners: doctrines-rust maintainers
+- Rationale: The applicability of `RUST-DOC-0001-R002` named string discriminants while its
+  statement reached only contradictory field combinations carrying state-specific data, so the
+  rule was applicable to a lone unit-state discriminant and required nothing of it. That was
+  found by trying to cite it against a real defect in this repository's own tooling, where an
+  unconstrained status field silently removed a whole doctrine from every generated bundle.
+  `RUST-DOC-0001-R011` covers the case as a recommendation, so the corpus was not unsound; the
+  rule a reviewer is trained to reach for was unciteable, which is a different defect and one
+  that only surfaces at the point of use.
+- Conditions: Preserve the rule identifier, title, and position, so existing citations resolve.
+  Add no rule and weaken none; the corpus keeps 207 rules across eleven packages. State the
+  exclusions explicitly in the RFC, so the obligation cannot be read as a requirement to
+  enumerate every constrained string, and carry the allowed exception for vocabularies too large
+  or volatile to enumerate. Migrate this repository's own remaining closed vocabulary in the same
+  change set, so the corpus conforms to the rule in the release that publishes it. Move
+  `RUST-DOC-0001` to `0.2.0` and the repository to `0.5.0`, and record the change as a minor
+  release under `foundations/normative-language.md`. Regenerate bundles and pass the complete
+  validation set on both toolchains.
+- Supersedes / superseded by: none. No RFC is superseded. RFC-0001, RFC-0002, and RFC-0003 are
+  unaffected, and no rule they introduced changes.

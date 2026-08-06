@@ -1633,8 +1633,9 @@ Architects use it with the complexity budget to choose proportionate mechanisms.
 examples, anti-patterns, glossary, and references are informative unless a rule incorporates
 them.
 
-All rules are version `0.1.0` and active. Waivers follow the repository waiver contract. A new
-escape hatch, weakened obligation, or changed rule meaning requires an RFC.
+Rule identifiers remain stable within the doctrine version, which this file's front matter and
+`manifest/doctrines.yaml` record. Waivers follow the repository waiver contract. A new escape
+hatch, weakened obligation, or changed rule meaning requires an RFC.
 
 ## Prerequisite foundations
 
