@@ -261,56 +261,34 @@ fn build_outputs(root: &Path) -> Result<Vec<GeneratedFile>, String> {
     validate_curated_inventory(root)?;
     agent_manifest.packs.sort_by_key(|pack| pack.ordering);
 
-    let mut outputs = Vec::new();
-
-    // The index of the distributions is not itself a distribution, so it carries no
-    // assembly note. It is projected at the widest ceiling for the same reason
-    // `dist/full-doctrine.md` is: eliding from it would hide the description of the
-    // elision.
-    let mut distribution = generated_document("Generated doctrine distributions");
-    let mut index_projection = Projection::new(
-        root,
-        Path::new(DIST_README),
-        widest_ceiling(),
-        &doctrine_manifest,
-        &agent_manifest,
-    );
-    append_source(
-        &mut index_projection,
-        "agents/distribution.md",
-        &mut distribution,
-    )?;
-    outputs.push(GeneratedFile {
-        path: PathBuf::from(DIST_README),
-        content: distribution,
-    });
-
-    outputs.push(GeneratedFile {
-        path: PathBuf::from(DIST_FULL),
-        content: build_full(
-            root,
-            &doctrine_manifest,
-            &agent_manifest,
-            Path::new(DIST_FULL),
-        )?,
-    });
-    outputs.push(GeneratedFile {
-        path: PathBuf::from(DIST_COMPACT),
-        content: build_compact(
-            root,
-            &doctrine_manifest,
-            &agent_manifest,
-            Path::new(DIST_COMPACT),
-        )?,
-    });
-    outputs.push(GeneratedFile {
-        path: PathBuf::from(RFC_ACCEPTED_INDEX),
-        content: build_rfc_index(root)?,
-    });
-    outputs.push(GeneratedFile {
-        path: PathBuf::from(DOCTRINE_MAP),
-        content: build_doctrine_map(root, &doctrine_manifest, &agent_manifest)?,
-    });
+    let mut outputs = vec![
+        GeneratedFile {
+            path: PathBuf::from(DIST_FULL),
+            content: build_full(
+                root,
+                &doctrine_manifest,
+                &agent_manifest,
+                Path::new(DIST_FULL),
+            )?,
+        },
+        GeneratedFile {
+            path: PathBuf::from(DIST_COMPACT),
+            content: build_compact(
+                root,
+                &doctrine_manifest,
+                &agent_manifest,
+                Path::new(DIST_COMPACT),
+            )?,
+        },
+        GeneratedFile {
+            path: PathBuf::from(RFC_ACCEPTED_INDEX),
+            content: build_rfc_index(root)?,
+        },
+        GeneratedFile {
+            path: PathBuf::from(DOCTRINE_MAP),
+            content: build_doctrine_map(root, &doctrine_manifest, &agent_manifest)?,
+        },
+    ];
 
     let mut output_paths = BTreeSet::from([
         PathBuf::from(DIST_README),
@@ -337,9 +315,71 @@ fn build_outputs(root: &Path) -> Result<Vec<GeneratedFile>, String> {
         });
     }
 
+    // The index of the distributions is built last, because it reports their sizes. It is
+    // not itself a distribution, so it carries no assembly note, and it is projected at the
+    // widest ceiling for the same reason `dist/full-doctrine.md` is: eliding from it would
+    // hide the description of the elision. It excludes itself from the table it carries,
+    // which is what keeps the table a fixed point rather than a value that changes every
+    // time it is written.
+    let mut distribution = generated_document("Generated doctrine distributions");
+    let mut index_projection = Projection::new(
+        root,
+        Path::new(DIST_README),
+        widest_ceiling(),
+        &doctrine_manifest,
+        &agent_manifest,
+    );
+    append_source(
+        &mut index_projection,
+        "agents/distribution.md",
+        &mut distribution,
+    )?;
+    distribution.push_str(&size_table(&outputs));
+    outputs.push(GeneratedFile {
+        path: PathBuf::from(DIST_README),
+        content: normalize_final_newline(distribution),
+    });
+
     outputs.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(outputs)
 }
+
+/// A table of every generated distribution and its size.
+///
+/// A reader choosing a bundle needs to know what it costs, and a byte count written by
+/// hand is a machine-derivable fact with nothing checking it. Deriving it from the bytes
+/// just produced makes the table current because it was generated, not because someone
+/// remembered. The token column is an estimate and says so: it divides by
+/// [`BYTES_PER_TOKEN_ESTIMATE`], which is a rule of thumb for English prose, not a
+/// tokenizer.
+fn size_table(outputs: &[GeneratedFile]) -> String {
+    let mut table = String::from(
+        "\n---\n\n## Sizes\n\n| Distribution | Bytes | Approximate tokens |\n| --- | ---: | ---: |\n",
+    );
+    let mut rows: Vec<&GeneratedFile> = outputs
+        .iter()
+        .filter(|file| file.path.starts_with("dist"))
+        .collect();
+    rows.sort_by_key(|file| file.content.len());
+    for file in rows {
+        let bytes = file.content.len();
+        let _ = writeln!(
+            table,
+            "| `{}` | {bytes} | {} |",
+            file.path.display().to_string().replace('\\', "/"),
+            bytes / BYTES_PER_TOKEN_ESTIMATE
+        );
+    }
+    table.push_str(
+        "\nThe token column divides bytes by a fixed estimate of four. It is a planning \
+         figure for choosing a bundle against a context window, not a measurement: a real \
+         count depends on the tokenizer.\n",
+    );
+    table
+}
+
+/// Bytes per token, as a planning estimate for English prose.
+const BYTES_PER_TOKEN_ESTIMATE: usize = 4;
 
 /// The complete corpus projection, at the widest ceiling the schema declares.
 ///

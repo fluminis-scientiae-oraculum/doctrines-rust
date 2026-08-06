@@ -131,6 +131,12 @@ evidence by doctrine and names the material gaps that remain.
 Canonical doctrine lives under `foundations/`, `doctrines/`, `patterns/`, `boundaries/`,
 `reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
 
+> [!TIP]
+> To load this corpus into an agent, read
+> [Loading the doctrine into an agent](dist/README.md#loading-the-doctrine-into-an-agent). It
+> covers which bundle to pick, how to attach it, and what to tell the agent alongside it. That
+> guidance travels with the bundles, so it is available to someone holding only `dist/`.
+
 Three kinds of file are generated and are never edited by hand:
 
 - everything under [`dist/`](dist/README.md), the hydration bundles projected from canonical

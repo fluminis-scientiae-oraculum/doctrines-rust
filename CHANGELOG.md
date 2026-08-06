@@ -32,6 +32,17 @@ restructuring rather than for added obligations.
 - Breadcrumb navigation on the fifty case-study and source-note leaves, which
   previously had no path to their own index, and live links throughout the root
   README reading paths and the package `Related material` sections.
+- Instructions for loading the corpus into an agent, in `agents/distribution.md` and
+  therefore in the generated `dist/README.md`, so the guidance travels with the
+  bundles rather than living only in the repository. It covers which bundle to
+  pick, how to attach it to a project instruction file, a system prompt or a
+  retrieval index, and the three things an agent has to be told alongside it: the
+  bundle is hydration and not authority, a role pack is a subset, and the corpus
+  is versioned.
+- A generated size table in `dist/README.md`, so choosing a bundle against a
+  context window uses a current number rather than a hand-copied one. The index
+  is built last and excludes itself from its own table, which is what makes the
+  table a fixed point instead of a value that changes each time it is written.
 - Orientation pages for twenty-one directories that held content and no index:
   each case study, each source package, `templates/`, `manifest/`, and
   `manifest/schema/`. They carry only what is not stated elsewhere — the
