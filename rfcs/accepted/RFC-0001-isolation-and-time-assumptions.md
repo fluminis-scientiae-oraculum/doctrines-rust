@@ -128,9 +128,9 @@ residual anomaly has a named class and owner.
 - PostgreSQL transaction-isolation documentation is accepted for its
   product-specific Repeatable Read and Serializable behavior, including
   serialization failures and retry requirements.
-- Berenson et al., “A Critique of ANSI SQL Isolation Levels,” is accepted for
+- Berenson et al., "A Critique of ANSI SQL Isolation Levels," is accepted for
   the snapshot-isolation and write-skew taxonomy.
-- Gray and Cheriton's “Leases” is accepted for time-bounded distributed
+- Gray and Cheriton's "Leases" is accepted for time-bounded distributed
   authority.
 - The explicit prevented/residual-anomaly and clock-failure contract is a
   repository governance addition.

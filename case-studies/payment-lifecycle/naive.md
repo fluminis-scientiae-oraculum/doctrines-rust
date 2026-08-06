@@ -82,3 +82,8 @@ The design overclaims:
 
 Support cannot reconstruct one logical operation across retries, and users can
 cause duplicates while attempting to recover.
+
+> [!TIP]
+> [problem](problem.md) · **naive design** · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

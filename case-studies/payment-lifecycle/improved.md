@@ -134,3 +134,8 @@ without new evidence.
 | capture is unknown rather than failed      | ambiguous failure mapping                       | explicit variant             | persisted reconciliation   | operator risk decision      | success or rejection            | provider evidence missing         |
 | settled state has provider evidence        | authenticated deduplicated event                | checked transition           | inbox and row transaction  | audited backfill            | irrevocability                  | dispute/reversal                  |
 | reversal confirmed                         | authenticated reversal receipt                  | separate operation state     | durable outcome conversion | manual provider action      | history erased                  | later provider correction         |
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · **improved design** · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

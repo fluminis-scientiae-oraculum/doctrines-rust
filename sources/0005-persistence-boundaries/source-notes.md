@@ -16,8 +16,8 @@ and [enumerated types](https://www.postgresql.org/docs/current/datatype-enum.htm
 provides concrete database mechanics. The doctrine does not generalize those
 product-specific details to every database.
 
-[Berenson et al., “A Critique of ANSI SQL Isolation
-Levels”](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf)
+[Berenson et al., "A Critique of ANSI SQL Isolation
+Levels"](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf)
 provides the snapshot-isolation and write-skew taxonomy. PostgreSQL's current
 documentation supplies the product-specific qualification: its Repeatable Read
 level uses snapshot isolation and can admit serialization anomalies, while
@@ -97,3 +97,8 @@ phantoms, write skew, and other serialization anomalies. Revisit compatibility
 whenever enum tags, column nullability, format versions, alternate writers,
 backup/restore, or deployment ordering changes. New direct SQL or
 administrative tools enter the construction-path audit.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0005-persistence-boundaries/`](../../doctrines/0005-persistence-boundaries/README.md).

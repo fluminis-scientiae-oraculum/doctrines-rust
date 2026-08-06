@@ -58,3 +58,8 @@ Routing must match hosting. A hash-routed SPA keeps client path after `#`, so a
 static server can return one entry file. A history-routed SPA needs server
 fallbacks. Neither routing choice proves authentication or protects sensitive
 state in URLs.
+
+> [!TIP]
+> **problem** · [naive design](naive.md) · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

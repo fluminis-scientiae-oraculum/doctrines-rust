@@ -20,8 +20,8 @@ Primary and authoritative sources:
   for compiler-rejection evidence.
 - [RFC 2008: non-exhaustive types](https://rust-lang.github.io/rfcs/2008-non-exhaustive.html)
   informs public enum evolution and unknown future cases.
-- [Gray and Cheriton, “Leases: An Efficient Fault-Tolerant Mechanism for Distributed File
-  Cache Consistency”](https://dl.acm.org/doi/10.1145/74850.74870) is a foundational treatment
+- [Gray and Cheriton, "Leases: An Efficient Fault-Tolerant Mechanism for Distributed File
+  Cache Consistency"](https://dl.acm.org/doi/10.1145/74850.74870) is a foundational treatment
   of time-bounded distributed authority and uncertainty.
 - [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110) defines method semantics,
   retries, and idempotency terminology used at HTTP boundaries.

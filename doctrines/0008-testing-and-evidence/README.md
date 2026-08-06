@@ -70,7 +70,7 @@ the observed set.
 
 - Patterns: every pattern's testing-evidence section.
 - Boundaries: each boundary guide's positive and adversarial cases.
-- Reviews: all operational checklists, especially final correctness audit.
+- Reviews: all operational checklists, especially [final correctness](../../reviews/final-correctness-audit.md) audit.
 - Case studies: guarantee ledgers connect design claims to evidence.
 
 ## Reading order

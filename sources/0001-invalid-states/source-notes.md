@@ -3,7 +3,7 @@
 ## Originating teaching source
 
 The initial pedagogical prompt was inspired by the YouTube video
-[“How to write peak Rust”](https://www.youtube.com/watch?v=IVcPPT799_A).
+["How to write peak Rust"](https://www.youtube.com/watch?v=IVcPPT799_A).
 The repository does not contain the video or a transcript. The useful teaching
 sequence is:
 
@@ -100,3 +100,8 @@ large or volatile to enumerate.
 The parse-versus-validate framing this reasoning rests on is long-standing
 community practice. It is not cited as a source for this rule, because the
 rule was derived from the observed defect rather than from that literature.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0001-invalid-states/`](../../doctrines/0001-invalid-states/README.md).

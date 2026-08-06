@@ -28,9 +28,9 @@ decoding, and review of consequential invariants in Rust systems. It covers mutu
 domain state, refined values, collection rules, locally controlled protocols, authority,
 persistence, external effects, and distributed uncertainty.
 
-Its core question is not “Can Rust encode this in a type?” The question is “Which invalid
+Its core question is not "Can Rust encode this in a type?" The question is "Which invalid
 programs are consequential, which facts are structurally enforceable, where must runtime
-validation remain, and what evidence supports the resulting claim?”
+validation remain, and what evidence supports the resulting claim?"
 
 ## Out of scope
 
@@ -70,16 +70,31 @@ Read, in order:
 
 ## Related material
 
-Related patterns are sum types, opaque newtypes, smart constructors, validated collections,
-consuming transitions, typestate, capability types, hybrid state machines, and explicit
-uncertainty. Primary boundary guides are Serde, database decoding, HTTP/RPC, and messaging.
-Operational reviews are domain-model, boundary, typestate, distributed-effects, and final
-correctness review.
+Related patterns are [sum types](../../patterns/sum-types.md),
+[opaque newtypes](../../patterns/opaque-newtypes.md),
+[smart constructors](../../patterns/smart-constructors.md),
+[validated collections](../../patterns/validated-collections.md),
+[consuming transitions](../../patterns/consuming-transitions.md), typestate,
+[capability types](../../patterns/capability-types.md),
+[hybrid state machines](../../patterns/hybrid-state-machines.md), and
+[explicit uncertainty](../../patterns/explicit-uncertainty.md). Primary boundary guides are
+[Serde](../../boundaries/serde.md), [database decoding](../../boundaries/database-decoding.md),
+[HTTP/RPC](../../boundaries/http-and-rpc.md), and messaging. Operational reviews are
+[domain-model](../../reviews/domain-model-review.md), boundary, typestate,
+[distributed-effects](../../reviews/distributed-effects-review.md), and
+[final correctness](../../reviews/final-correctness-audit.md) review.
 
-Executable examples live under `examples/domain-modeling`, `examples/validated-newtypes`,
-`examples/typestate`, `examples/boundary-validation`, `examples/distributed-outcomes`, and
-`examples/compile-fail`. Case studies apply the doctrine to invoices, payments, transactions,
-message delivery, authenticated sessions, and UI workflows.
+Executable examples live under [`examples/domain-modeling`](../../examples/domain-modeling/),
+[`examples/validated-newtypes`](../../examples/validated-newtypes/),
+[`examples/typestate`](../../examples/typestate/),
+[`examples/boundary-validation`](../../examples/boundary-validation/),
+[`examples/distributed-outcomes`](../../examples/distributed-outcomes/), and
+[`examples/compile-fail`](../../examples/compile-fail/). Case studies apply the doctrine to
+[invoices](../../case-studies/invoice/), [payments](../../case-studies/payment-lifecycle/),
+[transactions](../../case-studies/database-transaction/),
+[message delivery](../../case-studies/message-delivery/),
+[authenticated sessions](../../case-studies/authenticated-session/), and
+[UI workflows](../../case-studies/ui-workflow/).
 
 ## Reading order
 

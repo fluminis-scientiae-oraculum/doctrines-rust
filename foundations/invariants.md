@@ -5,10 +5,10 @@ is considered valid. Its value comes from precision: the statement identifies wh
 histories are legal, who owns the truth, where it may be established, and what evidence can
 support it.
 
-“The invoice is correct” is not a useful invariant. “A paid invoice carries a receipt issued
-for that invoice” is a state invariant. “Capture can occur only after authorization” is a
-transition invariant. “Only a capability created by the authorization service permits
-capture” adds an authority invariant. Each can receive a different enforcement mechanism and
+"The invoice is correct" is not a useful invariant. "A paid invoice carries a receipt issued
+for that invoice" is a state invariant. "Capture can occur only after authorization" is a
+transition invariant. "Only a capability created by the authorization service permits
+capture" adds an authority invariant. Each can receive a different enforcement mechanism and
 different evidence.
 
 ## Invariant categories
@@ -89,8 +89,8 @@ the local design.
 
 ### Distributed invariants
 
-A distributed invariant spans independent failure domains, such as “at most one capture is
-accepted for an idempotency key” or “every committed outbox record is eventually attempted.”
+A distributed invariant spans independent failure domains, such as "at most one capture is
+accepted for an idempotency key" or "every committed outbox record is eventually attempted."
 The precise boundary matters. Network partitions, duplicate delivery, partial failure, and
 concurrent actors often prevent a simple global proof. Protocol, durable identity, atomic
 local transactions, deduplication, reconciliation, and audit trails provide bounded
@@ -105,10 +105,10 @@ configuration or authority. An **assumption** is relied upon but enforced elsewh
 enforced. An **observation** is evidence gathered at a time and may become stale. A **desired
 outcome** is a goal, not a guarantee.
 
-Consider `Connection<Open>`. “The local connect transition returned success” is historical
-evidence encoded by the state. “The remote peer is reachable now” is a mutable observation,
-not a lasting invariant of the value. “`send` is called only after local connection” is a
-sequencing invariant. “The next send succeeds” is a desired outcome and must remain fallible.
+Consider `Connection<Open>`. "The local connect transition returned success" is historical
+evidence encoded by the state. "The remote peer is reachable now" is a mutable observation,
+not a lasting invariant of the value. "`send` is called only after local connection" is a
+sequencing invariant. "The next send succeeds" is a desired outcome and must remain fallible.
 
 Confusing these categories creates false guarantees. A successful authentication observation
 does not establish perpetual authorization. A database schema constraint does not prove old

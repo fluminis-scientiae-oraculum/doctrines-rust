@@ -1,6 +1,6 @@
 # Review standard
 
-Record each gate as pass, fail, not applicable, or a waiver reference. “Looks idiomatic” is
+Record each gate as pass, fail, not applicable, or a waiver reference. "Looks idiomatic" is
 not evidence.
 
 ## Gate 1 — Invariant inventory
@@ -240,7 +240,7 @@ residual risk complete?
 
 **Pass evidence.** Ledger entries trace to exact code and tests.
 
-**Failure examples.** Documentation states “impossible” while public bypass or external
+**Failure examples.** Documentation states "impossible" while public bypass or external
 mutation exists.
 
 **Severity.** Critical for misleading safety/security claims; otherwise major.

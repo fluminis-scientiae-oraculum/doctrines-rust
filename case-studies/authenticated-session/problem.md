@@ -55,3 +55,8 @@ define session transfer and revocation, separate authentication errors from
 authorization outcomes where useful, protect secrets, and test expiry,
 revocation, stale policy, alternate routes, concurrent requests, and IdP
 failure. Frontend typestate may guide UI but cannot secure the backend.
+
+> [!TIP]
+> **problem** · [naive design](naive.md) · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

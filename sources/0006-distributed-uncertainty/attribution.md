@@ -13,3 +13,8 @@ specification is reproduced.
 This source package is selective rather than an exhaustive survey of consensus,
 failure detectors, transaction processing, delivery semantics, or formal
 distributed-systems results.
+
+> [!TIP]
+> **attribution** · [source notes](source-notes.md)
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0006-distributed-uncertainty/`](../../doctrines/0006-distributed-uncertainty/README.md).

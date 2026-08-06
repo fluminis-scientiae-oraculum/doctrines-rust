@@ -13,3 +13,8 @@ specific Rust API design tool.
 Any executable secret-handling or zeroization dependency must receive a
 version-, feature-, platform-, and MSRV-specific review beyond these source
 notes.
+
+> [!TIP]
+> **attribution** · [source notes](source-notes.md)
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0003-ownership-and-capabilities/`](../../doctrines/0003-ownership-and-capabilities/README.md).

@@ -23,7 +23,7 @@ Validation is relocated and centralized; it is not eliminated. After a trusted t
 constructed, ordinary domain operations may omit repeated local checks only because every
 construction and mutation path preserves the documented invariant.
 
-## What “untrusted” means
+## What "untrusted" means
 
 Untrusted does not mean malicious. It means the representation is not covered by the current
 proof. A row may have been written before a migration, by another service, through manual
@@ -130,8 +130,8 @@ Every boundary documents:
 11. evidence tests;
 12. residual uncertainty and revalidation.
 
-The contract names an owner. “Serde validates it” is not enough when the derive writes private
-fields directly. “The database enforces it” is not enough when replicas, old rows, or migration
+The contract names an owner. "Serde validates it" is not enough when the derive writes private
+fields directly. "The database enforces it" is not enough when replicas, old rows, or migration
 scripts use a different schema.
 
 ## Parsing, validation, and normalization

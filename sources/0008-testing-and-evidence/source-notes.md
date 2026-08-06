@@ -80,3 +80,8 @@ failure reasons. Re-evaluate test-double fidelity when protocol or database
 behavior changes. Tool upgrades can alter schedule models, shrink behavior, or
 supported operations; record version and rerun relevant evidence rather than
 assuming equivalence.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0008-testing-and-evidence/`](../../doctrines/0008-testing-and-evidence/README.md).

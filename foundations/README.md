@@ -1,8 +1,8 @@
 # Foundations
 
 Foundations define the vocabulary and reasoning contracts used by every doctrine in this
-repository. They are separate because a doctrine should not privately redefine “invariant,”
-“evidence,” “trusted,” “guarantee,” or the force of `MUST`. A shared definition lets rule IDs
+repository. They are separate because a doctrine should not privately redefine "invariant,"
+"evidence," "trusted," "guarantee," or the force of `MUST`. A shared definition lets rule IDs
 compose across domain modeling, errors, persistence, distributed effects, unsafe code,
 testing, and performance.
 
@@ -89,7 +89,7 @@ are representations from outside the current domain proof.
 ### Review procedure
 
 A review procedure is operational. Each item must be recorded as pass, fail, not applicable,
-or a waiver reference. A prose assertion such as “validation looks adequate” is weaker than
+or a waiver reference. A prose assertion such as "validation looks adequate" is weaker than
 evidence naming every constructor and decoding route. Review does not manufacture proof; it
 checks whether the mechanism and evidence support the claim.
 

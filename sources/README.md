@@ -44,7 +44,7 @@ tool documentation. External media remains at its source. Citation does not
 change repository licensing of original doctrine prose, nor does repository
 licensing claim ownership of cited works.
 
-Changing facts—tool versions, stable releases, action versions, MSRV, and
-product behavior—must be rechecked when maintained. The note should identify
+Changing facts — tool versions, stable releases, action versions, MSRV, and
+product behavior — must be rechecked when maintained. The note should identify
 the relevant version/date when the fact affects a normative or executable
 choice.

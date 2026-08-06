@@ -40,9 +40,17 @@ Planners map authority and lifecycle. Implementers design issuance and transfer.
 inspect clones, borrows, interior mutability, destruction, and revocation. Auditors search for
 forged or leaked authority. `doctrine.md` is normative.
 
-Read foundations on invariants, evidence, boundaries, guarantee honesty, and complexity.
-Related material: capability types, consuming transitions, typestate, filesystem and FFI
-guides, concurrency doctrine, and authenticated-session and transaction case studies.
+Read foundations on [invariants](../../foundations/invariants.md),
+[evidence](../../foundations/evidence.md), [boundaries](../../foundations/trust-boundaries.md),
+[guarantee honesty](../../foundations/guarantee-honesty.md), and
+[complexity](../../foundations/complexity-budget.md). Related material:
+[capability types](../../patterns/capability-types.md),
+[consuming transitions](../../patterns/consuming-transitions.md),
+[typestate](../../patterns/typestate.md), [filesystem](../../boundaries/filesystem.md) and
+[FFI](../../boundaries/ffi.md) guides,
+[concurrency doctrine](../0004-concurrency-and-async/), and
+[authenticated-session](../../case-studies/authenticated-session/) and
+[transaction](../../case-studies/database-transaction/) case studies.
 
 ## Summary
 

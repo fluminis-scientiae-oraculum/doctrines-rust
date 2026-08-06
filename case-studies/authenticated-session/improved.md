@@ -101,7 +101,7 @@ Structured internal errors preserve parse, invalid credential, expired,
 revoked, unavailable, authorization denial, stale version, and effect failure.
 External responses are stable and redacted. Audit records principal ID, issuer,
 authentication method, session ID, action, resource, policy version, operation
-ID, decision, and correlation—never raw token.
+ID, decision, and correlation — never raw token.
 
 Secret-bearing types implement deliberate redacted debug and avoid broad
 serialization/clone. Zeroization claims acknowledge framework buffers, process
@@ -127,3 +127,8 @@ conflict.
 | session is not expired at check time          | trusted-clock comparison                    | session service                | rechecked on use            | clock administration    | future validity                                    | skew/pause                    |
 | token is not emitted by normal debug          | redacted secret wrapper                     | no derived formatting          | dedicated DTOs              | raw framework access    | absence from all memory/dumps                      | copies/crash dump             |
 | IdP result is unavailable, not authenticated  | explicit failure category                   | no principal constructor       | preserved through adapter   | fallback policy         | credential invalid                                 | prolonged outage              |
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · **improved design** · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

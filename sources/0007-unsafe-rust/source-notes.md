@@ -84,3 +84,8 @@ allocator, layout, feature, or surrounding API change. Pointer-provenance and
 undefined-behavior documentation evolves; maintainers must use the current
 Reference and tool limitations. New performance justification requires a fresh
 safe baseline and workload measurement.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0007-unsafe-rust/`](../../doctrines/0007-unsafe-rust/README.md).

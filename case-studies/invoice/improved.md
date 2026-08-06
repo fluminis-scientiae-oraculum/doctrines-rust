@@ -134,3 +134,8 @@ structured result, not generic internal failure.
 | delivery intent is durable with invoice update | outbox and state in one DB transaction           | repository API                 | publisher consumes operation identity | direct DB administration                   | provider execution                    | DB availability             |
 | provider acceptance was confirmed              | authenticated provider response/reconciled event | checked outcome transition     | receipt persisted                     | audited operator resolution                | inbox delivery or future bounce       | provider reversal/event lag |
 | unknown has reconciliation identity            | explicit state constructor                       | required fields                | durable row conversion                | destructive raw DB edit                    | whether email was accepted            | provider observation outage |
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · **improved design** · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

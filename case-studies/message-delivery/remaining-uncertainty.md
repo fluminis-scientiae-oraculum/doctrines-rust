@@ -60,3 +60,8 @@ The improved consumer provides a defensible one-time local mutation within one
 database and retention boundary. It explicitly retains at-least-once delivery,
 scoped ordering, external-effect ambiguity, compatibility, retention, and
 operational backlog as remaining system responsibilities.
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · [improved design](improved.md) · **remaining uncertainty**
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

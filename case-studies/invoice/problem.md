@@ -58,3 +58,8 @@ retry decisions, reconciliation, bounded workers, and evidence for both
 forbidden programs and runtime failure. The UI must distinguish queued,
 confirmed provider acceptance, rejected, and delivery unknown without calling
 accepted mail delivered.
+
+> [!TIP]
+> **problem** · [naive design](naive.md) · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

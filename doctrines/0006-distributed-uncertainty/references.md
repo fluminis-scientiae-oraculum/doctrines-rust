@@ -14,8 +14,8 @@
   response replay semantics for one API.
 - [Amazon Builders' Library: making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/)
   explains production API identity and retry design.
-- [Gray and Cheriton, “Leases: An Efficient Fault-Tolerant Mechanism for
-  Distributed File Cache Consistency”](https://dl.acm.org/doi/10.1145/74850.74870)
+- [Gray and Cheriton, "Leases: An Efficient Fault-Tolerant Mechanism for
+  Distributed File Cache Consistency"](https://dl.acm.org/doi/10.1145/74850.74870)
   is foundational literature on time-bounded distributed authority and its
   clock assumptions.
 - [PostgreSQL documentation: transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html)

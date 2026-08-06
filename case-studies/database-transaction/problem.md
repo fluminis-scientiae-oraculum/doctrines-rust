@@ -55,3 +55,8 @@ safe next action at every point.
 The objective is not to claim the database cannot fail. It is to constrain local
 handle use, protect the database-scoped invariant, and preserve uncertainty
 when the client lacks commit evidence.
+
+> [!TIP]
+> **problem** · [naive design](naive.md) · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

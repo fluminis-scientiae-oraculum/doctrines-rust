@@ -73,3 +73,8 @@ value validation, protects local delivery intent, and prevents timeout from
 becoming fictional failure. It deliberately leaves remote delivery, evolving
 business policy, concurrent reality, and permanently missing evidence as
 runtime concerns with explicit owners.
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · [improved design](improved.md) · **remaining uncertainty**
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

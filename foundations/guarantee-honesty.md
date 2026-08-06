@@ -150,8 +150,8 @@ compiler diagnostics without semantic inspection weakens evidence.
 
 ## Language discipline
 
-Prefer “establishes,” “prevents through safe public construction,” “records that,” and “was
-observed” over absolute terms such as “ensures forever.” Pair a guarantee with its
+Prefer "establishes," "prevents through safe public construction," "records that," and "was
+observed" over absolute terms such as "ensures forever." Pair a guarantee with its
 non-guarantee in the same section. If a type name repeatedly invites a stronger inference,
 rename it rather than relying on distant caveats.
 

@@ -107,8 +107,8 @@ schema, updated transactionally, and evolved as providers add outcomes. A runtim
 honest primary representation. A hybrid design may create a short-lived `AuthorizedPayment`
 capability for one local capture call while retaining a persisted `PaymentStatus`.
 
-State explosion is a stop condition. If a workflow has many orthogonal dimensions—validation,
-authorization, fraud review, capture, settlement, reversal, dispute, provider state—generic
+State explosion is a stop condition. If a workflow has many orthogonal dimensions — validation,
+authorization, fraud review, capture, settlement, reversal, dispute, provider state — generic
 cross-products can obscure rather than protect. Runtime state plus validated transition
 functions and transactional constraints can be simpler and stronger.
 
@@ -172,7 +172,7 @@ provider, then produces new evidence. Compensation is a later effect, not rollba
 
 Message delivery has the same shape. A broker may accept a message and lose the acknowledgement.
 At-least-once delivery means duplicates must be expected. An idempotency key and durable inbox
-can constrain effects, but claims must define scope and retention. “Exactly once” is meaningful
+can constrain effects, but claims must define scope and retention. "Exactly once" is meaningful
 only at a precise boundary with a mechanism.
 
 Database commit can be ambiguous around connection loss. The transaction handle being consumed

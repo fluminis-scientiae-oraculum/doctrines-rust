@@ -13,8 +13,8 @@
   borrow checking.
 - [The Rustonomicon: Send and Sync](https://doc.rust-lang.org/nomicon/send-and-sync.html)
   explains concurrency marker obligations.
-- [Dennis and Van Horn, “Programming Semantics for Multiprogrammed
-  Computations”](https://dl.acm.org/doi/10.1145/360303.360308) is a foundational capability
+- [Dennis and Van Horn, "Programming Semantics for Multiprogrammed
+  Computations"](https://dl.acm.org/doi/10.1145/360303.360308) is a foundational capability
   reference.
 - [RFC 6819, OAuth threat model](https://www.rfc-editor.org/rfc/rfc6819) describes token
   leakage, replay, and lifecycle threats relevant to bearer capabilities.

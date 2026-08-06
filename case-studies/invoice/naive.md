@@ -29,7 +29,7 @@ if !invoice.recipient.contains('@') {
 }
 ```
 
-Other paths—database load, administrative import, replay, and tests—construct
+Other paths — database load, administrative import, replay, and tests — construct
 the struct directly. The check accepts many meaningless strings and its name
 still tempts code to call the address verified.
 
@@ -84,3 +84,8 @@ customer may receive two notices. Operators lack one operation ID across API,
 outbox, provider, and reconciliation logs. Retrying every generic error
 amplifies provider load. Invalid database records appear as ordinary invoices,
 so later failure is attributed to the provider rather than data integrity.
+
+> [!TIP]
+> [problem](problem.md) · **naive design** · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

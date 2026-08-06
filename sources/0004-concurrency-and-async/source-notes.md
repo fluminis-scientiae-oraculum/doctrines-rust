@@ -95,3 +95,8 @@ blocking-pool, lock-poisoning, or shutdown APIs change. Re-audit when a
 synchronous library is introduced into async work or when worker/channel
 capacity changes. A clean compiler upgrade does not establish unchanged
 scheduling or performance.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0004-concurrency-and-async/`](../../doctrines/0004-concurrency-and-async/README.md).

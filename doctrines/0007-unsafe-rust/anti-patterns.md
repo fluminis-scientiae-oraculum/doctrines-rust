@@ -15,7 +15,7 @@ values, or encode lifecycle.
 **When justified.** Self-referential or intrusive structures may require unsafe
 after pinning and movement proofs are complete.
 
-## “It seems safe”
+## "It seems safe"
 
 **Weak example.** A safety comment expresses confidence without facts.
 

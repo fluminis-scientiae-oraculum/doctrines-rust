@@ -244,3 +244,8 @@ ran; a compile-fail case pins the `ConsentProof` literal.
 | Consent matched the version in force   | the policy transition                                              | one private field                                              | offered consent is untrusted input       | none                  | that the policy is unchanged at write time | policy change between check and write                                                                          |
 | The in-process protocol ran in order   | consuming transitions, successor bounds, and non-duplicable stages | no public stage constructors, no `Clone` on nonterminal stages | erasure only at the persistence boundary | none                  | that any row was written                   | none locally, because consumption plus non-duplicability closes both reuse and copy; durable state is separate |
 | The account row exists exactly once    | unique constraint plus conflict handling                           | database constraint                                            | the durable model is a runtime record    | administrative repair | that the notification was delivered        | ambiguous write outcome on connection loss                                                                     |
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · **improved design** · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

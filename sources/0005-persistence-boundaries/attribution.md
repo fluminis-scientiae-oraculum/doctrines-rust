@@ -12,3 +12,8 @@ repository governance.
 The package does not claim exhaustive database research or define one universal
 commit-ambiguity classifier. Driver and topology behavior must be verified for
 the deployed system.
+
+> [!TIP]
+> **attribution** · [source notes](source-notes.md)
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0005-persistence-boundaries/`](../../doctrines/0005-persistence-boundaries/README.md).

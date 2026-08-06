@@ -127,6 +127,6 @@ historical facts may no longer authorize current actions.
 - Is stable message identity separate from aggregate/business identity?
 - Does inbox claim share an atomic boundary with the protected local effect?
 - Are acknowledgement crash points and replay retention explicitly tested?
-- Which order exists per producer, aggregate, or partition—and nowhere else?
+- Which order exists per producer, aggregate, or partition — and nowhere else?
 - Can a privileged replay tool alter identity or bypass current validation?
 - Are poison records bounded, access-controlled, and owned through resolution?

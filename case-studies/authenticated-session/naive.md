@@ -67,3 +67,8 @@ revalidation are absent.
 
 The design's types carry aspirational names but no protected evidence. Memory
 safety does not prevent authority forgery.
+
+> [!TIP]
+> [problem](problem.md) · **naive design** · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

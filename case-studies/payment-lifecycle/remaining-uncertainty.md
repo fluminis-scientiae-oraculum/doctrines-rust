@@ -68,3 +68,8 @@ truth more honestly. It does not turn payment processing into one atomic local
 transaction. External authority, provider behavior, settlement, compensation,
 and permanently missing evidence remain explicit runtime and operational
 responsibilities.
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · [improved design](improved.md) · **remaining uncertainty**
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

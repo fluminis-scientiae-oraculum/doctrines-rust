@@ -60,3 +60,8 @@ Tests click once with an immediate-success mock. They assert button text and a
 snapshot. No delayed response, lost response, double click, reload, stale
 version, denied server authorization, or route refresh is tested. Snapshot
 approval can bless contradictory UI states without checking semantics.
+
+> [!TIP]
+> [problem](problem.md) · **naive design** · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

@@ -70,8 +70,8 @@ runtime policy handles revocation and external copies. RAII rules separate
 infallible local resource release from effects whose failure must remain
 observable.
 
-Secret-wrapper guidance derives from trait behavior—`Debug`, `Display`,
-`Serialize`, and `Clone` are capabilities—but its privacy and retention policy
+Secret-wrapper guidance derives from trait behavior — `Debug`, `Display`,
+`Serialize`, and `Clone` are capabilities — but its privacy and retention policy
 is repository governance. No type-level decision can guarantee removal from
 allocator history, crash dumps, or foreign code.
 
@@ -82,3 +82,8 @@ persistence; when a capability becomes serializable or cloneable; or when
 resource cleanup semantics change. A new session store, lease service, or
 downstream enforcement point can invalidate prior revocation assumptions even
 if Rust signatures remain unchanged.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0003-ownership-and-capabilities/`](../../doctrines/0003-ownership-and-capabilities/README.md).

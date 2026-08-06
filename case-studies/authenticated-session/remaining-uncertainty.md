@@ -73,3 +73,8 @@ The improved model makes evidence and authority transitions explicit and blocks
 ordinary forgery. It cannot freeze identity-provider integrity, account control,
 revocation propagation, clocks, or mutable policy. Those facts remain
 time-scoped runtime observations with consequence-driven revalidation.
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · [improved design](improved.md) · **remaining uncertainty**
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

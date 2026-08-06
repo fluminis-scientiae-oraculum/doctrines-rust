@@ -162,4 +162,4 @@ supervision remain necessary.
 The simplest correct design may be sequential code with a bounded worker pool.
 Concurrency is justified by workload and latency evidence, not by language
 capability. Its complexity budget includes failure analysis, tests, operator
-visibility, and future maintenance—not only source-line count.
+visibility, and future maintenance — not only source-line count.

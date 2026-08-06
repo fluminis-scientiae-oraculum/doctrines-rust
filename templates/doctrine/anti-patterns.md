@@ -31,4 +31,4 @@ anti-pattern is acceptable, or state that no safe justification exists.>
 **When justified.** <Narrow exception.>
 
 Cover boundary bypass, guarantee overclaim, evidence weakness, external
-uncertainty, and overapplication—not only source style.
+uncertainty, and overapplication — not only source style.

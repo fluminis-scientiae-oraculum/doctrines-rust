@@ -64,3 +64,8 @@ Failure can occur:
 The model must preserve what is known at each boundary. It must give users a
 safe action while capture is unknown and give operators a reconciliation
 identity rather than only a log string.
+
+> [!TIP]
+> **problem** · [naive design](naive.md) · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

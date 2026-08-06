@@ -15,7 +15,7 @@ is a concrete API contract covering key retention, request comparison, and
 response replay. Amazon's
 [Making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/)
 explains production operation identity. Gray and Cheriton's
-[“Leases” paper](https://dl.acm.org/doi/10.1145/74850.74870) supplies
+["Leases" paper](https://dl.acm.org/doi/10.1145/74850.74870) supplies
 foundational time-bounded authority context.
 
 ## Accepted ideas
@@ -89,3 +89,8 @@ operator replay changes. New proxies, retries, regions, coordinators, or
 compensations expand the effect timeline and can invalidate a prior retry
 classification. Recheck lease contracts when clock sources, pause behavior,
 renewal cadence, failover timing, or fencing support changes.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0006-distributed-uncertainty/`](../../doctrines/0006-distributed-uncertainty/README.md).

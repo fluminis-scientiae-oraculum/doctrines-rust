@@ -128,3 +128,8 @@ outbox recovery and duplicate delivery.
 | account, audit, and outbox intent commit together | one configured DB transaction                              | repository transaction | checked row reads            | manual DB mutation        | message delivered                      | database failure         |
 | commit is unknown after ambiguous disconnect      | adapter classification plus operation record               | explicit variant       | durable reconciliation token | operator decision         | commit or rollback                     | missing DB evidence      |
 | publisher reuses one message identity             | durable outbox ID                                          | unique constraint      | consumer sees same ID        | retention/replay tool     | one delivery                           | acknowledgement loss     |
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · **improved design** · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

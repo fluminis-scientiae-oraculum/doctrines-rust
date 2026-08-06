@@ -135,3 +135,8 @@ check state meaning.
 | unknown retains safe reconciliation                  | explicit state and operation ID      | required payload             | status endpoint                            | user authorizes new intent        | success/failure                  | status outage               |
 | draft survives rejection                             | state carries `FormDraft`            | rejection transition         | scoped local storage                       | browser data clearing             | durable server storage           | quota/device loss           |
 | hash route deep-link works on configured static host | client route plus entry-file hosting | deployment config            | browser integration test                   | host rewrite change               | authorization/security           | host/cache drift            |
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · **improved design** · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

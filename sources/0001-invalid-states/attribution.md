@@ -23,3 +23,8 @@ mechanics; it does not incorporate their complete text.
 The package records the sources actually used for this initial doctrine. It
 does not claim exhaustive coverage of type theory, domain-driven design, money
 standards, email specifications, or distributed-systems literature.
+
+> [!TIP]
+> **attribution** · [source notes](source-notes.md)
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0001-invalid-states/`](../../doctrines/0001-invalid-states/README.md).
