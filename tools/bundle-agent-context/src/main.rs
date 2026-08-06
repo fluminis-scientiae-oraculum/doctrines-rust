@@ -1,3 +1,4 @@
+use doctrine_manifest::{AgentManifest, AgentPack, DoctrineManifest, front_matter};
 use serde::Deserialize;
 use std::collections::BTreeSet;
 use std::env;
@@ -82,35 +83,6 @@ bundle-agent-context from rfcs/accepted/overview.md and the\n front matter of ea
 rfcs/accepted/RFC-*.md.\n-->\n";
 
 #[derive(Debug, Deserialize)]
-struct DoctrineManifest {
-    doctrines: Vec<DoctrineEntry>,
-}
-
-#[derive(Debug, Deserialize)]
-struct DoctrineEntry {
-    id: String,
-    status: String,
-    package_path: String,
-    normative_path: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct AgentManifest {
-    packs: Vec<AgentPack>,
-}
-
-#[derive(Debug, Deserialize)]
-struct AgentPack {
-    id: String,
-    purpose: String,
-    ordering: u16,
-    canonical_sources: Vec<String>,
-    doctrine_selections: Vec<String>,
-    review_checklists: Vec<String>,
-    output_path: String,
-}
-
-#[derive(Debug, Deserialize)]
 struct RfcMetadata {
     id: String,
     title: String,
@@ -123,13 +95,37 @@ struct GeneratedFile {
     content: String,
 }
 
+/// What this tool was asked to do.
+///
+/// Parsing the argument into this type is what lets the dispatch below be exhaustive.
+/// Validating the raw string and then matching on it a second time left the invalid
+/// cases representable at the point of use, so the dispatch needed an `unreachable!`
+/// arm to restate a guarantee the earlier check had already established.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Command {
+    Generate,
+    Check,
+}
+
+impl Command {
+    /// The command named by the argument list, or `None` when it names something else
+    /// or carries trailing arguments.
+    fn parse(arguments: &mut impl Iterator<Item = String>) -> Option<Self> {
+        let command = match arguments.next()?.as_str() {
+            "generate" => Self::Generate,
+            "check" => Self::Check,
+            _ => return None,
+        };
+        arguments.next().is_none().then_some(command)
+    }
+}
+
 fn main() {
     let mut arguments = env::args().skip(1);
-    let command = arguments.next();
-    if !matches!(command.as_deref(), Some("generate" | "check")) || arguments.next().is_some() {
+    let Some(command) = Command::parse(&mut arguments) else {
         eprintln!("usage: bundle-agent-context <generate|check>");
         process::exit(2);
-    }
+    };
 
     let root = match env::current_dir() {
         Ok(path) => path,
@@ -146,10 +142,9 @@ fn main() {
         }
     };
 
-    let result = match command.as_deref() {
-        Some("generate") => generate(&root, &outputs),
-        Some("check") => check(&root, &outputs),
-        _ => unreachable!("command validated above"),
+    let result = match command {
+        Command::Generate => generate(&root, &outputs),
+        Command::Check => check(&root, &outputs),
     };
     if let Err(error) = result {
         eprintln!("bundle-agent-context: {error}");
@@ -223,11 +218,7 @@ fn build_full(
     append_source(root, "README.md", output_path, &mut output)?;
     append_sources(root, FOUNDATION_FILES, output_path, &mut output)?;
 
-    for doctrine in doctrines
-        .doctrines
-        .iter()
-        .filter(|entry| entry.status == "active")
-    {
+    for doctrine in doctrines.active() {
         for file in DOCTRINE_PACKAGE_FILES {
             let path = format!("{}/{}", doctrine.package_path, file);
             append_source(root, &path, output_path, &mut output)?;
@@ -262,11 +253,7 @@ fn build_compact(
         &mut output,
     )?;
 
-    for doctrine in doctrines
-        .doctrines
-        .iter()
-        .filter(|entry| entry.status == "active")
-    {
+    for doctrine in doctrines.active() {
         append_source(root, &doctrine.normative_path, output_path, &mut output)?;
     }
 
@@ -331,23 +318,16 @@ fn build_rfc_index(root: &Path) -> Result<String, String> {
     Ok(normalize_final_newline(output))
 }
 
-fn front_matter(text: &str) -> Result<&str, &'static str> {
-    let body = text
-        .strip_prefix("---\n")
-        .ok_or("file must start with YAML front matter")?;
-    let end = body
-        .find("\n---\n")
-        .ok_or("front matter must end with ---")?;
-    Ok(&body[..end])
-}
-
 fn build_role_pack(
     root: &Path,
     pack: &AgentPack,
     doctrines: &DoctrineManifest,
     output_path: &Path,
 ) -> Result<String, String> {
-    let mut output = generated_document(&format!("{} agent doctrine pack", title_case(&pack.id)));
+    let mut output = generated_document(&format!(
+        "{} agent doctrine pack",
+        title_case(pack.id.as_str())
+    ));
     output.push('\n');
     output.push_str(&pack.purpose);
     output.push('\n');

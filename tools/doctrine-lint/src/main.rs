@@ -1,4 +1,7 @@
-use serde::Deserialize;
+use doctrine_manifest::{
+    AgentManifest, AgentPack, AgentRole, DecisionRecordMetadata, DecisionRecordRegistry,
+    DoctrineEntry, DoctrineManifest, DoctrineMetadata, RecordStatus, front_matter,
+};
 use serde_json::Value;
 use std::collections::BTreeSet;
 use std::env;
@@ -108,79 +111,6 @@ impl Diagnostic {
     }
 }
 
-#[derive(Debug, Deserialize)]
-struct DoctrineManifest {
-    schema_version: String,
-    repository_version: String,
-    doctrines: Vec<DoctrineEntry>,
-}
-
-#[derive(Debug, Deserialize)]
-struct DoctrineEntry {
-    id: String,
-    slug: String,
-    title: String,
-    status: String,
-    version: String,
-    package_path: String,
-    normative_path: String,
-    applies_to: Vec<String>,
-    risk_domains: Vec<String>,
-    foundation_dependencies: Vec<String>,
-    related_patterns: Vec<String>,
-    related_boundaries: Vec<String>,
-    related_case_studies: Vec<String>,
-    supersedes: Vec<String>,
-    superseded_by: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct DoctrineMetadata {
-    id: String,
-    slug: String,
-    title: String,
-    status: String,
-    version: String,
-    normative: bool,
-    applies_to: Vec<String>,
-    risk_domains: Vec<String>,
-    supersedes: Vec<String>,
-    superseded_by: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct AgentManifest {
-    schema_version: String,
-    packs: Vec<AgentPack>,
-}
-
-/// The registry enumerates membership only. Each record's own front matter is the
-/// authority for its metadata, so the two cannot disagree about fields only one of
-/// them carries.
-#[derive(Debug, Deserialize)]
-struct DecisionRecordRegistry {
-    schema_version: String,
-    active_decision_records: Vec<String>,
-    archived_decision_records: Vec<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct DecisionRecordMetadata {
-    id: String,
-    title: String,
-    status: String,
-    owner: String,
-    scope: String,
-    #[serde(default)]
-    executable_authority: Vec<String>,
-    #[serde(default)]
-    revalidate_on: Vec<String>,
-    #[serde(default)]
-    obsolete_when: Vec<String>,
-    #[serde(default)]
-    archived_reason: String,
-}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum RecordBucket {
     Active,
@@ -202,24 +132,18 @@ impl RecordBucket {
         }
     }
 
-    fn accepts_status(self, status: &str) -> bool {
+    /// Whether a record declaring this status belongs in this registry list. Both
+    /// sides are typed, so a status outside the vocabulary cannot reach the
+    /// comparison; it fails when the record's front matter is decoded.
+    fn accepts(self, status: RecordStatus) -> bool {
         match self {
-            Self::Active => status == "active",
-            Self::Archived => matches!(status, "superseded" | "expired" | "archival"),
+            Self::Active => matches!(status, RecordStatus::Active),
+            Self::Archived => matches!(
+                status,
+                RecordStatus::Superseded | RecordStatus::Expired | RecordStatus::Archival
+            ),
         }
     }
-}
-
-#[derive(Debug, Deserialize)]
-struct AgentPack {
-    id: String,
-    purpose: String,
-    maximum_verbosity: String,
-    ordering: u16,
-    canonical_sources: Vec<String>,
-    doctrine_selections: Vec<String>,
-    review_checklists: Vec<String>,
-    output_path: String,
 }
 
 fn main() {
@@ -411,7 +335,7 @@ fn check_doctrines(
         // contributed are its difference against the set as it stood before.
         let before = inventory.all.clone();
         check_doctrine_entry(root, entry, &known_ids, &mut inventory.all, diagnostics);
-        if entry.status == "active" {
+        if entry.status.is_active() {
             let added: Vec<String> = inventory.all.difference(&before).cloned().collect();
             inventory.active.extend(added);
         }
@@ -512,7 +436,7 @@ fn check_supersession(
             ));
         }
     }
-    if entry.status == "active" && entry.superseded_by.is_some() {
+    if entry.status.is_active() && entry.superseded_by.is_some() {
         diagnostics.push(Diagnostic::new(
             root.join("manifest/doctrines.yaml"),
             format!("active doctrine {} cannot set superseded_by", entry.id),
@@ -644,9 +568,20 @@ fn is_dated_record(relative: &str) -> bool {
 /// `EVIDENCE.md` escaped the drift checks and the normative-scope scan because it
 /// was missing from a hardcoded inventory. Enumerating the directory removes the
 /// class: a future root document is covered on the day it is added.
-fn root_documents(root: &Path) -> Vec<PathBuf> {
-    let Ok(entries) = fs::read_dir(root) else {
-        return Vec::new();
+///
+/// A directory that cannot be read is reported rather than treated as empty. An
+/// unreadable root would otherwise scan nothing and let every root-document check
+/// pass, which is the same silent-omission failure the enumeration replaced.
+fn root_documents(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Vec<PathBuf> {
+    let entries = match fs::read_dir(root) {
+        Ok(entries) => entries,
+        Err(error) => {
+            diagnostics.push(Diagnostic::new(
+                root,
+                format!("cannot enumerate the repository root: {error}"),
+            ));
+            return Vec::new();
+        }
     };
     let mut paths: Vec<PathBuf> = entries
         .filter_map(Result::ok)
@@ -661,7 +596,7 @@ fn root_documents(root: &Path) -> Vec<PathBuf> {
 
 /// Files both drift checks scan: maintained canonical Markdown plus the root
 /// documents, excluding dated records.
-fn maintained_markdown(root: &Path) -> Vec<PathBuf> {
+fn maintained_markdown(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Vec<PathBuf> {
     let mut paths = Vec::new();
     let push_if_maintained = |path: &Path, paths: &mut Vec<PathBuf>| {
         let relative = path
@@ -674,12 +609,12 @@ fn maintained_markdown(root: &Path) -> Vec<PathBuf> {
         }
     };
 
-    for path in root_documents(root) {
+    for path in root_documents(root, diagnostics) {
         push_if_maintained(&path, &mut paths);
     }
     for directory in CANONICAL_ROOTS {
         let mut collected = Vec::new();
-        collect_files(&root.join(directory), &mut |path| {
+        collect_files(&root.join(directory), diagnostics, &mut |path| {
             if path.extension().and_then(|extension| extension.to_str()) == Some("md") {
                 collected.push(path.to_path_buf());
             }
@@ -702,11 +637,7 @@ fn check_stated_counts(
     rules: &RuleInventory,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
-    let active_doctrines = manifest
-        .doctrines
-        .iter()
-        .filter(|entry| entry.status == "active")
-        .count();
+    let active_doctrines = manifest.active().count();
     // Each phrase sits on one dimension. "Normative rules" means the rules in force,
     // so retired doctrines' rules are excluded. "Doctrine packages" is physical and
     // counts every package the manifest carries, active or not. "Active doctrines"
@@ -718,7 +649,8 @@ fn check_stated_counts(
         ("active doctrines", active_doctrines),
     ];
 
-    for path in maintained_markdown(root) {
+    let scanned = maintained_markdown(root, diagnostics);
+    for path in scanned {
         let Some(text) = read_text(&path, diagnostics) else {
             continue;
         };
@@ -777,7 +709,8 @@ fn check_rule_citations(
     rule_ids: &BTreeSet<String>,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
-    for path in maintained_markdown(root) {
+    let scanned = maintained_markdown(root, diagnostics);
+    for path in scanned {
         let Some(text) = read_text(&path, diagnostics) else {
             continue;
         };
@@ -912,10 +845,7 @@ fn check_doctrine_index(
 
     let rows = doctrine_index_rows(&index);
 
-    for entry in &manifest.doctrines {
-        if entry.status != "active" {
-            continue;
-        }
+    for entry in manifest.active() {
         // A parsed table row, not a same-line mention. A sentence carrying both the
         // identifier and the title would otherwise satisfy the check while the row
         // it claims to verify is absent.
@@ -937,7 +867,7 @@ fn check_doctrine_index(
         if !manifest
             .doctrines
             .iter()
-            .any(|entry| &entry.id == id && entry.status == "active")
+            .any(|entry| &entry.id == id && entry.status.is_active())
         {
             diagnostics.push(Diagnostic::new(
                 &index_path,
@@ -1045,7 +975,7 @@ fn check_front_matter(root: &Path, entry: &DoctrineEntry, diagnostics: &mut Vec<
     let metadata_text = match front_matter(&readme) {
         Ok(metadata) => metadata,
         Err(message) => {
-            diagnostics.push(Diagnostic::new(&readme_path, message));
+            diagnostics.push(Diagnostic::new(&readme_path, message.to_string()));
             return;
         }
     };
@@ -1078,8 +1008,8 @@ fn check_front_matter(root: &Path, entry: &DoctrineEntry, diagnostics: &mut Vec<
     compare_metadata(
         &readme_path,
         "status",
-        &metadata.status,
-        &entry.status,
+        metadata.status.as_str(),
+        entry.status.as_str(),
         diagnostics,
     );
     compare_metadata(
@@ -1182,17 +1112,11 @@ fn check_agents(
         .iter()
         .map(|entry| entry.id.as_str())
         .collect();
-    let expected_ids: BTreeSet<&str> = [
-        "shared",
-        "planner",
-        "implementer",
-        "reviewer",
-        "auditor",
-        "maintainer",
-    ]
-    .into_iter()
-    .collect();
-    let actual_ids: BTreeSet<&str> = manifest.packs.iter().map(|pack| pack.id.as_str()).collect();
+    // The role vocabulary is the manifest schema's, decoded into `AgentRole`. Listing
+    // the roles here again would be the second maintained copy RUST-DOC-0011-R004
+    // prohibits.
+    let expected_ids: BTreeSet<AgentRole> = AgentRole::ALL.into_iter().collect();
+    let actual_ids: BTreeSet<AgentRole> = manifest.packs.iter().map(|pack| pack.id).collect();
     if actual_ids != expected_ids || actual_ids.len() != manifest.packs.len() {
         diagnostics.push(Diagnostic::new(
             &manifest_path,
@@ -1230,18 +1154,8 @@ fn check_agent_pack<'a>(
             format!("agent {} purpose is too short", pack.id),
         ));
     }
-    if !matches!(
-        pack.maximum_verbosity.as_str(),
-        "focused" | "operational" | "detailed" | "exhaustive"
-    ) {
-        diagnostics.push(Diagnostic::new(
-            manifest_path,
-            format!(
-                "agent {} has invalid maximum_verbosity {}",
-                pack.id, pack.maximum_verbosity
-            ),
-        ));
-    }
+    // `maximum_verbosity` needs no check here. It decodes into `Verbosity`, so a value
+    // outside the schema's vocabulary fails when the manifest is parsed.
     if !orderings.insert(pack.ordering) {
         diagnostics.push(Diagnostic::new(
             manifest_path,
@@ -1407,7 +1321,7 @@ fn check_registered_record(
     let metadata_text = match front_matter(&text) {
         Ok(metadata) => metadata,
         Err(message) => {
-            diagnostics.push(Diagnostic::new(&record_path, message));
+            diagnostics.push(Diagnostic::new(&record_path, message.to_string()));
             return;
         }
     };
@@ -1434,7 +1348,7 @@ fn check_registered_record(
             format!("decision record ID {} is duplicated", metadata.id),
         ));
     }
-    if !bucket.accepts_status(&metadata.status) {
+    if !bucket.accepts(metadata.status) {
         diagnostics.push(Diagnostic::new(
             &record_path,
             format!(
@@ -1580,22 +1494,26 @@ fn check_agent_packs_exclude_archive(
 }
 
 fn check_forbidden_markers(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
-    collect_repository_files(root, root, &mut |path| {
+    let mut unreadable = Vec::new();
+    collect_repository_files(root, root, &mut unreadable, &mut |path| {
         scan_marker_file(path, diagnostics);
     });
+    diagnostics.append(&mut unreadable);
 }
 
 fn check_normative_scope(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
-    for path in root_documents(root) {
+    for path in root_documents(root, diagnostics) {
         scan_normative_scope(root, &path, diagnostics);
     }
+    let mut unreadable = Vec::new();
     for directory in CANONICAL_ROOTS {
-        collect_files(&root.join(directory), &mut |path| {
+        collect_files(&root.join(directory), &mut unreadable, &mut |path| {
             if path.extension().and_then(|extension| extension.to_str()) == Some("md") {
                 scan_normative_scope(root, path, diagnostics);
             }
         });
     }
+    diagnostics.append(&mut unreadable);
 }
 
 fn scan_marker_file(path: &Path, diagnostics: &mut Vec<Diagnostic>) {
@@ -1664,7 +1582,8 @@ fn check_generated_files(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
         return;
     }
 
-    collect_files(&dist, &mut |path| {
+    let mut unreadable = Vec::new();
+    collect_files(&dist, &mut unreadable, &mut |path| {
         if path.extension().and_then(|extension| extension.to_str()) != Some("md") {
             return;
         }
@@ -1678,11 +1597,36 @@ fn check_generated_files(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
             ));
         }
     });
+    diagnostics.append(&mut unreadable);
 }
 
-fn collect_files(directory: &Path, visit: &mut impl FnMut(&Path)) {
-    let Ok(entries) = fs::read_dir(directory) else {
-        return;
+/// Walks `directory`, reporting any directory that exists but cannot be enumerated.
+///
+/// `unreadable` is separate from the diagnostics a caller's `visit` closure may
+/// already hold, so a walk that reports errors can still visit files that report
+/// their own. Treating a read failure as an empty directory would let a check pass
+/// having observed nothing, which is the silent-omission class these walks exist to
+/// avoid.
+///
+/// An absent directory is genuinely empty and stays silent: the canonical roots are
+/// optional here, and a missing doctrine package is already reported against its
+/// manifest entry. Only a directory that exists and refuses to be read is a defect
+/// this walk can see and no other check would.
+fn collect_files(
+    directory: &Path,
+    unreadable: &mut Vec<Diagnostic>,
+    visit: &mut impl FnMut(&Path),
+) {
+    let entries = match fs::read_dir(directory) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return,
+        Err(error) => {
+            unreadable.push(Diagnostic::new(
+                directory,
+                format!("cannot enumerate directory: {error}"),
+            ));
+            return;
+        }
     };
     let mut paths: Vec<PathBuf> = entries
         .filter_map(Result::ok)
@@ -1691,16 +1635,29 @@ fn collect_files(directory: &Path, visit: &mut impl FnMut(&Path)) {
     paths.sort();
     for path in paths {
         if path.is_dir() {
-            collect_files(&path, visit);
+            collect_files(&path, unreadable, visit);
         } else if path.is_file() {
             visit(&path);
         }
     }
 }
 
-fn collect_repository_files(root: &Path, directory: &Path, visit: &mut impl FnMut(&Path)) {
-    let Ok(entries) = fs::read_dir(directory) else {
-        return;
+fn collect_repository_files(
+    root: &Path,
+    directory: &Path,
+    unreadable: &mut Vec<Diagnostic>,
+    visit: &mut impl FnMut(&Path),
+) {
+    let entries = match fs::read_dir(directory) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return,
+        Err(error) => {
+            unreadable.push(Diagnostic::new(
+                directory,
+                format!("cannot enumerate directory: {error}"),
+            ));
+            return;
+        }
     };
     let mut paths = entries
         .filter_map(Result::ok)
@@ -1721,7 +1678,7 @@ fn collect_repository_files(root: &Path, directory: &Path, visit: &mut impl FnMu
             if matches!(top, Some(".git" | "node_modules" | "target" | "templates")) {
                 continue;
             }
-            collect_repository_files(root, &path, visit);
+            collect_repository_files(root, &path, unreadable, visit);
         } else if path.is_file() {
             visit(&path);
         }
@@ -1739,16 +1696,6 @@ fn read_text(path: &Path, diagnostics: &mut Vec<Diagnostic>) -> Option<String> {
             None
         }
     }
-}
-
-fn front_matter(text: &str) -> Result<&str, &'static str> {
-    let body = text
-        .strip_prefix("---\n")
-        .ok_or("README must start with YAML front matter")?;
-    let end = body
-        .find("\n---\n")
-        .ok_or("README front matter must end with ---")?;
-    Ok(&body[..end])
 }
 
 fn extract_rule_headings(text: &str) -> Vec<RuleHeading> {
@@ -1824,9 +1771,10 @@ mod tests {
         workspace_package_version,
     };
     use super::{
-        RuleInventory, check_stated_counts, doctrine_index_rows, root_documents, table_row_cells,
-        validation_sequence_copies,
+        RuleInventory, check_stated_counts, collect_files, doctrine_index_rows, root_documents,
+        table_row_cells, validation_sequence_copies,
     };
+    use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity};
     use std::collections::BTreeSet;
     use std::fs;
     use std::path::{Path, PathBuf};
@@ -1880,12 +1828,12 @@ mod tests {
             .collect()
     }
 
-    fn doctrine_entry(id: &str, slug: &str, title: &str, status: &str) -> DoctrineEntry {
+    fn doctrine_entry(id: &str, slug: &str, title: &str, status: DoctrineStatus) -> DoctrineEntry {
         DoctrineEntry {
             id: id.to_owned(),
             slug: slug.to_owned(),
             title: title.to_owned(),
-            status: status.to_owned(),
+            status,
             version: "0.1.0".to_owned(),
             package_path: format!("doctrines/{slug}"),
             normative_path: format!("doctrines/{slug}/doctrine.md"),
@@ -1909,13 +1857,13 @@ mod tests {
                     "RUST-DOC-0001",
                     "0001-invalid-states",
                     "Making Invalid States Unrepresentable",
-                    "active",
+                    DoctrineStatus::Active,
                 ),
                 doctrine_entry(
                     "RUST-DOC-0002",
                     "0002-error-modeling",
                     "Error Modeling as Domain Design",
-                    "active",
+                    DoctrineStatus::Active,
                 ),
             ],
         }
@@ -1923,9 +1871,9 @@ mod tests {
 
     fn agent_pack(canonical_sources: Vec<String>) -> AgentPack {
         AgentPack {
-            id: "auditor".to_owned(),
+            id: AgentRole::Auditor,
             purpose: "Adversarially locate ungoverned authority.".to_owned(),
-            maximum_verbosity: "exhaustive".to_owned(),
+            maximum_verbosity: Verbosity::Exhaustive,
             ordering: 50,
             canonical_sources,
             doctrine_selections: Vec::new(),
@@ -2254,7 +2202,7 @@ mod tests {
         fs::create_dir_all(root.join("doctrines")).expect("create directory");
         fs::write(root.join("doctrines/README.md"), "nested\n").expect("write nested");
 
-        let found: BTreeSet<String> = root_documents(&root)
+        let found: BTreeSet<String> = root_documents(&root, &mut Vec::new())
             .into_iter()
             .map(|path| {
                 path.file_name()
@@ -2269,6 +2217,55 @@ mod tests {
             .collect();
 
         assert_eq!(found, expected, "a new root document must be discovered");
+        fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    /// A directory that exists but cannot be read must be reported rather than walked
+    /// as empty. Returning nothing let a check announce a clean result having observed
+    /// no files at all, which is the silent-omission class that hid `EVIDENCE.md`.
+    #[cfg(unix)]
+    #[test]
+    fn an_unreadable_directory_is_reported_rather_than_treated_as_empty() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let root = temporary_directory("unreadable-directory");
+        let locked = root.join("locked");
+        fs::create_dir_all(&locked).expect("create directory");
+        fs::write(locked.join("hidden.md"), "body\n").expect("write file");
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o000))
+            .expect("remove directory permissions");
+
+        // A process with CAP_DAC_OVERRIDE, typically root in a container, ignores the
+        // permission bits, so the condition under test cannot be created. Restore and
+        // skip rather than assert something the environment made false.
+        let enforced = fs::read_dir(&locked).is_err();
+        let mut unreadable = Vec::new();
+        let mut visited = 0_usize;
+        collect_files(&locked, &mut unreadable, &mut |_| visited += 1);
+
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o755))
+            .expect("restore directory permissions");
+        fs::remove_dir_all(&root).expect("remove temporary test directory");
+
+        if enforced {
+            assert_eq!(visited, 0, "an unreadable directory yields no files");
+            assert_eq!(unreadable.len(), 1, "{unreadable:?}");
+            assert!(
+                unreadable[0].message.contains("cannot enumerate directory"),
+                "{unreadable:?}"
+            );
+        }
+    }
+
+    /// An absent directory is genuinely empty and stays silent, so the check above
+    /// cannot be satisfied by reporting every path that fails to open.
+    #[test]
+    fn an_absent_directory_is_not_reported() {
+        let root = temporary_directory("absent-directory");
+        let mut unreadable = Vec::new();
+        collect_files(&root.join("nowhere"), &mut unreadable, &mut |_| {});
+
+        assert!(unreadable.is_empty(), "{unreadable:?}");
         fs::remove_dir_all(root).expect("remove temporary test directory");
     }
 
@@ -2356,7 +2353,7 @@ mod tests {
             "RUST-DOC-0003",
             "0003-retired",
             "A Retired Doctrine",
-            "deprecated",
+            DoctrineStatus::Deprecated,
         ));
         // Two rules in force, one retired: three packages, two active doctrines.
         let rules = RuleInventory {

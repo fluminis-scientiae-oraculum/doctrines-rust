@@ -10,18 +10,20 @@ members = [
     "examples/distributed-outcomes",
     "examples/unsafe-evidence",
     "examples/compile-fail",
+    "tools/doctrine-manifest",
     "tools/doctrine-lint",
     "tools/bundle-agent-context",
 ]
 
 [workspace.package]
-version = "0.4.1"
+version = "0.4.2"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.85.0"
 repository = "https://github.com/fluminis-scientiae-oraculum/doctrines-rust"
 
 [workspace.dependencies]
+doctrine-manifest = { version = "0.4.2", path = "tools/doctrine-manifest" }
 jsonschema = { version = "0.49.1", default-features = false }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"

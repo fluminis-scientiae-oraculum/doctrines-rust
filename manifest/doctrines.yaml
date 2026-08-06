@@ -1,5 +1,5 @@
 schema_version: "1.0"
-repository_version: "0.4.1"
+repository_version: "0.4.2"
 doctrines:
   - id: RUST-DOC-0001
     slug: invalid-states

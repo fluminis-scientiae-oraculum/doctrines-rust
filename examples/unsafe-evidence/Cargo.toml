@@ -6,6 +6,9 @@ license.workspace = true
 rust-version.workspace = true
 publish = false
 
+# The sole escape hatch from the workspace's `unsafe_code = "forbid"`, scoped to this
+# crate under RUST-DOC-0001-R016. Declared here rather than in the source as well, so
+# the permission has one place a reviewer must check to know it is still narrow.
 [lints.rust]
 unsafe_code = "allow"
 
