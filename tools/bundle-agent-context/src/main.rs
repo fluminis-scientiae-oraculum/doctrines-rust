@@ -280,7 +280,7 @@ fn build_rfc_index(root: &Path) -> Result<String, String> {
     let overview = rewrite_relative_links(root, overview_relative, output_path, &overview)?;
 
     let mut entries = Vec::new();
-    for path in all_files(&root.join(RFC_ACCEPTED_DIRECTORY)) {
+    for path in all_files(&root.join(RFC_ACCEPTED_DIRECTORY))? {
         let name = path
             .file_name()
             .and_then(|name| name.to_str())
@@ -466,7 +466,7 @@ fn validate_curated_inventory(root: &Path) -> Result<(), String> {
         ("reviews", REVIEW_FILES),
     ] {
         let expected: BTreeSet<PathBuf> = expected.iter().map(PathBuf::from).collect();
-        let actual: BTreeSet<PathBuf> = all_files(&root.join(directory))
+        let actual: BTreeSet<PathBuf> = all_files(&root.join(directory))?
             .into_iter()
             .filter(|path| path.extension().and_then(|extension| extension.to_str()) == Some("md"))
             .map(|path| {
@@ -745,7 +745,7 @@ fn check(root: &Path, outputs: &[GeneratedFile]) -> Result<(), String> {
         }
     }
 
-    for path in all_files(&root.join("dist")) {
+    for path in all_files(&root.join("dist"))? {
         let relative = path
             .strip_prefix(root)
             .map_err(|error| format!("cannot relativize {}: {error}", path.display()))?
@@ -764,31 +764,42 @@ fn check(root: &Path, outputs: &[GeneratedFile]) -> Result<(), String> {
     }
 }
 
-fn all_files(directory: &Path) -> Vec<PathBuf> {
+/// Every file under `directory`, sorted.
+///
+/// Every directory this tool walks is one the repository requires, so any failure to
+/// enumerate one aborts generation. Returning an empty list instead made a walk that
+/// observed nothing indistinguishable from a directory that is genuinely empty: with
+/// `rfcs/accepted` unlistable, generation rewrote the accepted-RFC index from its three
+/// rows to "no accepted RFCs" and exited zero.
+fn all_files(directory: &Path) -> Result<Vec<PathBuf>, String> {
     let mut files = Vec::new();
-    collect_files(directory, &mut files);
+    collect_files(directory, &mut files)?;
     files.sort();
-    files
+    Ok(files)
 }
 
-fn collect_files(directory: &Path, files: &mut Vec<PathBuf>) {
-    let Ok(entries) = fs::read_dir(directory) else {
-        return;
-    };
-    for entry in entries.filter_map(Result::ok) {
+fn collect_files(directory: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
+    let entries = fs::read_dir(directory)
+        .map_err(|error| format!("cannot enumerate {}: {error}", directory.display()))?;
+    // A per-entry failure is discarded by `filter_map(Result::ok)`, which drops a file
+    // from the walk as quietly as an unreadable parent dropped all of them.
+    for entry in entries {
+        let entry = entry
+            .map_err(|error| format!("cannot read an entry of {}: {error}", directory.display()))?;
         let path = entry.path();
         if path.is_dir() {
-            collect_files(&path, files);
+            collect_files(&path, files)?;
         } else if path.is_file() {
             files.push(path);
         }
     }
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        GENERATED_BANNER, GeneratedFile, append_source, check, generated_document,
+        GENERATED_BANNER, GeneratedFile, all_files, append_source, check, generated_document,
         normalize_final_newline, rewrite_relative_links, title_case, validate_relative_path,
     };
     use std::fs;
@@ -867,6 +878,38 @@ mod tests {
         assert!(validate_relative_path("../outside.md", "test").is_err());
         assert!(validate_relative_path("agents/../outside.md", "test").is_err());
         assert!(validate_relative_path("/outside.md", "test").is_err());
+    }
+
+    /// A directory the bundler cannot enumerate must abort the walk. Returning an empty
+    /// list made an unlistable `rfcs/accepted` indistinguishable from an empty one, so
+    /// generation rewrote the accepted-RFC index to "no accepted RFCs" and exited zero.
+    #[cfg(unix)]
+    #[test]
+    fn an_unlistable_directory_aborts_the_walk() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let temporary = std::env::temp_dir().join(format!(
+            "doctrines-rust-bundler-unlistable-{}",
+            std::process::id()
+        ));
+        let locked = temporary.join("locked");
+        fs::create_dir_all(&locked).expect("create directory");
+        fs::write(locked.join("entry.md"), "body\n").expect("write test entry");
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o111))
+            .expect("remove read permission");
+
+        // A process that overrides permission bits cannot construct the condition.
+        let enforced = fs::read_dir(&locked).is_err();
+        let walked = all_files(&locked);
+
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o755))
+            .expect("restore directory permissions");
+        fs::remove_dir_all(&temporary).expect("remove temporary test directory");
+
+        if enforced {
+            let error = walked.expect_err("an unlistable directory must abort the walk");
+            assert!(error.contains("cannot enumerate"), "{error}");
+        }
     }
 
     #[test]

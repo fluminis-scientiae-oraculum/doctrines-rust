@@ -1516,9 +1516,25 @@ fn check_normative_scope(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     diagnostics.append(&mut unreadable);
 }
 
+/// Scans one file for forbidden filler markers.
+///
+/// A file this repository-wide gate cannot read is reported. Skipping it silently
+/// let the gate announce a clean repository having never opened the file, which is
+/// the same false success as walking an unreadable directory as empty.
+///
+/// Content that is not UTF-8 is not a failure and stays silent: the markers are
+/// Markdown filler, so a binary file carries none and is not evidence of anything.
 fn scan_marker_file(path: &Path, diagnostics: &mut Vec<Diagnostic>) {
-    let Ok(text) = fs::read_to_string(path) else {
-        return;
+    let text = match fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::InvalidData => return,
+        Err(error) => {
+            diagnostics.push(Diagnostic::new(
+                path,
+                format!("cannot read file for the forbidden-marker scan: {error}"),
+            ));
+            return;
+        }
     };
     for (line_index, line) in text.lines().enumerate() {
         let lower = line.to_lowercase();
@@ -1772,7 +1788,7 @@ mod tests {
     };
     use super::{
         RuleInventory, check_stated_counts, collect_files, doctrine_index_rows, root_documents,
-        table_row_cells, validation_sequence_copies,
+        scan_marker_file, table_row_cells, validation_sequence_copies,
     };
     use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity};
     use std::collections::BTreeSet;
@@ -2255,6 +2271,58 @@ mod tests {
                 "{unreadable:?}"
             );
         }
+    }
+
+    /// A file this repository-wide gate cannot read must be reported. Skipping it let
+    /// `doctrine-lint check` exit zero and call the repository valid with a single
+    /// unreadable file present, which is the same false success as walking an
+    /// unreadable directory as empty.
+    #[cfg(unix)]
+    #[test]
+    fn an_unreadable_file_is_reported_by_the_marker_scan() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let root = temporary_directory("unreadable-file");
+        let locked = root.join("LOCKED.md");
+        fs::write(&locked, "body\n").expect("write file");
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o000))
+            .expect("remove file permissions");
+
+        // See the directory case: a process that overrides permission bits cannot
+        // construct the condition, so restore and skip rather than assert falsely.
+        let enforced = fs::read_to_string(&locked).is_err();
+        let mut diagnostics = Vec::new();
+        scan_marker_file(&locked, &mut diagnostics);
+
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o644))
+            .expect("restore file permissions");
+        fs::remove_dir_all(&root).expect("remove temporary test directory");
+
+        if enforced {
+            assert_eq!(diagnostics.len(), 1, "{diagnostics:?}");
+            assert!(
+                diagnostics[0]
+                    .message
+                    .contains("cannot read file for the forbidden-marker scan"),
+                "{diagnostics:?}"
+            );
+        }
+    }
+
+    /// Content that is not UTF-8 is not a read failure and stays silent, so the check
+    /// above cannot be satisfied by reporting every file that fails to decode. The
+    /// markers are Markdown filler, so a binary file carries none.
+    #[test]
+    fn a_non_utf8_file_is_not_reported_by_the_marker_scan() {
+        let root = temporary_directory("non-utf8-file");
+        let binary = root.join("icon.bin");
+        fs::write(&binary, [0xff_u8, 0xfe, 0x00, 0x01]).expect("write file");
+
+        let mut diagnostics = Vec::new();
+        scan_marker_file(&binary, &mut diagnostics);
+
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+        fs::remove_dir_all(root).expect("remove temporary test directory");
     }
 
     /// An absent directory is genuinely empty and stays silent, so the check above
