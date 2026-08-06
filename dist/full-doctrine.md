@@ -126,7 +126,9 @@ Canonical content has distinct responsibilities:
 - `templates/` and `rfcs/` govern future doctrine work.
 - `manifest/` exposes doctrine and agent-pack discovery through YAML validated against Draft
   2020-12 JSON Schemas.
-- `tools/` contains the doctrine linter and deterministic context bundler.
+- `tools/` contains the doctrine linter, the deterministic context bundler, and the
+  `doctrine-manifest` crate both decode the manifests through, so one schema-owned
+  vocabulary has one decoder rather than one per tool.
 
 Definitions flow into doctrine; doctrine constrains patterns, boundary guides, reviews, and
 agent work. A case study may demonstrate doctrine but cannot silently redefine it. Source
@@ -1581,7 +1583,7 @@ id: RUST-DOC-0001
 slug: invalid-states
 title: Making Invalid States Unrepresentable
 status: active
-version: 0.1.0
+version: 0.2.0
 normative: true
 applies_to:
   - planning
@@ -1631,8 +1633,9 @@ Architects use it with the complexity budget to choose proportionate mechanisms.
 examples, anti-patterns, glossary, and references are informative unless a rule incorporates
 them.
 
-All rules are version `0.1.0` and active. Waivers follow the repository waiver contract. A new
-escape hatch, weakened obligation, or changed rule meaning requires an RFC.
+Rule identifiers remain stable within the doctrine version, which this file's front matter and
+`manifest/doctrines.yaml` record. Waivers follow the repository waiver contract. A new escape
+hatch, weakened obligation, or changed rule meaning requires an RFC.
 
 ## Prerequisite foundations
 
@@ -1714,19 +1717,27 @@ boundary map appropriate to the risk.
 ## RUST-DOC-0001-R002 — Represent mutually exclusive state as a sum type
 
 **Statement.** Contradictory field combinations MUST be replaced by an enum or equivalent sum
-type when domain states are mutually exclusive and carry state-specific data.
+type when domain states are mutually exclusive and carry state-specific data. A single field
+whose value selects among a closed, known set of mutually exclusive alternatives MUST likewise
+be decoded into a type that cannot hold a value outside that set, rather than retained as an
+unconstrained string or integer.
 
 **Intent.** Remove combinations such as `is_paid = true` with no receipt or simultaneous paid
-and failed flags from ordinary construction.
+and failed flags from ordinary construction, and remove the unconstrained discriminant, whose
+out-of-vocabulary values survive decoding to be compared against literals at every use.
 
 **Applicability.** Booleans, nullable fields, option groups, string discriminants, or structs
-whose validity depends on exclusive combinations.
+whose validity depends on exclusive combinations. A scalar constrained only in format, an open
+vocabulary, and a value that selects among no alternatives are outside the second obligation.
 
 **Allowed exceptions.** A foreign persistence or wire DTO may retain its external shape if it
-is untrusted and converted into a validated domain enum before use.
+is untrusted and converted into a validated domain enum before use. A vocabulary too large or
+too volatile to enumerate may use a validated newtype that rejects an unknown value at
+construction, provided the rejection is tested.
 
 **Review evidence.** State table, exhaustive matching, invalid-combination rejection at the
-boundary, and persistence evolution policy.
+boundary, decoding rejection of an unknown discriminant value, and persistence evolution
+policy.
 
 ## RUST-DOC-0001-R003 — Protect trusted newtype representation
 
@@ -2530,16 +2541,21 @@ residual uncertainty.
 
 ## Gate 2 — Mutually exclusive states
 
-**Question.** Can booleans, options, or discriminants express contradictory states?
+**Question.** Can booleans, options, or discriminants express contradictory states, and can a
+field carrying a closed vocabulary hold a value outside it?
 
 **Pass evidence.** Enum variants carry only relevant data; external DTO contradiction is
-rejected during conversion.
+rejected during conversion; a closed vocabulary is decoded into a type that cannot hold an
+unknown value, or into a validated newtype whose rejection of one is tested.
 
-**Failure examples.** Paid without receipt; failed and submitted simultaneously.
+**Failure examples.** Paid without receipt; failed and submitted simultaneously; a status field
+decoded as a string and compared against literals, so a misspelled value matches no branch and
+is silently treated as absent.
 
 **Severity.** Major.
 
-**Remediation.** Introduce a sum type and migration plan.
+**Remediation.** Introduce a sum type and migration plan; decode the vocabulary at the boundary
+and replace literal comparisons with matching.
 
 ## Gate 3 — Construction protection
 

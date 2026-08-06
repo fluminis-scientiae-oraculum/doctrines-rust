@@ -1,4 +1,3 @@
-#![allow(unsafe_code)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![doc = include_str!("../README.md")]
 

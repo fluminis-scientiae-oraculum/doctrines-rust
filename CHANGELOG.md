@@ -4,6 +4,110 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.5.0] — 2026-08-06
+
+The corpus's own Rust code was audited against the corpus. The defects below are
+the divergences that reproduced. Writing up the first of them exposed a defect in
+the doctrine rather than the code: no rule could be cited against it. RFC-0004
+amends `RUST-DOC-0001-R002` accordingly, which moves that doctrine to `0.2.0` and
+makes this a minor release rather than a patch.
+
+### Changed in 0.5.0
+
+- `RUST-DOC-0001-R002` gains a second obligation. Its applicability named string
+  discriminants while its statement reached only contradictory field combinations
+  carrying state-specific data, so a lone `status` field over four unit states
+  satisfied the applicability and the statement asked nothing of it. The rule was
+  applicable and vacuous, which is why the manifest defect below could not be
+  reported against it. A single field whose value selects among a closed, known
+  set of mutually exclusive alternatives must now be decoded into a type that
+  cannot hold a value outside that set. A new allowed exception routes a
+  vocabulary too large or too volatile to enumerate to a validated newtype whose
+  rejection of an unknown value is tested, so the rule does not require
+  enumerating every constrained string.
+
+  The rule keeps its identifier, title, and position, so existing citations
+  resolve. No rule is added, removed, or weakened, and the corpus keeps 207
+  normative rules. A system whose closed vocabulary reaches the domain as an
+  unconstrained scalar was conforming before and is not conforming now, which is
+  the minor version change. See `rfcs/accepted/RFC-0004-closed-vocabulary-discriminants.md`.
+
+### Fixed in 0.5.0
+
+- `bundle-agent-context` decoded the manifest `status` field as a `String` and
+  never validated the manifest against `manifest/schema/doctrine.schema.json`,
+  which constrains it to four values. A misspelled status therefore matched no
+  filter and silently excluded that doctrine from `dist/full-doctrine.md`,
+  `dist/compact-doctrine.md`, and every agent pack, while `generate` reported
+  success and exited zero. Seeding `status: activ` on the first entry removed
+  1901 lines from the bundles without a diagnostic. The vocabulary is now an
+  enum decoded once, so the same input fails to parse in every consumer. This
+  is `RUST-DOC-0001-R006`: deserialization must not bypass documented
+  validation.
+- `doctrine-lint` restated two schema-owned vocabularies in Rust: the six agent
+  role identifiers and the four `maximum_verbosity` values, each a hand-written
+  copy of an `enum` array in `manifest/schema/agent-pack.schema.json` that the
+  same run had already validated. Both copies are removed; the values decode
+  into types, and three tests assert those types against the schema files, so a
+  vocabulary change fails the build instead of drifting. This is
+  `RUST-DOC-0011-R017` applied to the tool that enforces it elsewhere.
+- The manifest types, the status vocabularies, and the front-matter parser were
+  each declared twice, once per tool, because the two binaries shared no
+  library. The two `front_matter` implementations had already diverged, and the
+  copy specialized to say "README" was being used to report malformed decision
+  records. All of it now lives in a new `doctrine-manifest` crate.
+- `doctrine-lint` treated a directory it could not read as an empty directory.
+  An unreadable repository root would have scanned no root documents and let
+  every root-document check pass while still reporting the repository valid.
+  Directory walks now report a directory that exists and cannot be
+  enumerated; an absent directory stays silent, because absence is genuinely
+  empty and is already reported against its manifest entry.
+- `bundle-agent-context` validated its command argument and then matched the
+  raw string a second time, needing an `unreachable!` arm to restate a
+  guarantee the first check had established. The argument is parsed into a
+  `Command` and the dispatch is exhaustive.
+- `unsafe-evidence` declared its escape hatch from the workspace's
+  `unsafe_code = "forbid"` twice, in `Cargo.toml` and as an inner attribute.
+  The manifest declaration is kept and named as the scoped exception under
+  `RUST-DOC-0001-R016`.
+- `RfcMetadata.status` was the one closed vocabulary still decoded as a string
+  after the sweep above. It is now a type, checked by test against the `rfcs/`
+  state directories that own the lifecycle. This is the amended
+  `RUST-DOC-0001-R002` applied to the corpus's own code, so the repository
+  conforms to the rule it publishes in the same release that publishes it.
+- `doctrine-lint` skipped a file it could not read during the repository-wide
+  forbidden-marker scan. Only directory-enumeration failures were reported, so a
+  single unreadable file left `check` exiting zero and calling the repository
+  valid. The read is now reported. Content that is not UTF-8 stays silent, since
+  the markers are Markdown filler and a binary file carries none.
+- `bundle-agent-context` turned a directory it could not enumerate into an empty
+  list, and discarded per-entry read failures. With `rfcs/accepted` unlistable,
+  `generate` rewrote the accepted-RFC index from its three rows to "no accepted
+  RFCs" and exited zero. The walk is now fallible and aborts generation. This is
+  the same class as the `doctrine-lint` fix above, which had been applied to only
+  one of the two tools.
+- Both tools classified directory entries with `Path::is_dir` and `Path::is_file`,
+  which follow symbolic links and report `false` for a metadata error. A link was
+  therefore treated as whatever it pointed at, and a classification failure was
+  indistinguishable from an entry that was neither. A symbolic link added under
+  `rfcs/accepted` made `generate` publish a second index row for a target the
+  repository does not contain, and exit zero. Entries are now classified with
+  `DirEntry::file_type`, a link is reported and not followed, and a classification
+  failure is reported. The linter also reported no per-entry read failure, which
+  `filter_map(Result::ok)` discarded; those are reported too.
+- `doctrines/0001-invalid-states/README.md` stated "All rules are version `0.1.0`
+  and active", which the `R002` amendment made false and which bundle generation
+  propagated into `dist/full-doctrine.md`. The sentence restated a version the
+  file's own front matter and the manifest already carry, so it is replaced with
+  the stable-identifier wording the other doctrine READMEs use, which names no
+  version and cannot go stale. That is `RUST-DOC-0011-R004` applied to a package
+  README.
+- `rfcs/accepted/RFC-0004-closed-vocabulary-discriminants.md` carried a prose
+  paragraph where `rfcs/template.md` requires a decision record with decision,
+  date, decision owners, rationale, conditions, and supersession. The record now
+  states all six, so the acceptance authority for a normative change is on the
+  record rather than implied.
+
 ## [0.4.1] — 2026-08-05
 
 Documentation coherency only. No normative rule, statement, allowed exception,

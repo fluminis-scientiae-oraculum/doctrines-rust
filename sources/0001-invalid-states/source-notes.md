@@ -81,3 +81,22 @@ The repository adds:
 
 These additions connect the local type-design lesson to persistence,
 distributed systems, operations, and agent review.
+
+## Internally derived refinement, 0.2.0
+
+`RUST-DOC-0001-R002` was amended by RFC-0004 with no external source. The
+defect was found by auditing this repository's own tooling against this
+corpus: a manifest field constrained by JSON Schema to four values was decoded
+as a string and compared against literals, so a misspelled value matched no
+branch and a whole doctrine was silently dropped from every generated bundle.
+
+Writing that finding up exposed the rule defect. `R002` named string
+discriminants in its applicability while its statement reached only
+contradictory field combinations carrying state-specific data, so it was
+applicable to a lone discriminant and simultaneously required nothing of one.
+The amendment adds the second obligation and an exception for vocabularies too
+large or volatile to enumerate.
+
+The parse-versus-validate framing this reasoning rests on is long-standing
+community practice. It is not cited as a source for this rule, because the
+rule was derived from the observed defect rather than from that literature.

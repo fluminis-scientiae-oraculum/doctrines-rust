@@ -1,11 +1,11 @@
 schema_version: "1.0"
-repository_version: "0.4.1"
+repository_version: "0.5.0"
 doctrines:
   - id: RUST-DOC-0001
     slug: invalid-states
     title: Making Invalid States Unrepresentable
     status: active
-    version: "0.1.0"
+    version: "0.2.0"
     package_path: doctrines/0001-invalid-states
     normative_path: doctrines/0001-invalid-states/doctrine.md
     applies_to: [planning, implementation, review, audit]
