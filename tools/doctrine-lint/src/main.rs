@@ -39,18 +39,32 @@ const ACTIVE_RECORD_DIRECTORY: &str = "decisions/active/";
 const ARCHIVED_RECORD_DIRECTORY: &str = "decisions/archive/";
 const ARCHIVAL_MARKER: &str = "NOT CURRENT OPERATIONAL AUTHORITY";
 
-/// Every Markdown file at the repository root. `EVIDENCE.md` was absent until the
-/// counted-claim check was written, so neither that check nor the normative-scope
-/// scan had ever read the corpus document that carries the most derived numbers.
-const ROOT_DOCUMENTS: &[&str] = &[
+/// The one document that carries the local validation sequence. Every other
+/// governance document links to it rather than repeating it.
+const VALIDATION_SEQUENCE_OWNER: &str = "README.md";
+
+/// Governance documents that could plausibly carry a validation sequence, and are
+/// therefore counted.
+const VALIDATION_SEQUENCE_DOCUMENTS: &[&str] = &[
     "README.md",
     "AGENTS.md",
     "CONTRIBUTING.md",
-    "CHANGELOG.md",
-    "CODE_OF_CONDUCT.md",
-    "EVIDENCE.md",
-    "SECURITY.md",
+    ".github/pull_request_template.md",
 ];
+
+/// Commands whose co-occurrence in one fenced block identifies a validation
+/// sequence rather than a passing mention of a single command.
+const VALIDATION_SEQUENCE_COMMANDS: &[&str] = &[
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets --all-features",
+    "cargo test --workspace --all-features",
+    "cargo run -p doctrine-lint -- check",
+    "cargo run -p bundle-agent-context -- check",
+    "cargo deny check",
+];
+
+/// Distinct commands that make a fenced block a copy of the sequence.
+const VALIDATION_SEQUENCE_THRESHOLD: usize = 3;
 
 const NORMATIVE_SCOPE_EXCEPTIONS: &[&str] = &[
     "AGENTS.md",
@@ -287,10 +301,11 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
         }
     };
 
-    let rule_ids = check_doctrines(root, &doctrine_manifest, &mut diagnostics);
+    let rules = check_doctrines(root, &doctrine_manifest, &mut diagnostics);
     check_doctrine_index(root, &doctrine_manifest, &mut diagnostics);
-    check_stated_counts(root, &doctrine_manifest, &rule_ids, &mut diagnostics);
-    check_rule_citations(root, &rule_ids, &mut diagnostics);
+    check_stated_counts(root, &doctrine_manifest, &rules, &mut diagnostics);
+    check_rule_citations(root, &rules.all, &mut diagnostics);
+    check_validation_sequence_copies(root, &mut diagnostics);
     check_repository_version(root, &doctrine_manifest, &mut diagnostics);
     check_agents(root, &agent_manifest, &doctrine_manifest, &mut diagnostics);
     check_decision_records(root, &agent_manifest, &mut diagnostics);
@@ -351,6 +366,19 @@ fn validate_schema(
     }
 }
 
+/// Rule identifiers defined across the corpus, split by the status of the doctrine
+/// that defines them.
+///
+/// The two sets answer different questions and must not be conflated. A citation of
+/// a rule in a deprecated doctrine still resolves, so citations check `all`. A
+/// counted claim about current normative rules must exclude retired ones, so it
+/// counts `active`.
+#[derive(Debug, Default)]
+struct RuleInventory {
+    all: BTreeSet<String>,
+    active: BTreeSet<String>,
+}
+
 /// Returns the rule identifiers actually defined across the corpus, so later checks
 /// compare citations and counted claims against what exists rather than against a
 /// second list.
@@ -358,7 +386,7 @@ fn check_doctrines(
     root: &Path,
     manifest: &DoctrineManifest,
     diagnostics: &mut Vec<Diagnostic>,
-) -> BTreeSet<String> {
+) -> RuleInventory {
     if manifest.schema_version != "1.0" {
         diagnostics.push(Diagnostic::new(
             root.join("manifest/doctrines.yaml"),
@@ -377,11 +405,18 @@ fn check_doctrines(
         ));
     }
 
-    let mut global_rule_ids = BTreeSet::new();
+    let mut inventory = RuleInventory::default();
     for entry in &manifest.doctrines {
-        check_doctrine_entry(root, entry, &known_ids, &mut global_rule_ids, diagnostics);
+        // A set is sorted rather than insertion-ordered, so the rules this entry
+        // contributed are its difference against the set as it stood before.
+        let before = inventory.all.clone();
+        check_doctrine_entry(root, entry, &known_ids, &mut inventory.all, diagnostics);
+        if entry.status == "active" {
+            let added: Vec<String> = inventory.all.difference(&before).cloned().collect();
+            inventory.active.extend(added);
+        }
     }
-    global_rule_ids
+    inventory
 }
 
 fn check_doctrine_entry(
@@ -568,41 +603,90 @@ fn check_structured_field_register(
     }
 }
 
-/// A dated record states the contract as it stood when a decision was taken and is
-/// not maintained afterwards, which `RUST-DOC-0011-R011` and `RUST-DOC-0011-R019`
-/// permit. A stale count or a citation of a since-removed rule inside one is
-/// history rather than drift, so both checks below skip these files. Rewriting them
-/// to satisfy a linter would destroy the record.
+/// Whether a path is a finalized decision document rather than maintained material.
+///
+/// Lifecycle, not directory membership, decides this. `RUST-DOC-0011-R011` and
+/// `RUST-DOC-0011-R019` permit an artifact to state the contract as it stood when a
+/// decision was taken and then stop being maintained; rewriting one to satisfy a
+/// linter would destroy the record. Three classes qualify:
+///
+/// - the RFC documents themselves, in any lifecycle directory. A finalized RFC
+///   states counts and rule identifiers as of its decision, and a *proposed* RFC
+///   may name identifiers that do not exist yet, so both are exempt;
+/// - archived decision records under `decisions/archive/`, which
+///   `RUST-DOC-0011-R009` marks as no longer current authority;
+/// - `CHANGELOG.md`, which is a dated release record.
+///
+/// Everything else under `rfcs/` is maintained governance and stays scanned:
+/// `rfcs/README.md` continues to govern the change process under
+/// `RUST-DOC-0011-R011`, `rfcs/accepted/overview.md` is the canonical prose source
+/// of a generated index, and the state-directory READMEs describe current policy.
+///
+/// Template and proposal *skeletons* need no exemption: they write hypothetical
+/// identifiers with letter positions, as in `RUST-DOC-NNNN-R001`, which the
+/// citation extractor never matches. That is asserted by test rather than assumed.
 fn is_dated_record(relative: &str) -> bool {
-    relative.starts_with("rfcs/") || relative == "CHANGELOG.md"
+    if relative == "CHANGELOG.md" || relative.starts_with("decisions/archive/") {
+        return true;
+    }
+    let Some(rest) = relative.strip_prefix("rfcs/") else {
+        return false;
+    };
+    let Some((_state, file)) = rest.split_once('/') else {
+        return false;
+    };
+    let markdown = Path::new(file).extension().and_then(|value| value.to_str()) == Some("md");
+    file.starts_with("RFC-") && markdown
+}
+
+/// Every Markdown file at the repository root, discovered rather than listed.
+///
+/// `EVIDENCE.md` escaped the drift checks and the normative-scope scan because it
+/// was missing from a hardcoded inventory. Enumerating the directory removes the
+/// class: a future root document is covered on the day it is added.
+fn root_documents(root: &Path) -> Vec<PathBuf> {
+    let Ok(entries) = fs::read_dir(root) else {
+        return Vec::new();
+    };
+    let mut paths: Vec<PathBuf> = entries
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.is_file() && path.extension().and_then(|value| value.to_str()) == Some("md")
+        })
+        .collect();
+    paths.sort();
+    paths
 }
 
 /// Files both drift checks scan: maintained canonical Markdown plus the root
 /// documents, excluding dated records.
 fn maintained_markdown(root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
-    for document in ROOT_DOCUMENTS {
-        if !is_dated_record(document) {
-            let path = root.join(document);
-            if path.is_file() {
-                paths.push(path);
-            }
+    let push_if_maintained = |path: &Path, paths: &mut Vec<PathBuf>| {
+        let relative = path
+            .strip_prefix(root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        if !is_dated_record(&relative) {
+            paths.push(path.to_path_buf());
         }
+    };
+
+    for path in root_documents(root) {
+        push_if_maintained(&path, &mut paths);
     }
     for directory in CANONICAL_ROOTS {
+        let mut collected = Vec::new();
         collect_files(&root.join(directory), &mut |path| {
-            if path.extension().and_then(|extension| extension.to_str()) != Some("md") {
-                return;
-            }
-            let relative = path
-                .strip_prefix(root)
-                .unwrap_or(path)
-                .to_string_lossy()
-                .replace('\\', "/");
-            if !is_dated_record(&relative) {
-                paths.push(path.to_path_buf());
+            if path.extension().and_then(|extension| extension.to_str()) == Some("md") {
+                collected.push(path.to_path_buf());
             }
         });
+        for path in collected {
+            push_if_maintained(&path, &mut paths);
+        }
     }
     paths
 }
@@ -615,18 +699,23 @@ fn maintained_markdown(root: &Path) -> Vec<PathBuf> {
 fn check_stated_counts(
     root: &Path,
     manifest: &DoctrineManifest,
-    rule_ids: &BTreeSet<String>,
+    rules: &RuleInventory,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
-    let active_packages = manifest
+    let active_doctrines = manifest
         .doctrines
         .iter()
         .filter(|entry| entry.status == "active")
         .count();
+    // Each phrase sits on one dimension. "Normative rules" means the rules in force,
+    // so retired doctrines' rules are excluded. "Doctrine packages" is physical and
+    // counts every package the manifest carries, active or not. "Active doctrines"
+    // is the status count. Conflating them would let a deprecated doctrine be
+    // reported as current, or the real package count be rejected as wrong.
     let expectations: [(&str, usize); 3] = [
-        ("normative rules", rule_ids.len()),
-        ("doctrine packages", active_packages),
-        ("active doctrines", active_packages),
+        ("normative rules", rules.active.len()),
+        ("doctrine packages", manifest.doctrines.len()),
+        ("active doctrines", active_doctrines),
     ];
 
     for path in maintained_markdown(root) {
@@ -732,6 +821,79 @@ fn extract_rule_citations(text: &str) -> BTreeSet<String> {
     cited
 }
 
+/// Rejects a second copy of the local validation sequence.
+///
+/// The sequence is one fact about how this repository is checked. It was carried in
+/// full by three governance documents at once, so a change to any gate had to be
+/// made in three places correctly, with nothing announcing a miss. This counts the
+/// copies and requires exactly one, in the document that owns it, which is
+/// `RUST-DOC-0011-R017` applied to the repository's own governance.
+fn check_validation_sequence_copies(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
+    let mut carriers = Vec::new();
+    for document in VALIDATION_SEQUENCE_DOCUMENTS {
+        let path = root.join(document);
+        if !path.is_file() {
+            continue;
+        }
+        let Some(text) = read_text(&path, diagnostics) else {
+            continue;
+        };
+        let copies = validation_sequence_copies(&text);
+        if copies > 0 {
+            carriers.push((*document, copies));
+        }
+    }
+
+    let total: usize = carriers.iter().map(|(_, copies)| copies).sum();
+    if total == 1
+        && carriers
+            .iter()
+            .all(|(document, _)| *document == VALIDATION_SEQUENCE_OWNER)
+    {
+        return;
+    }
+
+    let listed = carriers
+        .iter()
+        .map(|(document, copies)| format!("{document} ({copies})"))
+        .collect::<Vec<_>>()
+        .join(", ");
+    diagnostics.push(Diagnostic::new(
+        root.join(VALIDATION_SEQUENCE_OWNER),
+        format!(
+            "the validation sequence must appear once, in {VALIDATION_SEQUENCE_OWNER}; found {total} copy/copies in [{listed}]"
+        ),
+    ));
+}
+
+/// Fenced blocks carrying at least [`VALIDATION_SEQUENCE_THRESHOLD`] distinct
+/// validation commands. A document naming one command in passing is not a copy.
+fn validation_sequence_copies(text: &str) -> usize {
+    let mut copies = 0;
+    let mut in_fence = false;
+    let mut seen: BTreeSet<&str> = BTreeSet::new();
+    for line in text.lines() {
+        if line.trim_start().starts_with("```") {
+            if in_fence {
+                if seen.len() >= VALIDATION_SEQUENCE_THRESHOLD {
+                    copies += 1;
+                }
+                seen.clear();
+            }
+            in_fence = !in_fence;
+            continue;
+        }
+        if in_fence {
+            for command in VALIDATION_SEQUENCE_COMMANDS {
+                if line.contains(command) {
+                    seen.insert(*command);
+                }
+            }
+        }
+    }
+    copies
+}
+
 /// Checks the reader-facing doctrine index against the manifest.
 ///
 /// `RUST-DOC-0011-R004` permits a human-readable view of an enforced claim only
@@ -748,56 +910,86 @@ fn check_doctrine_index(
         return;
     };
 
+    let rows = doctrine_index_rows(&index);
+
     for entry in &manifest.doctrines {
         if entry.status != "active" {
             continue;
         }
-        // A row, not a passing mention: the identifier and the manifest title have to
-        // appear on one line, so a cross-reference in prose cannot satisfy the check.
-        let has_row = index
-            .lines()
-            .any(|line| line.contains(&entry.id) && line.contains(&entry.title));
+        // A parsed table row, not a same-line mention. A sentence carrying both the
+        // identifier and the title would otherwise satisfy the check while the row
+        // it claims to verify is absent.
+        let has_row = rows.iter().any(|(id, cells)| {
+            id == &entry.id && cells.iter().any(|cell| cell.contains(&entry.title))
+        });
         if !has_row {
             diagnostics.push(Diagnostic::new(
                 &index_path,
                 format!(
-                    "doctrine index has no row naming {} with its manifest title {:?}",
+                    "doctrine index has no table row naming {} with its manifest title {:?}",
                     entry.id, entry.title
                 ),
             ));
         }
     }
 
-    for id in extract_doctrine_ids(&index) {
+    for (id, _) in &rows {
         if !manifest
             .doctrines
             .iter()
-            .any(|entry| entry.id == id && entry.status == "active")
+            .any(|entry| &entry.id == id && entry.status == "active")
         {
             diagnostics.push(Diagnostic::new(
                 &index_path,
-                format!("doctrine index lists {id}, which is not an active doctrine"),
+                format!("doctrine index has a row for {id}, which is not an active doctrine"),
             ));
         }
     }
 }
 
-/// Doctrine identifiers named by the index, ignoring rule identifiers such as
-/// `RUST-DOC-0011-R004` so a cross-reference is not mistaken for an index row.
-fn extract_doctrine_ids(text: &str) -> BTreeSet<String> {
-    let mut ids = BTreeSet::new();
-    for (offset, _) in text.match_indices("RUST-DOC-") {
-        let rest = &text[offset + "RUST-DOC-".len()..];
-        let digits: String = rest.chars().take(4).collect();
-        if digits.len() != 4 || !digits.bytes().all(|byte| byte.is_ascii_digit()) {
+/// Table rows of the doctrine index, as `(doctrine id, cells)`.
+///
+/// A row qualifies when one whole cell is exactly a doctrine identifier. Scanning
+/// prose for identifiers would report a sentence about a retired doctrine as an
+/// index entry, and matching a line rather than a row would accept a sentence in
+/// place of the row it stands for.
+fn doctrine_index_rows(text: &str) -> Vec<(String, Vec<String>)> {
+    let mut rows = Vec::new();
+    for line in text.lines() {
+        let Some(cells) = table_row_cells(line) else {
             continue;
+        };
+        if let Some(id) = cells.iter().find(|cell| is_doctrine_id(cell)) {
+            rows.push((id.clone(), cells));
         }
-        if rest[digits.len()..].starts_with("-R") {
-            continue;
-        }
-        ids.insert(format!("RUST-DOC-{digits}"));
     }
-    ids
+    rows
+}
+
+/// Trimmed cells of a Markdown table row, or `None` for any other line, including
+/// the header separator.
+fn table_row_cells(line: &str) -> Option<Vec<String>> {
+    let trimmed = line.trim();
+    if trimmed.len() < 2 || !trimmed.starts_with('|') || !trimmed.ends_with('|') {
+        return None;
+    }
+    let cells: Vec<String> = trimmed[1..trimmed.len() - 1]
+        .split('|')
+        .map(|cell| cell.trim().to_owned())
+        .collect();
+    let separator = cells
+        .iter()
+        .all(|cell| !cell.is_empty() && cell.chars().all(|value| value == '-' || value == ':'));
+    if separator { None } else { Some(cells) }
+}
+
+/// Whether a cell is exactly a doctrine identifier, so `RUST-DOC-0011-R004` and any
+/// surrounding prose are excluded.
+fn is_doctrine_id(cell: &str) -> bool {
+    let Some(digits) = cell.strip_prefix("RUST-DOC-") else {
+        return false;
+    };
+    digits.len() == 4 && digits.bytes().all(|byte| byte.is_ascii_digit())
 }
 
 fn check_repository_version(
@@ -1394,8 +1586,8 @@ fn check_forbidden_markers(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
 }
 
 fn check_normative_scope(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
-    for path in ROOT_DOCUMENTS {
-        scan_normative_scope(root, &root.join(path), diagnostics);
+    for path in root_documents(root) {
+        scan_normative_scope(root, &path, diagnostics);
     }
     for directory in CANONICAL_ROOTS {
         collect_files(&root.join(directory), &mut |path| {
@@ -1627,9 +1819,13 @@ mod tests {
         AgentManifest, AgentPack, DOCTRINE_INDEX, DoctrineEntry, DoctrineManifest, RecordBucket,
         RuleHeading, check_agent_packs_exclude_archive, check_doctrine_index,
         check_registered_record, check_structured_field_register, contains_normative_term,
-        extract_doctrine_ids, extract_rule_citations, extract_rule_headings, front_matter,
-        is_dated_record, stated_counts, valid_manifest_path, valid_record_id, valid_rule_id,
+        extract_rule_citations, extract_rule_headings, front_matter, is_dated_record,
+        stated_counts, valid_manifest_path, valid_record_id, valid_rule_id,
         workspace_package_version,
+    };
+    use super::{
+        RuleInventory, check_stated_counts, doctrine_index_rows, root_documents, table_row_cells,
+        validation_sequence_copies,
     };
     use std::collections::BTreeSet;
     use std::fs;
@@ -2013,37 +2209,222 @@ mod tests {
         assert_eq!(cited.len(), 2, "{cited:?}");
     }
 
+    /// The exemption follows artifact lifecycle, not directory membership. Both
+    /// sides are asserted: finalized records are exempt, and the governance around
+    /// them stays scanned.
     #[test]
-    fn dated_records_are_exempt_from_both_drift_checks() {
-        assert!(is_dated_record(
-            "rfcs/accepted/RFC-0001-isolation-and-time-assumptions.md"
-        ));
-        assert!(is_dated_record("CHANGELOG.md"));
-        assert!(!is_dated_record("EVIDENCE.md"));
-        assert!(!is_dated_record("doctrines/README.md"));
-    }
-
-    #[test]
-    fn every_root_markdown_file_is_scanned() {
-        // EVIDENCE.md was missing from this list, so the counted-claim check silently
-        // skipped the document carrying the most derived numbers.
-        for document in ["README.md", "AGENTS.md", "CONTRIBUTING.md", "EVIDENCE.md"] {
+    fn the_historical_exemption_follows_lifecycle_not_directory() {
+        for frozen in [
+            "rfcs/accepted/RFC-0001-isolation-and-time-assumptions.md",
+            "rfcs/superseded/RFC-0000-example.md",
+            "rfcs/proposed/RFC-0004-draft.md",
+            "decisions/archive/adr-0002-old.md",
+            "CHANGELOG.md",
+        ] {
+            assert!(is_dated_record(frozen), "{frozen} should be exempt");
+        }
+        for maintained in [
+            "rfcs/README.md",
+            "rfcs/accepted/README.md",
+            "rfcs/accepted/overview.md",
+            "rfcs/proposed/README.md",
+            "rfcs/superseded/README.md",
+            "rfcs/template.md",
+            "decisions/README.md",
+            "decisions/active/adr-0001-residency.md",
+            "EVIDENCE.md",
+            "doctrines/README.md",
+        ] {
             assert!(
-                super::ROOT_DOCUMENTS.contains(&document),
-                "{document} is not scanned"
+                !is_dated_record(maintained),
+                "{maintained} should stay scanned"
             );
         }
     }
 
+    /// Root documents are discovered, not listed. `EVIDENCE.md` escaped the checks
+    /// because a hardcoded inventory omitted it; set equality against the directory
+    /// closes the class rather than that instance.
     #[test]
-    fn doctrine_index_ids_ignore_rule_cross_references() {
+    fn root_documents_equal_the_markdown_files_on_disk() {
+        let root = temporary_directory("root-documents");
+        for name in ["README.md", "EVIDENCE.md", "ARCHITECTURE.md", "notes.txt"] {
+            fs::write(root.join(name), "body\n").expect("write file");
+        }
+        fs::create_dir_all(root.join("doctrines")).expect("create directory");
+        fs::write(root.join("doctrines/README.md"), "nested\n").expect("write nested");
+
+        let found: BTreeSet<String> = root_documents(&root)
+            .into_iter()
+            .map(|path| {
+                path.file_name()
+                    .expect("file name")
+                    .to_string_lossy()
+                    .into_owned()
+            })
+            .collect();
+        let expected: BTreeSet<String> = ["ARCHITECTURE.md", "EVIDENCE.md", "README.md"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+
+        assert_eq!(found, expected, "a new root document must be discovered");
+        fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    #[test]
+    fn index_rows_come_from_table_cells_not_prose() {
         let index = concat!(
+            "| ID | Doctrine |\n",
+            "| -- | -------- |\n",
             "| RUST-DOC-0001 | [Making Invalid States Unrepresentable](0001-invalid-states/) |\n",
             "Applied by `RUST-DOC-0011-R004` and `RUST-DOC-0010-R022`.\n",
+            "Read RUST-DOC-0099, A Retired Doctrine, for history.\n",
         );
-        let ids = extract_doctrine_ids(index);
-        assert!(ids.contains("RUST-DOC-0001"), "{ids:?}");
-        assert_eq!(ids.len(), 1, "rule cross-references must not count as rows");
+        let rows = doctrine_index_rows(index);
+        assert_eq!(rows.len(), 1, "{rows:?}");
+        assert_eq!(rows[0].0, "RUST-DOC-0001");
+    }
+
+    #[test]
+    fn table_row_cells_reject_separators_and_prose() {
+        assert_eq!(
+            table_row_cells("| RUST-DOC-0001 | Title |"),
+            Some(vec!["RUST-DOC-0001".to_owned(), "Title".to_owned()])
+        );
+        assert_eq!(table_row_cells("| --- | :--- |"), None);
+        assert_eq!(table_row_cells("Read RUST-DOC-0001, Title, next."), None);
+    }
+
+    /// The defect the previous same-line predicate allowed: the row is gone, but a
+    /// sentence carries both the identifier and the title.
+    #[test]
+    fn a_prose_sentence_does_not_stand_in_for_a_missing_row() {
+        let manifest = doctrine_manifest();
+        let root = temporary_directory("index-prose-mention");
+        fs::create_dir_all(root.join("doctrines")).expect("create doctrines directory");
+        fs::write(
+            root.join(DOCTRINE_INDEX),
+            concat!(
+                "| RUST-DOC-0001 | Making Invalid States Unrepresentable |\n",
+                "Read RUST-DOC-0002, Error Modeling as Domain Design, next.\n",
+            ),
+        )
+        .expect("write index");
+
+        let mut diagnostics = Vec::new();
+        check_doctrine_index(&root, &manifest, &mut diagnostics);
+        assert!(
+            diagnostics.iter().any(|diagnostic| {
+                diagnostic
+                    .message
+                    .contains("no table row naming RUST-DOC-0002")
+            }),
+            "{diagnostics:?}"
+        );
+        fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    /// The complementary defect: prose about a doctrine the manifest does not carry
+    /// as active must not be reported as an index row.
+    #[test]
+    fn prose_about_an_inactive_doctrine_is_not_an_index_row() {
+        let manifest = doctrine_manifest();
+        let root = temporary_directory("index-inactive-prose");
+        fs::create_dir_all(root.join("doctrines")).expect("create doctrines directory");
+        fs::write(
+            root.join(DOCTRINE_INDEX),
+            concat!(
+                "| RUST-DOC-0001 | Making Invalid States Unrepresentable |\n",
+                "| RUST-DOC-0002 | Error Modeling as Domain Design |\n",
+                "RUST-DOC-0099 was withdrawn before adoption.\n",
+            ),
+        )
+        .expect("write index");
+
+        let mut diagnostics = Vec::new();
+        check_doctrine_index(&root, &manifest, &mut diagnostics);
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+        fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    #[test]
+    fn counted_phrases_track_their_own_status_dimension() {
+        let root = temporary_directory("counted-dimensions");
+        let mut manifest = doctrine_manifest();
+        manifest.doctrines.push(doctrine_entry(
+            "RUST-DOC-0003",
+            "0003-retired",
+            "A Retired Doctrine",
+            "deprecated",
+        ));
+        // Two rules in force, one retired: three packages, two active doctrines.
+        let rules = RuleInventory {
+            all: [
+                "RUST-DOC-0001-R001",
+                "RUST-DOC-0002-R001",
+                "RUST-DOC-0003-R001",
+            ]
+            .into_iter()
+            .map(str::to_owned)
+            .collect(),
+            active: ["RUST-DOC-0001-R001", "RUST-DOC-0002-R001"]
+                .into_iter()
+                .map(str::to_owned)
+                .collect(),
+        };
+
+        fs::write(
+            root.join("EVIDENCE.md"),
+            "The 2 normative rules, 3 doctrine packages, and 2 active doctrines.\n",
+        )
+        .expect("write evidence");
+        let mut diagnostics = Vec::new();
+        check_stated_counts(&root, &manifest, &rules, &mut diagnostics);
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+
+        // Counting retired rules as current, or packages by active status, must fail.
+        fs::write(
+            root.join("EVIDENCE.md"),
+            "The 3 normative rules and 2 doctrine packages.\n",
+        )
+        .expect("rewrite evidence");
+        let mut diagnostics = Vec::new();
+        check_stated_counts(&root, &manifest, &rules, &mut diagnostics);
+        let messages = diagnostics
+            .iter()
+            .map(|diagnostic| diagnostic.message.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(
+            messages.contains("states 3 normative rules; the corpus has 2"),
+            "{messages}"
+        );
+        assert!(
+            messages.contains("states 2 doctrine packages; the corpus has 3"),
+            "{messages}"
+        );
+
+        fs::remove_dir_all(root).expect("remove temporary test directory");
+    }
+
+    #[test]
+    fn the_validation_sequence_is_counted_per_fenced_block() {
+        let one_copy = concat!(
+            "```bash\n",
+            "cargo fmt --all --check\n",
+            "cargo test --workspace --all-features\n",
+            "cargo deny check\n",
+            "```\n",
+        );
+        assert_eq!(validation_sequence_copies(one_copy), 1);
+
+        // A single command named in passing is not a copy of the sequence.
+        let passing_mention = "```bash\ncargo run -p doctrine-lint -- check\n```\n";
+        assert_eq!(validation_sequence_copies(passing_mention), 0);
+
+        let two_copies = format!("{one_copy}\nprose\n\n{one_copy}");
+        assert_eq!(validation_sequence_copies(&two_copies), 2);
     }
 
     #[test]
@@ -2071,7 +2452,7 @@ mod tests {
             .collect::<Vec<_>>()
             .join("\n");
         assert!(
-            messages.contains("no row naming RUST-DOC-0002"),
+            messages.contains("no table row naming RUST-DOC-0002"),
             "{messages}"
         );
 
@@ -2086,9 +2467,9 @@ mod tests {
         let mut diagnostics = Vec::new();
         check_doctrine_index(&root, &manifest, &mut diagnostics);
         assert!(
-            diagnostics
-                .iter()
-                .any(|diagnostic| diagnostic.message.contains("no row naming RUST-DOC-0002")),
+            diagnostics.iter().any(|diagnostic| diagnostic
+                .message
+                .contains("no table row naming RUST-DOC-0002")),
             "{diagnostics:?}"
         );
 

@@ -51,10 +51,23 @@ or doctrine version changes.
   Markdown must resolve to a rule a doctrine defines. The corpus already required
   each rule to appear in its own review standard; nothing checked the reverse, so
   a renamed or removed rule left dangling citations that read as authoritative.
-- Both checks exempt dated records — `rfcs/` and `CHANGELOG.md` — which state the
-  contract as it stood when a decision was taken and are not maintained
-  afterwards, as `RUST-DOC-0011-R011` and `RUST-DOC-0011-R019` permit. Rewriting
-  them to satisfy a linter would destroy the record.
+- Both checks exempt dated records, which state the contract as it stood when a
+  decision was taken and are not maintained afterwards, as
+  `RUST-DOC-0011-R011` and `RUST-DOC-0011-R019` permit. Rewriting them to satisfy
+  a linter would destroy the record. The exemption follows artifact lifecycle
+  rather than directory membership: the RFC documents themselves in any lifecycle
+  state, archived decision records, and `CHANGELOG.md`. Maintained governance
+  around them stays scanned, including `rfcs/README.md`, the state-directory
+  READMEs, and `rfcs/accepted/overview.md`, which cites live rule identifiers.
+- A duplicated-validation-sequence check. The local validation sequence was
+  carried in full by `README.md`, `AGENTS.md`, and the pull-request template at
+  once, so a change to any gate had to be made in three places correctly with
+  nothing announcing a miss. `README.md` now owns it, the other two link to it,
+  and `doctrine-lint` counts fenced blocks carrying three or more validation
+  commands and requires exactly one, in the owner.
+- Root Markdown files are discovered from the directory rather than listed in a
+  constant, so a future root document is covered on the day it is added rather
+  than when someone remembers the inventory.
 
 ## [0.4.0] — 2026-08-04
 

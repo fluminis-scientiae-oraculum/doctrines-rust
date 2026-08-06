@@ -108,24 +108,10 @@ diagnostic.
 
 ## Required validation
 
-Before handing off a change, run:
-
-```bash
-npm ci --ignore-scripts --no-audit
-npm audit --audit-level=high
-npm run check:markdown-format
-npm run lint:markdown
-cargo fmt --all --check
-cargo clippy --workspace --all-targets --all-features -- -D warnings
-cargo test --workspace --all-features
-cargo run -p doctrine-lint -- check
-cargo run -p bundle-agent-context -- generate
-git diff --exit-code -- dist/ rfcs/accepted/README.md
-cargo run -p bundle-agent-context -- check
-cargo deny check
-lychee --no-progress '**/*.md'
-git diff --check
-```
+Before handing off a change, run the complete local validation sequence in the root
+[`README.md`](README.md#local-validation). It is stated there once and nowhere else, so a
+gate cannot be added in one document and missed in another; `doctrine-lint` rejects a second
+copy.
 
 Before bundle generation, run `npm run format:markdown` after editing canonical or governance
 Markdown. Prettier deliberately excludes every generated file; never use a formatter to rewrite
