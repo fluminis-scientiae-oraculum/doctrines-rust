@@ -60,7 +60,7 @@ Never mirror external media or transcripts.
 
 Never edit `/dist` directly. After canonical or manifest changes:
 
-```text
+```bash
 cargo run -p bundle-agent-context -- generate
 cargo run -p bundle-agent-context -- check
 ```

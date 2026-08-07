@@ -22,8 +22,8 @@ Examples of unacceptable conduct include harassment, threats, discriminatory lan
 sexualized attention, doxxing, deliberate disclosure of secrets, sustained disruption,
 fabricated evidence, impersonation, and retaliation against good-faith reporting.
 
-Strong technical criticism is permitted. A statement such as “this constructor allows the
-documented invariant to be bypassed” is appropriate when supported by code. Attacking the
+Strong technical criticism is permitted. A statement such as "this constructor allows the
+documented invariant to be bypassed" is appropriate when supported by code. Attacking the
 author is not.
 
 ## Scope and enforcement

@@ -86,3 +86,8 @@ evidence. A new convenience error crate does not change doctrine unless it
 changes the semantics available to callers. Security response mapping should be
 reviewed against the actual application threat model rather than copied from a
 generic example.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0002-error-modeling/`](../../doctrines/0002-error-modeling/README.md).

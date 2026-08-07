@@ -21,7 +21,7 @@ The first selection table is:
 | External success/failure              | `Result`                                           |
 | Indeterminate distributed outcome     | explicit unknown/reconciliation state              |
 
-“Preferred” means first candidate, not automatic answer. Multiple mechanisms often compose.
+"Preferred" means first candidate, not automatic answer. Multiple mechanisms often compose.
 
 ## Operational decision tree
 

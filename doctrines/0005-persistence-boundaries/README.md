@@ -70,13 +70,16 @@ remains true in mutable external reality.
 
 ## Related material
 
-- Patterns: opaque newtypes, smart constructors, sum types, validated
-  collections, hybrid state machines, and explicit uncertainty.
-- Boundaries: database decoding, Serde, messaging, configuration, and
-  filesystems.
+- Patterns: [opaque newtypes](../../patterns/opaque-newtypes.md),
+  [smart constructors](../../patterns/smart-constructors.md),
+  [sum types](../../patterns/sum-types.md),
+  [validated collections](../../patterns/validated-collections.md),
+  [hybrid state machines](../../patterns/hybrid-state-machines.md), and
+  [explicit uncertainty](../../patterns/explicit-uncertainty.md).
+- Boundaries: [database decoding](../../boundaries/database-decoding.md),
+  [Serde](../../boundaries/serde.md), messaging, configuration, and filesystems.
 - Reviews: domain model, boundary, distributed effects, and final audit.
-- Case studies: database transaction, payment lifecycle, invoice, and message
-  delivery.
+- Case studies: database transaction, payment lifecycle, invoice, and message delivery.
 
 ## Reading order
 

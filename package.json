@@ -11,7 +11,7 @@
     "check:markdown": "npm run check:markdown-format && npm run lint:markdown",
     "check:markdown-format": "prettier --check \"**/*.md\"",
     "format:markdown": "prettier --write \"**/*.md\"",
-    "lint:markdown": "markdownlint-cli2 \"**/*.md\" \"#dist\" \"#node_modules\" \"#target\" \"#rfcs/accepted/README.md\""
+    "lint:markdown": "markdownlint-cli2 \"**/*.md\" \"#dist\" \"#node_modules\" \"#target\" \"#rfcs/accepted/README.md\" \"#doctrines/map.md\""
   },
   "devDependencies": {
     "markdownlint-cli2": "0.23.1",

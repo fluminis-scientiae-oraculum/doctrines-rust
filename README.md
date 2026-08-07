@@ -131,11 +131,20 @@ evidence by doctrine and names the material gaps that remain.
 Canonical doctrine lives under `foundations/`, `doctrines/`, `patterns/`, `boundaries/`,
 `reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
 
-Two kinds of file are generated and are never edited by hand:
+> [!TIP]
+> To load this corpus into an agent, read
+> [Loading the doctrine into an agent](dist/README.md#loading-the-doctrine-into-an-agent). It
+> covers which bundle to pick, how to attach it, and what to tell the agent alongside it. That
+> guidance travels with the bundles, so it is available to someone holding only `dist/`.
 
-- everything under `dist/`, the hydration bundles projected from canonical sources;
-- `rfcs/accepted/README.md`, the accepted-RFC index, built from `rfcs/accepted/overview.md`
-  and the front matter of each accepted RFC.
+Three kinds of file are generated and are never edited by hand:
+
+- everything under [`dist/`](dist/README.md), the hydration bundles projected from canonical
+  sources;
+- [`rfcs/accepted/README.md`](rfcs/accepted/README.md), the accepted-RFC index, built from
+  `rfcs/accepted/overview.md` and the front matter of each accepted RFC;
+- [`doctrines/map.md`](doctrines/map.md), the doctrine coverage map, built from
+  `doctrines/map-overview.md` and the two manifests.
 
 Every generated file carries a banner naming the sources it was built from. After a canonical
 change, run:
@@ -154,31 +163,47 @@ index, without creating a second manually maintained doctrine.
 The role packs under `agents/` state exact required inputs and outputs. The generated versions
 under `dist/agents/` combine those overlays with selected canonical rules.
 
-- A planner begins with `foundations/invariants.md`, `foundations/trust-boundaries.md`,
-  `foundations/complexity-budget.md`, `agents/planner.md`, and
-  `reviews/pre-implementation.md`. Its output is an invariant inventory, boundary map, state
-  graph, authority map, effect and uncertainty inventory, persistence choice, complexity
-  decision, and evidence plan.
-- An implementer reads the relevant doctrine package, `agents/implementer.md`, the applicable
-  boundary guide, and the matching example crate. It protects constructors, retains external
-  fallibility, and supplies positive, negative, and compiler-rejection evidence where useful.
-- A reviewer reads `foundations/guarantee-honesty.md`, `agents/reviewer.md`, the relevant
-  doctrine review standard, and the operational review documents. It inspects construction
-  paths and bypasses rather than approving merely idiomatic syntax.
-- An auditor loads `agents/auditor.md`, all applicable boundary guides, and
-  `reviews/final-correctness-audit.md`. It searches adversarially for forged evidence,
-  unchecked decoding, authority leakage, unsafe retry, and misleading claims.
-- A maintainer reads `foundations/normative-language.md`, `agents/maintainer.md`,
-  `rfcs/README.md`, and the affected source notes before changing meaning, versions,
-  manifests, or generated outputs. It also revalidates or expires active decision records under
-  `decisions/`.
-- Any role about to write a document first applies RUST-DOC-0011 and
-  `reviews/executable-narrative-review.md`: classify the claim, name the single artifact
-  authoritative for it, prefer moving an enforceable obligation into the mechanism that enforces
-  it, and write a decision record only for a fact no artifact can carry. The most common correct
-  outcome is that no document is added.
-- A human architect normally reads all foundations, Doctrine 0001, the doctrines relevant to
-  the system's risks, the decision frameworks, and one structurally similar case study.
+- A planner begins with [`foundations/invariants.md`](foundations/invariants.md),
+  [`foundations/trust-boundaries.md`](foundations/trust-boundaries.md),
+  [`foundations/complexity-budget.md`](foundations/complexity-budget.md),
+  [`agents/planner.md`](agents/planner.md), and
+  [`reviews/pre-implementation.md`](reviews/pre-implementation.md). Its output is an invariant
+  inventory, boundary map, state graph, authority map, effect and uncertainty inventory,
+  persistence choice, complexity decision, and evidence plan.
+- An implementer reads the relevant doctrine package,
+  [`agents/implementer.md`](agents/implementer.md), the applicable
+  [boundary guide](boundaries/README.md), and the matching [example crate](examples/README.md).
+  It protects constructors, retains external fallibility, and supplies positive, negative, and
+  compiler-rejection evidence where useful.
+- A reviewer reads [`foundations/guarantee-honesty.md`](foundations/guarantee-honesty.md),
+  [`agents/reviewer.md`](agents/reviewer.md), the relevant doctrine review standard, and the
+  [operational review documents](reviews/README.md). It inspects construction paths and bypasses
+  rather than approving merely idiomatic syntax.
+- An auditor loads [`agents/auditor.md`](agents/auditor.md), all applicable
+  [boundary guides](boundaries/README.md), and
+  [`reviews/final-correctness-audit.md`](reviews/final-correctness-audit.md). It searches
+  adversarially for forged evidence, unchecked decoding, authority leakage, unsafe retry, and
+  misleading claims.
+- A maintainer reads [`foundations/normative-language.md`](foundations/normative-language.md),
+  [`agents/maintainer.md`](agents/maintainer.md), [`rfcs/README.md`](rfcs/README.md), and the
+  affected [source notes](sources/README.md) before changing meaning, versions, manifests, or
+  generated outputs. It also revalidates or expires active decision records under
+  [`decisions/`](decisions/README.md).
+- Any role about to write a document first applies
+  [RUST-DOC-0011](doctrines/0011-executable-narrative/README.md) and
+  [`reviews/executable-narrative-review.md`](reviews/executable-narrative-review.md): classify
+  the claim, name the single artifact authoritative for it, prefer moving an enforceable
+  obligation into the mechanism that enforces it, and write a decision record only for a fact no
+  artifact can carry. The most common correct outcome is that no document is added.
+- A human architect normally reads all [foundations](foundations/README.md),
+  [Doctrine 0001](doctrines/0001-invalid-states/README.md), the doctrines relevant to the
+  system's risks, the decision frameworks, and one structurally similar
+  [case study](case-studies/README.md).
+
+> [!TIP]
+> [`doctrines/map.md`](doctrines/map.md) shows which doctrine each role pack hydrates. A doctrine
+> a pack omits is one that is not available from that pack alone and has to be loaded from its
+> canonical source; the exclusions are the interesting cells.
 
 For constrained context windows, `dist/compact-doctrine.md` contains the shared thesis,
 classification and boundary pipelines, every active doctrine's normative rules, the central
@@ -199,6 +224,8 @@ manifest, so a doctrine cannot be added without the index following.
 
 That is `RUST-DOC-0011-R004` and `RUST-DOC-0011-R017` applied to this repository's own front
 page: one authority, one mechanically checked view, and no third copy to keep in step.
+[`doctrines/map.md`](doctrines/map.md) is a second view of the same manifests, and it is
+generated for the same reason rather than written.
 
 The corpus does not claim `1.0` semantic stability, and doctrines version independently of the
 repository and of each other. Patch releases clarify without changing normative meaning; minor
@@ -225,7 +252,7 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
 cargo run -p doctrine-lint -- check
 cargo run -p bundle-agent-context -- generate
-git diff --exit-code -- dist/ rfcs/accepted/README.md
+git diff --exit-code -- dist/ rfcs/accepted/README.md doctrines/map.md
 cargo run -p bundle-agent-context -- check
 cargo deny check
 lychee --no-progress '**/*.md'
@@ -256,8 +283,8 @@ guarantee-overclaim issue form.
 
 ## License
 
-Documentation—including Markdown doctrine, manifests, schemas, and generated doctrine
-bundles—is licensed under Creative Commons Attribution 4.0 International; see
+Documentation — including Markdown doctrine, manifests, schemas, and generated doctrine
+bundles — is licensed under Creative Commons Attribution 4.0 International; see
 `LICENSE-DOCS`. Rust source, test fixtures, repository tools, and reusable workflow or
 configuration code are available under MIT OR Apache-2.0 at the recipient's option; see
 `LICENSE-CODE`. External quotations and linked source material remain subject to their

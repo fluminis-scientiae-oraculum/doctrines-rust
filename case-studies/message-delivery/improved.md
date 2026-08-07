@@ -123,3 +123,8 @@ outbox publisher.
 | notification intent is durable                  | outbox shares local commit                  | repository transaction | publisher uses operation ID    | direct DB mutation               | provider acceptance                         | publisher outage           |
 | notification is unknown after ambiguous timeout | explicit outcome/token                      | outcome constructor    | durable record                 | operator decision                | sent or unsent                              | provider query unavailable |
 | poison data is isolated                         | bounded quarantine transition               | consumer supervisor    | original identity retained     | privileged deletion              | later repair correctness                    | backlog/sensitive exposure |
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · **improved design** · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

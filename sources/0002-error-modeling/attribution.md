@@ -12,3 +12,8 @@ No external error message catalogue or copyrighted text is copied.
 This package is not an exhaustive survey of Rust error libraries, API evolution,
 internationalization, or incident reporting. Maintainers should recheck crate
 versions and MSRV before changing executable dependencies.
+
+> [!TIP]
+> **attribution** · [source notes](source-notes.md)
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0002-error-modeling/`](../../doctrines/0002-error-modeling/README.md).

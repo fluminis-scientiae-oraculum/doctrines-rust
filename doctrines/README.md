@@ -17,8 +17,16 @@ governed by the manifest and RFC process.
 
 This table is the reader-facing view of `manifest/doctrines.yaml`, and
 `doctrine-lint` checks it against the manifest: every active doctrine's
-identifier and exact title has to appear here. The root `README.md` deliberately
-links to this index rather than repeating it.
+identifier and exact title has to appear here. The root
+[`README.md`](../README.md) deliberately links to this index rather than
+repeating it.
+
+> [!TIP]
+> [`map.md`](map.md) answers the other question this table cannot: which agent
+> role packs hydrate each doctrine. It is generated from both manifests, so a
+> selection change reaches it without anyone editing it. An unselected doctrine
+> is one a pack does not carry, not one its role may disregard; canonical
+> sources remain available to load separately.
 
 | ID            | Doctrine                                                                              | Primary concern                                                 |
 | ------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------- |

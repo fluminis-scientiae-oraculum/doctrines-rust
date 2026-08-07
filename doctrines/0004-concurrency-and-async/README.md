@@ -78,13 +78,17 @@ Read these documents before applying the rules:
 
 ## Related material
 
-- Patterns: capability types, consuming transitions, hybrid state machines, and
-  explicit uncertainty.
-- Boundaries: messaging, HTTP/RPC, database decoding, filesystems, and FFI.
-- Reviews: pre-implementation, distributed-effects, and final correctness
-  audit.
-- Case studies: message delivery, payment lifecycle, database transaction, and
-  authenticated session.
+- Patterns: [capability types](../../patterns/capability-types.md),
+  [consuming transitions](../../patterns/consuming-transitions.md),
+  [hybrid state machines](../../patterns/hybrid-state-machines.md), and
+  [explicit uncertainty](../../patterns/explicit-uncertainty.md).
+- Boundaries: messaging, [HTTP/RPC](../../boundaries/http-and-rpc.md),
+  [database decoding](../../boundaries/database-decoding.md), filesystems, and FFI.
+- Reviews: [pre-implementation](../../reviews/pre-implementation.md),
+  [distributed-effects](../../reviews/distributed-effects-review.md), and
+  [final correctness](../../reviews/final-correctness-audit.md) audit.
+- Case studies: [message delivery](../../case-studies/message-delivery/), payment lifecycle,
+  database transaction, and authenticated session.
 
 ## Reading order
 

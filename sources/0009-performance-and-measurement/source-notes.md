@@ -80,3 +80,8 @@ feature, or benchmark-host changes. Reassess workloads when production input
 size, concurrency, cache state, storage, or network distribution changes.
 Automated timing thresholds require current variance history; a threshold that
 only succeeds after favorable reruns is not valid evidence.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0009-performance-and-measurement/`](../../doctrines/0009-performance-and-measurement/README.md).

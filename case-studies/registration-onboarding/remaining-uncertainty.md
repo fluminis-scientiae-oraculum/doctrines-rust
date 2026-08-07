@@ -75,3 +75,8 @@ pinned toolchain and the minimum supported version.
 Nothing here executes a competing writer, a constraint violation, a lost connection, a policy
 change mid-attempt, or a duplicate notification. Those obligations are stated in the doctrine and
 checked by review gates, and their executable evidence belongs to the consuming system.
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · [improved design](improved.md) · **remaining uncertainty**
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

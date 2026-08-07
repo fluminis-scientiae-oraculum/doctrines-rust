@@ -1,0 +1,133 @@
+name: Release distributions
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish distributions for
+        required: true
+        type: string
+
+# Read by default. Only the publishing job is granted write, and only to
+# contents, so the escalation is visible at the job that needs it rather than
+# inherited by every step in the file.
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish generated distributions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out the tagged revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable, 2026-07-16
+
+      # The tag reaches the shell through the environment, never through template
+      # interpolation. A `workflow_dispatch` input is free text, and interpolating
+      # it into a `run:` block would let its value close the quoting and execute —
+      # in the one job that holds a write token.
+      - name: Resolve the tag and the version it claims
+        id: version
+        env:
+          REQUESTED_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          tag="${REQUESTED_TAG}"
+          # Alphabet first, shape second. A `case` glob's `*` matches any string,
+          # including quotes and semicolons, so a shape pattern alone accepts a
+          # payload it appears to reject. Restricting the alphabet is what makes
+          # the shape check mean anything.
+          case "${tag}" in
+            *[!v0-9.]*) echo "refusing tag: characters outside v0-9." >&2; exit 1 ;;
+          esac
+          case "${tag}" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "refusing tag ${tag}: expected vMAJOR.MINOR.PATCH" >&2; exit 1 ;;
+          esac
+          declared="$(sed -n 's/^repository_version: "\(.*\)"$/\1/p' manifest/doctrines.yaml)"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "declared=${declared}" >> "$GITHUB_OUTPUT"
+          echo "Tag ${tag}; manifest declares ${declared}"
+
+      # A release names a version. Publishing bundles whose manifest declares a
+      # different one would ship a mislabeled artifact, so the tag has to agree
+      # with the repository before anything is uploaded.
+      - name: Reject a tag that disagrees with the manifest
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          DECLARED: ${{ steps.version.outputs.declared }}
+        run: |
+          set -euo pipefail
+          if [ "v${DECLARED}" != "${TAG}" ]; then
+            echo "tag ${TAG} does not match repository_version ${DECLARED}" >&2
+            exit 1
+          fi
+
+      # The committed bundles are the artifact. Confirming they still match
+      # canonical source at this tag is what keeps the download honest: a stale
+      # commit would otherwise be published as though it were current.
+      - name: Reject distributions that have drifted from canonical source
+        run: cargo run --locked -p bundle-agent-context -- check
+
+      # Asset names carry no version. The release tag already states it, and a
+      # stable name is what makes the `releases/latest/download/<asset>` URL
+      # resolve: that endpoint matches an exact filename, so a versioned name
+      # would leave every documented download command pointing at a 404 one
+      # release later.
+      - name: Package the distributions
+        id: package
+        run: |
+          set -euo pipefail
+          name="doctrines-rust-dist"
+          tar --create --gzip --file "${name}.tar.gz" dist
+          zip --recurse-paths --quiet "${name}.zip" dist
+          sha256sum "${name}.tar.gz" "${name}.zip" > "${name}.sha256"
+          echo "name=${name}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          NAME: ${{ steps.package.outputs.name }}
+        run: |
+          set -euo pipefail
+          notes="$(mktemp)"
+          {
+            echo "Generated doctrine distributions for ${TAG}."
+            echo
+            echo "\`dist/README.md\` explains which bundle to load into an agent, how to"
+            echo "attach it, and what to tell the agent alongside it. It also carries a"
+            echo "generated size table, so a bundle can be chosen against a context window."
+            echo
+            echo "These bundles are hydration artifacts, not a second normative authority."
+            echo "Where a bundle and the repository disagree, the repository wins; cite rules"
+            echo "by their stable RUST-DOC-####-R### identifier."
+            echo
+            echo "Checksums are in \`${NAME}.sha256\`."
+          } > "${notes}"
+          gh release create "${TAG}" \
+            --title "${TAG}" \
+            --notes-file "${notes}" \
+            --verify-tag \
+            "${NAME}.tar.gz" \
+            "${NAME}.zip" \
+            "${NAME}.sha256" \
+            dist/full-doctrine.md \
+            dist/compact-doctrine.md

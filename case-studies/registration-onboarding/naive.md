@@ -102,3 +102,8 @@ the developer's head and in the flags, and the compiler has no access to either.
 The improved design gives each established fact its own type, makes each transition consume the
 previous one, and puts the legal successor in the contract so that the ordering survives a
 refactor by someone who never read the design note.
+
+> [!TIP]
+> [problem](problem.md) · **naive design** · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

@@ -19,12 +19,13 @@ example or tool README. Code changes can alter doctrine evidence even when prose
 
 Canonical sources live under `foundations/`, `doctrines/`, `patterns/`, `boundaries/`,
 `reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
-Files under `dist/`, and the accepted-RFC index `rfcs/accepted/README.md`, are generated
-projections.
+Files under `dist/`, the accepted-RFC index `rfcs/accepted/README.md`, and the doctrine coverage
+map `doctrines/map.md` are generated projections.
 
-An agent MUST NOT edit a generated file manually. `dist/` is generated in full, and
+An agent MUST NOT edit a generated file manually. `dist/` is generated in full;
 `rfcs/accepted/README.md` is generated from `rfcs/accepted/overview.md` and each RFC's front
-matter; both carry a banner naming their source. After any canonical change, run:
+matter; `doctrines/map.md` is generated from `doctrines/map-overview.md` and both manifests. Each
+carries a banner naming its source. After any canonical change, run:
 
 ```bash
 cargo run -p bundle-agent-context -- generate

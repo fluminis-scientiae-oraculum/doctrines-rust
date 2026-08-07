@@ -68,12 +68,15 @@ difference between benchmark and correctness evidence.
 
 ## Related material
 
-- Patterns: validated collections, opaque newtypes, typestate, and hybrid state
-  machines all have runtime and compile-time costs.
-- Boundaries: serialization, database, HTTP/RPC, messaging, and filesystem.
-- Reviews: pre-implementation, typestate, distributed effects, and final audit.
-- Case studies: performance choices remain subordinate to each guarantee
-  ledger.
+- Patterns: [validated collections](../../patterns/validated-collections.md),
+  [opaque newtypes](../../patterns/opaque-newtypes.md), typestate, and
+  [hybrid state machines](../../patterns/hybrid-state-machines.md) all have runtime and compile-time
+  costs.
+- Boundaries: serialization, database, [HTTP/RPC](../../boundaries/http-and-rpc.md), messaging, and
+  filesystem.
+- Reviews: [pre-implementation](../../reviews/pre-implementation.md), typestate, distributed
+  effects, and final audit.
+- Case studies: performance choices remain subordinate to each guarantee ledger.
 
 ## Reading order
 

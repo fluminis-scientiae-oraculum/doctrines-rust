@@ -102,7 +102,7 @@ packs:
     output_path: dist/agents/reviewer.md
   - id: auditor
     purpose: Adversarially locate invariant bypasses, dishonest certainty, and ungoverned authority.
-    maximum_verbosity: exhaustive
+    maximum_verbosity: detailed
     ordering: 50
     canonical_sources:
       - agents/shared.md

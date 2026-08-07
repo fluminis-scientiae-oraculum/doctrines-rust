@@ -8,8 +8,8 @@
 - [PostgreSQL documentation: transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html)
   describes phenomena and guarantees for its isolation levels. Other databases
   require their own primary documentation.
-- [Berenson et al., “A Critique of ANSI SQL Isolation
-  Levels”](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf)
+- [Berenson et al., "A Critique of ANSI SQL Isolation
+  Levels"](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf)
   defines snapshot isolation and write skew and distinguishes them from the
   original ANSI phenomena.
 - [PostgreSQL documentation: explicit locking](https://www.postgresql.org/docs/current/explicit-locking.html)

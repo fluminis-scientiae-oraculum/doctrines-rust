@@ -124,3 +124,8 @@ Language and tooling mechanics were checked against current documentation for th
 toolchain 1.97.1 and the minimum supported version 1.85.0 on 2026-08-04. The decision-record
 registry schema targets JSON Schema Draft 2020-12, consistent with the doctrine and agent-pack
 manifests already in this repository.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0011-executable-narrative/`](../../doctrines/0011-executable-narrative/README.md).

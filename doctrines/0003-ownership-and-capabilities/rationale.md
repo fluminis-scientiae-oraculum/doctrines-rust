@@ -122,7 +122,7 @@ shutdown unless that surprising contract is unavoidable and prominent.
 Transferring a handle through a channel moves custody only when send succeeds. A failed send
 returns the value, leaving the sender responsible. Once received, channel closure and task
 panic determine recovery. Tests should cover send failure, receiver cancellation, and
-supervisor shutdown—not only the successful handoff.
+supervisor shutdown — not only the successful handoff.
 
 ## Choosing less machinery
 

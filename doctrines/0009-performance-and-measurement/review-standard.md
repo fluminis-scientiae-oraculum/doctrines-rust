@@ -5,7 +5,7 @@ reference**.
 
 | Gate | Question                                      | Pass evidence             | Failure example                         | Severity | Remediation            |
 | ---- | --------------------------------------------- | ------------------------- | --------------------------------------- | -------- | ---------------------- |
-| M01  | Is objective quantified?                      | metric and target         | “make faster”                           | critical | define outcome         |
+| M01  | Is objective quantified?                      | metric and target         | "make faster"                           | critical | define outcome         |
 | M02  | Is workload representative?                   | input distribution        | tiny synthetic only                     | critical | sample/model reality   |
 | M03  | Is concurrency specified?                     | range and nominal load    | single-thread claim generalized         | high     | sweep                  |
 | M04  | Are correctness constraints fixed?            | invariant list            | errors dropped for speed                | critical | restore semantics      |
@@ -41,7 +41,7 @@ reference**.
 | M34  | Are allocations counted?                      | count/bytes               | clone syntax used as proof              | high     | measure                |
 | M35  | Is peak and retained memory considered?       | heap/RSS profile          | fewer allocs retain huge buffer         | high     | measure lifetimes      |
 | M36  | Is allocator identified?                      | environment               | cross-allocator comparison              | medium   | record                 |
-| M37  | Is copy claim scoped?                         | data-flow                 | “zero-copy” broad claim                 | critical | enumerate copies       |
+| M37  | Is copy claim scoped?                         | data-flow                 | "zero-copy" broad claim                 | critical | enumerate copies       |
 | M38  | Are lifetime/retention costs assessed?        | ownership analysis        | slice pins large buffer                 | high     | compare total          |
 | M39  | Are serialization costs profiled?             | component trace           | iterator optimized instead              | high     | target boundary        |
 | M40  | Are syscalls/round-trips counted?             | trace                     | source CPU blamed                       | high     | measure system path    |
@@ -63,7 +63,7 @@ reference**.
 | M56  | Is threshold above noise and meaningful?      | rationale                 | arbitrary one percent                   | high     | calibrate              |
 | M57  | Does rerun policy avoid cherry-picking?       | aggregate policy          | keep fastest rerun                      | critical | predefine method       |
 | M58  | Are commands reproducible?                    | checked-in harness/docs   | manual GUI steps only                   | high     | script                 |
-| M59  | Are results retained with provenance?         | record/raw format         | PR says “much faster”                   | high     | attach evidence        |
+| M59  | Are results retained with provenance?         | record/raw format         | PR says "much faster"                   | high     | attach evidence        |
 | M60  | Is claim no broader than evidence?            | guarantee ledger          | microbench generalized                  | critical | narrow                 |
 
 Critical failures block the performance claim and any complexity justified by

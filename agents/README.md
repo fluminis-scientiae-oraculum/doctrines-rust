@@ -51,7 +51,7 @@ because code compiles.
 Never edit `/dist` directly. Change canonical sources or manifest selection,
 run:
 
-```text
+```bash
 cargo run -p bundle-agent-context -- generate
 cargo run -p bundle-agent-context -- check
 ```

@@ -8,6 +8,12 @@ Canonical sources live under /foundations, /doctrines, /patterns,
 
 Produce invariant-first designs, boundary maps, and evidence plans before implementation.
 
+## Assembly
+
+Ceiling `focused`, declared for the `planner` pack in `manifest/agents.yaml`. A section annotated above that ceiling is withheld here. Nothing was withheld at this ceiling.
+
+Obligations are never withheld. A doctrine's normative file, every foundation, every agent overlay, and every review checklist carry no annotation, and generation rejects one. Canonical sources carry every section, and `dist/full-doctrine.md` carries the corpus with no ceiling applied.
+
 ---
 
 ## Source: `agents/shared.md`
@@ -122,12 +128,16 @@ Never claim:
 
 ## Canonical and generated sources
 
-Never edit a generated file manually: everything under `dist/`, and the
-accepted-RFC index `rfcs/accepted/README.md`. Each carries a banner naming its
-sources. Change canonical material, update manifests where
-selection changes, regenerate, and check deterministic output. Generated text
-must retain its banner and source provenance. A bundle mismatch is a failed
-repository state.
+Never edit a generated file manually: everything under `dist/`, the accepted-RFC
+index `rfcs/accepted/README.md`, and the doctrine coverage map
+`doctrines/map.md`. Each carries a banner naming its sources. Change canonical
+material, update manifests where selection changes, regenerate, and check
+deterministic output. Generated text must retain its banner and source
+provenance. A bundle mismatch is a failed repository state.
+
+A pack carries the doctrine its role routinely applies. A doctrine absent from
+this pack is not thereby out of force: read the applicable canonical doctrine
+from `doctrines/` when the work turns on it.
 
 ## Escalation
 
@@ -330,10 +340,10 @@ is considered valid. Its value comes from precision: the statement identifies wh
 histories are legal, who owns the truth, where it may be established, and what evidence can
 support it.
 
-“The invoice is correct” is not a useful invariant. “A paid invoice carries a receipt issued
-for that invoice” is a state invariant. “Capture can occur only after authorization” is a
-transition invariant. “Only a capability created by the authorization service permits
-capture” adds an authority invariant. Each can receive a different enforcement mechanism and
+"The invoice is correct" is not a useful invariant. "A paid invoice carries a receipt issued
+for that invoice" is a state invariant. "Capture can occur only after authorization" is a
+transition invariant. "Only a capability created by the authorization service permits
+capture" adds an authority invariant. Each can receive a different enforcement mechanism and
 different evidence.
 
 ## Invariant categories
@@ -414,8 +424,8 @@ the local design.
 
 ### Distributed invariants
 
-A distributed invariant spans independent failure domains, such as “at most one capture is
-accepted for an idempotency key” or “every committed outbox record is eventually attempted.”
+A distributed invariant spans independent failure domains, such as "at most one capture is
+accepted for an idempotency key" or "every committed outbox record is eventually attempted."
 The precise boundary matters. Network partitions, duplicate delivery, partial failure, and
 concurrent actors often prevent a simple global proof. Protocol, durable identity, atomic
 local transactions, deduplication, reconciliation, and audit trails provide bounded
@@ -430,10 +440,10 @@ configuration or authority. An **assumption** is relied upon but enforced elsewh
 enforced. An **observation** is evidence gathered at a time and may become stale. A **desired
 outcome** is a goal, not a guarantee.
 
-Consider `Connection<Open>`. “The local connect transition returned success” is historical
-evidence encoded by the state. “The remote peer is reachable now” is a mutable observation,
-not a lasting invariant of the value. “`send` is called only after local connection” is a
-sequencing invariant. “The next send succeeds” is a desired outcome and must remain fallible.
+Consider `Connection<Open>`. "The local connect transition returned success" is historical
+evidence encoded by the state. "The remote peer is reachable now" is a mutable observation,
+not a lasting invariant of the value. "`send` is called only after local connection" is a
+sequencing invariant. "The next send succeeds" is a desired outcome and must remain fallible.
 
 Confusing these categories creates false guarantees. A successful authentication observation
 does not establish perpetual authorization. A database schema constraint does not prove old
@@ -574,7 +584,7 @@ Validation is relocated and centralized; it is not eliminated. After a trusted t
 constructed, ordinary domain operations may omit repeated local checks only because every
 construction and mutation path preserves the documented invariant.
 
-## What “untrusted” means
+## What "untrusted" means
 
 Untrusted does not mean malicious. It means the representation is not covered by the current
 proof. A row may have been written before a migration, by another service, through manual
@@ -681,8 +691,8 @@ Every boundary documents:
 11. evidence tests;
 12. residual uncertainty and revalidation.
 
-The contract names an owner. “Serde validates it” is not enough when the derive writes private
-fields directly. “The database enforces it” is not enough when replicas, old rows, or migration
+The contract names an owner. "Serde validates it" is not enough when the derive writes private
+fields directly. "The database enforces it" is not enough when replicas, old rows, or migration
 scripts use a different schema.
 
 ## Parsing, validation, and normalization
@@ -915,7 +925,7 @@ runtime checks. An explicit function with a structured error can be more honest 
 whose proof becomes stale.
 
 The important questions are whether validation is centralized, every boundary uses it,
-failure is represented, and evidence covers violation. “Compile time” is not automatically
+failure is represented, and evidence covers violation. "Compile time" is not automatically
 stronger when the fact exists only at runtime.
 
 ## Measuring complexity

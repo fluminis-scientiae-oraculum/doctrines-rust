@@ -4,6 +4,116 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.6.0] — 2026-08-06
+
+A declared field that enforced nothing became real, and the corpus became navigable.
+`manifest/agents.yaml` has always declared a `maximum_verbosity` per agent pack; the
+bundler had never read it, and the measured pack sizes ran contrary to the order it
+declared, with the pack labelled most focused thirty-five percent larger than one
+labelled less focused. RFC-0005 gives the field an effect and reserves its widest
+tier, which is what lets the corpus gain reading aids without any generated pack
+growing. No normative rule changes, so this is a minor release for distribution
+restructuring rather than for added obligations.
+
+### Added in 0.6.0
+
+- A verbosity annotation for a Markdown section, parsed once in `doctrine-manifest`
+  and used by both tools. A generated output receives a section only when its ceiling
+  is at least the annotation's tier, and every annotation is stripped from generated
+  output. Comments inside fenced code are ignored, so a document can show the syntax
+  without the example being read as an instruction.
+- An `## Assembly` note in every filtered distribution, naming the ceiling applied,
+  where it is declared, and how much it withheld. It is emitted even when nothing was
+  withheld, so a reader can distinguish that from a forgotten disclosure. Each
+  withheld run is replaced in place by a receipt naming the sections and their tiers.
+- `doctrines/map.md`, a generated coverage map showing which doctrine each role pack
+  hydrates. It is the transpose of six `doctrine_selections` lists, which the corpus
+  carried but no document presented.
+- Breadcrumb navigation on the fifty case-study and source-note leaves, which
+  previously had no path to their own index, and live links throughout the root
+  README reading paths and the package `Related material` sections.
+- Instructions for loading the corpus into an agent, in `agents/distribution.md` and
+  therefore in the generated `dist/README.md`, so the guidance travels with the
+  bundles rather than living only in the repository. It covers which bundle to
+  pick, how to attach it to a project instruction file, a system prompt or a
+  retrieval index, and the three things an agent has to be told alongside it: the
+  bundle is hydration and not authority, a role pack is a subset, and the corpus
+  is versioned.
+- A release workflow. A `v*` tag publishes the committed `dist/` bundles as a
+  tarball, a zip, a checksum file, and the two whole-corpus bundles individually.
+  It refuses to publish unless the tag matches `repository_version` and
+  `bundle-agent-context -- check` confirms the bundles still match canonical
+  source, so a stale commit cannot ship as though it were current. Asset names
+  carry no version, because `releases/latest/download/<asset>` matches an exact
+  filename and a versioned name would leave every documented download command
+  pointing at a missing file one release later. This is the only workflow that is
+  not read-only: `contents: write` is granted on the publishing job rather than
+  the file, and `CONTRIBUTING.md` now says so instead of claiming CI is read-only
+  throughout.
+- A generated size table in `dist/README.md`, so choosing a bundle against a
+  context window uses a current number rather than a hand-copied one. The index
+  is built last and excludes itself from its own table, which is what makes the
+  table a fixed point instead of a value that changes each time it is written.
+- Orientation pages for twenty-one directories that held content and no index:
+  each case study, each source package, `templates/`, `manifest/`, and
+  `manifest/schema/`. They carry only what is not stated elsewhere — the
+  subject, an ordered path through the directory, and a pointer to the single
+  description of what each file holds — because the four-file arc and the
+  provenance file roles are each already described once, and repeating them per
+  directory is the duplication `RUST-DOC-0011-R017` asks a review to remove.
+  None reaches a generated pack: no manifest references these directories, so
+  they are reader-facing by location rather than by annotation.
+- A closed callout vocabulary. An alert marks a distinction the corpus already draws
+  rather than restating a claim, and `doctrine-lint` rejects any other alert name.
+
+### Changed in 0.6.0
+
+- The `auditor` pack moves from `exhaustive` to `detailed`. The widest tier is now
+  reserved from every pack: a pack at that ceiling withholds nothing by definition, so
+  it would absorb the whole of any canonical growth and get strictly larger.
+- Double quotes are normalized to the corpus majority and eighteen em dashes gain the
+  spacing the other two hundred and seventy-eight already use. Shell blocks under
+  `agents/` are fenced as `bash` rather than `text`.
+
+### Fixed in 0.6.0
+
+- The release workflow interpolated its tag input directly into a shell block,
+  in the one job that holds a write token. A `workflow_dispatch` input is free
+  text, so its value could have closed the quoting and executed. The tag now
+  reaches the shell through the environment, and a check rejects any character
+  outside `v0-9.` before the shape is examined. Found by reviewing the change
+  after writing it: the step immediately below already passed its values through
+  `env:`, so the defect was an inconsistent application of the same fix. The
+  first tightening was itself decorative and a control caught it — a `case`
+  glob's `*` matches quotes and semicolons, so the shape pattern accepted a
+  payload it appeared to reject until the alphabet check was added ahead of it.
+- `EVIDENCE.md` and RFC-0005 both claimed eighteen tests govern the verbosity
+  annotation. Twelve do; the other six predate it and check decoded vocabularies
+  against the artifacts that own them. The tooling total was also one release
+  behind at sixty-six against sixty-seven. Neither could be caught mechanically:
+  `check_stated_counts` matches only a digit before three literal phrases, and
+  both numbers are spelled out beside a phrase it does not track. That hole is
+  recorded rather than closed.
+- Agent overlays are obligation documents and are now untierable. An earlier
+  classifier covered only doctrine normative files, the foundations, and the
+  review checklists, so an annotation under `## Boundary obligations` in
+  `agents/shared.md` was accepted by both tools and replaced those rules with a
+  withholding receipt in every role pack. Because the widest tier is reserved
+  from every pack, the obligation then reached none of them. Found in review.
+  The consequence is stated rather than absorbed: every source any role pack
+  lists now falls into an untierable class, so the ceiling removes nothing from
+  a role pack today, and a test asserts that against the real manifests.
+- The coverage map listed only active doctrines while `build_role_pack` hydrates
+  any selected doctrine regardless of status, so a deprecated but selected
+  doctrine would vanish from the map while the pack carrying it was unchanged.
+  The map now covers every doctrine that is active or selected, and states each
+  one's status.
+
+- The per-doctrine rule counts in `EVIDENCE.md` were eleven machine-derivable integers
+  maintained by hand with nothing checking them. `check_stated_counts` could not see
+  them, because it only matches an integer immediately before one of three literal
+  phrases and these sit alone in a table cell. They are recomputed and compared now.
+
 ## [0.5.0] — 2026-08-06
 
 The corpus's own Rust code was audited against the corpus. The defects below are

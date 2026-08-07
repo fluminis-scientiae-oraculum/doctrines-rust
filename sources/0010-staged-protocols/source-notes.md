@@ -150,3 +150,8 @@ in this package corresponds to version 1.0.118. Compiler diagnostic rendering di
 those two toolchains; the compile-fail fixtures in this package were shaped so that the same
 committed diagnostic matches both, and that shaping is a property of the fixtures rather than of
 the doctrine.
+
+> [!TIP]
+> [attribution](attribution.md) · **source notes**
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0010-staged-protocols/`](../../doctrines/0010-staged-protocols/README.md).

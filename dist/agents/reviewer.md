@@ -8,6 +8,12 @@ Canonical sources live under /foundations, /doctrines, /patterns,
 
 Test construction, transition, boundary, failure, and complexity claims against evidence.
 
+## Assembly
+
+Ceiling `detailed`, declared for the `reviewer` pack in `manifest/agents.yaml`. A section annotated above that ceiling is withheld here. Nothing was withheld at this ceiling.
+
+Obligations are never withheld. A doctrine's normative file, every foundation, every agent overlay, and every review checklist carry no annotation, and generation rejects one. Canonical sources carry every section, and `dist/full-doctrine.md` carries the corpus with no ceiling applied.
+
 ---
 
 ## Source: `agents/shared.md`
@@ -122,12 +128,16 @@ Never claim:
 
 ## Canonical and generated sources
 
-Never edit a generated file manually: everything under `dist/`, and the
-accepted-RFC index `rfcs/accepted/README.md`. Each carries a banner naming its
-sources. Change canonical material, update manifests where
-selection changes, regenerate, and check deterministic output. Generated text
-must retain its banner and source provenance. A bundle mismatch is a failed
-repository state.
+Never edit a generated file manually: everything under `dist/`, the accepted-RFC
+index `rfcs/accepted/README.md`, and the doctrine coverage map
+`doctrines/map.md`. Each carries a banner naming its sources. Change canonical
+material, update manifests where selection changes, regenerate, and check
+deterministic output. Generated text must retain its banner and source
+provenance. A bundle mismatch is a failed repository state.
+
+A pack carries the doctrine its role routinely applies. A doctrine absent from
+this pack is not thereby out of force: read the applicable canonical doctrine
+from `doctrines/` when the work turns on it.
 
 ## Escalation
 
@@ -464,8 +474,8 @@ compiler diagnostics without semantic inspection weakens evidence.
 
 ## Language discipline
 
-Prefer “establishes,” “prevents through safe public construction,” “records that,” and “was
-observed” over absolute terms such as “ensures forever.” Pair a guarantee with its
+Prefer "establishes," "prevents through safe public construction," "records that," and "was
+observed" over absolute terms such as "ensures forever." Pair a guarantee with its
 non-guarantee in the same section. If a type name repeatedly invites a stronger inference,
 rename it rather than relying on distant caveats.
 
@@ -646,7 +656,7 @@ runtime checks. An explicit function with a structured error can be more honest 
 whose proof becomes stale.
 
 The important questions are whether validation is centralized, every boundary uses it,
-failure is represented, and evidence covers violation. “Compile time” is not automatically
+failure is represented, and evidence covers violation. "Compile time" is not automatically
 stronger when the fact exists only at runtime.
 
 ## Measuring complexity

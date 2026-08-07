@@ -65,9 +65,12 @@ requires the Rust Reference and Rustonomicon material cited in
 
 ## Related material
 
-- Patterns: opaque newtypes, capability types, and consuming transitions.
+- Patterns: [opaque newtypes](../../patterns/opaque-newtypes.md),
+  [capability types](../../patterns/capability-types.md), and
+  [consuming transitions](../../patterns/consuming-transitions.md).
 - Boundaries: FFI and filesystem.
-- Reviews: pre-implementation, boundary, domain model, and final audit.
+- Reviews: [pre-implementation](../../reviews/pre-implementation.md), boundary, domain model, and
+  final audit.
 - Doctrines: ownership/capabilities, concurrency/async, testing/evidence, and
   performance/measurement.
 

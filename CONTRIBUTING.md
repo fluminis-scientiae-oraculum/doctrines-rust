@@ -102,10 +102,11 @@ resolves to a patched version without it.
 
 ## Generated content
 
-Two sets of files are generated: everything under `dist/`, and the accepted-RFC index
+Three sets of files are generated: everything under `dist/`; the accepted-RFC index
 `rfcs/accepted/README.md`, built from `rfcs/accepted/overview.md` and each accepted RFC's front
-matter. Both are excluded from Prettier and markdownlint, and both carry a banner naming their
-sources. Edit canonical sources or bundler behavior, then run:
+matter; and the doctrine coverage map `doctrines/map.md`, built from `doctrines/map-overview.md`
+and both manifests. All three are excluded from Prettier and markdownlint, and each carries a
+banner naming its sources. Edit canonical sources or bundler behavior, then run:
 
 ```bash
 cargo run -p bundle-agent-context -- generate
@@ -141,9 +142,16 @@ idempotency, duplicate, and reconciliation review.
 ## Validation
 
 Run the complete command set in the root README and record exact successful commands in the
-pull request. The distinct Markdown CI gate checks both formatting drift and lint. CI uses
-read-only permissions and also rejects high-severity npm advisories. It confirms local checks.
-Do not push work whose first formatter, compiler, test, linter, or dependency audit will be CI.
+pull request. The distinct Markdown CI gate checks both formatting drift and lint. Every
+validation workflow uses read-only permissions and also rejects high-severity npm advisories.
+It confirms local checks. Do not push work whose first formatter, compiler, test, linter, or
+dependency audit will be CI.
+
+One workflow is not read-only. `release.yml` runs on a `v*` tag and needs `contents: write`
+to publish. The grant is on that job rather than the file, and the job publishes nothing until
+the tag matches `repository_version` and `bundle-agent-context -- check` confirms the committed
+bundles still match canonical source. It builds no artifact of its own: it packages the `dist/`
+files already committed at that tag.
 
 ## Reporting a guarantee overclaim
 

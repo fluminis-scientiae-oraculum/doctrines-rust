@@ -69,3 +69,8 @@ binds one intent to one identity, and represents network ambiguity honestly.
 Backend authorization, browser integrity, storage durability, concurrent
 reality, hosting configuration, and permanently missing external evidence remain
 runtime concerns.
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · [improved design](improved.md) · **remaining uncertainty**
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

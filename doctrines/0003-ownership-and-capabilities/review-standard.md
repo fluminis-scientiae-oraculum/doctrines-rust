@@ -15,7 +15,7 @@ Record pass, fail, not applicable, or waiver.
 | RAII                | Is drop limited to local/best-effort cleanup?         | explicit fallible close     | drop claims rollback            | critical | expose completion      |
 | Secret debug        | Are formatting paths redacted?                        | trait/redaction tests       | derived debug token             | critical | custom debug           |
 | Secret copies       | Are clone and serialization minimized?                | call-site inventory         | secret freely cloneable         | critical | scope exposure         |
-| Zeroization         | Is claim limited to controlled buffers?               | guarantee ledger            | “all traces removed”            | major    | narrow claim           |
+| Zeroization         | Is claim limited to controlled buffers?               | guarantee ledger            | "all traces removed"            | major    | narrow claim           |
 | Shared state        | Was ownership designed before lock choice?            | alternatives/lock invariant | global `Arc<Mutex<_>>`          | major    | choose owner           |
 | Lock scope          | Are external awaits/effects outside lock?             | code trace/test             | network call under lock         | critical | split critical section |
 | Interior mutability | Is aliasing need explicit?                            | reentrancy/sync analysis    | `RefCell` to appease compiler   | major    | redesign ownership     |

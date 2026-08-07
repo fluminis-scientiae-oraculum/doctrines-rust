@@ -69,3 +69,8 @@ transport, or the account schema. It does not claim a specific database product'
 executable fragment under [`../../examples/staged-protocol`](../../examples/staged-protocol/src/lib.rs)
 stops at a persistable value and ships no store, so the durable half of this study is argued and
 reviewed rather than executed.
+
+> [!TIP]
+> **problem** · [naive design](naive.md) · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

@@ -34,7 +34,7 @@ poor primary library contract when callers need action.
 Retry is semantic. A connection refusal before sending a request may be retriable. A timeout
 after sending a non-idempotent capture may require reconciliation. A conflict may be retriable
 only after reloading state. A validation error is generally repaired, not retried unchanged.
-A provider rejection may carry its own retry window. Generic “transient” labels are evidence
+A provider rejection may carry its own retry window. Generic "transient" labels are evidence
 only when defined by the operation's protocol.
 
 Panics express a different contract: safe continuation through the current call stack is not
@@ -42,9 +42,9 @@ expected. They fit impossible internal states caused by programmer error, not ma
 missing files, provider timeouts, or database conflicts. Even an internal invariant panic
 needs consideration of unwind versus abort, locks, FFI, and process supervision.
 
-`expect` can document a proof close to code—for example, a regex literal compiled once when
-the literal is fixed and known valid—but it should not replace a fallible path for
-configuration or user input. “Cannot fail” requires an invariant, not optimism.
+`expect` can document a proof close to code — for example, a regex literal compiled once when
+the literal is fixed and known valid — but it should not replace a fallible path for
+configuration or user input. "Cannot fail" requires an invariant, not optimism.
 
 Errors also have recipients. A user needs safe corrective information. An operator needs
 correlation and category. Telemetry needs bounded fields. A security audit may need protected
@@ -76,7 +76,7 @@ category remains validation. The mapping should be exhaustive and tested so a ne
 variant cannot silently become a generic server error.
 
 Authentication and authorization deserve particular care. Public policy may intentionally
-coarsen “resource absent” and “resource forbidden” to avoid disclosure. Internally, the audit
+coarsen "resource absent" and "resource forbidden" to avoid disclosure. Internally, the audit
 record still needs to distinguish missing resource, invalid credential, denied capability,
 and policy failure. Coarsening for one recipient is not permission to discard evidence
 globally.
@@ -115,5 +115,5 @@ error after later success loses latency and reliability evidence.
 The design should also define equality and cloning deliberately. Many errors contain sources
 that are not comparable or cloneable. Forcing `Clone` merely to satisfy a queue may erase the
 source into text. A durable job record should store a stable failure category, safe fields,
-attempt metadata, and correlation—not pretend to serialize an arbitrary in-memory error
+attempt metadata, and correlation — not pretend to serialize an arbitrary in-memory error
 object.

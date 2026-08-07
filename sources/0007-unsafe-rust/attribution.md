@@ -11,3 +11,8 @@ be added for concrete FFI implementations.
 
 This package is not a formal proof system or exhaustive treatment of pointer
 provenance, memory models, compiler optimization, or foreign languages.
+
+> [!TIP]
+> **attribution** · [source notes](source-notes.md)
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0007-unsafe-rust/`](../../doctrines/0007-unsafe-rust/README.md).

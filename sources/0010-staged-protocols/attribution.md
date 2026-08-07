@@ -43,3 +43,8 @@ database concurrency research. The absence of a source is not a judgment about i
 No quotation long enough to require separate license analysis is reproduced. No external media,
 transcript, or specification text is mirrored. Repository licensing applies to the original
 doctrine prose and examples here, and makes no claim over the cited works.
+
+> [!TIP]
+> **attribution** · [source notes](source-notes.md)
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0010-staged-protocols/`](../../doctrines/0010-staged-protocols/README.md).

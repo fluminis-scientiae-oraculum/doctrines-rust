@@ -48,9 +48,17 @@ operationalize it.
 
 ## Prerequisites and related material
 
-Read invariant, evidence, trust-boundary, and guarantee-honesty foundations. Related doctrines
-are 0001, 0004, 0005, 0006, and 0008. Related guides include sum types, explicit uncertainty,
-HTTP/RPC, messaging, database decoding, and distributed-effects review.
+Read the [invariant](../../foundations/invariants.md), [evidence](../../foundations/evidence.md),
+[trust-boundary](../../foundations/trust-boundaries.md), and
+[guarantee-honesty](../../foundations/guarantee-honesty.md) foundations. Related doctrines are
+[0001](../0001-invalid-states/), [0004](../0004-concurrency-and-async/),
+[0005](../0005-persistence-boundaries/), [0006](../0006-distributed-uncertainty/), and
+[0008](../0008-testing-and-evidence/). Related guides include
+[sum types](../../patterns/sum-types.md),
+[explicit uncertainty](../../patterns/explicit-uncertainty.md),
+[HTTP/RPC](../../boundaries/http-and-rpc.md), [messaging](../../boundaries/messaging.md),
+[database decoding](../../boundaries/database-decoding.md), and
+[distributed-effects review](../../reviews/distributed-effects-review.md).
 
 ## Reading order and summary
 

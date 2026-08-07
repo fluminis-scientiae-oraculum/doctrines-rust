@@ -60,3 +60,8 @@ between steps or run two consumers.
 The design compiles and is memory-safe, but it cannot distinguish receipt from
 completion, cannot make a scoped one-time local effect, cannot replay safely,
 and cannot tell whether an external notification executed.
+
+> [!TIP]
+> [problem](problem.md) · **naive design** · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

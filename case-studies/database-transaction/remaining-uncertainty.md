@@ -71,3 +71,8 @@ It explicitly refuses to turn client I/O failure into remote rollback evidence.
 Isolation anomalies, failover visibility, process crash cleanup, message
 delivery, and prior external effects remain bounded runtime and operational
 problems.
+
+> [!TIP]
+> [problem](problem.md) · [naive design](naive.md) · [improved design](improved.md) · **remaining uncertainty**
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

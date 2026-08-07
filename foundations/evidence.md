@@ -40,7 +40,7 @@ they must not silently rename a lower level as a higher one.
 
 Raw input is bytes, text, loosely typed JSON, a database row, an environment variable, an FFI
 pointer, or another representation not yet interpreted by the domain. Size limits and
-resource controls may be required before parsing. Raw input is not “bad”; it is simply
+resource controls may be required before parsing. Raw input is not "bad"; it is simply
 untrusted for domain use.
 
 ### Parsed value

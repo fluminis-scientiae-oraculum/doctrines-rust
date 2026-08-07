@@ -31,7 +31,7 @@ Reports are especially useful for:
 - error text or diagnostics that expose secrets;
 - and security-sensitive guarantee overclaims that could cause unsafe downstream decisions.
 
-A claim that “authorization is encoded in a type” is security-sensitive if the capability can
+A claim that "authorization is encoded in a type" is security-sensitive if the capability can
 be constructed, cloned, serialized, or retained after revocation contrary to the claim. A
 claim that FFI is safe is security-sensitive if unwinding, ownership, layout, nullability, or
 thread rules are incomplete.

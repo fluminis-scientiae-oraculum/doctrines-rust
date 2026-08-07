@@ -167,7 +167,7 @@ runtime checks. An explicit function with a structured error can be more honest 
 whose proof becomes stale.
 
 The important questions are whether validation is centralized, every boundary uses it,
-failure is represented, and evidence covers violation. “Compile time” is not automatically
+failure is represented, and evidence covers violation. "Compile time" is not automatically
 stronger when the fact exists only at runtime.
 
 ## Measuring complexity

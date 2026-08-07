@@ -11,3 +11,8 @@ length.
 This package is not an exhaustive survey of async runtimes, formal memory
 models, lock-free algorithms, or structured-concurrency libraries. Maintainers
 must recheck runtime behavior and MSRV when executable dependencies change.
+
+> [!TIP]
+> **attribution** · [source notes](source-notes.md)
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0004-concurrency-and-async/`](../../doctrines/0004-concurrency-and-async/README.md).

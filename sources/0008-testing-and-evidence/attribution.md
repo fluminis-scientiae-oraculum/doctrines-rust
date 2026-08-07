@@ -10,3 +10,8 @@ its use mandatory when another evidence source fits the risk better.
 
 This package is not an exhaustive survey of formal verification, mutation
 testing, fuzzers, test frameworks, coverage tools, or production experimentation.
+
+> [!TIP]
+> **attribution** · [source notes](source-notes.md)
+> Index: [all source packages](../README.md).
+> Doctrine: [`doctrines/0008-testing-and-evidence/`](../../doctrines/0008-testing-and-evidence/README.md).

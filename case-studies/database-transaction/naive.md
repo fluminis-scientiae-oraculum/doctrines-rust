@@ -76,3 +76,8 @@ exercised.
 
 The design is memory-safe but does not preserve lifecycle, conflict, commit
 truth, or external publication intent.
+
+> [!TIP]
+> [problem](problem.md) · **naive design** · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

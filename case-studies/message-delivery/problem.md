@@ -60,3 +60,8 @@ The improved protocol should guarantee a scoped one-time local mutation per
 retained message identity, not universal exactly-once delivery. It should make
 external uncertainty visible, preserve causality for audit, apply backpressure,
 and define safe replay.
+
+> [!TIP]
+> **problem** · [naive design](naive.md) · [improved design](improved.md) · [remaining uncertainty](remaining-uncertainty.md)
+> Index: [all case studies](../README.md).
+> Executable mechanics live under [`../../examples/`](../../examples/).

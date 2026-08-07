@@ -9,12 +9,12 @@ Mark each gate **pass**, **fail**, **not applicable**, or with an approved
 | U02  | Is unsafe inventory complete?                   | tool/search inventory               | macro-generated unsafe missed           | critical | enumerate                 |
 | U03  | Is lexical scope minimal?                       | small block                         | whole function marked unsafe            | high     | narrow block              |
 | U04  | Is API visibility minimal?                      | private module/helper               | raw constructor public                  | critical | encapsulate               |
-| U05  | Does every block state invariant?               | `SAFETY:` argument                  | “pointer seems valid”                   | critical | write proof               |
+| U05  | Does every block state invariant?               | `SAFETY:` argument                  | "pointer seems valid"                   | critical | write proof               |
 | U06  | Does comment cover each operation?              | operation-to-premise mapping        | one generic comment                     | critical | split or expand           |
 | U07  | Are safe callers adversarially considered?      | call-sequence analysis              | intended use only                       | critical | test full safe surface    |
-| U08  | Are hidden caller obligations absent?           | signature enforces rules            | safe method says “must not call twice”  | critical | encode/check/mark unsafe  |
+| U08  | Are hidden caller obligations absent?           | signature enforces rules            | safe method says "must not call twice"  | critical | encode/check/mark unsafe  |
 | U09  | Does unsafe API have `# Safety` docs?           | complete section                    | caller obligations omitted              | critical | document                  |
-| U10  | Are obligations non-circular?                   | concrete predicates                 | “call only when safe”                   | critical | specify facts             |
+| U10  | Are obligations non-circular?                   | concrete predicates                 | "call only when safe"                   | critical | specify facts             |
 | U11  | Is pointer origin known?                        | allocation/foreign provenance       | integer address guessed                 | critical | trace origin              |
 | U12  | Is nullability checked?                         | check or non-null contract          | dereference nullable result             | critical | validate                  |
 | U13  | Is alignment established?                       | layout or runtime check             | byte offset cast blindly                | critical | align/copy                |
@@ -58,7 +58,7 @@ Mark each gate **pass**, **fail**, **not applicable**, or with an approved
 | U51  | Are unsafe dependencies inventoried?            | dependency audit                    | transitive FFI crate ignored            | high     | review                    |
 | U52  | Are advisories and maintenance current?         | audit evidence                      | abandoned critical crate                | high     | update/replace            |
 | U53  | Are target assumptions tested?                  | target matrix                       | only developer architecture             | high     | cross-test                |
-| U54  | Is performance justification measured?          | benchmark/profile                   | “faster” assertion                      | high     | measure                   |
+| U54  | Is performance justification measured?          | benchmark/profile                   | "faster" assertion                      | high     | measure                   |
 | U55  | Is re-audit trigger documented?                 | assumption list                     | compiler upgrade ignored                | high     | define trigger            |
 | U56  | Does guarantee ledger state non-guarantees?     | completed ledger                    | safe wrapper claims foreign correctness | critical | narrow claim              |
 
