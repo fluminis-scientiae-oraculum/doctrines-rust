@@ -264,9 +264,11 @@ deserves its own review.
 
 ## Evidence plan
 
-- Eighteen tests in `doctrine-manifest` cover the grammar, including each malformation that
+- Twelve tests in `doctrine-manifest` cover the grammar, including each malformation that
   survives Prettier unchanged, a tilde fence closed by inner backticks, non-monotone nesting,
-  idempotence, and the rejection of every tier in a file that states obligations;
+  idempotence, and the rejection of every tier in a file that states obligations. The crate
+  holds eighteen tests in total; the other six predate this proposal and check decoded
+  vocabularies against the artifacts that own them;
 - one test asserts that the annotation parser accepts exactly the tiers the schema declares, beside
   the existing test that asserts the variants against the schema itself;
 - `bundle-agent-context` tests that a missing link target still fails generation when it sits

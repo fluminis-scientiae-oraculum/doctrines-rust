@@ -77,6 +77,23 @@ restructuring rather than for added obligations.
 
 ### Fixed in 0.6.0
 
+- The release workflow interpolated its tag input directly into a shell block,
+  in the one job that holds a write token. A `workflow_dispatch` input is free
+  text, so its value could have closed the quoting and executed. The tag now
+  reaches the shell through the environment, and a check rejects any character
+  outside `v0-9.` before the shape is examined. Found by reviewing the change
+  after writing it: the step immediately below already passed its values through
+  `env:`, so the defect was an inconsistent application of the same fix. The
+  first tightening was itself decorative and a control caught it — a `case`
+  glob's `*` matches quotes and semicolons, so the shape pattern accepted a
+  payload it appeared to reject until the alphabet check was added ahead of it.
+- `EVIDENCE.md` and RFC-0005 both claimed eighteen tests govern the verbosity
+  annotation. Twelve do; the other six predate it and check decoded vocabularies
+  against the artifacts that own them. The tooling total was also one release
+  behind at sixty-six against sixty-seven. Neither could be caught mechanically:
+  `check_stated_counts` matches only a digit before three literal phrases, and
+  both numbers are spelled out beside a phrase it does not track. That hole is
+  recorded rather than closed.
 - Agent overlays are obligation documents and are now untierable. An earlier
   classifier covered only doctrine normative files, the foundations, and the
   review checklists, so an annotation under `## Boundary obligations` in

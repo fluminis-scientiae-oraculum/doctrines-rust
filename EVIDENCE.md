@@ -11,16 +11,20 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Sixty-six tooling tests exercise doctrine linting, decision-record
+- Sixty-seven tooling tests exercise doctrine linting, decision-record
   validation, doctrine-index agreement with the manifest, counted-claim,
   rule-citation and duplicated-validation-sequence drift detection, and
   deterministic bundle generation.
-- Eighteen of those govern the verbosity annotation that decides which sections
-  a generated pack receives: each malformation Prettier preserves unchanged, a
+- Twelve of those govern the verbosity annotation that decides which sections a
+  generated pack receives: each malformation Prettier preserves unchanged, a
   tilde fence closed by inner backticks, non-monotone nesting, idempotence, and
-  the rejection of every tier in a file that states obligations. One asserts
-  that link targets are still validated inside a section the ceiling withholds,
-  so link checking does not depend on what any pack receives.
+  the rejection of every tier in a file that states obligations. The other six
+  tests in that crate predate the annotation and check decoded vocabularies
+  against the artifacts that own them. One bundler test asserts that link
+  targets are still validated inside a section the ceiling withholds, so link
+  checking does not depend on what any pack receives, and one linter test
+  asserts against the real manifests that no source a role pack lists can be
+  withheld from it.
 - Four of those assert the vocabularies decoded by `doctrine-manifest` against
   the artifacts that own them: the `enum` arrays in the JSON Schemas, and the
   `rfcs/` state directories. A value added to one without a matching Rust
