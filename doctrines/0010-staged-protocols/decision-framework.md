@@ -47,7 +47,7 @@ flowchart TD
     establishes -->|no| merge["merge the steps until they do; re-enter this tree"]
     establishes -->|yes| owner{Is the sequence advanced by one owner within one process?}
     owner -->|no| runtime["runtime state model is authoritative (RUST-DOC-0005, RUST-DOC-0006)"]
-    runtime --> localpass{Is there also a local pass worth enforcing?}
+    runtime --> localpass{is there also a local pass worth enforcing?}
     localpass -->|no| runtimeonly["stop; runtime model only"]
     localpass -->|yes| pass["typed stages for the pass, issued by checked restoration"]
     owner -->|yes| transitions{How many transitions?}
@@ -55,8 +55,13 @@ flowchart TD
     transitions -->|two| twostate["typestate with concrete successors unless a second<br>implementation is already known"]
     transitions -->|three or more| several{"Will one capability have several implementations<br>producing different successor evidence?"}
     several -->|no| concrete["typestate with concrete successors; revisit if that changes"]
-    several -->|yes| traits["capability traits with bounded associated successors:<br>add named sum types for material branches,<br>named stages for retry, revision, and recovery,<br>and the topology assertion"]
-    traits --> budget{Is the stage count still justifiable against the budget?}
+    several -->|yes| traits[capability traits with bounded associated successors]
+    traits --> sums[add named sum types for material branches]
+    traits --> stages[add named stages for retry, revision, and recovery]
+    traits --> topology[add the topology assertion]
+    sums --> budget{is the stage count still justifiable against the budget?}
+    stages --> budget
+    topology --> budget
     budget -->|no| remerge[merge to proof boundaries and re-enter]
     budget -->|yes| proceed[proceed to the evidence plan]
 ```

@@ -42,6 +42,10 @@
 
 ## Decision tree
 
+This tree stays a text block while the corpus's other decision trees are drawn. Its four gates
+continue in reading order rather than by a stated edge, so drawing them would require inventing
+the edges between them and fixing one reading of a continuation the prose leaves open.
+
 ```text
 Is the claim about a durable, remote, or externally governed fact?
   yes -> name the external authority and the check that consults it. R014. Stop.

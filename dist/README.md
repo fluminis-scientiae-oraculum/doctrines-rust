@@ -175,6 +175,6 @@ carries a warning banner and source headings.
 | `dist/agents/implementer.md` | 223533 | 55883 |
 | `dist/agents/auditor.md` | 229709 | 57427 |
 | `dist/agents/reviewer.md` | 247534 | 61883 |
-| `dist/full-doctrine.md` | 919848 | 229962 |
+| `dist/full-doctrine.md` | 935391 | 233847 |
 
 The token column divides bytes by a fixed estimate of four. It is a planning figure for choosing a bundle against a context window, not a measurement: a real count depends on the tokenizer.

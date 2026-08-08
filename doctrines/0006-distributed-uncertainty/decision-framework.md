@@ -36,7 +36,7 @@ protocol.
 flowchart TD
     success{Did authoritative evidence confirm success?}
     success -->|yes| confirmed["Confirmed(success evidence)"]
-    success -->|no| rejection{"Did authoritative evidence confirm rejection/non-execution?"}
+    success -->|no| rejection{Did authoritative evidence confirm rejection/non-execution?}
     rejection -->|yes| rejected["Rejected(reason)"]
     rejection -->|no| crossed{Is it proven no request crossed the execution boundary?}
     crossed -->|yes| local["LocalFailure(retry guidance)"]

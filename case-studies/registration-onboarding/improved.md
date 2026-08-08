@@ -6,20 +6,20 @@
 flowchart TD
     self[SelfServiceSubmission] -->|canonicalize| canonical["CanonicalRegistration&lt;O&gt;"]
     invited[InvitedSubmission] -->|canonicalize| canonical
-    canonical --> check[check_identity]
-    check --> available[Available]
-    check --> conflicting[Conflicting]
-    check --> undetermined["Err(undetermined)"]
+    canonical -->|check_identity| available[Available]
+    canonical -->|check_identity| conflicting[Conflicting]
+    canonical -->|check_identity| undetermined["Err(undetermined)"]
     available -->|accept_policy| accepted[AcceptedRegistration]
     accepted -->|prepare_persistence| persistable[PersistableRegistration]
-    persistable --> durable["durable write, outside the typed protocol"]
+    persistable --> durable[/"durable write, outside the typed protocol"/]
     conflicting -->|resolve| revised[Revised]
     conflicting -->|resolve| abandoned["Abandoned (terminal)"]
-    revised -.->|re-enters at canonicalize| canonical
+    revised -->|canonicalize| canonical
 ```
 
-Two entry stages, one branch with a genuine third failure outcome, one recovery edge that
-re-enters at the first stage, and one terminal recovery stage.
+Every operation is an edge and every stage is a node; the one parallelogram is the durable write,
+which leaves the typed protocol. Two entry stages, one branch with a genuine third failure
+outcome, one recovery edge that re-enters at `canonicalize`, and one terminal recovery stage.
 
 ## Capabilities carry their successors
 

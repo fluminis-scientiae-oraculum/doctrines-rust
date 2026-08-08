@@ -5,9 +5,11 @@
 A service changes an account and writes an audit/outbox record in one database
 transaction. The local workflow is:
 
-```text
-begin → active mutation(s) → commit
-                         └→ rollback
+```mermaid
+flowchart LR
+    begin --> mutations["active mutation(s)"]
+    mutations --> commit
+    mutations --> rollback
 ```
 
 After commit or rollback, the transaction handle must not be reused. A commit

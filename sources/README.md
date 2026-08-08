@@ -23,6 +23,18 @@ the cited source.
 The classification prevents borrowed authority from becoming a stronger claim
 than the source or implementation supports.
 
+## Per-doctrine notes
+
+[0001 invalid states](0001-invalid-states/), [0002 error modeling](0002-error-modeling/),
+[0003 ownership and capabilities](0003-ownership-and-capabilities/),
+[0004 concurrency and async](0004-concurrency-and-async/),
+[0005 persistence boundaries](0005-persistence-boundaries/),
+[0006 distributed uncertainty](0006-distributed-uncertainty/),
+[0007 unsafe Rust](0007-unsafe-rust/), [0008 testing and evidence](0008-testing-and-evidence/),
+[0009 performance and measurement](0009-performance-and-measurement/),
+[0010 staged protocols](0010-staged-protocols/), and
+[0011 executable narrative](0011-executable-narrative/).
+
 ## Source quality
 
 For Rust language claims prefer the Rust Reference, standard-library

@@ -40,7 +40,7 @@ Any unanswered applicable row blocks implementation.
 flowchart TD
     internal{Can all safety preconditions be checked or enforced internally?}
     internal -->|yes| safe[safe API over private unsafe implementation]
-    internal -->|no| encode{"Can ownership/type structure encode them?"}
+    internal -->|no| encode{Can ownership/type structure encode them?}
     encode -->|yes| redesign[redesign until safe]
     encode -->|no| narrow[narrow unsafe API with complete caller obligations]
 ```

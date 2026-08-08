@@ -42,7 +42,7 @@ flowchart TD
     valid -->|yes| owner[document recovery owner and resume identity]
     valid -->|no| move{Can the mutation move after the suspension?}
     move -->|yes| reorder[reorder operation]
-    move -->|no| guard{"Can a guard/owner task finish it despite caller cancellation?"}
+    move -->|no| guard{Can a guard/owner task finish it despite caller cancellation?}
     guard -->|yes| supervise[supervise bounded completion]
     guard -->|no| compensate[add compensation or explicit reconciliation]
 ```

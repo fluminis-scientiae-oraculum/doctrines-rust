@@ -54,7 +54,7 @@ flowchart TD
     invariant -->|no| physical[ordinary physical decoding may be sufficient]
     invariant -->|yes| driver{Can the driver call a fallible checked constructor?}
     driver -->|yes| checked[implement checked mapping]
-    driver -->|no| raw["decode a raw storage type first,<br>then convert through TryFrom"]
+    driver -->|no| raw["Decode a raw storage type first<br>then convert through TryFrom"]
 ```
 
 Reject any solution that writes private fields through unsafe code for

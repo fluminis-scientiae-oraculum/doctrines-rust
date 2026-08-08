@@ -39,6 +39,27 @@ const CANONICAL_ROOTS: &[&str] = &[
 
 const DOCTRINE_INDEX: &str = "doctrines/README.md";
 
+/// Maintained Markdown that legitimately has nothing linking to it, and why.
+///
+/// A reader reaches every other canonical document by clicking. These three are not
+/// reached that way: one is where a reader starts, and two are inputs a generator
+/// reads rather than pages anyone opens. Each is named individually, so a file cannot
+/// acquire the exemption by resembling one.
+const REACHABILITY_EXEMPTIONS: &[(&str, &str)] = &[
+    (
+        "README.md",
+        "the repository entry point, which a reader opens directly",
+    ),
+    (
+        "doctrines/map-overview.md",
+        "a generator input for doctrines/map.md rather than a page",
+    ),
+    (
+        "rfcs/accepted/overview.md",
+        "a generator input for rfcs/accepted/README.md rather than a page",
+    ),
+];
+
 const ACTIVE_RECORD_DIRECTORY: &str = "decisions/active/";
 const ARCHIVED_RECORD_DIRECTORY: &str = "decisions/archive/";
 const ARCHIVAL_MARKER: &str = "NOT CURRENT OPERATIONAL AUTHORITY";
@@ -240,6 +261,7 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     check_verbosity_annotations(root, &doctrine_manifest, &agent_manifest, &mut diagnostics);
     check_reserved_ceiling(root, &agent_manifest, &mut diagnostics);
     check_alert_vocabulary(root, &mut diagnostics);
+    check_reachability(root, &mut diagnostics);
     check_generated_files(root, &mut diagnostics);
     diagnostics
 }
@@ -1623,6 +1645,125 @@ fn contains_normative_term(line: &str) -> bool {
         .any(|word| matches!(word, "MUST" | "SHOULD" | "MAY"))
 }
 
+/// Rejects maintained Markdown that no other maintained Markdown file links to.
+///
+/// The corpus reached 245 files with 104 of them unreachable by clicking, because a
+/// package index named its siblings in backticks rather than links. Backticked prose
+/// looks like a reference and navigates nowhere, and nothing detected the difference.
+///
+/// This checks inbound links, not reachability from the root: a file linked only by an
+/// unreachable file still passes. That is the weaker claim, and it is the one made here
+/// rather than the one the name might suggest.
+fn check_reachability(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
+    let files = maintained_markdown(root, diagnostics);
+    let mut linked: BTreeSet<String> = BTreeSet::new();
+
+    for file in &files {
+        let Some(text) = read_text(file, diagnostics) else {
+            continue;
+        };
+        for href in outbound_links(&text) {
+            let Some(relative) = resolve_link(root, file, &href) else {
+                continue;
+            };
+            // A link to a directory reaches that directory's index, so credit it.
+            let absolute = root.join(&relative);
+            if absolute.is_dir() {
+                linked.insert(format!("{relative}/README.md"));
+            }
+            linked.insert(relative);
+        }
+    }
+
+    for file in &files {
+        let relative = file
+            .strip_prefix(root)
+            .unwrap_or(file)
+            .to_string_lossy()
+            .replace('\\', "/");
+        if REACHABILITY_EXEMPTIONS
+            .iter()
+            .any(|(exempt, _)| *exempt == relative)
+        {
+            continue;
+        }
+        if !linked.contains(&relative) {
+            diagnostics.push(Diagnostic::new(
+                file,
+                "no maintained Markdown file links to it; add a link from its index, or \
+                 exempt it in REACHABILITY_EXEMPTIONS with a stated reason",
+            ));
+        }
+    }
+}
+
+/// Link destinations in Markdown prose, skipping fenced code.
+///
+/// Fenced content is skipped for the reason the normative-term scan skips it: a path
+/// inside an example is not navigation, and counting it would let a code sample satisfy
+/// the reachability of a real document.
+fn outbound_links(text: &str) -> Vec<String> {
+    let mut targets = Vec::new();
+    let mut in_fence = false;
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            in_fence = !in_fence;
+            continue;
+        }
+        if in_fence {
+            continue;
+        }
+        let mut index = 0;
+        while let Some(offset) = line[index..].find("](") {
+            let start = index + offset + 2;
+            let Some(length) = line[start..].find(')') else {
+                break;
+            };
+            targets.push(line[start..start + length].to_owned());
+            index = start + length + 1;
+        }
+    }
+    targets
+}
+
+/// Resolves one Markdown link to a repository-relative path, or `None` when it does not
+/// name a file in this repository.
+///
+/// Normalization is textual rather than `canonicalize`, because a link to a path that
+/// does not exist must resolve to a comparable string rather than an error; the link
+/// checker owns whether a target exists, and this check owns only what points where.
+fn resolve_link(root: &Path, from: &Path, href: &str) -> Option<String> {
+    let target = href.split('#').next()?.trim();
+    if target.is_empty() || target.contains("://") || target.starts_with("mailto:") {
+        return None;
+    }
+    let joined = from.parent()?.join(target);
+
+    let mut parts: Vec<std::ffi::OsString> = Vec::new();
+    for component in joined.components() {
+        match component {
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                parts.pop();
+            }
+            other => parts.push(other.as_os_str().to_owned()),
+        }
+    }
+    let mut absolute = PathBuf::new();
+    for part in parts {
+        absolute.push(part);
+    }
+
+    Some(
+        absolute
+            .strip_prefix(root)
+            .ok()?
+            .to_string_lossy()
+            .replace('\\', "/"),
+    )
+}
+
 /// The generated files that live inside a canonical root rather than under `dist/`.
 ///
 /// Each carries a banner comment naming its sources, so each is exempt from the scan that
@@ -2014,8 +2155,9 @@ mod tests {
         workspace_package_version,
     };
     use super::{
-        GENERATED_IN_CANONICAL_ROOTS, RuleInventory, check_reserved_ceiling, check_stated_counts,
-        collect_files, doctrine_index_rows, maintained_markdown, root_documents, scan_marker_file,
+        GENERATED_IN_CANONICAL_ROOTS, REACHABILITY_EXEMPTIONS, RuleInventory, check_reachability,
+        check_reserved_ceiling, check_stated_counts, collect_files, doctrine_index_rows,
+        maintained_markdown, outbound_links, resolve_link, root_documents, scan_marker_file,
         table_row_cells, unknown_alert, validation_sequence_copies,
     };
     use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity, states_obligations};
@@ -3018,5 +3160,103 @@ mod tests {
         );
         assert_eq!(diagnostics.len(), 1);
         assert!(diagnostics[0].message.contains("capitalized noun-phrase"));
+    }
+
+    #[test]
+    fn outbound_links_ignore_fenced_paths() {
+        let text = "See [one](a.md) and [two](../b.md#frag).\n\
+                    ```text\n\
+                    [three](c.md)\n\
+                    ```\n\
+                    Then [four](https://example.com/d).\n";
+        assert_eq!(
+            outbound_links(text),
+            vec![
+                "a.md".to_owned(),
+                "../b.md#frag".to_owned(),
+                "https://example.com/d".to_owned(),
+            ]
+        );
+    }
+
+    #[test]
+    fn resolve_link_normalizes_and_rejects_external() {
+        let root = Path::new("/repo");
+        let from = Path::new("/repo/doctrines/0001-invalid-states/README.md");
+        assert_eq!(
+            resolve_link(root, from, "doctrine.md").as_deref(),
+            Some("doctrines/0001-invalid-states/doctrine.md")
+        );
+        assert_eq!(
+            resolve_link(root, from, "../../foundations/evidence.md#anchor").as_deref(),
+            Some("foundations/evidence.md")
+        );
+        assert_eq!(resolve_link(root, from, "https://example.com"), None);
+        assert_eq!(resolve_link(root, from, "mailto:someone@example.com"), None);
+        assert_eq!(resolve_link(root, from, "#section-only"), None);
+    }
+
+    /// The reachability check ships with a corpus that satisfies it, so the failing
+    /// direction is exercised here rather than left unproved.
+    #[test]
+    fn reachability_reports_a_file_nothing_links_to() {
+        let root = temporary_directory("reachability");
+        fs::create_dir_all(root.join("sources")).unwrap();
+        fs::write(root.join("README.md"), "# Root\n\n[index](sources/)\n").unwrap();
+        fs::write(
+            root.join("sources/README.md"),
+            "# Sources\n\n[linked](linked.md)\n",
+        )
+        .unwrap();
+        fs::write(root.join("sources/linked.md"), "# Linked\n").unwrap();
+        fs::write(root.join("sources/orphan.md"), "# Orphan\n").unwrap();
+
+        let mut diagnostics = Vec::new();
+        check_reachability(&root, &mut diagnostics);
+
+        let reported: Vec<String> = diagnostics
+            .iter()
+            .map(|diagnostic| diagnostic.path.to_string_lossy().replace('\\', "/"))
+            .collect();
+        assert!(
+            reported
+                .iter()
+                .any(|path| path.ends_with("sources/orphan.md")),
+            "orphan.md was not reported; reported {reported:?}"
+        );
+        assert!(
+            !reported
+                .iter()
+                .any(|path| path.ends_with("sources/linked.md")),
+            "linked.md was reported despite an inbound link"
+        );
+        // The directory link in README.md reaches sources/README.md.
+        assert!(
+            !reported
+                .iter()
+                .any(|path| path.ends_with("sources/README.md")),
+            "a directory link did not credit that directory's index"
+        );
+        // The root document is exempt, so its absence of inbound links is not a finding.
+        assert!(
+            !reported
+                .iter()
+                .any(|path| path.ends_with("/README.md") && !path.contains("sources")),
+            "the repository entry point should be exempt"
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn reachability_exemptions_name_a_reason() {
+        assert!(!REACHABILITY_EXEMPTIONS.is_empty());
+        for (path, reason) in REACHABILITY_EXEMPTIONS {
+            assert!(!path.is_empty(), "an exemption has no path");
+            assert!(
+                reason.len() > 20,
+                "exemption {path} has no stated reason worth reading"
+            );
+        }
     }
 }
