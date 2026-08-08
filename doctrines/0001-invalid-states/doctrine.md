@@ -18,6 +18,9 @@ are demonstrably unchanged.
 **Review evidence.** An invariant inventory using the foundation format, plus a state and
 boundary map appropriate to the risk.
 
+**Enforcement.** Unenforceable: Nothing shows discovery preceded representation, nor that the
+inventory is complete
+
 ## RUST-DOC-0001-R002 — Represent mutually exclusive state as a sum type
 
 **Statement.** Contradictory field combinations MUST be replaced by an enum or equivalent sum
@@ -43,6 +46,9 @@ construction, provided the rejection is tested.
 boundary, decoding rejection of an unknown discriminant value, and persistence evolution
 policy.
 
+**Enforcement.** [`examples/domain-modeling/src/lib.rs`](../../examples/domain-modeling/src/lib.rs)
+— InvoiceState binds receipt to Paid, reason to Failed
+
 ## RUST-DOC-0001-R003 — Protect trusted newtype representation
 
 **Statement.** A trusted validated newtype MUST keep its representation private from callers
@@ -58,6 +64,10 @@ distinction only and whose name does not assert validation.
 
 **Review evidence.** Visibility audit covering fields, constructors, macros, derives,
 features, tests, and re-exports.
+
+**Enforcement.**
+[`construct_verified_email_fields.rs`](../../examples/compile-fail/ui/construct_verified_email_fields.rs)
+— compiler rejects writing the private evidence field
 
 ## RUST-DOC-0001-R004 — Enforce the complete documented invariant
 
@@ -76,6 +86,9 @@ and documentation reflect that evidence level.
 **Review evidence.** Constructor matrix, positive and negative tests, policy version where
 relevant, and proof-token construction audit.
 
+**Enforcement.** [`examples/validated-newtypes/src/lib.rs`](../../examples/validated-newtypes/src/lib.rs)
+— TryFrom delegates to the single parse policy
+
 ## RUST-DOC-0001-R005 — Name the evidence accurately
 
 **Statement.** A type, variant, method, or field name MUST NOT imply stronger evidence than its
@@ -93,6 +106,9 @@ their exact repository meaning is documented.
 **Review evidence.** Guarantee ledger linking each name to producer, scope, time, and
 non-guarantees.
 
+**Enforcement.** Unenforceable: No check compares a name's implied evidence against what
+construction establishes
+
 ## RUST-DOC-0001-R006 — Preserve invariants through deserialization
 
 **Statement.** Deserialization MUST NOT write a trusted representation in a way that bypasses
@@ -109,6 +125,9 @@ preconditions are reviewed and tested.
 
 **Review evidence.** `try_from` or manual decoding path, malformed and policy-invalid cases,
 size limits, and unknown-version behavior.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— serde try_from; invalid JSON email rejected
 
 ## RUST-DOC-0001-R007 — Validate database decoding
 
@@ -128,6 +147,9 @@ the equivalence is documented.
 **Review evidence.** Raw-row/domain separation, checked conversion, invalid-history test,
 constraint inspection, quarantine or repair policy, and migration compatibility.
 
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— TryFrom row; invalid-history rows rejected
+
 ## RUST-DOC-0001-R008 — Preserve collection invariants after construction
 
 **Statement.** A validated collection wrapper MUST control every mutation and construction
@@ -144,6 +166,9 @@ borrowing that cannot violate the invariant.
 
 **Review evidence.** Mutation API audit, boundary conversion tests, empty and overflow tests,
 and iterator construction behavior.
+
+**Enforcement.** Unenforceable: No compiled collection wrapper exists; mutation-surface completeness
+is a per-API audit
 
 ## RUST-DOC-0001-R009 — Consume prior state when reuse is invalid
 
@@ -163,6 +188,9 @@ validation when consuming ownership would make recovery less correct.
 **Review evidence.** Transition signatures, clone audit, compile-fail test for significant
 reuse, and failure return semantics.
 
+**Enforcement.** [`reuse_consumed_transaction.rs`](../../examples/compile-fail/ui/reuse_consumed_transaction.rs)
+— staging after commit fails to compile
+
 ## RUST-DOC-0001-R010 — Use typestate proportionately
 
 **Statement.** Typestate MUST be reserved for locally controlled operation sequencing where
@@ -181,6 +209,9 @@ be used to gather diagnostic and complexity evidence.
 **Review evidence.** State graph, local-control argument, runtime-enum comparison, persistence
 plan, async failure design, compile diagnostics, and complexity budget.
 
+**Enforcement.** Unenforceable: Weighing typestate cost against the invalid programs prevented is
+unmeasured
+
 ## RUST-DOC-0001-R011 — Use runtime state for dynamic reality
 
 **Statement.** Dynamic, persisted, heterogeneous, externally determined, runtime-inspected, or
@@ -197,6 +228,9 @@ typestate operation when construction and staleness are controlled.
 
 **Review evidence.** Persistence schema, transition validator, concurrency policy, unknown
 variant plan, and hybrid conversion contract if used.
+
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— origin evidence erased to runtime OriginKind
 
 ## RUST-DOC-0001-R012 — Represent authority as restricted capability
 
@@ -215,6 +249,9 @@ authority is mutable and must be revalidated on every use.
 **Review evidence.** Issuer visibility, operation surface, clone/serialize audit, scope fields,
 revocation and expiry behavior, and misuse tests.
 
+**Enforcement.** Unenforceable: No capability type defining issuance, clone, transfer, expiry,
+revocation exists here
+
 ## RUST-DOC-0001-R013 — Keep external effects fallible
 
 **Statement.** Network, database, filesystem, process, device, and other external effects MUST
@@ -232,6 +269,9 @@ be infallible if allocation and panic behavior are outside the API's promised fa
 **Review evidence.** Structured result types, error categories, cancellation behavior,
 resource-failure tests, and stated non-guarantees.
 
+**Enforcement.** [`examples/typestate/src/lib.rs`](../../examples/typestate/src/lib.rs) — Open
+connection send stays fallible
+
 ## RUST-DOC-0001-R014 — Do not collapse ambiguous timeout into failure
 
 **Statement.** A timeout, disconnect, cancellation, or acknowledgement loss MUST NOT be
@@ -248,6 +288,9 @@ implements a verifiable pre-commit cancellation or rejection boundary.
 
 **Review evidence.** Protocol commitment analysis, fault injection around send and
 acknowledgement, outcome type, and retry decision table.
+
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— ambiguity maps to reconcile, never rejection
 
 ## RUST-DOC-0001-R015 — Model distributed uncertainty explicitly
 
@@ -267,6 +310,9 @@ provisioning, email submission, and similar distributed effects.
 reconciliation procedure, audit trail, and tests that unknown never becomes confirmed failure
 without new evidence.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— Unknown carries reconciliation identity
+
 ## RUST-DOC-0001-R016 — Make escape hatches explicit
 
 **Statement.** Every public or privileged construction bypass MUST be visibly named,
@@ -283,6 +329,9 @@ non-production builds and incapable of leaking into public APIs.
 
 **Review evidence.** Search inventory, visibility and feature analysis, precondition
 documentation, call-site list, and safe-interface tests.
+
+**Enforcement.** [`examples/unsafe-evidence/Cargo.toml`](../../examples/unsafe-evidence/Cargo.toml)
+— the sole unsafe bypass, named and scoped
 
 ## RUST-DOC-0001-R017 — Scope unsafe constructors narrowly
 
@@ -301,6 +350,9 @@ constructor is practical.
 **Review evidence.** RUST-DOC-0007 review, safety section, encapsulation, invalid-input
 analysis, Miri or sanitizer evidence where applicable, and all call sites.
 
+**Enforcement.** Unenforceable: No unsafe constructor exists; proof-obligation completeness is a
+soundness argument
+
 ## RUST-DOC-0001-R018 — Prove important prohibited programs
 
 **Statement.** Compile-fail tests SHOULD demonstrate compiler rejection of important direct
@@ -317,6 +369,9 @@ adding meaningful confidence.
 
 **Review evidence.** Minimal UI case, reviewed diagnostic, pinned toolchain, and positive
 counterpart test.
+
+**Enforcement.** [`examples/compile-fail/tests/ui.rs`](../../examples/compile-fail/tests/ui.rs) —
+trybuild runs nine cases against recorded stderr
 
 ## RUST-DOC-0001-R019 — Publish guarantees and non-guarantees
 
@@ -335,6 +390,9 @@ ledger if every constructor and use is covered.
 **Review evidence.** Completed guarantee ledger traced to code, tests, boundaries, and effect
 outcomes.
 
+**Enforcement.** Unenforceable: No check ties a stated guarantee to its actual construction and
+boundaries
+
 ## RUST-DOC-0001-R020 — Keep cross-entity and temporal facts at runtime
 
 **Statement.** Cross-entity, temporal, policy-dependent, and externally mutable invariants MUST
@@ -351,6 +409,9 @@ API make the observation time and scope explicit.
 
 **Review evidence.** Owner, transaction or observation boundary, concurrency controls,
 staleness policy, failure type, and race tests.
+
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— uniqueness rechecked at runtime and scoped
 
 ## RUST-DOC-0001-R021 — Model money without false arithmetic guarantees
 
@@ -369,6 +430,9 @@ aggregate or module level if accidental mixing is structurally impossible and do
 **Review evidence.** `u64`/`NonZeroU64` semantics, overflow behavior, same-currency tests,
 rounding and allocation policy location, and non-guarantee statement.
 
+**Enforcement.** [`examples/domain-modeling/src/lib.rs`](../../examples/domain-modeling/src/lib.rs)
+— PositiveMoney rejects mismatch and overflow
+
 ## RUST-DOC-0001-R022 — Separate email syntax from ownership
 
 **Statement.** An email-address type MUST document its actual syntax policy; mailbox ownership
@@ -384,3 +448,6 @@ claim email semantics and safely treats delivery failure.
 
 **Review evidence.** Syntax policy tests, private representation, verifier-only proof path,
 expiry or revocation considerations, and deliverability non-guarantee.
+
+**Enforcement.** [`examples/validated-newtypes/src/lib.rs`](../../examples/validated-newtypes/src/lib.rs)
+— syntax policy versus ownership-proof evidence

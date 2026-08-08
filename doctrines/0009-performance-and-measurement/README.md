@@ -3,7 +3,7 @@ id: RUST-DOC-0009
 slug: performance-and-measurement
 title: Performance Claims Require Measurement
 status: active
-version: 0.1.0
+version: 0.1.1
 normative: true
 applies_to:
   - planning

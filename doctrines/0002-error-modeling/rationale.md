@@ -5,21 +5,6 @@ That makes them part of domain and protocol design. `Result<T, String>` can carr
 it cannot reliably tell a caller whether to ask the user for correction, retry with the same
 idempotency key, reconcile before retry, refresh authorization, or stop permanently.
 
-Structured enums preserve distinctions:
-
-```rust
-enum CaptureError {
-    Validation(ValidationError),
-    Rejected(ProviderRejection),
-    Conflict { current_version: u64 },
-    LocalTransport(TransportError),
-    Unknown { reconciliation: ReconciliationToken },
-}
-```
-
-The exact shape depends on the API. The important property is that an ambiguous timeout is
-not a `Rejected` variant, and an authorization denial is not hidden as transport failure.
-
 Source chains and context serve different readers. A domain category supports control flow.
 An underlying I/O or database error supports diagnosis. Context says which operation failed.
 An outer report can format that chain for an operator after decisions are complete. Erasing

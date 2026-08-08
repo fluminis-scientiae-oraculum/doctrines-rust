@@ -3,7 +3,7 @@ id: RUST-DOC-0010
 slug: staged-protocols
 title: Staged Protocols and Successor Capabilities
 status: active
-version: 0.2.0
+version: 0.2.1
 normative: true
 applies_to:
   - planning

@@ -37,10 +37,6 @@ machine-actionable conflict result. A check constraint can reject zero amounts;
 the `PositiveMoney` constructor still protects values before storage and after
 decoding.
 
-Schema policy should remain stable enough to share across writers. Rapidly
-changing eligibility rules may belong in a transactional domain service rather
-than a migration for every policy adjustment.
-
 ## Migrations change meaning
 
 Adding a non-null column, splitting one state into two, changing money scale, or
@@ -49,11 +45,6 @@ identifies existing records that violate the target, decides how evidence will
 be established, and verifies the postcondition. Inventing a default can be
 dishonest: filling `verified_at` with migration time does not prove verification
 occurred.
-
-Large deployments may need expand-and-contract rollout. New readers first
-understand both forms; writers populate both; data is backfilled and checked;
-then old support is removed. The compatibility window and rollback direction
-must be explicit.
 
 ## Persisted enums are protocols
 
@@ -73,10 +64,6 @@ closed forever.
 A transaction is useful only relative to its isolation semantics and the
 operations inside it. Reading availability, checking it in application code,
 then later updating without a constraint or lock can race another writer.
-Optimistic version predicates detect stale state and force a caller decision.
-Pessimistic locking can serialize access but affects contention and deadlock.
-Commutative database updates can avoid read-modify-write races for suitable
-operations.
 
 Lost-update protection is not a complete isolation argument. Suppose two
 transactions each read that at least one of two operators remains on duty, then
@@ -123,8 +110,6 @@ and operators need lag and poison-message handling.
 ## Invalid historical data
 
 Quarantine preserves two truths: the stored bytes exist, and they do not satisfy
-the trusted domain invariant. It should retain record identity, validation
-diagnostics, source, and repair history while limiting sensitive-data exposure.
 A repair must establish evidence, not merely call an unchecked constructor.
 
 Availability pressure can make rejection uncomfortable, but weakening a trusted

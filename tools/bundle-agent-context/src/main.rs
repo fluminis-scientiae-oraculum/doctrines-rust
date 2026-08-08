@@ -5,6 +5,7 @@ use doctrine_manifest::{
 use serde::Deserialize;
 use std::collections::BTreeSet;
 use std::env;
+use std::fmt;
 use std::fmt::Write as _;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
@@ -245,12 +246,12 @@ fn main() {
     };
 
     let result = match command {
-        Command::Generate => generate(&root, &outputs),
+        Command::Generate => generate(&root, &outputs).map_err(CommandFailure::Incomplete),
         Command::Check => check(&root, &outputs),
     };
-    if let Err(error) = result {
-        eprintln!("bundle-agent-context: {error}");
-        process::exit(1);
+    if let Err(failure) = result {
+        eprintln!("bundle-agent-context: {failure}");
+        process::exit(failure.exit_code());
     }
 }
 
@@ -1060,7 +1061,45 @@ fn generate(root: &Path, outputs: &[GeneratedFile]) -> Result<(), String> {
     Ok(())
 }
 
-fn check(root: &Path, outputs: &[GeneratedFile]) -> Result<(), String> {
+/// Why a command failed, when the answer changes what the caller should do next.
+///
+/// The caller here is CI. Stale bundles are an ordinary finding it can act on by
+/// running `generate`; a tree it cannot read is a broken run that shows neither drift
+/// nor its absence. Collapsing both into one string and one exit code erased that
+/// distinction, which is what `RUST-DOC-0002-R003` exists to prevent.
+enum CommandFailure {
+    /// The committed bundles differ from what the canonical sources generate.
+    Drift(Vec<String>),
+    /// The command could not complete, so nothing is established either way.
+    Incomplete(String),
+}
+
+impl CommandFailure {
+    /// Distinct codes, so a caller need not parse the message to tell them apart.
+    fn exit_code(&self) -> i32 {
+        match self {
+            Self::Incomplete(_) => 1,
+            Self::Drift(_) => 3,
+        }
+    }
+}
+
+impl fmt::Display for CommandFailure {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Drift(entries) => {
+                write!(
+                    formatter,
+                    "generated drift detected:\n{}",
+                    entries.join("\n")
+                )
+            }
+            Self::Incomplete(reason) => write!(formatter, "{reason}"),
+        }
+    }
+}
+
+fn check(root: &Path, outputs: &[GeneratedFile]) -> Result<(), CommandFailure> {
     let mut drift = Vec::new();
     let expected: BTreeSet<PathBuf> = outputs.iter().map(|output| output.path.clone()).collect();
 
@@ -1073,10 +1112,12 @@ fn check(root: &Path, outputs: &[GeneratedFile]) -> Result<(), String> {
         }
     }
 
-    for path in all_files(&root.join("dist"))? {
+    for path in all_files(&root.join("dist")).map_err(CommandFailure::Incomplete)? {
         let relative = path
             .strip_prefix(root)
-            .map_err(|error| format!("cannot relativize {}: {error}", path.display()))?
+            .map_err(|error| {
+                CommandFailure::Incomplete(format!("cannot relativize {}: {error}", path.display()))
+            })?
             .to_path_buf();
         if !expected.contains(&relative) {
             drift.push(format!("unexpected: {}", relative.display()));
@@ -1088,7 +1129,7 @@ fn check(root: &Path, outputs: &[GeneratedFile]) -> Result<(), String> {
         Ok(())
     } else {
         drift.sort();
-        Err(format!("generated drift detected:\n{}", drift.join("\n")))
+        Err(CommandFailure::Drift(drift))
     }
 }
 
@@ -1141,10 +1182,10 @@ fn collect_files(directory: &Path, files: &mut Vec<PathBuf>) -> Result<(), Strin
 #[cfg(test)]
 mod tests {
     use super::{
-        AgentManifest, DoctrineManifest, GENERATED_BANNER, GeneratedFile, Projection, Verbosity,
-        all_files, append_source, check, generated_document, narrowest_ceiling,
-        normalize_final_newline, rewrite_relative_links, title_case, validate_relative_path,
-        widest_ceiling,
+        AgentManifest, CommandFailure, DoctrineManifest, GENERATED_BANNER, GeneratedFile,
+        Projection, Verbosity, all_files, append_source, check, generated_document,
+        narrowest_ceiling, normalize_final_newline, rewrite_relative_links, title_case,
+        validate_relative_path, widest_ceiling,
     };
     use std::fmt::Write as _;
     use std::fs;
@@ -1450,8 +1491,24 @@ mod tests {
             content: "expected\n".to_owned(),
         }];
 
-        let error = check(&temporary, &outputs).expect_err("orphan must fail check mode");
-        assert!(error.contains("unexpected: dist/orphan.bin"));
+        let failure = check(&temporary, &outputs).expect_err("orphan must fail check mode");
         fs::remove_dir_all(temporary).expect("remove temporary test directory");
+
+        // Match the variant, not the wording: an orphan is drift a caller can fix by
+        // regenerating, and it must not be reported as a run that could not complete.
+        let CommandFailure::Drift(entries) = &failure else {
+            panic!("an orphan is drift, not an incomplete run; got {failure}");
+        };
+        assert!(
+            entries
+                .iter()
+                .any(|entry| entry == "unexpected: dist/orphan.bin"),
+            "{entries:?}"
+        );
+        assert_eq!(
+            failure.exit_code(),
+            3,
+            "drift must be separable by exit code"
+        );
     }
 }

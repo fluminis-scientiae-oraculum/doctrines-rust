@@ -3,7 +3,7 @@ id: RUST-DOC-0001
 slug: invalid-states
 title: Making Invalid States Unrepresentable
 status: active
-version: 0.2.0
+version: 0.3.0
 normative: true
 applies_to:
   - planning

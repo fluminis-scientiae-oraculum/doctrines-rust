@@ -78,3 +78,34 @@ jobs:
 
       - name: Interpret unsafe evidence
         run: cargo miri test --locked -p unsafe-evidence
+
+  # A stable context for branch protection to require.
+  #
+  # The jobs above carry version-bearing names — the matrix renders
+  # "Examples (MSRV 1.85.0)" and the Miri job pins a nightly date. A ruleset that
+  # required those names by hand would silently block every pull request the day
+  # either version moved, because the required context would simply never appear.
+  # This job's name never moves, so the toolchains can.
+  rust-success:
+    name: Rust examples and unsafe evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [examples, miri]
+    if: always()
+
+    steps:
+      # `needs` alone does not fail this job when a dependency is skipped or
+      # cancelled; `if: always()` means it runs regardless, so the results are
+      # inspected explicitly rather than inferred from reaching this step.
+      - name: Require every Rust job to have succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          set -euo pipefail
+          echo "dependency results: ${RESULTS}"
+          for result in ${RESULTS}; do
+            if [ "${result}" != "success" ]; then
+              echo "a required Rust job did not succeed: ${result}" >&2
+              exit 1
+            fi
+          done

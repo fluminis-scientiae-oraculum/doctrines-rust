@@ -16,6 +16,9 @@ incident, or neighboring test module rather than repeat the full invariant.
 **Review evidence.** Names, documentation, or manifest mapping from claim to
 test.
 
+**Enforcement.** [`examples/src/lib.rs`](../../examples/src/lib.rs) — the module doc names the rule
+its tests support
+
 ## RUST-DOC-0008-R002 — Test constructor acceptance and rejection
 
 **Statement.** Validated constructors MUST have positive and negative tests at
@@ -30,6 +33,9 @@ configuration.
 primitive may cite that evidence and test its integration.
 
 **Review evidence.** Boundary-value table and assertions on structured errors.
+
+**Enforcement.** [`examples/validated-newtypes/src/lib.rs`](../../examples/validated-newtypes/src/lib.rs)
+— accept and reject at bounds, asserting categories
 
 ## RUST-DOC-0008-R003 — Use properties for generative invariants
 
@@ -48,6 +54,9 @@ functions may use table tests.
 **Review evidence.** Generator domain, shrinking behavior, seed retention, and
 property statement.
 
+**Enforcement.** Unenforceable: No property harness in workspace; substantial input space is a
+judgment threshold
+
 ## RUST-DOC-0008-R004 — Prove prohibited programs where valuable
 
 **Statement.** Compile-fail tests SHOULD preserve important API prohibitions
@@ -62,6 +71,9 @@ state-specific operations, and trait bounds.
 surface check or compile test provides clearer evidence.
 
 **Review evidence.** Minimal failing programs and reviewed compiler diagnostics.
+
+**Enforcement.** [`examples/compile-fail/tests/ui.rs`](../../examples/compile-fail/tests/ui.rs) —
+trybuild harness over nine prohibited programs
 
 ## RUST-DOC-0008-R005 — Inspect compiler-diagnostic changes
 
@@ -79,6 +91,9 @@ accepted after semantic inspection.
 
 **Review evidence.** Diff review and assertion that the intended error remains.
 
+**Enforcement.** Unenforceable: Nothing distinguishes a reviewed stderr regeneration from a
+mechanical overwrite
+
 ## RUST-DOC-0008-R006 — Cross real boundaries
 
 **Statement.** Integration tests SHOULD cross the real parser, protocol,
@@ -93,6 +108,9 @@ emulators plus scheduled real-system evidence, with gaps documented.
 
 **Review evidence.** Environment description, real components, setup isolation,
 and cleanup.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— deserializes through the real codec into checked types
 
 ## RUST-DOC-0008-R007 — Protect protocol contracts
 
@@ -110,6 +128,9 @@ end-to-end integration evidence when independent compatibility is irrelevant.
 **Review evidence.** Provider/consumer contract, version matrix, and failure
 fixtures.
 
+**Enforcement.** Unenforceable: No independently deployed components; a version matrix is
+unrepresentable here
+
 ## RUST-DOC-0008-R008 — Control concurrency evidence
 
 **Statement.** Concurrency tests MUST use explicit synchronization, schedule
@@ -125,6 +146,9 @@ the evidence that an ordering occurred.
 
 **Review evidence.** Barriers, controlled clock, Loom model, event trace, or
 equivalent mechanism.
+
+**Enforcement.** Unenforceable: No concurrent tests exist; sleep as deadline versus evidence needs
+reviewer judgment
 
 ## RUST-DOC-0008-R009 — Test cancellation and cleanup
 
@@ -142,6 +166,9 @@ evidence when the reasoning applies identically.
 
 **Review evidence.** Controlled cancellation and postcondition assertions.
 
+**Enforcement.** Unenforceable: Workspace has no async or cancellable operations; suspension points
+are project-specific
+
 ## RUST-DOC-0008-R010 — Inject partial failure
 
 **Statement.** Fault-injection tests SHOULD exercise failures before, during,
@@ -158,6 +185,9 @@ injection.
 **Review evidence.** Crash-point matrix, injected faults, resulting state, and
 recovery.
 
+**Enforcement.** Unenforceable: No durable or external steps here; proportion to consequence fixes
+no threshold
+
 ## RUST-DOC-0008-R011 — Exercise distributed uncertainty
 
 **Statement.** Distributed tests MUST exercise duplicate, delay, reordering,
@@ -173,6 +203,9 @@ authoritative evidence.
 
 **Review evidence.** Scenario matrix and explicit terminal or unknown states.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— unknown stays unknown and retries reuse identity
+
 ## RUST-DOC-0008-R012 — Preserve failure modes in test doubles
 
 **Statement.** Test doubles MUST NOT erase failure categories, cancellation,
@@ -187,6 +220,9 @@ material to the tested claim.
 omitted behavior is outside its claim and covered elsewhere.
 
 **Review evidence.** Double-to-real contract comparison and gap ownership.
+
+**Enforcement.** Unenforceable: No mocks or fakes in workspace; double-to-real fidelity is reviewer
+judgment
 
 ## RUST-DOC-0008-R013 — Review snapshots semantically
 
@@ -204,6 +240,9 @@ equivalent changes with one documented rationale.
 
 **Review evidence.** Focused diff, invariant impact, and reviewer sign-off.
 
+**Enforcement.** Unenforceable: Whether a snapshot diff blesses a regression is decidable only by
+reading it
+
 ## RUST-DOC-0008-R014 — Treat flakiness as evidence
 
 **Statement.** A flaky test MUST be investigated as evidence of uncontrolled
@@ -220,6 +259,9 @@ the issue is owned and visible.
 **Review evidence.** Failure signatures, root cause, deterministic fix, or
 time-bounded quarantine with owner.
 
+**Enforcement.** Unenforceable: Flakiness lives in CI history; root cause versus retry is a human
+call
+
 ## RUST-DOC-0008-R015 — Do not substitute coverage for invariant evidence
 
 **Statement.** Coverage percentages MUST NOT be used as the sole claim that
@@ -233,6 +275,9 @@ behavior or invariants are adequately tested.
 discovery metric.
 
 **Review evidence.** Invariant-to-evidence matrix in addition to coverage.
+
+**Enforcement.** Unenforceable: No coverage tooling configured; sole claim is a property of an
+argument
 
 ## RUST-DOC-0008-R016 — Separate benchmarks from correctness
 
@@ -248,6 +293,9 @@ executable where feasible.
 invariant still needs appropriate tests.
 
 **Review evidence.** Corresponding correctness suite and benchmark methodology.
+
+**Enforcement.** Unenforceable: Workspace ships no benchmarks, so no benchmark separation can be
+observed
 
 ## RUST-DOC-0008-R017 — Use model checking proportionally
 
@@ -266,6 +314,9 @@ simplified model plus stress and reasoning.
 **Review evidence.** Modeled invariant, bounds, results, and mismatch from
 production code.
 
+**Enforcement.** Unenforceable: No model checker or concurrent protocol; proportional consideration
+leaves no trace
+
 ## RUST-DOC-0008-R018 — Exercise unsafe code with specialized tools
 
 **Statement.** Unsafe code SHOULD run under Miri and relevant sanitizers,
@@ -279,6 +330,9 @@ fuzzing, or target-specific tests as required by RUST-DOC-0007.
 alternative evidence.
 
 **Review evidence.** Commands, results, supported targets, and blind spots.
+
+**Enforcement.** [`.github/workflows/rust-examples.yml`](../../.github/workflows/rust-examples.yml)
+— the Miri job reruns unsafe evidence on a pinned nightly
 
 ## RUST-DOC-0008-R019 — Use production evidence carefully
 
@@ -294,6 +348,9 @@ with absence of defects.
 
 **Review evidence.** Telemetry coverage, detection limits, incident-derived
 regressions, and residual uncertainty.
+
+**Enforcement.** Unenforceable: Repository has no deployment or telemetry; misuse is a claim about
+wording
 
 ## RUST-DOC-0008-R020 — Keep tests deterministic and isolated
 
@@ -311,6 +368,9 @@ but MUST record reproducible seeds and isolate effects.
 **Review evidence.** Temporary resource strategy, seed capture, controlled
 clock, and parallel-run results.
 
+**Enforcement.** [`examples/src/lib.rs`](../../examples/src/lib.rs) — the inventory test scopes its
+reads to the manifest directory
+
 ## RUST-DOC-0008-R021 — State evidence limits
 
 **Statement.** Every consequential evidence plan MUST state what each selected
@@ -325,6 +385,9 @@ in production or external systems.
 contract.
 
 **Review evidence.** Evidence ledger tied to invariant inventory.
+
+**Enforcement.** [`EVIDENCE.md`](../../EVIDENCE.md) — per-doctrine ledger giving evidence class and
+what it does not establish
 
 ## RUST-DOC-0008-R022 — Prove the observer looked before accepting absence
 
@@ -346,3 +409,6 @@ is itself the proof of observation.
 
 **Review evidence.** The control and its assertion, or the non-zero paired case,
 shown beside the absence assertion they protect.
+
+**Enforcement.** [`examples/src/lib.rs`](../../examples/src/lib.rs) — the evidence-of-absence trio:
+vacuous pass, control, non-zero pair

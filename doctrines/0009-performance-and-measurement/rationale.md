@@ -21,17 +21,10 @@ CPU-heavy only because decompression dominates. A mutex may show little
 contention until a downstream service slows and the critical section expands.
 
 CPU profiles, allocation traces, async spans, system-call traces, database query
-plans, and network observations answer different questions. Choose the profiler
-that can observe the suspected resource and verify that sampling overhead or
-instrumentation does not change the conclusion materially.
 
 ## Benchmark discipline
 
 Optimizing compilers can remove work whose result is unused, hoist constants,
-or precompute predictable inputs. Benchmarks should generate or select inputs
-outside the timed path, consume results, and prevent unrealistic knowledge
-without hiding real optimization opportunities. Setup, teardown, allocation,
-and cloning belong inside or outside measurement according to the claim.
 
 Benchmark processes also share hosts with frequency scaling, thermal limits,
 interrupts, background work, and virtual-machine noise. Record environment,
@@ -70,9 +63,6 @@ setup, TLS, allocator state, filesystem cache, and database plan/cache behavior.
 Long-running steady-state services care about warm operation but also experience
 deploy and failover cold starts. Command-line tools may be dominated by startup.
 
-Measure the state the user experiences. If both matter, report both rather than
-mixing an unspecified proportion.
-
 ## Allocation and retention
 
 Source-level `clone` may increment a reference count, copy a small scalar, or
@@ -93,9 +83,6 @@ avoid one application copy while requiring the entire input buffer to stay
 alive. Scatter/gather I/O may avoid concatenation but complicate APIs and system
 calls. DMA and kernel mechanisms have platform-specific boundaries.
 
-Name the exact path and copy removed. Measure end-to-end effect and account for
-retention, pinning, fragmentation, and caller ergonomics.
-
 ## Contention, queues, and backpressure
 
 Increasing concurrency initially hides waiting, then saturates CPU, locks,
@@ -104,8 +91,6 @@ point, queues increase latency and memory while throughput stays flat or falls.
 A benchmark that measures only completed throughput and drops rejected work can
 misrepresent service quality.
 
-Sweep concurrency and batch size. Record queue depth, wait time, rejection,
-timeouts, and downstream utilization. RUST-DOC-0004 requires bounded admission;
 performance work must not remove the safety valve to inflate a benchmark.
 
 ## Boundary costs dominate often
@@ -141,10 +126,6 @@ matters rather than applying slogans.
 ## Regression gates
 
 Shared CI hosts are noisy. A strict one-percent wall-time gate may fail
-randomly, training maintainers to rerun or ignore it. Stable metrics such as
-binary bytes or allocation counts can support tight thresholds. Timing gates
-need controlled hardware, historical variance, sufficient samples, and a
-threshold above noise. Trend reports may be better on ordinary CI.
 
 ## Performance guarantee ledger
 

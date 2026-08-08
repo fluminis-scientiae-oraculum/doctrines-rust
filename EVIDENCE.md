@@ -1,7 +1,7 @@
 # Repository evidence map
 
 This inventory describes executable evidence shipped with repository version
-0.7.0. It is a claim ledger, not a coverage percentage. The 208 normative rules
+0.8.0. It is a claim ledger, not a coverage percentage. The 208 normative rules
 define review obligations; no test count implies one test per rule or universal
 proof.
 
@@ -11,10 +11,11 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Sixty-seven tooling tests exercise doctrine linting, decision-record
-  validation, doctrine-index agreement with the manifest, counted-claim,
-  rule-citation and duplicated-validation-sequence drift detection, and
-  deterministic bundle generation.
+- Eighty tooling tests across `doctrine-lint`, `doctrine-manifest`, and
+  `bundle-agent-context` exercise doctrine linting, decision-record validation,
+  doctrine-index agreement with the manifest, counted-claim, rule-citation and
+  duplicated-validation-sequence drift detection, per-rule enforcement and
+  per-gate check declarations, and deterministic bundle generation.
 - Twelve of those govern the verbosity annotation that decides which sections a
   generated pack receives: each malformation Prettier preserves unchanged, a
   tilde fence closed by inner backticks, non-monotone nesting, idempotence, and

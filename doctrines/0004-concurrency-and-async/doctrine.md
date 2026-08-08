@@ -17,6 +17,9 @@ surrounding component contract.
 **Review evidence.** An ownership map identifies state owner, permitted
 mutators, synchronization primitive, task owner, and shutdown authority.
 
+**Enforcement.** Unenforceable: No shipped crate has shared mutable state or documents an ownership
+model
+
 ## RUST-DOC-0004-R002 — Protect invariants, not fields
 
 **Statement.** Synchronization boundaries MUST cover the complete invariant
@@ -35,6 +38,9 @@ protocol tolerates temporary divergence.
 
 **Review evidence.** Invariant-to-lock mapping plus tests or model evidence for
 multi-step updates.
+
+**Enforcement.** Unenforceable: No lock or multi-field synchronized state exists to map invariants
+against
 
 ## RUST-DOC-0004-R003 — Bound lock scope
 
@@ -56,6 +62,8 @@ invariant.
 **Review evidence.** Critical-section boundaries, timing assumptions, and
 contention measurements where performance matters.
 
+**Enforcement.** Unenforceable: Workspace contains no mutex, guard, or critical section to scope
+
 ## RUST-DOC-0004-R004 — Review lock order and poisoning
 
 **Statement.** Components that may acquire more than one lock MUST define a
@@ -73,6 +81,8 @@ order.
 
 **Review evidence.** Lock graph, callback analysis, and documented recovery,
 fail-stop, or invariant-rebuild policy after panic.
+
+**Enforcement.** Unenforceable: No lock acquisition or poisoning behavior exists in any crate
 
 ## RUST-DOC-0004-R005 — Isolate blocking work
 
@@ -92,6 +102,9 @@ documented scheduling budget may remain inline.
 **Review evidence.** Classification of blocking calls, isolation mechanism,
 pool capacity, cancellation behavior, and overload limits.
 
+**Enforcement.** Unenforceable: No async executor or blocking pool; workspace has no runtime
+dependency
+
 ## RUST-DOC-0004-R006 — Analyze cancellation at every suspension point
 
 **Statement.** Every `.await` or equivalent suspension point inside a partial
@@ -109,6 +122,8 @@ classification still requires evidence.
 
 **Review evidence.** A cancellation table showing state before suspension,
 drop effect, cleanup owner, resumability, and external uncertainty.
+
+**Enforcement.** Unenforceable: No await or suspension point exists anywhere in the workspace
 
 ## RUST-DOC-0004-R007 — Define cancellation cleanup
 
@@ -129,6 +144,8 @@ acceptable.
 **Review evidence.** Drop behavior, explicit cleanup calls, expiry bounds,
 reconciliation identifiers, and cancellation tests.
 
+**Enforcement.** Unenforceable: No cancellable futures exist, so cleanup paths cannot be exercised
+
 ## RUST-DOC-0004-R008 — Bound concurrency
 
 **Statement.** Concurrency SHOULD be bounded by a reviewed resource limit.
@@ -147,6 +164,8 @@ safe upper bound without a runtime semaphore.
 **Review evidence.** Capacity source, queue bound, rejection or waiting policy,
 and stress evidence at and above capacity.
 
+**Enforcement.** Unenforceable: No task spawning exists; concurrency limits have nothing to bound
+
 ## RUST-DOC-0004-R009 — Make backpressure explicit
 
 **Statement.** Producers and consumers MUST define what happens when demand
@@ -162,6 +181,9 @@ may document its finite bound.
 
 **Review evidence.** Capacity values, overflow behavior, fairness, metrics, and
 caller-visible failure semantics.
+
+**Enforcement.** Unenforceable: No channels, queues, or producer-consumer boundaries in shipped
+crates
 
 ## RUST-DOC-0004-R010 — Handle channel closure
 
@@ -180,6 +202,8 @@ closure after recording adequate context.
 **Review evidence.** Closure branches, sender/receiver ownership, drain policy,
 and tests for last-sender and receiver-drop behavior.
 
+**Enforcement.** Unenforceable: No channel types; typestate Closed is a connection, not a channel
+
 ## RUST-DOC-0004-R011 — Structure task ownership
 
 **Statement.** Every spawned task MUST have an owner responsible for observing
@@ -196,6 +220,8 @@ top-level owner rather than joined by the immediate caller.
 
 **Review evidence.** Task tree, join or supervision strategy, failure
 propagation, restart limits, and shutdown trigger.
+
+**Enforcement.** Unenforceable: No spawned tasks or threads exist in any workspace crate
 
 ## RUST-DOC-0004-R012 — Restrict detached tasks
 
@@ -214,6 +240,8 @@ loss is acceptable, resource use is bounded, and failures are measured.
 **Review evidence.** Owner rationale, task name, metrics, capacity, panic
 handling, and termination behavior.
 
+**Enforcement.** Unenforceable: No detached work exists, so its lifetime contract cannot be shown
+
 ## RUST-DOC-0004-R013 — Define graceful shutdown
 
 **Statement.** Concurrent services MUST define admission stop, cancellation,
@@ -230,6 +258,8 @@ completion when they own no persistent or external effect.
 **Review evidence.** Ordered shutdown procedure, time budget, outstanding-work
 accounting, and tests for idle and loaded shutdown.
 
+**Enforcement.** Unenforceable: No long-running service or shutdown sequence is shipped
+
 ## RUST-DOC-0004-R014 — State ordering guarantees precisely
 
 **Statement.** Ordering claims MUST identify their scope, key, producer set,
@@ -244,6 +274,8 @@ state updates.
 
 **Review evidence.** Ordering contract plus tests that include multiple
 producers, retries, and closure where relevant.
+
+**Enforcement.** Unenforceable: No message ordering, brokers, or multi-producer paths exist
 
 ## RUST-DOC-0004-R015 — Justify atomic ordering
 
@@ -263,6 +295,8 @@ ordering when no other memory is synchronized through it.
 interleavings, Loom or equivalent model evidence where tractable, and
 RUST-DOC-0007 review if unsafe code is present.
 
+**Enforcement.** Unenforceable: No atomic types, fences, or lock-free structures in workspace
+
 ## RUST-DOC-0004-R016 — Preserve failure and ordering through supervision
 
 **Statement.** Task supervision MUST distinguish normal completion,
@@ -280,6 +314,8 @@ operator acts differently and diagnostic evidence remains adequate.
 **Review evidence.** Supervision decision table, restart budget, backoff,
 jitter, terminal-state reporting, and panic policy.
 
+**Enforcement.** Unenforceable: No supervision, restart policy, or panic-handling task tree exists
+
 ## RUST-DOC-0004-R017 — Review async abstraction costs
 
 **Statement.** Async traits, boxed futures, dynamic dispatch, and generated
@@ -296,6 +332,8 @@ without benchmark evidence when its cost is immaterial.
 
 **Review evidence.** Required dispatch mode, allocation expectations, public
 API consequences, and measurements for performance claims.
+
+**Enforcement.** Unenforceable: No async traits, boxed futures, or generated state machines exist
 
 ## RUST-DOC-0004-R018 — Coordinate timeouts and retries
 
@@ -315,6 +353,9 @@ within one deadline and each layer has distinct, proven safe semantics.
 **Review evidence.** Attempt equation, total deadline, backoff and jitter,
 idempotency classification, downstream capacity, and unknown-outcome handling.
 
+**Enforcement.** Unenforceable: No timeout or retry layers exist to inventory into an attempt
+equation
+
 ## RUST-DOC-0004-R019 — Separate concurrency safety from external correctness
 
 **Statement.** A race-free local transition MUST NOT be claimed to establish
@@ -331,6 +372,9 @@ locks, and database commits.
 
 **Review evidence.** Guarantee ledger identifying local proof, observation
 time, runtime failures, timeout ambiguity, and reconciliation path.
+
+**Enforcement.** [`examples/typestate/src/lib.rs`](../../examples/typestate/src/lib.rs) — a locally
+Open connection still returns SendError::RemoteUnavailable
 
 ## RUST-DOC-0004-R020 — Test adverse schedules and overload
 
@@ -349,3 +393,6 @@ these hazards are absent.
 
 **Review evidence.** Invariant-linked tests, stress or model results, failure
 injection, and known evidence limits.
+
+**Enforcement.** Unenforceable: No schedule exploration, fault injection, or overload harness;
+EVIDENCE.md records this gap

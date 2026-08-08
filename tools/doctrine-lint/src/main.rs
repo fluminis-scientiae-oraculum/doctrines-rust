@@ -272,6 +272,8 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     check_alert_vocabulary(root, &mut diagnostics);
     check_reachability(root, &mut diagnostics);
     check_path_references(root, &mut diagnostics);
+    check_rule_enforcement(root, &doctrine_manifest, &mut diagnostics);
+    check_gate_check_column(root, &doctrine_manifest, &mut diagnostics);
     check_generated_files(root, &mut diagnostics);
     diagnostics
 }
@@ -1785,6 +1787,32 @@ fn check_path_references(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
 /// Whether an inline-code span is shaped like a repository path rather than an
 /// identifier. A bare word is only a candidate when it carries a known file extension,
 /// so `unwrap` and `NonZeroU64` are not mistaken for paths.
+/// Splits Markdown links out of a value: the prose with link labels removed, and the
+/// link targets. A label is not a path even when it is shaped like one.
+fn split_links(value: &str) -> (String, Vec<String>) {
+    let mut bare = String::new();
+    let mut links = Vec::new();
+    let mut cursor = 0usize;
+    while cursor < value.len() {
+        let Some(open) = value[cursor..].find('[') else {
+            break;
+        };
+        let open = cursor + open;
+        let after = &value[open..];
+        let Some(close) = after.find("](") else {
+            break;
+        };
+        let Some(end) = after[close + 2..].find(')') else {
+            break;
+        };
+        bare.push_str(&value[cursor..open]);
+        links.push(after[close + 2..close + 2 + end].to_owned());
+        cursor = open + close + 2 + end + 1;
+    }
+    bare.push_str(&value[cursor..]);
+    (bare, links)
+}
+
 fn looks_like_path(span: &str) -> bool {
     if span.is_empty() || span.contains(' ') || span.contains("://") {
         return false;
@@ -1874,6 +1902,242 @@ fn remove_link_constructs(text: &str) -> String {
             rest = after_open;
         }
     }
+}
+
+/// The per-rule field naming what enforces the rule.
+const ENFORCEMENT_FIELD: &str = "**Enforcement.**";
+
+/// The opening of an enforcement value that declares no mechanism can carry the rule.
+const UNENFORCEABLE_PREFIX: &str = "Unenforceable:";
+
+/// Rejects a normative rule that does not say what enforces it.
+///
+/// `RUST-DOC-0011-R002` requires an enforceable obligation to live in its enforcing
+/// mechanism. Applied to this corpus, nothing checked whether a rule had one: every rule
+/// could lack a golden, a lint, or an example and no gate noticed.
+///
+/// The field lives on the rule rather than in the manifest deliberately. A manifest
+/// entry per rule would copy all 208 rule identifiers into a second maintained file,
+/// which is the competing copy `RUST-DOC-0011-R004` prohibits.
+///
+/// A value either names artifacts, each of which must exist, or opens with
+/// `Unenforceable:` and states why. The waiver is deliberately visible and counted
+/// rather than indistinguishable from an oversight.
+fn check_rule_enforcement(
+    root: &Path,
+    manifest: &DoctrineManifest,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    for entry in manifest.active() {
+        let path = root.join(&entry.normative_path);
+        let Some(text) = read_text(&path, diagnostics) else {
+            continue;
+        };
+
+        let lines: Vec<&str> = text.lines().collect();
+        for section in rule_sections(&lines) {
+            let rule_id = section.id;
+            let Some(value) = enforcement_field(section.body) else {
+                diagnostics.push(Diagnostic::new(
+                    &path,
+                    format!(
+                        "rule {rule_id} at line {} has no {ENFORCEMENT_FIELD} field; name the \
+                         artifact that enforces it, or open with {UNENFORCEABLE_PREFIX} and say why",
+                        section.line
+                    ),
+                ));
+                continue;
+            };
+            if let Some(reason) = value.strip_prefix(UNENFORCEABLE_PREFIX) {
+                if reason.trim().len() < 12 {
+                    diagnostics.push(Diagnostic::new(
+                        &path,
+                        format!("rule {rule_id} declares itself unenforceable without a reason"),
+                    ));
+                }
+                continue;
+            }
+            // The field links its artifact so a reader can reach it, and a link whose
+            // label repeats a long path cannot fit the line budget — so those labels
+            // are shortened and the target is the only exact name. Read both, and
+            // never mistake a shortened label for a path that ought to exist.
+            let (bare, targets) = split_links(&value);
+            let mut referenced: Vec<String> = bare
+                .split('`')
+                .skip(1)
+                .step_by(2)
+                .filter(|token| looks_like_path(token))
+                .map(ToOwned::to_owned)
+                .collect();
+            referenced.extend(
+                targets
+                    .iter()
+                    .filter_map(|href| resolve_link(root, &path, href)),
+            );
+            if referenced.is_empty() {
+                diagnostics.push(Diagnostic::new(
+                    &path,
+                    format!(
+                        "rule {rule_id} names no artifact path in {ENFORCEMENT_FIELD}; use a \
+                         backticked repository path, or open with {UNENFORCEABLE_PREFIX}"
+                    ),
+                ));
+                continue;
+            }
+            for artifact in referenced {
+                if !root.join(&artifact).exists() {
+                    diagnostics.push(Diagnostic::new(
+                        &path,
+                        format!("rule {rule_id} names enforcement artifact {artifact}, which does not exist"),
+                    ));
+                }
+            }
+        }
+    }
+}
+
+/// One rule of a normative document: its identifier, the line it opens on, and the
+/// lines beneath it up to the next heading.
+struct RuleSection<'a> {
+    id: &'a str,
+    line: usize,
+    body: &'a [&'a str],
+}
+
+/// Splits a normative document into its rule sections.
+///
+/// Reading a field means reading a section, so the section is what this produces. The
+/// alternative — walking lines while a flag remembers which field is open — makes
+/// "inside a field" and "no field read yet" separately representable and therefore
+/// able to contradict each other, which is the shape gate `I02` exists to reject.
+fn rule_sections<'a>(lines: &'a [&'a str]) -> Vec<RuleSection<'a>> {
+    let headings: Vec<usize> = lines
+        .iter()
+        .enumerate()
+        .filter(|(_, line)| line.starts_with("## "))
+        .map(|(at, _)| at)
+        .collect();
+
+    headings
+        .iter()
+        .enumerate()
+        .filter_map(|(nth, &at)| {
+            let id = lines[at].strip_prefix("## ")?.split_whitespace().next()?;
+            if !id.starts_with("RUST-DOC-") {
+                return None;
+            }
+            let end = headings.get(nth + 1).copied().unwrap_or(lines.len());
+            Some(RuleSection {
+                id,
+                line: at + 1,
+                body: &lines[at + 1..end],
+            })
+        })
+        .collect()
+}
+
+/// The enforcement value of one rule, read to the end of its paragraph.
+///
+/// The field wraps like every other field in these documents, and the longest artifact
+/// links cannot share a line with the label and stay inside the line budget, so the
+/// value may open on the line below. Reading only the label's own line lost both.
+fn enforcement_field(body: &[&str]) -> Option<String> {
+    let at = body
+        .iter()
+        .position(|line| line.trim_end().starts_with(ENFORCEMENT_FIELD))?;
+    let opening = body[at]
+        .trim_end()
+        .strip_prefix(ENFORCEMENT_FIELD)
+        .unwrap_or_default()
+        .trim();
+    let continuation = body[at + 1..]
+        .iter()
+        .take_while(|line| !line.trim().is_empty())
+        .map(|line| line.trim());
+
+    Some(
+        std::iter::once(opening)
+            .chain(continuation)
+            .filter(|part| !part.is_empty())
+            .collect::<Vec<_>>()
+            .join(" "),
+    )
+}
+
+/// Rejects a review gate that does not declare whether a command can decide it.
+///
+/// A checklist a reviewer can skip is a procedure. Splitting the gates into the ones a
+/// command settles and the ones a human must judge makes "how much of review is
+/// mechanical" a property of the table rather than an estimate, and it stops a
+/// mechanical gate from quietly living as prose.
+fn check_gate_check_column(
+    root: &Path,
+    manifest: &DoctrineManifest,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    for entry in manifest.active() {
+        let path = root.join(&entry.package_path).join("review-standard.md");
+        let Some(text) = read_text(&path, diagnostics) else {
+            continue;
+        };
+
+        let mut column: Option<usize> = None;
+        let mut gates = 0usize;
+        for line in text.lines() {
+            let Some(cells) = table_row_cells(line) else {
+                continue;
+            };
+            if column.is_none() {
+                column = cells.iter().position(|cell| cell == "Check");
+                if column.is_some() {
+                    continue;
+                }
+            }
+            let Some(index) = column else {
+                continue;
+            };
+            // A gate row opens with a coded identifier; the header and any other table
+            // in the file do not.
+            if !cells.first().is_some_and(|cell| is_gate_id(cell)) {
+                continue;
+            }
+            gates += 1;
+            let value = cells.get(index).map_or("", String::as_str);
+            let declared = value == "judgment"
+                || (value.starts_with("mechanical(") && value.ends_with(')') && value.len() > 12);
+            if !declared {
+                diagnostics.push(Diagnostic::new(
+                    &path,
+                    format!(
+                        "gate {} declares {value:?}; expected \"judgment\" or \"mechanical(<command>)\"",
+                        cells.first().map_or("?", String::as_str)
+                    ),
+                ));
+            }
+        }
+
+        if column.is_none() {
+            diagnostics.push(Diagnostic::new(
+                &path,
+                "review standard has no Check column; every gate must declare whether a \
+                 command decides it",
+            ));
+        } else if gates == 0 {
+            diagnostics.push(Diagnostic::new(
+                &path,
+                "review standard has a Check column and no gate rows, so the column checks nothing",
+            ));
+        }
+    }
+}
+
+/// Whether a table cell is a coded gate identifier such as `T01`.
+fn is_gate_id(cell: &str) -> bool {
+    let letters = cell.chars().take_while(char::is_ascii_uppercase).count();
+    let digits = &cell[letters..];
+    (1..=3).contains(&letters)
+        && digits.len() == 2
+        && digits.bytes().all(|byte| byte.is_ascii_digit())
 }
 
 /// Every Markdown file the reachability gate holds to an inbound link.
@@ -2358,11 +2622,11 @@ mod tests {
     };
     use super::{
         GENERATED_IN_CANONICAL_ROOTS, REACHABILITY_EXEMPTIONS, REACHABILITY_EXTRA_ROOTS,
-        RuleInventory, check_path_references, check_reachability, check_reserved_ceiling,
-        check_stated_counts, collect_files, doctrine_index_rows, inline_code_spans,
-        looks_like_path, maintained_markdown, outbound_links, reachability_scope, resolve_link,
-        root_documents, scan_marker_file, table_row_cells, unknown_alert,
-        validation_sequence_copies,
+        RuleInventory, check_gate_check_column, check_path_references, check_reachability,
+        check_reserved_ceiling, check_rule_enforcement, check_stated_counts, collect_files,
+        doctrine_index_rows, inline_code_spans, is_gate_id, looks_like_path, maintained_markdown,
+        outbound_links, reachability_scope, resolve_link, root_documents, scan_marker_file,
+        table_row_cells, unknown_alert, validation_sequence_copies,
     };
     use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity, states_obligations};
     use std::collections::BTreeSet;
@@ -2503,8 +2767,10 @@ mod tests {
         .expect("parse agents");
 
         let mut tierable = Vec::new();
+        let mut examined = 0usize;
         for pack in &agents.packs {
             for path in pack.canonical_sources.iter().chain(&pack.review_checklists) {
+                examined += 1;
                 if !states_obligations(path, &doctrines, &agents) {
                     tierable.push(format!("{} lists {path}", pack.id));
                 }
@@ -2518,6 +2784,12 @@ mod tests {
                 }
             }
         }
+        // `RUST-DOC-0008-R022`: a manifest that listed no sources would leave the loop
+        // examining nothing and this assertion passing on it.
+        assert!(
+            examined > 0,
+            "no role pack listed a source, so the absence below establishes nothing"
+        );
         assert!(
             tierable.is_empty(),
             "a role pack source that can be withheld: {tierable:?}"
@@ -2561,6 +2833,13 @@ mod tests {
             .iter()
             .filter(|path| !permitted.contains(path.as_str()))
             .collect();
+        // `RUST-DOC-0008-R022`: the generated files named by the constant do carry an
+        // HTML comment, so a scan that found none examined nothing and the absence
+        // below would hold for the wrong reason.
+        assert!(
+            !carriers.is_empty(),
+            "no Markdown carried an HTML comment, so the scan observed nothing"
+        );
         assert!(
             unexpected.is_empty(),
             "a new HTML comment in canonical Markdown must be a verbosity annotation: {unexpected:?}"
@@ -3566,6 +3845,125 @@ mod tests {
         assert!(cleared.is_empty(), "got {cleared:?}");
 
         let _ = fs::remove_dir_all(&root);
+    }
+
+    /// `RUST-DOC-0008-R022` applies to this check as much as to any other: a gate that
+    /// ships with a corpus already satisfying it must be shown capable of failing.
+    #[test]
+    fn rule_enforcement_reports_a_missing_field_a_bad_path_and_a_bare_waiver() {
+        let root = temporary_directory("rule-enforcement");
+        fs::create_dir_all(root.join("doctrines/0001-x")).unwrap();
+        fs::create_dir_all(root.join("examples")).unwrap();
+        fs::write(root.join("examples/real.rs"), "// artifact\n").unwrap();
+        fs::write(
+            root.join("doctrines/0001-x/doctrine.md"),
+            "# D\n\n\
+             ## RUST-DOC-0001-R001 — Named artifact that exists\n\n\
+             **Enforcement.** `examples/real.rs` — shows it.\n\n\
+             ## RUST-DOC-0001-R002 — Artifact that does not exist\n\n\
+             **Enforcement.** `examples/missing.rs`\n\n\
+             ## RUST-DOC-0001-R003 — No field at all\n\n\
+             **Intent.** Something.\n\n\
+             ## RUST-DOC-0001-R004 — Waiver with no reason\n\n\
+             **Enforcement.** Unenforceable: x\n",
+        )
+        .unwrap();
+
+        let manifest = DoctrineManifest {
+            schema_version: "1.0".to_owned(),
+            repository_version: "0.0.0".to_owned(),
+            doctrines: vec![doctrine_entry(
+                "RUST-DOC-0001",
+                "0001-x",
+                "X",
+                DoctrineStatus::Active,
+            )],
+        };
+        let mut diagnostics = Vec::new();
+        check_rule_enforcement(&root, &manifest, &mut diagnostics);
+
+        let joined = diagnostics
+            .iter()
+            .map(|d| d.message.clone())
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(
+            joined.contains("R002") && joined.contains("does not exist"),
+            "a named artifact that is absent must be reported; got {joined}"
+        );
+        assert!(
+            joined.contains("R003") && joined.contains("no"),
+            "a rule with no enforcement field must be reported; got {joined}"
+        );
+        assert!(
+            joined.contains("R004"),
+            "a waiver with no stated reason must be reported; got {joined}"
+        );
+        assert!(
+            !joined.contains("R001"),
+            "a rule naming an existing artifact must pass; got {joined}"
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn gate_check_column_reports_a_missing_column_and_an_undeclared_gate() {
+        let root = temporary_directory("gate-check-column");
+        fs::create_dir_all(root.join("doctrines/0001-x")).unwrap();
+        fs::write(
+            root.join("doctrines/0001-x/review-standard.md"),
+            "# R\n\n\
+             | Gate | Question | Check |\n\
+             | ---- | -------- | ----- |\n\
+             | I01  | a?       | judgment |\n\
+             | I02  | b?       | mechanical(cargo test --workspace) |\n\
+             | I03  | c?       | maybe |\n",
+        )
+        .unwrap();
+        let manifest = DoctrineManifest {
+            schema_version: "1.0".to_owned(),
+            repository_version: "0.0.0".to_owned(),
+            doctrines: vec![doctrine_entry(
+                "RUST-DOC-0001",
+                "0001-x",
+                "X",
+                DoctrineStatus::Active,
+            )],
+        };
+
+        let mut diagnostics = Vec::new();
+        check_gate_check_column(&root, &manifest, &mut diagnostics);
+        assert_eq!(diagnostics.len(), 1, "got {diagnostics:?}");
+        assert!(diagnostics[0].message.contains("I03"));
+
+        // A standard with no Check column at all is reported rather than skipped.
+        fs::write(
+            root.join("doctrines/0001-x/review-standard.md"),
+            "# R\n\n| Gate | Question |\n| ---- | -------- |\n| I01  | a?       |\n",
+        )
+        .unwrap();
+        let mut missing = Vec::new();
+        check_gate_check_column(&root, &manifest, &mut missing);
+        assert!(
+            missing
+                .iter()
+                .any(|d| d.message.contains("no Check column")),
+            "got {missing:?}"
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn gate_ids_are_recognised_by_shape() {
+        assert!(is_gate_id("T01"));
+        assert!(is_gate_id("I18"));
+        assert!(is_gate_id("ABC99"));
+        assert!(!is_gate_id("Gate"));
+        assert!(!is_gate_id("Inventory"));
+        assert!(!is_gate_id("T1"));
+        assert!(!is_gate_id("T001"));
     }
 
     #[test]

@@ -14,20 +14,6 @@ The doctrine therefore begins with a protocol description: state ownership,
 mutation authority, synchronization, task custody, queue capacity, and
 shutdown. Primitives are selected after the invariant is known.
 
-## Ownership model choices
-
-Single-owner designs remove many interleavings. An actor or dedicated worker
-can own mutable state and accept commands through a bounded channel. This makes
-mutation order local, but introduces mailbox capacity, response cancellation,
-owner failure, and shutdown questions. Shared-lock designs can reduce message
-overhead and allow direct reads, but require a lock graph and careful critical
-sections. Immutable snapshots can simplify reads while making update and memory
-retention costs visible. Atomics can serve narrow protocols, but their compact
-syntax hides a demanding memory-order proof.
-
-No model is uniformly superior. The correct question is which model makes the
-important invariant and overload behavior easiest to establish and audit.
-
 ## Cancellation is control flow
 
 An async future may be dropped whenever its owner abandons it, a timeout wins,
@@ -38,46 +24,8 @@ before awaiting the response, cancellation cannot establish that the request
 did not execute. If it acquired a permit through an RAII guard, drop may
 correctly release local capacity, but it cannot undo an external effect.
 
-Cancellation analysis records:
-
-| Question                               | Required answer                                       |
-| -------------------------------------- | ----------------------------------------------------- |
-| What changed before suspension?        | local and external mutations                          |
-| What happens if the future is dropped? | destructor, abandonment, or no action                 |
-| Who owns recovery?                     | current task, supervisor, lease expiry, or reconciler |
-| Can the operation resume safely?       | cursor, transaction, or idempotency evidence          |
-| Can success be unknown?                | explicit reconciliation state and identity            |
-
 Cancellation-safe does not mean infallible. It means that dropping the future
 at the specified point does not violate its documented protocol.
-
-## Backpressure is part of the API
-
-When producers can outpace consumers, some resource accumulates: memory,
-threads, file descriptors, database rows, broker depth, or caller latency.
-Calling a channel "internal" does not remove this fact. A bounded channel makes
-capacity observable, but the choice at capacity still matters. Waiting
-propagates pressure upstream. Rejection preserves the service but requires a
-caller policy. Shedding or coalescing is valid only when the lost distinctions
-are unimportant. Persisting creates a durable queue with its own retention and
-replay contract.
-
-Capacity should derive from resource budgets and service objectives rather than
-an arbitrary large number. Stress evidence must include behavior after the
-limit, not only throughput before it.
-
-## Structured task ownership
-
-A spawned task creates a lifecycle. Someone must observe its completion and
-failure, decide whether to cancel siblings, and stop it during shutdown. Merely
-retaining a runtime handle is insufficient if the handle is never awaited or
-supervised. Structured ownership forms a task tree whose children do not
-silently outlive the authority, configuration, or resources of their parent.
-
-Some process-lifetime tasks cannot be lexically scoped to a request. They still
-need a top-level supervisor, name, health signal, restart budget, and shutdown
-path. Detachment describes an implementation relationship; it must not erase
-operational accountability.
 
 ## Locks and suspension
 

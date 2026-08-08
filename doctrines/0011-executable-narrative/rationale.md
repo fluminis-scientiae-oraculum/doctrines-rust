@@ -93,13 +93,6 @@ no expiry, and no place in review.
 
 ## Interaction with external reality
 
-The partition's external leg is the one most often crossed by accident, because the local
-guarantee is visible in the editor and the external one is not. Committed state, remote
-acknowledgment, provider identity status, current policy, the current time, lock ownership,
-fencing-token validity, delivery, and settlement are each owned by a system that has to be asked.
-A design that names the owner for each of them can be reviewed; a design that does not has an
-unowned claim, and the review has nothing to check it against.
-
 Rationale is also subject to external change. A regulatory interpretation, a contractual
 obligation, and a vendor restriction can all lapse without anything in the repository moving,
 which is why `RUST-DOC-0011-R009` attaches an obsolescence condition to the record rather than to
@@ -122,19 +115,6 @@ It is also overapplied when generation is demanded for a view whose generator wo
 hand-maintained input describing the same claim. That input is the competing copy wearing the
 word "generated", and `RUST-DOC-0011-R005` names the case explicitly so it does not have to be
 rediscovered.
-
-## Guarantee ledger
-
-| Claim                                                          | Established by                                                    | Protected construction                                     | Boundary preservation                                     | Escape hatches                                    | Does not prove                                                    | Residual runtime risk                                        |
-| -------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------ |
-| An enforced claim has exactly one operational authority        | the classification under R001 and the citation under R003         | review gates E01 to E05                                    | the unenforced part is stated separately under R003       | recorded assessment under R002 and R020           | that the enforced obligation is the right obligation              | a claim nobody classified, so nobody noticed was unenforced  |
-| No competing manually maintained copy of an enforced claim     | the representation inventory under R017 and the ban under R004    | review gates E15 to E21                                    | derived views are generated and drift-checked under R005  | informative marking with a named owner            | that the remaining authority is current with the domain           | a copy in a system outside this repository's review scope    |
-| A generated view cannot silently diverge from its source       | generation plus drift detection under R005                        | the generator declares its source and output is not edited | `dist/` is regenerated, never hand-corrected              | none                                              | that the generated content is correct, only that it is current    | a canonical source that is itself a stale second copy        |
-| Every active decision record is owned and has an end condition | `doctrine-lint` reading each record's own front matter under R007 | the registry lists membership only, duplicating no field   | archived records are excluded from agent packs under R018 | none                                              | that the record's stated justification is a good one              | a record whose justification is stated, auditable, and wrong |
-| An obsolete record is not current authority                    | status change under R009 and confirmation under R010              | archival marking travels with the record                   | generated packs exclude archived records                  | explicit inclusion for a record-scoped task       | that a reader will not open the archive and cite it anyway        | a record cited outside review, where no gate applies         |
-| An external fact names its authoritative system                | the external-authority requirement under R014                     | review gates E06 and E07                                   | the check that consults the external system is named      | none                                              | that the external system was consulted at the moment of the claim | staleness between the consultation and the use               |
-| Recorded rationale is genuinely irrecoverable                  | the recoverability check under R012                               | review gate E36                                            | rationale references the enforcing artifact by name       | quotation for explanation with the artifact named | that the recorded reason is the reason that actually governed     | a recorded reason that was itself an unlabelled inference    |
-| An absent rationale stays absent rather than invented          | the unknown record required by R013                               | review gates E37 and E38                                   | inferences are labelled with their evidence               | labelled inference                                | that the governing reason can be recovered later                  | an inference labelled once and cited later without its label |
 
 ## Evidence limits
 

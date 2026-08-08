@@ -16,6 +16,9 @@ security-sensitive flows.
 **Review evidence.** Failure table mapping causes to variants, recovery, retry, logging,
 protocol status, and uncertainty.
 
+**Enforcement.** Unenforceable: No failure-inventory table in repo; inventory is a
+pre-implementation design act
+
 ## RUST-DOC-0002-R002 — Use structured library errors
 
 **Statement.** Library APIs MUST NOT use opaque string errors as their primary public contract
@@ -30,6 +33,9 @@ category can be promised, provided callers have documented inspection or reporti
 
 **Review evidence.** Public enum or equivalent typed interface, match examples, and stability
 policy.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— typed ContactError; tests match variants
 
 ## RUST-DOC-0002-R003 — Distinguish actionable categories
 
@@ -46,6 +52,9 @@ recipient cannot act differently and observability retains safe internal detail.
 
 **Review evidence.** Outcome-to-action matrix and conversion tests.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— retry matrix keeps the three cases distinct
+
 ## RUST-DOC-0002-R004 — Preserve sources
 
 **Statement.** Error wrapping and conversion SHOULD preserve the originating error through a
@@ -59,6 +68,9 @@ source chain when doing so is safe and useful for diagnosis.
 replace the exposed source with a sanitized internal correlation record.
 
 **Review evidence.** `source()` chain tests or report inspection, plus redaction review.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— Error::source forwards the wrapped cause
 
 ## RUST-DOC-0002-R005 — Add context without erasing category
 
@@ -75,6 +87,9 @@ control decisions have been made.
 **Review evidence.** Context chain, correlation ID, structured fields, and user-facing
 redaction.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— stage context added while keeping the typed cause
+
 ## RUST-DOC-0002-R006 — State recoverability
 
 **Statement.** Recoverability MUST be explicit at the decision point; callers MUST NOT infer
@@ -90,6 +105,9 @@ contract once at module level.
 
 **Review evidence.** Post-error state contract, returned recovery value or token, and tests.
 
+**Enforcement.** Unenforceable: No operation returns a recovery value with Err; post-error state
+undocumented
+
 ## RUST-DOC-0002-R007 — Type retry guidance
 
 **Statement.** Retryability MUST NOT be inferred solely from a generic transport class,
@@ -104,6 +122,9 @@ idempotency, attempt budget, backoff, and external commitment.
 
 **Review evidence.** Typed retry decision, idempotency analysis, budget, jitter, and fault
 tests.
+
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— retry typed by observation and idempotency
 
 ## RUST-DOC-0002-R008 — Preserve indeterminate outcomes
 
@@ -121,6 +142,9 @@ non-execution.
 **Review evidence.** Commitment analysis, explicit unknown type, reconciliation identity, and
 conversion tests.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— unknown outcome never becomes rejection
+
 ## RUST-DOC-0002-R009 — Bound panic to programmer faults
 
 **Statement.** Panics MUST be reserved for violated internal invariants or unrecoverable
@@ -135,6 +159,9 @@ configuration after producing a clear sanitized diagnostic, when continued opera
 unsafe and no caller can recover.
 
 **Review evidence.** Panic-site inventory, unwind/abort policy, and boundary failure tests.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— malformed input returns typed Err, not panic
 
 ## RUST-DOC-0002-R010 — Justify `unwrap` and `expect`
 
@@ -152,6 +179,9 @@ being taught and failure location remains clear.
 **Review evidence.** Search results, invariant comments where not obvious, and negative tests
 for external input.
 
+**Enforcement.** Unenforceable: No production unwrap or expect exists to justify; clippy config does
+not deny them
+
 ## RUST-DOC-0002-R011 — Preserve security and reconciliation evidence
 
 **Statement.** Error conversion MUST NOT erase security-relevant denial, authentication
@@ -168,6 +198,9 @@ a protected correlated record.
 
 **Review evidence.** Internal/external mapping, audit fields, access control, and redaction.
 
+**Enforcement.** Unenforceable: No security-denial mapping, audit fields, or conversion test exists
+in repo
+
 ## RUST-DOC-0002-R012 — Prevent secret disclosure
 
 **Statement.** Error display, debug, source chains, protocol responses, logs, and telemetry
@@ -182,6 +215,9 @@ security decisions.
 explicit access and retention policy.
 
 **Review evidence.** Recipient map, redaction tests, debug implementations, and sample logs.
+
+**Enforcement.** Unenforceable: No redaction test, sanitized Debug, or recipient map anywhere in
+repo
 
 ## RUST-DOC-0002-R013 — Govern public error compatibility
 
@@ -199,6 +235,9 @@ variants.
 **Review evidence.** Semver analysis, non-exhaustive strategy, code stability, and migration
 notes.
 
+**Enforcement.** Unenforceable: No non_exhaustive error type, semver analysis, or migration notes
+exist
+
 ## RUST-DOC-0002-R014 — Log once at an ownership boundary
 
 **Statement.** Errors SHOULD be logged by the layer that owns the final handling decision,
@@ -212,3 +251,6 @@ rather than at every propagation layer.
 unique timing or state evidence and correlation prevents double counting.
 
 **Review evidence.** Error path trace, log ownership, event IDs, and alert mapping.
+
+**Enforcement.** Unenforceable: Workspace has no logging or tracing dependency; no error-path log
+ownership shown

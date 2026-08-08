@@ -16,6 +16,9 @@ as ordinary cleanup if no performance claim is made.
 **Review evidence.** Metric, target, baseline, workload, and correctness
 constraints.
 
+**Enforcement.** Unenforceable: No workload or objective artifact in repo; metric, target, baseline
+recorded nowhere
+
 ## RUST-DOC-0009-R002 — Scope every performance claim
 
 **Statement.** Performance claims MUST include environment, toolchain, build
@@ -32,6 +35,9 @@ must not support a merge claim.
 **Review evidence.** Reproducible command, environment manifest, raw or
 summarized samples, and commit identities.
 
+**Enforcement.** Unenforceable: No performance claim, environment manifest, or reproduction command
+exists in the repo
+
 ## RUST-DOC-0009-R003 — Profile before optimizing
 
 **Statement.** Profiling SHOULD precede nontrivial optimization and MUST precede
@@ -46,6 +52,9 @@ input bounds may be corrected without a profile, while still measuring outcome.
 
 **Review evidence.** Flamegraph, trace, allocation profile, system metrics, or
 equivalent relevant evidence.
+
+**Enforcement.** Unenforceable: Repo ships no profile, flamegraph, or trace capture to precede
+optimization
 
 ## RUST-DOC-0009-R004 — Preserve correctness independently
 
@@ -62,6 +71,9 @@ as a separately reviewed normative or API change, not as hidden optimization.
 
 **Review evidence.** Invariant-linked tests and guarantee-ledger diff.
 
+**Enforcement.** Unenforceable: No optimization exists; benchmark-independent correctness evidence
+has nothing to attach to
+
 ## RUST-DOC-0009-R005 — Defend benchmark execution
 
 **Statement.** Benchmark code MUST prevent dead-code elimination, constant
@@ -76,6 +88,9 @@ the intended workload.
 
 **Review evidence.** Input generation, black-boxing where appropriate,
 setup/measurement separation, and result consumption.
+
+**Enforcement.** Unenforceable: No benchmark code exists; black-boxing and setup separation have
+nothing to inspect
 
 ## RUST-DOC-0009-R006 — Separate wall-clock and CPU claims
 
@@ -92,6 +107,9 @@ measure with its assumption stated.
 
 **Review evidence.** Metric definition and collection method.
 
+**Enforcement.** Unenforceable: No timing measurement exists; wall-clock versus CPU distinction is
+unobservable here
+
 ## RUST-DOC-0009-R007 — Report distributions
 
 **Statement.** User-visible or service latency claims MUST report appropriate
@@ -106,6 +124,9 @@ summary after showing low variance.
 
 **Review evidence.** Sample count, percentile method, confidence or variability,
 and outlier policy.
+
+**Enforcement.** Unenforceable: No latency samples or percentile output exist anywhere in the
+repository
 
 ## RUST-DOC-0009-R008 — Document warmup and cache state
 
@@ -123,6 +144,8 @@ distribution matches production and is documented.
 **Review evidence.** Preparation sequence and separate cold/warm results where
 both matter.
 
+**Enforcement.** Unenforceable: No measurement runs, so warmup and cache state are never documented
+
 ## RUST-DOC-0009-R009 — Measure allocation claims
 
 **Statement.** Claims that code allocates less, performs no allocation, or
@@ -139,6 +162,9 @@ noted structurally, but broader runtime claims still require measurement.
 **Review evidence.** Allocation count/bytes, allocator, peak/resident set, and
 workload.
 
+**Enforcement.** Unenforceable: No allocator-aware measurement, heap profile, or allocation claim
+exists in repo
+
 ## RUST-DOC-0009-R010 — Scope zero-copy claims
 
 **Statement.** A zero-copy claim MUST identify every copy avoided within the
@@ -153,6 +179,9 @@ ownership costs introduced.
 
 **Review evidence.** Data-flow diagram, measured copy/allocation evidence, and
 non-guarantees.
+
+**Enforcement.** Unenforceable: No zero-copy claim or data-flow evidence appears in any shipped
+crate
 
 ## RUST-DOC-0009-R011 — Do not equate async with speedup
 
@@ -169,6 +198,9 @@ efficiency or concurrent latency.
 **Review evidence.** Executor configuration, CPU utilization, throughput,
 latency, and contention.
 
+**Enforcement.** Unenforceable: No async runtime, executor trace, or CPU-utilization evidence ships
+in examples
+
 ## RUST-DOC-0009-R012 — Make throughput/latency tradeoffs explicit
 
 **Statement.** Batching, buffering, pipelining, and concurrency changes MUST
@@ -182,6 +214,9 @@ report both throughput and relevant latency/queue consequences.
 no objective while still bounding resource use.
 
 **Review evidence.** Batch/concurrency sweep and distribution results.
+
+**Enforcement.** Unenforceable: No batching or concurrency sweep results exist pairing throughput
+with latency
 
 ## RUST-DOC-0009-R013 — Measure contention and backpressure
 
@@ -197,6 +232,9 @@ where relevant.
 shared contention.
 
 **Review evidence.** Contention profile, load curve, and overload behavior.
+
+**Enforcement.** Unenforceable: No queue, lock, or backpressure instrumentation; examples avoid
+concurrency entirely
 
 ## RUST-DOC-0009-R014 — Count boundary costs
 
@@ -214,6 +252,8 @@ and state that it excludes boundary cost.
 
 **Review evidence.** Trace or component budget.
 
+**Enforcement.** Unenforceable: No trace or component budget; repo integrates no database or network
+
 ## RUST-DOC-0009-R015 — Review clone removal architecturally
 
 **Statement.** Avoiding `clone` MUST NOT introduce worse algorithmic complexity,
@@ -230,6 +270,9 @@ ownership shape may be a local cleanup.
 **Review evidence.** Data ownership, allocation profile, complexity, and
 contention.
 
+**Enforcement.** Unenforceable: No measured clone removal; examples carry no allocation profile or
+ownership analysis
+
 ## RUST-DOC-0009-R016 — Govern unsafe optimization
 
 **Statement.** Unsafe performance changes MUST satisfy RUST-DOC-0007 and MUST
@@ -245,6 +288,9 @@ performance is not its justification; that case is not an optimization claim.
 
 **Review evidence.** Safe baseline, benchmark, profile, safety proof, and
 specialized tests.
+
+**Enforcement.** Unenforceable: unsafe-evidence crate makes no performance claim and has no
+safe-baseline benchmark
 
 ## RUST-DOC-0009-R017 — Automate stable regressions
 
@@ -263,6 +309,9 @@ dedicated hosts.
 **Review evidence.** Baseline history, variance, threshold, hardware stability,
 and rerun policy.
 
+**Enforcement.** Unenforceable: CI defines no benchmark, size, or allocation regression gate; no
+variance history
+
 ## RUST-DOC-0009-R018 — Do not generalize microbenchmarks
 
 **Statement.** Microbenchmark results MUST NOT be generalized to end-to-end
@@ -277,6 +326,9 @@ workload contribution.
 isolated primitive it measures.
 
 **Review evidence.** Profile share, integrated benchmark, or component budget.
+
+**Enforcement.** Unenforceable: No microbenchmark exists to generalize; no profile share or
+integrated benchmark
 
 ## RUST-DOC-0009-R019 — Account for build and binary cost
 
@@ -295,6 +347,9 @@ document no concern.
 **Review evidence.** Build timing, artifact sections, generic instantiations, or
 dependency analysis.
 
+**Enforcement.** Unenforceable: No build-timing, binary-size, or monomorphization measurement is
+collected or retained
+
 ## RUST-DOC-0009-R020 — Retain reproducible evidence
 
 **Statement.** Accepted performance decisions MUST retain commands, commits,
@@ -309,3 +364,6 @@ repeat or challenge the result.
 controlled storage with a sanitized reproducible summary.
 
 **Review evidence.** Benchmark record and provenance.
+
+**Enforcement.** Unenforceable: No retained benchmark record, raw data, or provenance; EVIDENCE.md
+states none

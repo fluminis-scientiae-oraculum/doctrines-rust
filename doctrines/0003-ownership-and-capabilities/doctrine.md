@@ -15,6 +15,9 @@ handoffs.
 
 **Review evidence.** Authority map, lifecycle diagram, and ownership signatures.
 
+**Enforcement.** Unenforceable: No artifact enumerates owners; authority-map completeness is judged
+against the design
+
 ## RUST-DOC-0003-R002 — Encode exclusive authority with ownership
 
 **Statement.** Ownership SHOULD express exclusive authority when only one actor may legally
@@ -30,6 +33,9 @@ multiple processes or persisted actors participate.
 **Review evidence.** Non-cloneable type, consuming operation, and concurrency or compile-fail
 tests.
 
+**Enforcement.** [`reuse_consumed_transaction.rs`](../../examples/compile-fail/ui/reuse_consumed_transaction.rs)
+— a consumed handle cannot be reused
+
 ## RUST-DOC-0003-R003 — Bound borrowed authority
 
 **Statement.** A borrowed reference MUST NOT accidentally grant mutation, ownership transfer,
@@ -43,6 +49,9 @@ serialization, or authority beyond the documented borrow scope.
 the explicit design and synchronization is correct.
 
 **Review evidence.** Method receiver audit, returned-lifetime analysis, and mutation tests.
+
+**Enforcement.** Unenforceable: No borrowed guard or view in workspace; granted rights judged from
+receiver and lifetime
 
 ## RUST-DOC-0003-R004 — Restrict capability issuance and surface
 
@@ -58,6 +67,10 @@ resource capabilities.
 
 **Review evidence.** Visibility, fields, re-exports, operation methods, and issuer tests.
 
+**Enforcement.**
+[`construct_verified_email_directly.rs`](../../examples/compile-fail/ui/construct_verified_email_directly.rs)
+— only the issuer may construct the proof
+
 ## RUST-DOC-0003-R005 — Justify cloning authority
 
 **Statement.** Cloning or copying an authority-bearing value MUST require explicit
@@ -71,6 +84,9 @@ justification consistent with exclusivity, use count, scope, and revocation.
 of the documented authority model.
 
 **Review evidence.** `Clone`/`Copy` audit, clone semantics, and duplicate-use tests.
+
+**Enforcement.** [`clone_stage_to_duplicate.rs`](../../examples/compile-fail/ui/clone_stage_to_duplicate.rs)
+— a single-use stage has no Clone
 
 ## RUST-DOC-0003-R006 — Define transfer and revocation
 
@@ -86,6 +102,9 @@ of their contract.
 
 **Review evidence.** State transitions, clocks or versions, revocation check, and stale-use
 tests.
+
+**Enforcement.** Unenforceable: No lease, expiry, or revocation type in workspace; applicability
+judged per design
 
 ## RUST-DOC-0003-R007 — Treat RAII as local cleanup
 
@@ -103,6 +122,9 @@ by `Drop`.
 **Review evidence.** Explicit completion methods, drop fallback, error observability, and
 failure tests.
 
+**Enforcement.** Unenforceable: Workspace has no Drop impl for resources; drop-claim wording judged
+per failure mode
+
 ## RUST-DOC-0003-R008 — Protect secret-bearing types
 
 **Statement.** Secret-bearing types MUST minimize accidental `Debug`, `Display`, cloning,
@@ -117,6 +139,9 @@ required for a protected secret store under a distinct API.
 
 **Review evidence.** Trait implementation audit, redaction tests, exposure call sites, and
 storage contract.
+
+**Enforcement.** Unenforceable: No secret type in workspace; newtype Debug redaction is not
+secret-handling evidence
 
 ## RUST-DOC-0003-R009 — Limit zeroization claims
 
@@ -133,6 +158,9 @@ serialization unless those paths are controlled and evidenced.
 **Review evidence.** Ownership and copy analysis, drop path, memory-locking policy where used,
 and explicit non-guarantees.
 
+**Enforcement.** Unenforceable: No zeroization code or claim exists; uncovered paths judged per
+platform and allocator
+
 ## RUST-DOC-0003-R010 — Design before `Arc<Mutex<T>>`
 
 **Statement.** `Arc<Mutex<T>>` MUST NOT be the default substitute for identifying ownership,
@@ -147,6 +175,9 @@ synchronization contract is documented.
 
 **Review evidence.** Owner, lock invariant, contention and poisoning policy, alternatives, and
 tests.
+
+**Enforcement.** Unenforceable: No concurrency code; whether ownership preceded lock choice is
+unobservable from code
 
 ## RUST-DOC-0003-R011 — Justify interior mutability
 
@@ -164,6 +195,9 @@ semantics and reentrancy is safe.
 **Review evidence.** Aliasing rationale, borrow/panic behavior, synchronization, and reentrancy
 tests.
 
+**Enforcement.** Unenforceable: Only test-harness RefCell exists; necessity of an aliasing contract
+judged per design
+
 ## RUST-DOC-0003-R012 — Use lifetimes for real relationships
 
 **Statement.** Lifetime parameters SHOULD express actual borrowing or validity relationships,
@@ -180,6 +214,9 @@ dependency, with its relationship documented.
 **Review evidence.** Referent and duration explanation, escape analysis, and simpler owned
 alternative.
 
+**Enforcement.** Unenforceable: Examples declare no named lifetimes; ornamental versus real referent
+judged from signatures
+
 ## RUST-DOC-0003-R013 — Define cross-task ownership
 
 **Statement.** Transfer of authority or resources across tasks MUST identify the new owner,
@@ -193,6 +230,9 @@ is dropped or panics.
 **Allowed exceptions.** Truly process-lifetime services MAY be owned by the process supervisor.
 
 **Review evidence.** Task tree, join/abort contract, channel closure, and shutdown tests.
+
+**Enforcement.** Unenforceable: No spawned tasks or async; join, cancel, shutdown ownership judged
+per design
 
 ## RUST-DOC-0003-R014 — Keep external authority revalidation explicit
 
@@ -209,3 +249,6 @@ commit window.
 
 **Review evidence.** Lease or recheck boundary, stale-state handling, and revocation race
 tests.
+
+**Enforcement.** Unenforceable: No revocation backend; freshness window and revalidation boundary
+are policy judgments

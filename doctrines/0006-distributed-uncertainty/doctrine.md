@@ -17,6 +17,9 @@ establishes that execution could not have begun or was atomically cancelled.
 **Review evidence.** Protocol timeline, cancellation semantics, and explicit
 unknown-outcome path.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— ExecutionAmbiguous routes to Unknown/reconcile
+
 ## RUST-DOC-0006-R002 — Model operationally distinct outcomes
 
 **Statement.** Outcome types MUST distinguish confirmed success, confirmed
@@ -31,6 +34,9 @@ require different recovery.
 meaning, security consequence, or reconciliation path differs.
 
 **Review evidence.** Outcome decision table and exhaustive caller handling.
+
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— Confirmed/Rejected/Unknown plus NotDispatched
 
 ## RUST-DOC-0006-R003 — Carry reconciliation evidence
 
@@ -48,6 +54,9 @@ retain only audit evidence if business policy accepts permanent uncertainty.
 **Review evidence.** Reconciliation token, operation ID, request fingerprint,
 target, attempt history, and observation method.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— ReconciliationToken carries OperationId
+
 ## RUST-DOC-0006-R004 — Analyze before retry
 
 **Statement.** Every retry policy MUST classify the operation as safe to retry,
@@ -63,6 +72,9 @@ when staleness and load remain documented.
 
 **Review evidence.** Failure-point matrix, idempotency mechanism, deadline, and
 attempt budget.
+
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— decide_retry maps observation to retry posture
 
 ## RUST-DOC-0006-R005 — Define idempotency-key semantics
 
@@ -80,6 +92,9 @@ semantic identity and repeated-result behavior are established independently.
 **Review evidence.** Key contract, storage constraint, same-key/same-payload and
 same-key/different-payload tests, and expiry policy.
 
+**Enforcement.** Unenforceable: No artifact defines key scope, uniqueness, retention, payload
+binding, or replay
+
 ## RUST-DOC-0006-R006 — Reuse operation identity across attempts
 
 **Statement.** Retries of one logical operation MUST reuse its operation and
@@ -94,6 +109,9 @@ intent.
 be added, but it MUST remain correlated to the stable logical operation.
 
 **Review evidence.** Identity lifecycle and attempt log.
+
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— retries reuse the same operation and idempotency key
 
 ## RUST-DOC-0006-R007 — Expect duplicate delivery
 
@@ -112,6 +130,9 @@ of duplicates, with that loss documented.
 **Review evidence.** Duplicate test, stable message identity, and effect-level
 handling.
 
+**Enforcement.** Unenforceable: No consumer, broker, or duplicate-delivery path exists in any
+example crate
+
 ## RUST-DOC-0006-R008 — Persist deduplication durably
 
 **Statement.** Deduplication that protects a durable effect MUST itself use
@@ -128,6 +149,9 @@ best-effort work whose duplicate cost is accepted.
 **Review evidence.** Unique key, transaction boundary, retention calculation,
 and replay-after-restart test.
 
+**Enforcement.** Unenforceable: No durable store or transaction exists; examples avoid database and
+broker dependencies
+
 ## RUST-DOC-0006-R009 — State ordering scope
 
 **Statement.** Ordering claims MUST identify key or partition, producer set,
@@ -142,6 +166,9 @@ false global guarantee.
 
 **Review evidence.** Ordering contract and tests for retries, multiple
 producers, and failover.
+
+**Enforcement.** Unenforceable: No ordering, partition, producer-set, or consumer-concurrency model
+exists
 
 ## RUST-DOC-0006-R010 — Qualify exactly-once claims
 
@@ -158,6 +185,9 @@ included. It MUST NOT imply exactly-once behavior beyond that boundary.
 **Review evidence.** Guarantee ledger, protocol documentation, duplicate tests,
 and excluded effects.
 
+**Enforcement.** Unenforceable: No exactly-once mechanism or transactional boundary is implemented
+anywhere
+
 ## RUST-DOC-0006-R011 — Coordinate acknowledgement with effect
 
 **Statement.** A consumer MUST define the order and atomic relationship among
@@ -172,6 +202,9 @@ loss is accepted and measured.
 
 **Review evidence.** Crash-point matrix and tests before and after each durable
 step.
+
+**Enforcement.** Unenforceable: No consumer, acknowledgement, or durable-progress sequencing is
+implemented
 
 ## RUST-DOC-0006-R012 — Treat compensation as a new effect
 
@@ -190,6 +223,9 @@ its actual transaction boundary.
 **Review evidence.** Forward/compensation pairs, business non-equivalence,
 failure handling, and reconciliation.
 
+**Enforcement.** Unenforceable: No saga, compensation, or forward/compensation pair exists in any
+example crate
+
 ## RUST-DOC-0006-R013 — Treat observations as time-scoped evidence
 
 **Statement.** External observations MUST record or imply their observation
@@ -206,6 +242,9 @@ source contract establishes immutability.
 
 **Review evidence.** Freshness policy, version or timestamp, cache behavior, and
 revalidation trigger.
+
+**Enforcement.** Unenforceable: No timestamp, version, or freshness field exists on any outcome or
+observation
 
 ## RUST-DOC-0006-R014 — Address concurrent execution and split brain
 
@@ -230,6 +269,8 @@ duplicate-safe operations with evidence.
 and kind, quantified timing bounds, assumption-failure behavior, and overlap
 test.
 
+**Enforcement.** Unenforceable: No lease, fencing token, clock source, or concurrency backend exists
+
 ## RUST-DOC-0006-R015 — Bound retries and reconciliation
 
 **Statement.** Retry and reconciliation loops MUST have bounded concurrency,
@@ -247,6 +288,9 @@ but each execution cycle still requires bounded work and visible age.
 **Review evidence.** Queue capacity, schedule, age metrics, dead-letter or
 manual escalation, and overload test.
 
+**Enforcement.** Unenforceable: No retry loop, attempt budget, backoff, queue, or escalation is
+implemented
+
 ## RUST-DOC-0006-R016 — Preserve correlation and causality
 
 **Statement.** Audit trails MUST preserve stable operation identity, attempt
@@ -262,6 +306,9 @@ individual reconstruction is unnecessary.
 
 **Review evidence.** Event schema, trace propagation, redaction, and end-to-end
 incident query.
+
+**Enforcement.** Unenforceable: No audit event schema, attempt log, trace propagation, or request
+fingerprint exists
 
 ## RUST-DOC-0006-R017 — Protect sensitive reconciliation data
 
@@ -280,6 +327,9 @@ documented access, encryption, minimization, and deletion policy.
 **Review evidence.** Field classification, redaction tests, access policy, and
 retention.
 
+**Enforcement.** Unenforceable: No field classification, redaction, or sensitive-data handling
+exists in any example
+
 ## RUST-DOC-0006-R018 — Test failure points, not only final errors
 
 **Statement.** Distributed-effect tests MUST inject loss, delay, duplication,
@@ -296,6 +346,9 @@ why.
 **Review evidence.** Fault matrix linked to invariants, test results, and
 unexercised assumptions.
 
+**Enforcement.** Unenforceable: Tests inject no loss, delay, duplication, reordering, or crash
+points
+
 ## RUST-DOC-0006-R019 — State residual uncertainty
 
 **Statement.** Public and internal contracts MUST state which outcomes can
@@ -311,3 +364,6 @@ message.
 
 **Review evidence.** State machine, service-level target, escalation path, and
 guarantee ledger.
+
+**Enforcement.** Unenforceable: Needs stated unknown-duration, reconciliation owner, operator
+guidance; none carried

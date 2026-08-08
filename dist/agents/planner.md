@@ -983,6 +983,9 @@ are demonstrably unchanged.
 **Review evidence.** An invariant inventory using the foundation format, plus a state and
 boundary map appropriate to the risk.
 
+**Enforcement.** Unenforceable: Nothing shows discovery preceded representation, nor that the
+inventory is complete
+
 ## RUST-DOC-0001-R002 — Represent mutually exclusive state as a sum type
 
 **Statement.** Contradictory field combinations MUST be replaced by an enum or equivalent sum
@@ -1008,6 +1011,9 @@ construction, provided the rejection is tested.
 boundary, decoding rejection of an unknown discriminant value, and persistence evolution
 policy.
 
+**Enforcement.** [`examples/domain-modeling/src/lib.rs`](../../examples/domain-modeling/src/lib.rs)
+— InvoiceState binds receipt to Paid, reason to Failed
+
 ## RUST-DOC-0001-R003 — Protect trusted newtype representation
 
 **Statement.** A trusted validated newtype MUST keep its representation private from callers
@@ -1023,6 +1029,10 @@ distinction only and whose name does not assert validation.
 
 **Review evidence.** Visibility audit covering fields, constructors, macros, derives,
 features, tests, and re-exports.
+
+**Enforcement.**
+[`construct_verified_email_fields.rs`](../../examples/compile-fail/ui/construct_verified_email_fields.rs)
+— compiler rejects writing the private evidence field
 
 ## RUST-DOC-0001-R004 — Enforce the complete documented invariant
 
@@ -1041,6 +1051,9 @@ and documentation reflect that evidence level.
 **Review evidence.** Constructor matrix, positive and negative tests, policy version where
 relevant, and proof-token construction audit.
 
+**Enforcement.** [`examples/validated-newtypes/src/lib.rs`](../../examples/validated-newtypes/src/lib.rs)
+— TryFrom delegates to the single parse policy
+
 ## RUST-DOC-0001-R005 — Name the evidence accurately
 
 **Statement.** A type, variant, method, or field name MUST NOT imply stronger evidence than its
@@ -1058,6 +1071,9 @@ their exact repository meaning is documented.
 **Review evidence.** Guarantee ledger linking each name to producer, scope, time, and
 non-guarantees.
 
+**Enforcement.** Unenforceable: No check compares a name's implied evidence against what
+construction establishes
+
 ## RUST-DOC-0001-R006 — Preserve invariants through deserialization
 
 **Statement.** Deserialization MUST NOT write a trusted representation in a way that bypasses
@@ -1074,6 +1090,9 @@ preconditions are reviewed and tested.
 
 **Review evidence.** `try_from` or manual decoding path, malformed and policy-invalid cases,
 size limits, and unknown-version behavior.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— serde try_from; invalid JSON email rejected
 
 ## RUST-DOC-0001-R007 — Validate database decoding
 
@@ -1093,6 +1112,9 @@ the equivalence is documented.
 **Review evidence.** Raw-row/domain separation, checked conversion, invalid-history test,
 constraint inspection, quarantine or repair policy, and migration compatibility.
 
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— TryFrom row; invalid-history rows rejected
+
 ## RUST-DOC-0001-R008 — Preserve collection invariants after construction
 
 **Statement.** A validated collection wrapper MUST control every mutation and construction
@@ -1109,6 +1131,9 @@ borrowing that cannot violate the invariant.
 
 **Review evidence.** Mutation API audit, boundary conversion tests, empty and overflow tests,
 and iterator construction behavior.
+
+**Enforcement.** Unenforceable: No compiled collection wrapper exists; mutation-surface completeness
+is a per-API audit
 
 ## RUST-DOC-0001-R009 — Consume prior state when reuse is invalid
 
@@ -1128,6 +1153,9 @@ validation when consuming ownership would make recovery less correct.
 **Review evidence.** Transition signatures, clone audit, compile-fail test for significant
 reuse, and failure return semantics.
 
+**Enforcement.** [`reuse_consumed_transaction.rs`](../../examples/compile-fail/ui/reuse_consumed_transaction.rs)
+— staging after commit fails to compile
+
 ## RUST-DOC-0001-R010 — Use typestate proportionately
 
 **Statement.** Typestate MUST be reserved for locally controlled operation sequencing where
@@ -1146,6 +1174,9 @@ be used to gather diagnostic and complexity evidence.
 **Review evidence.** State graph, local-control argument, runtime-enum comparison, persistence
 plan, async failure design, compile diagnostics, and complexity budget.
 
+**Enforcement.** Unenforceable: Weighing typestate cost against the invalid programs prevented is
+unmeasured
+
 ## RUST-DOC-0001-R011 — Use runtime state for dynamic reality
 
 **Statement.** Dynamic, persisted, heterogeneous, externally determined, runtime-inspected, or
@@ -1162,6 +1193,9 @@ typestate operation when construction and staleness are controlled.
 
 **Review evidence.** Persistence schema, transition validator, concurrency policy, unknown
 variant plan, and hybrid conversion contract if used.
+
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— origin evidence erased to runtime OriginKind
 
 ## RUST-DOC-0001-R012 — Represent authority as restricted capability
 
@@ -1180,6 +1214,9 @@ authority is mutable and must be revalidated on every use.
 **Review evidence.** Issuer visibility, operation surface, clone/serialize audit, scope fields,
 revocation and expiry behavior, and misuse tests.
 
+**Enforcement.** Unenforceable: No capability type defining issuance, clone, transfer, expiry,
+revocation exists here
+
 ## RUST-DOC-0001-R013 — Keep external effects fallible
 
 **Statement.** Network, database, filesystem, process, device, and other external effects MUST
@@ -1197,6 +1234,9 @@ be infallible if allocation and panic behavior are outside the API's promised fa
 **Review evidence.** Structured result types, error categories, cancellation behavior,
 resource-failure tests, and stated non-guarantees.
 
+**Enforcement.** [`examples/typestate/src/lib.rs`](../../examples/typestate/src/lib.rs) — Open
+connection send stays fallible
+
 ## RUST-DOC-0001-R014 — Do not collapse ambiguous timeout into failure
 
 **Statement.** A timeout, disconnect, cancellation, or acknowledgement loss MUST NOT be
@@ -1213,6 +1253,9 @@ implements a verifiable pre-commit cancellation or rejection boundary.
 
 **Review evidence.** Protocol commitment analysis, fault injection around send and
 acknowledgement, outcome type, and retry decision table.
+
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— ambiguity maps to reconcile, never rejection
 
 ## RUST-DOC-0001-R015 — Model distributed uncertainty explicitly
 
@@ -1232,6 +1275,9 @@ provisioning, email submission, and similar distributed effects.
 reconciliation procedure, audit trail, and tests that unknown never becomes confirmed failure
 without new evidence.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— Unknown carries reconciliation identity
+
 ## RUST-DOC-0001-R016 — Make escape hatches explicit
 
 **Statement.** Every public or privileged construction bypass MUST be visibly named,
@@ -1248,6 +1294,9 @@ non-production builds and incapable of leaking into public APIs.
 
 **Review evidence.** Search inventory, visibility and feature analysis, precondition
 documentation, call-site list, and safe-interface tests.
+
+**Enforcement.** [`examples/unsafe-evidence/Cargo.toml`](../../examples/unsafe-evidence/Cargo.toml)
+— the sole unsafe bypass, named and scoped
 
 ## RUST-DOC-0001-R017 — Scope unsafe constructors narrowly
 
@@ -1266,6 +1315,9 @@ constructor is practical.
 **Review evidence.** RUST-DOC-0007 review, safety section, encapsulation, invalid-input
 analysis, Miri or sanitizer evidence where applicable, and all call sites.
 
+**Enforcement.** Unenforceable: No unsafe constructor exists; proof-obligation completeness is a
+soundness argument
+
 ## RUST-DOC-0001-R018 — Prove important prohibited programs
 
 **Statement.** Compile-fail tests SHOULD demonstrate compiler rejection of important direct
@@ -1282,6 +1334,9 @@ adding meaningful confidence.
 
 **Review evidence.** Minimal UI case, reviewed diagnostic, pinned toolchain, and positive
 counterpart test.
+
+**Enforcement.** [`examples/compile-fail/tests/ui.rs`](../../examples/compile-fail/tests/ui.rs) —
+trybuild runs nine cases against recorded stderr
 
 ## RUST-DOC-0001-R019 — Publish guarantees and non-guarantees
 
@@ -1300,6 +1355,9 @@ ledger if every constructor and use is covered.
 **Review evidence.** Completed guarantee ledger traced to code, tests, boundaries, and effect
 outcomes.
 
+**Enforcement.** Unenforceable: No check ties a stated guarantee to its actual construction and
+boundaries
+
 ## RUST-DOC-0001-R020 — Keep cross-entity and temporal facts at runtime
 
 **Statement.** Cross-entity, temporal, policy-dependent, and externally mutable invariants MUST
@@ -1316,6 +1374,9 @@ API make the observation time and scope explicit.
 
 **Review evidence.** Owner, transaction or observation boundary, concurrency controls,
 staleness policy, failure type, and race tests.
+
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— uniqueness rechecked at runtime and scoped
 
 ## RUST-DOC-0001-R021 — Model money without false arithmetic guarantees
 
@@ -1334,6 +1395,9 @@ aggregate or module level if accidental mixing is structurally impossible and do
 **Review evidence.** `u64`/`NonZeroU64` semantics, overflow behavior, same-currency tests,
 rounding and allocation policy location, and non-guarantee statement.
 
+**Enforcement.** [`examples/domain-modeling/src/lib.rs`](../../examples/domain-modeling/src/lib.rs)
+— PositiveMoney rejects mismatch and overflow
+
 ## RUST-DOC-0001-R022 — Separate email syntax from ownership
 
 **Statement.** An email-address type MUST document its actual syntax policy; mailbox ownership
@@ -1349,6 +1413,9 @@ claim email semantics and safely treats delivery failure.
 
 **Review evidence.** Syntax policy tests, private representation, verifier-only proof path,
 expiry or revocation considerations, and deliverability non-guarantee.
+
+**Enforcement.** [`examples/validated-newtypes/src/lib.rs`](../../examples/validated-newtypes/src/lib.rs)
+— syntax policy versus ownership-proof evidence
 
 ---
 
@@ -1372,6 +1439,9 @@ security-sensitive flows.
 **Review evidence.** Failure table mapping causes to variants, recovery, retry, logging,
 protocol status, and uncertainty.
 
+**Enforcement.** Unenforceable: No failure-inventory table in repo; inventory is a
+pre-implementation design act
+
 ## RUST-DOC-0002-R002 — Use structured library errors
 
 **Statement.** Library APIs MUST NOT use opaque string errors as their primary public contract
@@ -1386,6 +1456,9 @@ category can be promised, provided callers have documented inspection or reporti
 
 **Review evidence.** Public enum or equivalent typed interface, match examples, and stability
 policy.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— typed ContactError; tests match variants
 
 ## RUST-DOC-0002-R003 — Distinguish actionable categories
 
@@ -1402,6 +1475,9 @@ recipient cannot act differently and observability retains safe internal detail.
 
 **Review evidence.** Outcome-to-action matrix and conversion tests.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— retry matrix keeps the three cases distinct
+
 ## RUST-DOC-0002-R004 — Preserve sources
 
 **Statement.** Error wrapping and conversion SHOULD preserve the originating error through a
@@ -1415,6 +1491,9 @@ source chain when doing so is safe and useful for diagnosis.
 replace the exposed source with a sanitized internal correlation record.
 
 **Review evidence.** `source()` chain tests or report inspection, plus redaction review.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— Error::source forwards the wrapped cause
 
 ## RUST-DOC-0002-R005 — Add context without erasing category
 
@@ -1431,6 +1510,9 @@ control decisions have been made.
 **Review evidence.** Context chain, correlation ID, structured fields, and user-facing
 redaction.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— stage context added while keeping the typed cause
+
 ## RUST-DOC-0002-R006 — State recoverability
 
 **Statement.** Recoverability MUST be explicit at the decision point; callers MUST NOT infer
@@ -1446,6 +1528,9 @@ contract once at module level.
 
 **Review evidence.** Post-error state contract, returned recovery value or token, and tests.
 
+**Enforcement.** Unenforceable: No operation returns a recovery value with Err; post-error state
+undocumented
+
 ## RUST-DOC-0002-R007 — Type retry guidance
 
 **Statement.** Retryability MUST NOT be inferred solely from a generic transport class,
@@ -1460,6 +1545,9 @@ idempotency, attempt budget, backoff, and external commitment.
 
 **Review evidence.** Typed retry decision, idempotency analysis, budget, jitter, and fault
 tests.
+
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— retry typed by observation and idempotency
 
 ## RUST-DOC-0002-R008 — Preserve indeterminate outcomes
 
@@ -1477,6 +1565,9 @@ non-execution.
 **Review evidence.** Commitment analysis, explicit unknown type, reconciliation identity, and
 conversion tests.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— unknown outcome never becomes rejection
+
 ## RUST-DOC-0002-R009 — Bound panic to programmer faults
 
 **Statement.** Panics MUST be reserved for violated internal invariants or unrecoverable
@@ -1491,6 +1582,9 @@ configuration after producing a clear sanitized diagnostic, when continued opera
 unsafe and no caller can recover.
 
 **Review evidence.** Panic-site inventory, unwind/abort policy, and boundary failure tests.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— malformed input returns typed Err, not panic
 
 ## RUST-DOC-0002-R010 — Justify `unwrap` and `expect`
 
@@ -1508,6 +1602,9 @@ being taught and failure location remains clear.
 **Review evidence.** Search results, invariant comments where not obvious, and negative tests
 for external input.
 
+**Enforcement.** Unenforceable: No production unwrap or expect exists to justify; clippy config does
+not deny them
+
 ## RUST-DOC-0002-R011 — Preserve security and reconciliation evidence
 
 **Statement.** Error conversion MUST NOT erase security-relevant denial, authentication
@@ -1524,6 +1621,9 @@ a protected correlated record.
 
 **Review evidence.** Internal/external mapping, audit fields, access control, and redaction.
 
+**Enforcement.** Unenforceable: No security-denial mapping, audit fields, or conversion test exists
+in repo
+
 ## RUST-DOC-0002-R012 — Prevent secret disclosure
 
 **Statement.** Error display, debug, source chains, protocol responses, logs, and telemetry
@@ -1538,6 +1638,9 @@ security decisions.
 explicit access and retention policy.
 
 **Review evidence.** Recipient map, redaction tests, debug implementations, and sample logs.
+
+**Enforcement.** Unenforceable: No redaction test, sanitized Debug, or recipient map anywhere in
+repo
 
 ## RUST-DOC-0002-R013 — Govern public error compatibility
 
@@ -1555,6 +1658,9 @@ variants.
 **Review evidence.** Semver analysis, non-exhaustive strategy, code stability, and migration
 notes.
 
+**Enforcement.** Unenforceable: No non_exhaustive error type, semver analysis, or migration notes
+exist
+
 ## RUST-DOC-0002-R014 — Log once at an ownership boundary
 
 **Statement.** Errors SHOULD be logged by the layer that owns the final handling decision,
@@ -1568,6 +1674,9 @@ rather than at every propagation layer.
 unique timing or state evidence and correlation prevents double counting.
 
 **Review evidence.** Error path trace, log ownership, event IDs, and alert mapping.
+
+**Enforcement.** Unenforceable: Workspace has no logging or tracing dependency; no error-path log
+ownership shown
 
 ---
 
@@ -1590,6 +1699,9 @@ handoffs.
 
 **Review evidence.** Authority map, lifecycle diagram, and ownership signatures.
 
+**Enforcement.** Unenforceable: No artifact enumerates owners; authority-map completeness is judged
+against the design
+
 ## RUST-DOC-0003-R002 — Encode exclusive authority with ownership
 
 **Statement.** Ownership SHOULD express exclusive authority when only one actor may legally
@@ -1605,6 +1717,9 @@ multiple processes or persisted actors participate.
 **Review evidence.** Non-cloneable type, consuming operation, and concurrency or compile-fail
 tests.
 
+**Enforcement.** [`reuse_consumed_transaction.rs`](../../examples/compile-fail/ui/reuse_consumed_transaction.rs)
+— a consumed handle cannot be reused
+
 ## RUST-DOC-0003-R003 — Bound borrowed authority
 
 **Statement.** A borrowed reference MUST NOT accidentally grant mutation, ownership transfer,
@@ -1618,6 +1733,9 @@ serialization, or authority beyond the documented borrow scope.
 the explicit design and synchronization is correct.
 
 **Review evidence.** Method receiver audit, returned-lifetime analysis, and mutation tests.
+
+**Enforcement.** Unenforceable: No borrowed guard or view in workspace; granted rights judged from
+receiver and lifetime
 
 ## RUST-DOC-0003-R004 — Restrict capability issuance and surface
 
@@ -1633,6 +1751,10 @@ resource capabilities.
 
 **Review evidence.** Visibility, fields, re-exports, operation methods, and issuer tests.
 
+**Enforcement.**
+[`construct_verified_email_directly.rs`](../../examples/compile-fail/ui/construct_verified_email_directly.rs)
+— only the issuer may construct the proof
+
 ## RUST-DOC-0003-R005 — Justify cloning authority
 
 **Statement.** Cloning or copying an authority-bearing value MUST require explicit
@@ -1646,6 +1768,9 @@ justification consistent with exclusivity, use count, scope, and revocation.
 of the documented authority model.
 
 **Review evidence.** `Clone`/`Copy` audit, clone semantics, and duplicate-use tests.
+
+**Enforcement.** [`clone_stage_to_duplicate.rs`](../../examples/compile-fail/ui/clone_stage_to_duplicate.rs)
+— a single-use stage has no Clone
 
 ## RUST-DOC-0003-R006 — Define transfer and revocation
 
@@ -1661,6 +1786,9 @@ of their contract.
 
 **Review evidence.** State transitions, clocks or versions, revocation check, and stale-use
 tests.
+
+**Enforcement.** Unenforceable: No lease, expiry, or revocation type in workspace; applicability
+judged per design
 
 ## RUST-DOC-0003-R007 — Treat RAII as local cleanup
 
@@ -1678,6 +1806,9 @@ by `Drop`.
 **Review evidence.** Explicit completion methods, drop fallback, error observability, and
 failure tests.
 
+**Enforcement.** Unenforceable: Workspace has no Drop impl for resources; drop-claim wording judged
+per failure mode
+
 ## RUST-DOC-0003-R008 — Protect secret-bearing types
 
 **Statement.** Secret-bearing types MUST minimize accidental `Debug`, `Display`, cloning,
@@ -1692,6 +1823,9 @@ required for a protected secret store under a distinct API.
 
 **Review evidence.** Trait implementation audit, redaction tests, exposure call sites, and
 storage contract.
+
+**Enforcement.** Unenforceable: No secret type in workspace; newtype Debug redaction is not
+secret-handling evidence
 
 ## RUST-DOC-0003-R009 — Limit zeroization claims
 
@@ -1708,6 +1842,9 @@ serialization unless those paths are controlled and evidenced.
 **Review evidence.** Ownership and copy analysis, drop path, memory-locking policy where used,
 and explicit non-guarantees.
 
+**Enforcement.** Unenforceable: No zeroization code or claim exists; uncovered paths judged per
+platform and allocator
+
 ## RUST-DOC-0003-R010 — Design before `Arc<Mutex<T>>`
 
 **Statement.** `Arc<Mutex<T>>` MUST NOT be the default substitute for identifying ownership,
@@ -1722,6 +1859,9 @@ synchronization contract is documented.
 
 **Review evidence.** Owner, lock invariant, contention and poisoning policy, alternatives, and
 tests.
+
+**Enforcement.** Unenforceable: No concurrency code; whether ownership preceded lock choice is
+unobservable from code
 
 ## RUST-DOC-0003-R011 — Justify interior mutability
 
@@ -1739,6 +1879,9 @@ semantics and reentrancy is safe.
 **Review evidence.** Aliasing rationale, borrow/panic behavior, synchronization, and reentrancy
 tests.
 
+**Enforcement.** Unenforceable: Only test-harness RefCell exists; necessity of an aliasing contract
+judged per design
+
 ## RUST-DOC-0003-R012 — Use lifetimes for real relationships
 
 **Statement.** Lifetime parameters SHOULD express actual borrowing or validity relationships,
@@ -1755,6 +1898,9 @@ dependency, with its relationship documented.
 **Review evidence.** Referent and duration explanation, escape analysis, and simpler owned
 alternative.
 
+**Enforcement.** Unenforceable: Examples declare no named lifetimes; ornamental versus real referent
+judged from signatures
+
 ## RUST-DOC-0003-R013 — Define cross-task ownership
 
 **Statement.** Transfer of authority or resources across tasks MUST identify the new owner,
@@ -1768,6 +1914,9 @@ is dropped or panics.
 **Allowed exceptions.** Truly process-lifetime services MAY be owned by the process supervisor.
 
 **Review evidence.** Task tree, join/abort contract, channel closure, and shutdown tests.
+
+**Enforcement.** Unenforceable: No spawned tasks or async; join, cancel, shutdown ownership judged
+per design
 
 ## RUST-DOC-0003-R014 — Keep external authority revalidation explicit
 
@@ -1784,6 +1933,9 @@ commit window.
 
 **Review evidence.** Lease or recheck boundary, stale-state handling, and revocation race
 tests.
+
+**Enforcement.** Unenforceable: No revocation backend; freshness window and revalidation boundary
+are policy judgments
 
 ---
 
@@ -1809,6 +1961,9 @@ remove the construction obligation.
 **Review evidence.** A complete read-path inventory and conversions that call
 the trusted constructor.
 
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— fallible row conversion treats a stored row as untrusted
+
 ## RUST-DOC-0005-R002 — Separate models when contracts differ
 
 **Statement.** Persistence models and domain models SHOULD be separated when
@@ -1824,6 +1979,9 @@ contracts are demonstrably identical and decoding still preserves invariants.
 
 **Review evidence.** Field mapping, rationale for shared or separate models,
 and tests for invalid stored representations.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— raw row kept distinct from the domain type
 
 ## RUST-DOC-0005-R003 — Validate trusted newtypes during decoding
 
@@ -1844,6 +2002,9 @@ tested.
 **Review evidence.** `TryFrom`, parser, or smart-constructor calls and negative
 decoding tests.
 
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— serde and row decode both route through the checked constructor
+
 ## RUST-DOC-0005-R004 — Reinforce invariants in the schema
 
 **Statement.** Schema constraints SHOULD reinforce stable value and
@@ -1861,6 +2022,8 @@ coupling, or rollout cannot yet guarantee compatibility.
 
 **Review evidence.** Invariant mapping to domain constructor, schema constraint,
 transactional validation, or explicit residual gap.
+
+**Enforcement.** Unenforceable: No schema in repo; zero SQL or DDL files exist
 
 ## RUST-DOC-0005-R005 — Avoid contradictory nullable records
 
@@ -1881,6 +2044,9 @@ domain entity.
 **Review evidence.** Row-state truth table, schema checks where feasible, and
 conversion tests for every invalid combination.
 
+**Enforcement.** Unenforceable: No example row carries nullable or flag columns forming
+contradictory combinations
+
 ## RUST-DOC-0005-R006 — Make migrations invariant-aware
 
 **Statement.** Every migration MUST state which invariants it preserves,
@@ -1898,6 +2064,8 @@ invariants are unaffected, with evidence.
 **Review evidence.** Precondition query, transformation, postcondition query,
 rollback or forward-repair strategy, and representative migration test.
 
+**Enforcement.** Unenforceable: Repository ships no migrations; zero migration or SQL files exist
+
 ## RUST-DOC-0005-R007 — Version durable representations
 
 **Statement.** Persisted formats that can outlive one release MUST be versioned
@@ -1913,6 +2081,9 @@ version changes, if stale values cannot be interpreted.
 
 **Review evidence.** Version field or schema version, supported-reader matrix,
 unknown-version behavior, and fixture tests.
+
+**Enforcement.** Unenforceable: No persisted format carries a version field or supported-reader
+matrix
 
 ## RUST-DOC-0005-R008 — Plan enum evolution
 
@@ -1930,6 +2101,9 @@ and rebuild from canonical input.
 
 **Review evidence.** Stable encoding table, unknown-value path, migration plan,
 and old/new reader tests.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— unknown persisted discriminator is rejected
 
 ## RUST-DOC-0005-R009 — Align transactions with cross-entity invariants
 
@@ -1952,6 +2126,9 @@ violation is a documented domain state with bounded detection and repair.
 taxonomy, locking or constraint mechanism, concurrent test, and named residual
 anomaly set.
 
+**Enforcement.** Unenforceable: No database, isolation level, or concurrent-writer test exists in
+workspace
+
 ## RUST-DOC-0005-R010 — Prevent lost updates
 
 **Statement.** Read-modify-write operations subject to concurrent writers MUST
@@ -1970,6 +2147,9 @@ needed.
 
 **Review evidence.** Version predicate or locking query, conflict error,
 concurrency test, and caller conflict policy.
+
+**Enforcement.** Unenforceable: Only a conflict enum name; no version predicate or competing-writer
+test
 
 ## RUST-DOC-0005-R011 — Preserve transaction-handle lifecycle
 
@@ -1990,6 +2170,9 @@ driver.
 **Review evidence.** Handle transition tests, compile-fail evidence where
 useful, and connection-loss behavior.
 
+**Enforcement.** [`reuse_consumed_transaction.rs`](../../examples/compile-fail/ui/reuse_consumed_transaction.rs)
+— staging after commit does not compile
+
 ## RUST-DOC-0005-R012 — Do not extend database atomicity to external effects
 
 **Statement.** Database transaction success MUST NOT be claimed to include a
@@ -2005,6 +2188,9 @@ state only the boundary and failure model it actually provides.
 
 **Review evidence.** Effect inventory, atomic boundary diagram, failure matrix,
 and reconciliation path.
+
+**Enforcement.** Unenforceable: Examples ship no database transaction, so no commit boundary can be
+overclaimed
 
 ## RUST-DOC-0005-R013 — Coordinate persistence and messaging durably
 
@@ -2022,6 +2208,9 @@ coordination when loss is an accepted, documented outcome.
 **Review evidence.** Atomic write, publisher retry, deduplication identity,
 retention, ordering scope, and operational lag metrics.
 
+**Enforcement.** Unenforceable: No outbox, inbox, or event log exists; examples avoid messaging
+entirely
+
 ## RUST-DOC-0005-R014 — Quarantine invalid historical data
 
 **Statement.** A stored representation that fails current domain validation
@@ -2038,6 +2227,9 @@ operational recovery.
 **Review evidence.** Diagnostic classification, record identity, sensitive-data
 handling, repair workflow, and metrics.
 
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— invalid stored value yields a structured error, not a forged domain type
+
 ## RUST-DOC-0005-R015 — Preserve unknown fields and values deliberately
 
 **Statement.** Readers MUST choose and document whether unknown fields or values
@@ -2052,6 +2244,9 @@ if documented and tested.
 
 **Review evidence.** Compatibility matrix and tests for extra fields, missing
 fields, and unknown discriminators.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— unknown persisted value policy is reject, and is asserted
 
 ## RUST-DOC-0005-R016 — Bound stored-input resource use
 
@@ -2071,6 +2266,9 @@ that bound and document it.
 **Review evidence.** Limits, streaming behavior, oversized fixtures, and failure
 mapping.
 
+**Enforcement.** Unenforceable: Only a name-length constant; no oversized, nested, compressed, or
+batch fixtures
+
 ## RUST-DOC-0005-R017 — Record persistence guarantees and non-guarantees
 
 **Statement.** Persistence designs MUST document the exact durability,
@@ -2086,6 +2284,9 @@ guarantees than deployed behavior.
 
 **Review evidence.** Guarantee ledger linked to database documentation,
 configuration, tests, monitoring, and residual failure modes.
+
+**Enforcement.** Unenforceable: No deployed database; no durability or isolation configuration
+exists to document
 
 ---
 
@@ -2110,6 +2311,9 @@ establishes that execution could not have begun or was atomically cancelled.
 **Review evidence.** Protocol timeline, cancellation semantics, and explicit
 unknown-outcome path.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— ExecutionAmbiguous routes to Unknown/reconcile
+
 ## RUST-DOC-0006-R002 — Model operationally distinct outcomes
 
 **Statement.** Outcome types MUST distinguish confirmed success, confirmed
@@ -2124,6 +2328,9 @@ require different recovery.
 meaning, security consequence, or reconciliation path differs.
 
 **Review evidence.** Outcome decision table and exhaustive caller handling.
+
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— Confirmed/Rejected/Unknown plus NotDispatched
 
 ## RUST-DOC-0006-R003 — Carry reconciliation evidence
 
@@ -2141,6 +2348,9 @@ retain only audit evidence if business policy accepts permanent uncertainty.
 **Review evidence.** Reconciliation token, operation ID, request fingerprint,
 target, attempt history, and observation method.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— ReconciliationToken carries OperationId
+
 ## RUST-DOC-0006-R004 — Analyze before retry
 
 **Statement.** Every retry policy MUST classify the operation as safe to retry,
@@ -2156,6 +2366,9 @@ when staleness and load remain documented.
 
 **Review evidence.** Failure-point matrix, idempotency mechanism, deadline, and
 attempt budget.
+
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— decide_retry maps observation to retry posture
 
 ## RUST-DOC-0006-R005 — Define idempotency-key semantics
 
@@ -2173,6 +2386,9 @@ semantic identity and repeated-result behavior are established independently.
 **Review evidence.** Key contract, storage constraint, same-key/same-payload and
 same-key/different-payload tests, and expiry policy.
 
+**Enforcement.** Unenforceable: No artifact defines key scope, uniqueness, retention, payload
+binding, or replay
+
 ## RUST-DOC-0006-R006 — Reuse operation identity across attempts
 
 **Statement.** Retries of one logical operation MUST reuse its operation and
@@ -2187,6 +2403,9 @@ intent.
 be added, but it MUST remain correlated to the stable logical operation.
 
 **Review evidence.** Identity lifecycle and attempt log.
+
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— retries reuse the same operation and idempotency key
 
 ## RUST-DOC-0006-R007 — Expect duplicate delivery
 
@@ -2205,6 +2424,9 @@ of duplicates, with that loss documented.
 **Review evidence.** Duplicate test, stable message identity, and effect-level
 handling.
 
+**Enforcement.** Unenforceable: No consumer, broker, or duplicate-delivery path exists in any
+example crate
+
 ## RUST-DOC-0006-R008 — Persist deduplication durably
 
 **Statement.** Deduplication that protects a durable effect MUST itself use
@@ -2221,6 +2443,9 @@ best-effort work whose duplicate cost is accepted.
 **Review evidence.** Unique key, transaction boundary, retention calculation,
 and replay-after-restart test.
 
+**Enforcement.** Unenforceable: No durable store or transaction exists; examples avoid database and
+broker dependencies
+
 ## RUST-DOC-0006-R009 — State ordering scope
 
 **Statement.** Ordering claims MUST identify key or partition, producer set,
@@ -2235,6 +2460,9 @@ false global guarantee.
 
 **Review evidence.** Ordering contract and tests for retries, multiple
 producers, and failover.
+
+**Enforcement.** Unenforceable: No ordering, partition, producer-set, or consumer-concurrency model
+exists
 
 ## RUST-DOC-0006-R010 — Qualify exactly-once claims
 
@@ -2251,6 +2479,9 @@ included. It MUST NOT imply exactly-once behavior beyond that boundary.
 **Review evidence.** Guarantee ledger, protocol documentation, duplicate tests,
 and excluded effects.
 
+**Enforcement.** Unenforceable: No exactly-once mechanism or transactional boundary is implemented
+anywhere
+
 ## RUST-DOC-0006-R011 — Coordinate acknowledgement with effect
 
 **Statement.** A consumer MUST define the order and atomic relationship among
@@ -2265,6 +2496,9 @@ loss is accepted and measured.
 
 **Review evidence.** Crash-point matrix and tests before and after each durable
 step.
+
+**Enforcement.** Unenforceable: No consumer, acknowledgement, or durable-progress sequencing is
+implemented
 
 ## RUST-DOC-0006-R012 — Treat compensation as a new effect
 
@@ -2283,6 +2517,9 @@ its actual transaction boundary.
 **Review evidence.** Forward/compensation pairs, business non-equivalence,
 failure handling, and reconciliation.
 
+**Enforcement.** Unenforceable: No saga, compensation, or forward/compensation pair exists in any
+example crate
+
 ## RUST-DOC-0006-R013 — Treat observations as time-scoped evidence
 
 **Statement.** External observations MUST record or imply their observation
@@ -2299,6 +2536,9 @@ source contract establishes immutability.
 
 **Review evidence.** Freshness policy, version or timestamp, cache behavior, and
 revalidation trigger.
+
+**Enforcement.** Unenforceable: No timestamp, version, or freshness field exists on any outcome or
+observation
 
 ## RUST-DOC-0006-R014 — Address concurrent execution and split brain
 
@@ -2323,6 +2563,8 @@ duplicate-safe operations with evidence.
 and kind, quantified timing bounds, assumption-failure behavior, and overlap
 test.
 
+**Enforcement.** Unenforceable: No lease, fencing token, clock source, or concurrency backend exists
+
 ## RUST-DOC-0006-R015 — Bound retries and reconciliation
 
 **Statement.** Retry and reconciliation loops MUST have bounded concurrency,
@@ -2340,6 +2582,9 @@ but each execution cycle still requires bounded work and visible age.
 **Review evidence.** Queue capacity, schedule, age metrics, dead-letter or
 manual escalation, and overload test.
 
+**Enforcement.** Unenforceable: No retry loop, attempt budget, backoff, queue, or escalation is
+implemented
+
 ## RUST-DOC-0006-R016 — Preserve correlation and causality
 
 **Statement.** Audit trails MUST preserve stable operation identity, attempt
@@ -2355,6 +2600,9 @@ individual reconstruction is unnecessary.
 
 **Review evidence.** Event schema, trace propagation, redaction, and end-to-end
 incident query.
+
+**Enforcement.** Unenforceable: No audit event schema, attempt log, trace propagation, or request
+fingerprint exists
 
 ## RUST-DOC-0006-R017 — Protect sensitive reconciliation data
 
@@ -2373,6 +2621,9 @@ documented access, encryption, minimization, and deletion policy.
 **Review evidence.** Field classification, redaction tests, access policy, and
 retention.
 
+**Enforcement.** Unenforceable: No field classification, redaction, or sensitive-data handling
+exists in any example
+
 ## RUST-DOC-0006-R018 — Test failure points, not only final errors
 
 **Statement.** Distributed-effect tests MUST inject loss, delay, duplication,
@@ -2389,6 +2640,9 @@ why.
 **Review evidence.** Fault matrix linked to invariants, test results, and
 unexercised assumptions.
 
+**Enforcement.** Unenforceable: Tests inject no loss, delay, duplication, reordering, or crash
+points
+
 ## RUST-DOC-0006-R019 — State residual uncertainty
 
 **Statement.** Public and internal contracts MUST state which outcomes can
@@ -2404,6 +2658,9 @@ message.
 
 **Review evidence.** State machine, service-level target, escalation path, and
 guarantee ledger.
+
+**Enforcement.** Unenforceable: Needs stated unknown-duration, reconciliation owner, operator
+guidance; none carried
 
 ---
 
@@ -2427,6 +2684,9 @@ incident, or neighboring test module rather than repeat the full invariant.
 **Review evidence.** Names, documentation, or manifest mapping from claim to
 test.
 
+**Enforcement.** [`examples/src/lib.rs`](../../examples/src/lib.rs) — the module doc names the rule
+its tests support
+
 ## RUST-DOC-0008-R002 — Test constructor acceptance and rejection
 
 **Statement.** Validated constructors MUST have positive and negative tests at
@@ -2441,6 +2701,9 @@ configuration.
 primitive may cite that evidence and test its integration.
 
 **Review evidence.** Boundary-value table and assertions on structured errors.
+
+**Enforcement.** [`examples/validated-newtypes/src/lib.rs`](../../examples/validated-newtypes/src/lib.rs)
+— accept and reject at bounds, asserting categories
 
 ## RUST-DOC-0008-R003 — Use properties for generative invariants
 
@@ -2459,6 +2722,9 @@ functions may use table tests.
 **Review evidence.** Generator domain, shrinking behavior, seed retention, and
 property statement.
 
+**Enforcement.** Unenforceable: No property harness in workspace; substantial input space is a
+judgment threshold
+
 ## RUST-DOC-0008-R004 — Prove prohibited programs where valuable
 
 **Statement.** Compile-fail tests SHOULD preserve important API prohibitions
@@ -2473,6 +2739,9 @@ state-specific operations, and trait bounds.
 surface check or compile test provides clearer evidence.
 
 **Review evidence.** Minimal failing programs and reviewed compiler diagnostics.
+
+**Enforcement.** [`examples/compile-fail/tests/ui.rs`](../../examples/compile-fail/tests/ui.rs) —
+trybuild harness over nine prohibited programs
 
 ## RUST-DOC-0008-R005 — Inspect compiler-diagnostic changes
 
@@ -2490,6 +2759,9 @@ accepted after semantic inspection.
 
 **Review evidence.** Diff review and assertion that the intended error remains.
 
+**Enforcement.** Unenforceable: Nothing distinguishes a reviewed stderr regeneration from a
+mechanical overwrite
+
 ## RUST-DOC-0008-R006 — Cross real boundaries
 
 **Statement.** Integration tests SHOULD cross the real parser, protocol,
@@ -2504,6 +2776,9 @@ emulators plus scheduled real-system evidence, with gaps documented.
 
 **Review evidence.** Environment description, real components, setup isolation,
 and cleanup.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— deserializes through the real codec into checked types
 
 ## RUST-DOC-0008-R007 — Protect protocol contracts
 
@@ -2521,6 +2796,9 @@ end-to-end integration evidence when independent compatibility is irrelevant.
 **Review evidence.** Provider/consumer contract, version matrix, and failure
 fixtures.
 
+**Enforcement.** Unenforceable: No independently deployed components; a version matrix is
+unrepresentable here
+
 ## RUST-DOC-0008-R008 — Control concurrency evidence
 
 **Statement.** Concurrency tests MUST use explicit synchronization, schedule
@@ -2536,6 +2814,9 @@ the evidence that an ordering occurred.
 
 **Review evidence.** Barriers, controlled clock, Loom model, event trace, or
 equivalent mechanism.
+
+**Enforcement.** Unenforceable: No concurrent tests exist; sleep as deadline versus evidence needs
+reviewer judgment
 
 ## RUST-DOC-0008-R009 — Test cancellation and cleanup
 
@@ -2553,6 +2834,9 @@ evidence when the reasoning applies identically.
 
 **Review evidence.** Controlled cancellation and postcondition assertions.
 
+**Enforcement.** Unenforceable: Workspace has no async or cancellable operations; suspension points
+are project-specific
+
 ## RUST-DOC-0008-R010 — Inject partial failure
 
 **Statement.** Fault-injection tests SHOULD exercise failures before, during,
@@ -2569,6 +2853,9 @@ injection.
 **Review evidence.** Crash-point matrix, injected faults, resulting state, and
 recovery.
 
+**Enforcement.** Unenforceable: No durable or external steps here; proportion to consequence fixes
+no threshold
+
 ## RUST-DOC-0008-R011 — Exercise distributed uncertainty
 
 **Statement.** Distributed tests MUST exercise duplicate, delay, reordering,
@@ -2584,6 +2871,9 @@ authoritative evidence.
 
 **Review evidence.** Scenario matrix and explicit terminal or unknown states.
 
+**Enforcement.** [`examples/distributed-outcomes/src/lib.rs`](../../examples/distributed-outcomes/src/lib.rs)
+— unknown stays unknown and retries reuse identity
+
 ## RUST-DOC-0008-R012 — Preserve failure modes in test doubles
 
 **Statement.** Test doubles MUST NOT erase failure categories, cancellation,
@@ -2598,6 +2888,9 @@ material to the tested claim.
 omitted behavior is outside its claim and covered elsewhere.
 
 **Review evidence.** Double-to-real contract comparison and gap ownership.
+
+**Enforcement.** Unenforceable: No mocks or fakes in workspace; double-to-real fidelity is reviewer
+judgment
 
 ## RUST-DOC-0008-R013 — Review snapshots semantically
 
@@ -2615,6 +2908,9 @@ equivalent changes with one documented rationale.
 
 **Review evidence.** Focused diff, invariant impact, and reviewer sign-off.
 
+**Enforcement.** Unenforceable: Whether a snapshot diff blesses a regression is decidable only by
+reading it
+
 ## RUST-DOC-0008-R014 — Treat flakiness as evidence
 
 **Statement.** A flaky test MUST be investigated as evidence of uncontrolled
@@ -2631,6 +2927,9 @@ the issue is owned and visible.
 **Review evidence.** Failure signatures, root cause, deterministic fix, or
 time-bounded quarantine with owner.
 
+**Enforcement.** Unenforceable: Flakiness lives in CI history; root cause versus retry is a human
+call
+
 ## RUST-DOC-0008-R015 — Do not substitute coverage for invariant evidence
 
 **Statement.** Coverage percentages MUST NOT be used as the sole claim that
@@ -2644,6 +2943,9 @@ behavior or invariants are adequately tested.
 discovery metric.
 
 **Review evidence.** Invariant-to-evidence matrix in addition to coverage.
+
+**Enforcement.** Unenforceable: No coverage tooling configured; sole claim is a property of an
+argument
 
 ## RUST-DOC-0008-R016 — Separate benchmarks from correctness
 
@@ -2659,6 +2961,9 @@ executable where feasible.
 invariant still needs appropriate tests.
 
 **Review evidence.** Corresponding correctness suite and benchmark methodology.
+
+**Enforcement.** Unenforceable: Workspace ships no benchmarks, so no benchmark separation can be
+observed
 
 ## RUST-DOC-0008-R017 — Use model checking proportionally
 
@@ -2677,6 +2982,9 @@ simplified model plus stress and reasoning.
 **Review evidence.** Modeled invariant, bounds, results, and mismatch from
 production code.
 
+**Enforcement.** Unenforceable: No model checker or concurrent protocol; proportional consideration
+leaves no trace
+
 ## RUST-DOC-0008-R018 — Exercise unsafe code with specialized tools
 
 **Statement.** Unsafe code SHOULD run under Miri and relevant sanitizers,
@@ -2690,6 +2998,9 @@ fuzzing, or target-specific tests as required by RUST-DOC-0007.
 alternative evidence.
 
 **Review evidence.** Commands, results, supported targets, and blind spots.
+
+**Enforcement.** [`.github/workflows/rust-examples.yml`](../../.github/workflows/rust-examples.yml)
+— the Miri job reruns unsafe evidence on a pinned nightly
 
 ## RUST-DOC-0008-R019 — Use production evidence carefully
 
@@ -2705,6 +3016,9 @@ with absence of defects.
 
 **Review evidence.** Telemetry coverage, detection limits, incident-derived
 regressions, and residual uncertainty.
+
+**Enforcement.** Unenforceable: Repository has no deployment or telemetry; misuse is a claim about
+wording
 
 ## RUST-DOC-0008-R020 — Keep tests deterministic and isolated
 
@@ -2722,6 +3036,9 @@ but MUST record reproducible seeds and isolate effects.
 **Review evidence.** Temporary resource strategy, seed capture, controlled
 clock, and parallel-run results.
 
+**Enforcement.** [`examples/src/lib.rs`](../../examples/src/lib.rs) — the inventory test scopes its
+reads to the manifest directory
+
 ## RUST-DOC-0008-R021 — State evidence limits
 
 **Statement.** Every consequential evidence plan MUST state what each selected
@@ -2736,6 +3053,9 @@ in production or external systems.
 contract.
 
 **Review evidence.** Evidence ledger tied to invariant inventory.
+
+**Enforcement.** [`EVIDENCE.md`](../../EVIDENCE.md) — per-doctrine ledger giving evidence class and
+what it does not establish
 
 ## RUST-DOC-0008-R022 — Prove the observer looked before accepting absence
 
@@ -2757,6 +3077,9 @@ is itself the proof of observation.
 
 **Review evidence.** The control and its assertion, or the non-zero paired case,
 shown beside the absence assertion they protect.
+
+**Enforcement.** [`examples/src/lib.rs`](../../examples/src/lib.rs) — the evidence-of-absence trio:
+vacuous pass, control, non-zero pair
 
 ---
 
@@ -2782,6 +3105,9 @@ design note.
 **Review evidence.** Stage and edge inventory, evidence-per-transition table, and the design
 note that preceded the types.
 
+**Enforcement.** [`improved.md`](../../case-studies/registration-onboarding/improved.md) — stage
+graph plus per-stage evidence rows
+
 ## RUST-DOC-0010-R002 — Name each stage by the fact it proves
 
 **Statement.** A stage type MUST be named for the fact its construction establishes, and MUST
@@ -2796,6 +3122,9 @@ implementation steps.
 boundary is not a real one.
 
 **Review evidence.** Stage names, their documented guarantees, and the guarantee ledger.
+
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— stages named for proven facts, not positions
 
 ## RUST-DOC-0010-R003 — Expose the successor capability in the stage contract
 
@@ -2816,6 +3145,9 @@ anticipated.
 **Review evidence.** Trait definitions, associated-type bounds, and the topology assertion
 required by RUST-DOC-0010-R019.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— each capability declares its successor as an associated type
+
 ## RUST-DOC-0010-R004 — Bound the successor by capability actually established
 
 **Statement.** A successor bound MUST name only capabilities the successor value genuinely
@@ -2832,6 +3164,9 @@ implementation is wrong, not the bound.
 
 **Review evidence.** Bound change history, the reason each bound exists, and the review record
 for any relaxation.
+
+**Enforcement.** Unenforceable: No file records bound-change history; a relaxation is visible only
+in review records
 
 ## RUST-DOC-0010-R005 — Consume the stage on transition
 
@@ -2859,6 +3194,9 @@ protocol.
 audit for every stage type, and compile-fail cases for both consumed-stage reuse and stage
 duplication.
 
+**Enforcement.** [`reuse_consumed_stage.rs`](../../examples/compile-fail/ui/reuse_consumed_stage.rs)
+— a consumed stage cannot be reused or cloned
+
 ## RUST-DOC-0010-R006 — Carry forward exactly the evidence successors need
 
 **Statement.** A stage MUST carry the evidence its successors require, and MUST NOT retain a
@@ -2875,6 +3213,9 @@ original input when it is separately named.
 
 **Review evidence.** Stage fields, the field-provenance mapping, and tests that canonical values
 survive every transition.
+
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— canonical values survive every transition
 
 ## RUST-DOC-0010-R007 — Keep stage failure distinguishable
 
@@ -2901,6 +3242,9 @@ successor directly rather than a `Result`.
 identity is preserved, and, for each transition declared fallible, a test or code path that
 constructs its failure.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— the infallible signature cites this rule; four per-stage error types
+
 ## RUST-DOC-0010-R008 — Model material branches as named successor alternatives
 
 **Statement.** A transition with materially different outcomes MUST return a named sum type over
@@ -2917,6 +3261,9 @@ MAY be represented as data on one successor.
 
 **Review evidence.** Branch enum definitions, successor bounds per variant, and a test per
 branch.
+
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— a branch outcome over distinct successor types
 
 ## RUST-DOC-0010-R009 — Name retry, revision, and recovery edges
 
@@ -2936,6 +3283,9 @@ state that explicitly instead of adding a stage.
 **Review evidence.** Recovery stage types, the edges that reach them, and tests exercising each
 recovery path.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— revision re-enters at the first stage; abandonment is terminal
+
 ## RUST-DOC-0010-R010 — Prohibit conversion paths that skip stages
 
 **Statement.** A protocol MUST NOT expose a `From`, `Into`, `Default`, public constructor,
@@ -2953,6 +3303,9 @@ RUST-DOC-0010-R011.
 
 **Review evidence.** Trait implementation inventory, field visibility audit, derive audit, and
 the evidence-forgery compile-fail case.
+
+**Enforcement.** [`forge_stage_evidence.rs`](../../examples/compile-fail/ui/forge_stage_evidence.rs)
+— a private field blocks forged stage evidence
 
 ## RUST-DOC-0010-R011 — Restrict and inventory trusted stage construction
 
@@ -2972,6 +3325,9 @@ recorded owner and obligation.
 **Review evidence.** Visibility, the escape-hatch inventory, and the caller obligation recorded
 beside each path.
 
+**Enforcement.** Unenforceable: Example crate has no trusted construction path; inventory
+completeness has no checkable source
+
 ## RUST-DOC-0010-R012 — Keep stage granularity proportionate
 
 **Statement.** A stage MUST correspond to a proof boundary rather than an implementation helper,
@@ -2988,6 +3344,9 @@ checkpoint even when the engineering boundary is weaker.
 
 **Review evidence.** Stage count, the proof each stage adds, the complexity-budget assessment,
 and the rejected alternative granularity.
+
+**Enforcement.** Unenforceable: Stage-count proportionality and budget justification appear in no
+file for this protocol
 
 ## RUST-DOC-0010-R013 — Disclose durable and external effects per stage
 
@@ -3006,6 +3365,9 @@ under a name that says so.
 
 **Review evidence.** Per-stage effect inventory, the transition names, and tests asserting that
 effect-free stages perform no effect.
+
+**Enforcement.** [`improved.md`](../../case-studies/registration-onboarding/improved.md) — all four
+transitions disclosed write-free
 
 ## RUST-DOC-0010-R014 — Do not present a local transition as a durable one
 
@@ -3027,6 +3389,9 @@ that limit instead.
 **Review evidence.** The authoritative-transition query or procedure, its concurrency token, the
 guarantee ledger row separating local from durable proof, and competing-writer evidence.
 
+**Enforcement.** Unenforceable: No durable store or competing-writer test exists; EVIDENCE.md
+records this as unevidenced
+
 ## RUST-DOC-0010-R015 — Keep persisted or multi-actor lifecycle in a runtime model
 
 **Statement.** Where protocol state is persisted, inspected heterogeneously, or advanced by more
@@ -3044,6 +3409,9 @@ omit the runtime model.
 
 **Review evidence.** The persisted representation, the restoration path that issues a typed
 stage, and the conversion contract between the two.
+
+**Enforcement.** Unenforceable: No persisted model or restoration path in repo; EVIDENCE.md records
+this as unevidenced
 
 ## RUST-DOC-0010-R016 — State the async stage contract
 
@@ -3063,6 +3431,9 @@ state that cancellation is inconsequential.
 **Review evidence.** Per-stage cancellation table, idempotency identity, retry policy, and fault
 tests at each interruption point.
 
+**Enforcement.** Unenforceable: Example has no async transition; no cancellation table, retry
+identity, or fault test
+
 ## RUST-DOC-0010-R017 — Erase the protocol only at a named boundary
 
 **Statement.** Type erasure of protocol state into trait objects, maps, dynamic contexts, or
@@ -3080,6 +3451,9 @@ each selected branch continues to advance through typed stages.
 **Review evidence.** The named boundary, what is erased there, and the reason earlier erasure is
 unnecessary.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— origin erasure happens once, at the persistence boundary
+
 ## RUST-DOC-0010-R018 — Prove the prohibited orderings
 
 **Statement.** Illegal stage orderings, reuse of a consumed stage, and construction of stage
@@ -3095,6 +3469,9 @@ rather than given compile-fail evidence it does not have.
 
 **Review evidence.** Compile-fail cases, their reviewed diagnostics, and confirmation that each
 rejection occurs at the intended boundary.
+
+**Enforcement.** [`examples/compile-fail/tests/ui.rs`](../../examples/compile-fail/tests/ui.rs) —
+trybuild runs the four staged-protocol rejections
 
 ## RUST-DOC-0010-R019 — Assert the stage graph executably
 
@@ -3117,6 +3494,9 @@ documented edge, and an observed compiler failure when a successor bound is dele
 capability. An assertion whose own bounds restate the trait's obligation is not evidence for
 this rule.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— contract assertions derive successors from the trait alone
+
 ## RUST-DOC-0010-R020 — Record a guarantee ledger row per stage
 
 **Statement.** Each stage MUST have a guarantee ledger row stating the claim it establishes, the
@@ -3131,6 +3511,9 @@ made.
 **Allowed exceptions.** None.
 
 **Review evidence.** The completed ledger and its agreement with the stage definitions.
+
+**Enforcement.** [`improved.md`](../../case-studies/registration-onboarding/improved.md) — a
+guarantee ledger row per stage
 
 ## RUST-DOC-0010-R021 — Keep protocol terminology honest
 
@@ -3149,6 +3532,9 @@ used as standard when the citation is given.
 
 **Review evidence.** Terminology definitions, their family attribution, and the source notes
 recording which vocabulary is local.
+
+**Enforcement.** [`doctrines/0010-staged-protocols/glossary.md`](../../doctrines/0010-staged-protocols/glossary.md)
+— the local term is marked local and attributed
 
 ## RUST-DOC-0010-R022 — Partition protocol authority explicitly
 
@@ -3178,6 +3564,9 @@ restate its topology, because such a view cannot drift from the artifact it is d
 **Review evidence.** The claim classification, the executable artifact cited for each in-process
 claim, the external check cited for each durable claim, and the governing record cited for each
 rationale, non-guarantee, waiver, or change-authority claim.
+
+**Enforcement.** Unenforceable: No per-claim authority classification exists for this protocol; only
+gates state it
 
 ## Guarantee and non-guarantee requirements
 
@@ -3238,6 +3627,9 @@ not yet stated precisely enough to review.
 **Review evidence.** The claim classification and the single artifact cited as authority for each
 classified claim.
 
+**Enforcement.** Unenforceable: No check classifies claims; classification exists only in review
+prose
+
 ## RUST-DOC-0011-R002 — Represent an enforceable obligation in the mechanism that enforces it
 
 **Statement.** An ordering, invariant, construction restriction, capability boundary, transition
@@ -3259,6 +3651,9 @@ assessment, its owner, and the residual risk are recorded on the terms of RUST-D
 **Review evidence.** The enforcing artifact, or the recorded assessment showing that no available
 mechanism enforces the obligation proportionately.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_rule_enforcement
+
 ## RUST-DOC-0011-R003 — Treat the enforcing artifact as the operational authority
 
 **Statement.** Where an executable or machine-checked artifact completely enforces a claim, that
@@ -3278,6 +3673,9 @@ by the enforced part.
 
 **Review evidence.** The artifact cited for the claim, and the statement of any part of the claim
 it does not enforce.
+
+**Enforcement.** Unenforceable: Nothing detects prose being cited as authority over the enforcing
+artifact
 
 ## RUST-DOC-0011-R004 — Keep no competing manually maintained copy of an enforced claim
 
@@ -3299,6 +3697,9 @@ artifact is named at the point of quotation.
 **Review evidence.** The generation command or drift check for each derived view, or the
 informative marking and the authority it points to.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_doctrine_index
+
 ## RUST-DOC-0011-R005 — Generate a derived view and declare its source
 
 **Statement.** A derived view of a machine-readable source SHOULD be generated from that source
@@ -3318,6 +3719,9 @@ enforcing artifact directly.
 
 **Review evidence.** The generator, its declared source, the drift check, and the reason for any
 view left hand-written.
+
+**Enforcement.** [`tools/bundle-agent-context/src/main.rs`](../../tools/bundle-agent-context/src/main.rs)
+— the drift check, with check_generated_files
 
 ## RUST-DOC-0011-R006 — Create a decision record only for what cannot live elsewhere
 
@@ -3342,6 +3746,9 @@ better names, types, tests, generated views, and examples.
 **Review evidence.** The executability assessment, the artifact each recoverable part of the
 decision now lives in, and the justification required by RUST-DOC-0011-R007 for whatever remains.
 
+**Enforcement.** Unenforceable: Registry stores membership only; no check judges whether a record
+should exist
+
 ## RUST-DOC-0011-R007 — State the last-resort justification in the record
 
 **Statement.** An active decision record MUST state which fact cannot be represented executably
@@ -3360,6 +3767,9 @@ RUST-DOC-0011-R006 and is not created.
 
 **Review evidence.** The record's own metadata and the registry entry that makes it discoverable.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_active_record
+
 ## RUST-DOC-0011-R008 — Keep a decision record narrow
 
 **Statement.** A decision record MUST answer one decision question, MUST state what it does not
@@ -3376,6 +3786,9 @@ owner and expiry, or one record and an executable representation of the rest.
 
 **Review evidence.** The record's stated question, its stated exclusions, and the review record
 confirming no adjacent decision was folded in.
+
+**Enforcement.** Unenforceable: Only a non-empty scope field is checked; narrowness and exclusions
+are not
 
 ## RUST-DOC-0011-R009 — Expire a record whose reason has ended
 
@@ -3395,6 +3808,9 @@ remain discoverable when it is marked as archival and is excluded from the activ
 **Review evidence.** The registry status, the archival marking, and the trigger or condition that
 was observed.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_archived_record and status agreement
+
 ## RUST-DOC-0011-R010 — Confirm applicability before citing a record as a constraint
 
 **Statement.** A decision record MUST NOT be cited to block or restrict a change unless its
@@ -3413,6 +3829,9 @@ an open question rather than as a constraint.
 
 **Review evidence.** The confirmation of current applicability, its date, and the person or role
 that made it.
+
+**Enforcement.** Unenforceable: No mechanism observes record citations in review comments or agent
+reasoning
 
 ## RUST-DOC-0011-R011 — Retire an implemented proposal from operational authority
 
@@ -3435,6 +3854,9 @@ specification.
 **Review evidence.** The canonical doctrine and executable artifacts the proposal points to, and
 the absence of a normative obligation stated only in the proposal.
 
+**Enforcement.** Unenforceable: No check detects an accepted RFC being cited as current
+specification
+
 ## RUST-DOC-0011-R012 — Record only rationale that cannot be recovered
 
 **Statement.** Rationale MUST be recorded when it cannot be reconstructed safely from executable
@@ -3453,6 +3875,9 @@ when the artifact is named as the authority at the point of reference.
 **Review evidence.** The rationale text, the artifact it points to, and the statement of why the
 recorded reason is not recoverable from that artifact.
 
+**Enforcement.** Unenforceable: No check separates irrecoverable rationale from restatement of
+enforced topology
+
 ## RUST-DOC-0011-R013 — Do not invent rationale for an existing constraint
 
 **Statement.** Where the governing rationale for an enforced constraint is absent, a reviewer,
@@ -3470,6 +3895,8 @@ agent-generated summaries of code whose history is unavailable.
 its evidence, and states that the governing rationale is unknown.
 
 **Review evidence.** The unknown-rationale record, or the labelled inference with its evidence.
+
+**Enforcement.** Unenforceable: No mechanism distinguishes a recorded reason from an inferred one
 
 ## RUST-DOC-0011-R014 — Keep an external claim outside the executable authority
 
@@ -3490,6 +3917,9 @@ protocol; this rule adds the obligation to name the authoritative external syste
 
 **Review evidence.** The claim, the named external authority, and the check that consults it.
 
+**Enforcement.** Unenforceable: No check identifies external facts or verifies the named
+authoritative system
+
 ## RUST-DOC-0011-R015 — Make a compatibility or migration promise executable
 
 **Statement.** A compatibility promise, migration obligation, or negative guarantee SHOULD be
@@ -3508,6 +3938,8 @@ RUST-DOC-0011-R020.
 
 **Review evidence.** The enforcing test, check, fixture, or migration, or the recorded statement
 that the promise is unenforced.
+
+**Enforcement.** Unenforceable: No check links a compatibility promise to a test, schema, or fixture
 
 ## RUST-DOC-0011-R016 — Keep the enforced structure readable as its domain story
 
@@ -3530,6 +3962,9 @@ abbreviations when they are defined at the artifact's entry point.
 **Review evidence.** Names, state definitions, effect disclosure, capability scope, and the
 location of any erasure boundary.
 
+**Enforcement.** Unenforceable: No lint judges domain naming, effect disclosure, capability width,
+or erasure timing
+
 ## RUST-DOC-0011-R017 — Count and reduce the maintained representations of a claim
 
 **Statement.** A design review MUST identify every maintained representation of an architectural
@@ -3549,6 +3984,9 @@ when it is generated, mechanically checked, or marked informative and owned.
 **Review evidence.** The representation inventory for the claim, and the disposition recorded for
 each entry.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_validation_sequence_copies
+
 ## RUST-DOC-0011-R018 — Hydrate agents from current authority
 
 **Statement.** Generated agent context MUST be built from current canonical and executable
@@ -3564,6 +4002,9 @@ context for planning, implementation, review, audit, or maintenance.
 when the inclusion is explicit and the archival status travels with it.
 
 **Review evidence.** The agent manifest, the generated pack contents, and the drift check.
+
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_agent_packs_exclude_archive
 
 ## RUST-DOC-0011-R019 — Govern a change without duplicating what it changes
 
@@ -3583,6 +4024,9 @@ of decision, as the record of what was decided, when it is dated and is not main
 **Review evidence.** The governance artifact, the canonical contract it governs, and the absence
 of a maintained restatement.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_normative_scope
+
 ## RUST-DOC-0011-R020 — Record the terms of a prose-only obligation
 
 **Statement.** An exception that leaves an obligation carried by prose alone, or that keeps a
@@ -3599,6 +4043,8 @@ RUST-DOC-0011-R009, RUST-DOC-0011-R015, and RUST-DOC-0011-R017.
 
 **Review evidence.** The recorded exception with all five terms, and the review that confirmed the
 trigger has not fired.
+
+**Enforcement.** Unenforceable: No schema or check requires the five exception terms anywhere
 
 ## Authority partition
 

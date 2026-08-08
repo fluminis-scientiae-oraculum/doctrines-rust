@@ -18,6 +18,9 @@ design note.
 **Review evidence.** Stage and edge inventory, evidence-per-transition table, and the design
 note that preceded the types.
 
+**Enforcement.** [`improved.md`](../../case-studies/registration-onboarding/improved.md) — stage
+graph plus per-stage evidence rows
+
 ## RUST-DOC-0010-R002 — Name each stage by the fact it proves
 
 **Statement.** A stage type MUST be named for the fact its construction establishes, and MUST
@@ -32,6 +35,9 @@ implementation steps.
 boundary is not a real one.
 
 **Review evidence.** Stage names, their documented guarantees, and the guarantee ledger.
+
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— stages named for proven facts, not positions
 
 ## RUST-DOC-0010-R003 — Expose the successor capability in the stage contract
 
@@ -52,6 +58,9 @@ anticipated.
 **Review evidence.** Trait definitions, associated-type bounds, and the topology assertion
 required by RUST-DOC-0010-R019.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— each capability declares its successor as an associated type
+
 ## RUST-DOC-0010-R004 — Bound the successor by capability actually established
 
 **Statement.** A successor bound MUST name only capabilities the successor value genuinely
@@ -68,6 +77,9 @@ implementation is wrong, not the bound.
 
 **Review evidence.** Bound change history, the reason each bound exists, and the review record
 for any relaxation.
+
+**Enforcement.** Unenforceable: No file records bound-change history; a relaxation is visible only
+in review records
 
 ## RUST-DOC-0010-R005 — Consume the stage on transition
 
@@ -95,6 +107,9 @@ protocol.
 audit for every stage type, and compile-fail cases for both consumed-stage reuse and stage
 duplication.
 
+**Enforcement.** [`reuse_consumed_stage.rs`](../../examples/compile-fail/ui/reuse_consumed_stage.rs)
+— a consumed stage cannot be reused or cloned
+
 ## RUST-DOC-0010-R006 — Carry forward exactly the evidence successors need
 
 **Statement.** A stage MUST carry the evidence its successors require, and MUST NOT retain a
@@ -111,6 +126,9 @@ original input when it is separately named.
 
 **Review evidence.** Stage fields, the field-provenance mapping, and tests that canonical values
 survive every transition.
+
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— canonical values survive every transition
 
 ## RUST-DOC-0010-R007 — Keep stage failure distinguishable
 
@@ -137,6 +155,9 @@ successor directly rather than a `Result`.
 identity is preserved, and, for each transition declared fallible, a test or code path that
 constructs its failure.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— the infallible signature cites this rule; four per-stage error types
+
 ## RUST-DOC-0010-R008 — Model material branches as named successor alternatives
 
 **Statement.** A transition with materially different outcomes MUST return a named sum type over
@@ -153,6 +174,9 @@ MAY be represented as data on one successor.
 
 **Review evidence.** Branch enum definitions, successor bounds per variant, and a test per
 branch.
+
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— a branch outcome over distinct successor types
 
 ## RUST-DOC-0010-R009 — Name retry, revision, and recovery edges
 
@@ -172,6 +196,9 @@ state that explicitly instead of adding a stage.
 **Review evidence.** Recovery stage types, the edges that reach them, and tests exercising each
 recovery path.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— revision re-enters at the first stage; abandonment is terminal
+
 ## RUST-DOC-0010-R010 — Prohibit conversion paths that skip stages
 
 **Statement.** A protocol MUST NOT expose a `From`, `Into`, `Default`, public constructor,
@@ -189,6 +216,9 @@ RUST-DOC-0010-R011.
 
 **Review evidence.** Trait implementation inventory, field visibility audit, derive audit, and
 the evidence-forgery compile-fail case.
+
+**Enforcement.** [`forge_stage_evidence.rs`](../../examples/compile-fail/ui/forge_stage_evidence.rs)
+— a private field blocks forged stage evidence
 
 ## RUST-DOC-0010-R011 — Restrict and inventory trusted stage construction
 
@@ -208,6 +238,9 @@ recorded owner and obligation.
 **Review evidence.** Visibility, the escape-hatch inventory, and the caller obligation recorded
 beside each path.
 
+**Enforcement.** Unenforceable: Example crate has no trusted construction path; inventory
+completeness has no checkable source
+
 ## RUST-DOC-0010-R012 — Keep stage granularity proportionate
 
 **Statement.** A stage MUST correspond to a proof boundary rather than an implementation helper,
@@ -224,6 +257,9 @@ checkpoint even when the engineering boundary is weaker.
 
 **Review evidence.** Stage count, the proof each stage adds, the complexity-budget assessment,
 and the rejected alternative granularity.
+
+**Enforcement.** Unenforceable: Stage-count proportionality and budget justification appear in no
+file for this protocol
 
 ## RUST-DOC-0010-R013 — Disclose durable and external effects per stage
 
@@ -242,6 +278,9 @@ under a name that says so.
 
 **Review evidence.** Per-stage effect inventory, the transition names, and tests asserting that
 effect-free stages perform no effect.
+
+**Enforcement.** [`improved.md`](../../case-studies/registration-onboarding/improved.md) — all four
+transitions disclosed write-free
 
 ## RUST-DOC-0010-R014 — Do not present a local transition as a durable one
 
@@ -263,6 +302,9 @@ that limit instead.
 **Review evidence.** The authoritative-transition query or procedure, its concurrency token, the
 guarantee ledger row separating local from durable proof, and competing-writer evidence.
 
+**Enforcement.** Unenforceable: No durable store or competing-writer test exists; EVIDENCE.md
+records this as unevidenced
+
 ## RUST-DOC-0010-R015 — Keep persisted or multi-actor lifecycle in a runtime model
 
 **Statement.** Where protocol state is persisted, inspected heterogeneously, or advanced by more
@@ -280,6 +322,9 @@ omit the runtime model.
 
 **Review evidence.** The persisted representation, the restoration path that issues a typed
 stage, and the conversion contract between the two.
+
+**Enforcement.** Unenforceable: No persisted model or restoration path in repo; EVIDENCE.md records
+this as unevidenced
 
 ## RUST-DOC-0010-R016 — State the async stage contract
 
@@ -299,6 +344,9 @@ state that cancellation is inconsequential.
 **Review evidence.** Per-stage cancellation table, idempotency identity, retry policy, and fault
 tests at each interruption point.
 
+**Enforcement.** Unenforceable: Example has no async transition; no cancellation table, retry
+identity, or fault test
+
 ## RUST-DOC-0010-R017 — Erase the protocol only at a named boundary
 
 **Statement.** Type erasure of protocol state into trait objects, maps, dynamic contexts, or
@@ -316,6 +364,9 @@ each selected branch continues to advance through typed stages.
 **Review evidence.** The named boundary, what is erased there, and the reason earlier erasure is
 unnecessary.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— origin erasure happens once, at the persistence boundary
+
 ## RUST-DOC-0010-R018 — Prove the prohibited orderings
 
 **Statement.** Illegal stage orderings, reuse of a consumed stage, and construction of stage
@@ -331,6 +382,9 @@ rather than given compile-fail evidence it does not have.
 
 **Review evidence.** Compile-fail cases, their reviewed diagnostics, and confirmation that each
 rejection occurs at the intended boundary.
+
+**Enforcement.** [`examples/compile-fail/tests/ui.rs`](../../examples/compile-fail/tests/ui.rs) —
+trybuild runs the four staged-protocol rejections
 
 ## RUST-DOC-0010-R019 — Assert the stage graph executably
 
@@ -353,6 +407,9 @@ documented edge, and an observed compiler failure when a successor bound is dele
 capability. An assertion whose own bounds restate the trait's obligation is not evidence for
 this rule.
 
+**Enforcement.** [`examples/staged-protocol/src/lib.rs`](../../examples/staged-protocol/src/lib.rs)
+— contract assertions derive successors from the trait alone
+
 ## RUST-DOC-0010-R020 — Record a guarantee ledger row per stage
 
 **Statement.** Each stage MUST have a guarantee ledger row stating the claim it establishes, the
@@ -367,6 +424,9 @@ made.
 **Allowed exceptions.** None.
 
 **Review evidence.** The completed ledger and its agreement with the stage definitions.
+
+**Enforcement.** [`improved.md`](../../case-studies/registration-onboarding/improved.md) — a
+guarantee ledger row per stage
 
 ## RUST-DOC-0010-R021 — Keep protocol terminology honest
 
@@ -385,6 +445,9 @@ used as standard when the citation is given.
 
 **Review evidence.** Terminology definitions, their family attribution, and the source notes
 recording which vocabulary is local.
+
+**Enforcement.** [`doctrines/0010-staged-protocols/glossary.md`](../../doctrines/0010-staged-protocols/glossary.md)
+— the local term is marked local and attributed
 
 ## RUST-DOC-0010-R022 — Partition protocol authority explicitly
 
@@ -414,6 +477,9 @@ restate its topology, because such a view cannot drift from the artifact it is d
 **Review evidence.** The claim classification, the executable artifact cited for each in-process
 claim, the external check cited for each durable claim, and the governing record cited for each
 rationale, non-guarantee, waiver, or change-authority claim.
+
+**Enforcement.** Unenforceable: No per-claim authority classification exists for this protocol; only
+gates state it
 
 ## Guarantee and non-guarantee requirements
 

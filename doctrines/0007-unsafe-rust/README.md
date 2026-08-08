@@ -3,7 +3,7 @@ id: RUST-DOC-0007
 slug: unsafe-rust
 title: Unsafe Rust as a Proof Obligation
 status: active
-version: 0.1.1
+version: 0.1.2
 normative: true
 applies_to:
   - planning

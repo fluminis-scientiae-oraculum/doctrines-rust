@@ -46,3 +46,4 @@ the index.
 | [RFC-0004](RFC-0004-closed-vocabulary-discriminants.md) | Make R002 reach the lone string discriminant its applicability already names | accepted |
 | [RFC-0005](RFC-0005-verbosity-ceilings-and-reader-facing-material.md) | Make the declared verbosity ceiling real, and reserve its widest tier for readers | accepted |
 | [RFC-0006](RFC-0006-evidence-of-absence-requires-proof-of-observation.md) | Evidence of absence requires proof of observation | accepted |
+| [RFC-0007](RFC-0007-every-rule-names-what-enforces-it.md) | Every rule names what enforces it, and every gate says who decides it | accepted |
