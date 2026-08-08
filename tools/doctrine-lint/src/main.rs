@@ -2621,12 +2621,12 @@ mod tests {
         workspace_package_version,
     };
     use super::{
-        GENERATED_IN_CANONICAL_ROOTS, REACHABILITY_EXEMPTIONS, REACHABILITY_EXTRA_ROOTS,
-        RuleInventory, check_gate_check_column, check_path_references, check_reachability,
-        check_reserved_ceiling, check_rule_enforcement, check_stated_counts, collect_files,
-        doctrine_index_rows, inline_code_spans, is_gate_id, looks_like_path, maintained_markdown,
-        outbound_links, reachability_scope, resolve_link, root_documents, scan_marker_file,
-        table_row_cells, unknown_alert, validation_sequence_copies,
+        ENFORCEMENT_FIELD, GENERATED_IN_CANONICAL_ROOTS, REACHABILITY_EXEMPTIONS,
+        REACHABILITY_EXTRA_ROOTS, RuleInventory, check_gate_check_column, check_path_references,
+        check_reachability, check_reserved_ceiling, check_rule_enforcement, check_stated_counts,
+        collect_files, doctrine_index_rows, inline_code_spans, is_gate_id, looks_like_path,
+        maintained_markdown, outbound_links, reachability_scope, resolve_link, root_documents,
+        scan_marker_file, table_row_cells, unknown_alert, validation_sequence_copies,
     };
     use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity, states_obligations};
     use std::collections::BTreeSet;
@@ -3953,6 +3953,71 @@ mod tests {
         );
 
         let _ = fs::remove_dir_all(&root);
+    }
+
+    /// A new package is written from the template, so a requirement the corpus
+    /// enforces and the template omits produces a package that cannot pass — and the
+    /// author learns that from a lint failure rather than from the document they
+    /// copied. Both checks added with the enforcement field were absent from the
+    /// template when they shipped, which is what this test exists to stop repeating.
+    #[test]
+    fn the_doctrine_template_satisfies_what_every_package_must() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+
+        let doctrine = fs::read_to_string(root.join("templates/doctrine/doctrine.md"))
+            .expect("read the doctrine template");
+        let rule_headings = doctrine
+            .lines()
+            .filter(|line| line.starts_with("## RUST-DOC-"))
+            .count();
+        assert!(
+            rule_headings > 0,
+            "the template carries no rule heading, so this test examines nothing"
+        );
+        let fields = doctrine
+            .lines()
+            .filter(|line| line.trim_end().starts_with(ENFORCEMENT_FIELD))
+            .count();
+        assert_eq!(
+            fields, rule_headings,
+            "every rule in the template needs an {ENFORCEMENT_FIELD} field, or a package copying the \
+             template fails check_rule_enforcement"
+        );
+
+        let standard = fs::read_to_string(root.join("templates/doctrine/review-standard.md"))
+            .expect("read the review-standard template");
+        let rows: Vec<Vec<String>> = standard.lines().filter_map(table_row_cells).collect();
+        let header = rows
+            .iter()
+            .find(|cells| cells.first().is_some_and(|cell| cell == "Gate"))
+            .expect("the template has a gate table");
+        let column = header
+            .iter()
+            .position(|cell| cell == "Check")
+            .expect("the gate table needs a Check column");
+        let gates: Vec<&Vec<String>> = rows
+            .iter()
+            .filter(|cells| cells.first().is_some_and(|cell| is_gate_id(cell)))
+            .collect();
+        assert!(
+            !gates.is_empty(),
+            "no template row carries a coded gate identifier, so a package copying it has no \
+             citable gate and check_gate_check_column would see nothing"
+        );
+        for cells in gates {
+            let value = cells.get(column).map_or("", String::as_str);
+            assert!(
+                value == "judgment" || value.starts_with("mechanical("),
+                "template gate declares {value:?}"
+            );
+        }
+
+        let language = fs::read_to_string(root.join("foundations/normative-language.md"))
+            .expect("read the normative-language foundation");
+        assert!(
+            language.contains("**Enforcement:**"),
+            "the documented rule fields omit the enforcement field the corpus requires"
+        );
     }
 
     #[test]

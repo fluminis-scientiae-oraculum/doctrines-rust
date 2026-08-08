@@ -21,6 +21,11 @@ state that no exception is allowed. Do not use convenience as justification.>
 **Review evidence.** <Name source paths, artifacts, tests, protocol evidence,
 measurements, or guarantee-ledger fields a reviewer expects.>
 
+**Enforcement.** <Name the artifact that enforces this rule as a backticked
+repository path inside a Markdown link, followed by what it shows. If no
+artifact can carry the rule, open with Unenforceable: and give the specific
+reason. A waiver is the ordinary outcome for a design obligation, not a gap.>
+
 ## RUST-DOC-NNNN-R002 — <Replace with next rule title>
 
 **Statement.** <Write the next normative statement.>
@@ -32,6 +37,8 @@ measurements, or guarantee-ledger fields a reviewer expects.>
 **Allowed exceptions.** <State exact exception policy.>
 
 **Review evidence.** <State required evidence.>
+
+**Enforcement.** <Link the enforcing artifact, or state why none can carry it.>
 
 ## Guarantee and non-guarantee requirements
 

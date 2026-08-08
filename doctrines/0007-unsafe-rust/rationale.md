@@ -52,7 +52,8 @@ extend beyond its allocation even when the starting pointer is valid.
 
 ## Partial initialization
 
-Leaking values may be memory-safe for some `T`, but can leak locks, file
+Leaking a partially initialized value may be memory-safe for some `T`, but can
+leak locks, file
 descriptors, or secrets. Correct resource behavior remains part of the broader
 contract even where language-level undefined behavior is absent.
 

@@ -18,7 +18,8 @@ that confirmed rejection and unknown execution cannot be confused.
 
 ## Idempotency is a protocol
 
-A random string alone proves none of these. Client-generated keys can be
+An idempotency key has value only when a receiver stores and interprets it, so a
+random string alone proves nothing. Client-generated keys can be
 reliable identities when generation occurs once per logical intent and every
 attempt reuses them. Generating a key inside the retry loop defeats the
 protocol.

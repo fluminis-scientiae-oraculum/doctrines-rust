@@ -1,7 +1,7 @@
 # Repository evidence map
 
 This inventory describes executable evidence shipped with repository version
-0.8.0. It is a claim ledger, not a coverage percentage. The 208 normative rules
+0.8.1. It is a claim ledger, not a coverage percentage. The 208 normative rules
 define review obligations; no test count implies one test per rule or universal
 proof.
 

@@ -23,8 +23,8 @@ layers agree.
 
 ## Invariants make test selection concrete
 
-An evidence plan therefore starts from the invariant inventory, not from test
-framework preferences.
+An evidence plan starts from the invariant inventory, not from test framework
+preferences.
 
 ## Negative tests protect the boundary
 

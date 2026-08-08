@@ -130,6 +130,8 @@ A normative rule uses one stable ID such as `RUST-DOC-0001-R004` and includes:
 - **Applicability:** the systems, paths, or conditions that trigger it.
 - **Allowed exceptions:** bounded conditions or "none."
 - **Review evidence:** artifacts and observations sufficient to assess it.
+- **Enforcement:** the linked repository artifact that enforces it, or
+  `Unenforceable:` and the reason no artifact can.
 
 The applicability and review-evidence fields use capitalized noun-phrase lists consistently.
 This register keeps machine extraction predictable while the statement, intent, and exception

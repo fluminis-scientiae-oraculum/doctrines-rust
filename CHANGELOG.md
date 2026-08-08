@@ -4,6 +4,37 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.8.1] — 2026-08-08
+
+Repairs prose the `0.8.0` rationale audit damaged, and closes the schema gap that audit
+opened between the corpus and the documents a new package is written from. No normative
+meaning changes.
+
+### Fixed in 0.8.1
+
+- Four rationale sections left incoherent by the `R012` audit. `RUST-DOC-0009`'s regression
+  gates ended mid-sentence; `RUST-DOC-0008`'s evidence-plan conclusion kept a "therefore"
+  whose premise was removed; `RUST-DOC-0006`'s idempotency section opened on a "none of
+  these" whose antecedent was gone; and `RUST-DOC-0007`'s partial-initialization paragraph
+  lost the subject of "leaking values". Each is repaired without restoring the restatement
+  `R012` removed.
+- `foundations/normative-language.md` listed five rule fields while the corpus required six,
+  understating its own contract.
+- `templates/doctrine/doctrine.md` had no `**Enforcement.**` field and
+  `templates/doctrine/review-standard.md` had no `Check` column and used gate identifiers
+  (`NNNN-01`) that the coded-identifier convention does not recognise. A package written
+  from the template would have failed both checks `0.8.0` added, with nothing in the
+  template to say why.
+- `templates/doctrine-proposal.md` gains an `Enforcement` column, so a proposal states the
+  enforcing artifact when the rule is proposed rather than when it is merged.
+
+### Added in 0.8.1
+
+- A test asserting the template satisfies what every package must: each rule in the
+  template carries an enforcement field, the gate table carries a `Check` column with coded
+  identifiers, and the documented field list names the enforcement field.
+  Positive-controlled against all three omissions.
+
 ## [0.8.0] — 2026-08-08
 
 Adds no normative rule and changes no rule statement, applicability, exception, or
