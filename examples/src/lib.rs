@@ -12,6 +12,72 @@ pub const EXAMPLE_PACKAGES: &[&str] = &[
     "doctrine-compile-fail",
 ];
 
+/// Executable evidence for `RUST-DOC-0008-R022`.
+///
+/// An assertion expecting absence reports "searched and found none" and "the search
+/// matched nothing" identically. These tests hold a registry that *violates* the
+/// invariant and show the vacuous form passing on it, then show the two forms the rule
+/// accepts failing on the same data.
+#[cfg(test)]
+mod evidence_of_absence {
+    /// A registry that violates the invariant under test: a secret-bearing column is
+    /// present. Every assertion below runs against this same data.
+    const COLUMNS: &[&str] = &["invoice_total", "session_token", "customer_email"];
+
+    fn columns_containing(needle: &str) -> Vec<&'static str> {
+        COLUMNS
+            .iter()
+            .copied()
+            .filter(|column| column.contains(needle))
+            .collect()
+    }
+
+    /// The defect the rule exists to prevent: the predicate is misspelled, so it selects
+    /// nothing and the absence assertion passes although the violation is present.
+    #[test]
+    fn a_zero_count_passes_when_the_predicate_matched_nothing() {
+        let offending = columns_containing("scession");
+        assert!(
+            offending.is_empty(),
+            "this assertion passes for the wrong reason, which is the point"
+        );
+    }
+
+    /// Accepted form one: a positive control asserted before the absence claim. The
+    /// control separates the two predicates that the absence claim alone cannot tell
+    /// apart — in real use it is the control that fails, and the vacuous absence claim
+    /// beside it is never reached.
+    #[test]
+    fn a_positive_control_separates_a_blind_predicate_from_a_seeing_one() {
+        assert!(
+            columns_containing("scession").is_empty(),
+            "the misspelled predicate observes nothing, so any absence claim it makes is empty"
+        );
+        assert_eq!(
+            columns_containing("session"),
+            vec!["session_token"],
+            "the correct predicate observes the subject, which is what the control asserts"
+        );
+    }
+
+    /// Accepted form two: a paired assertion whose expected count is non-zero. The pair
+    /// fails on the same data the vacuous form accepted.
+    #[test]
+    fn a_non_zero_pair_detects_the_violation() {
+        let secrets = columns_containing("token");
+        assert_eq!(
+            secrets.len(),
+            1,
+            "the paired non-zero case proves the counter counts"
+        );
+        assert_eq!(
+            secrets,
+            vec!["session_token"],
+            "and names the violation the vacuous form missed"
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::EXAMPLE_PACKAGES;

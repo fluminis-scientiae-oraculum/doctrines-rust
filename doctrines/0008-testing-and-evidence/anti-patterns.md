@@ -171,3 +171,22 @@ limits.
 
 **When justified.** Production evidence can update likelihood estimates, not
 establish impossibility.
+
+## The zero that counted nothing
+
+**Weak example.** a check asserts that no generated type carries a forbidden
+property, and its pattern selects no types at all, so the count is zero for the
+wrong reason.
+
+**Why it fails.** an empty result reports "searched and found none" and "the
+search matched nothing" identically, so the assertion passes unchanged while the
+invariant is violated on every subject it meant to cover.
+
+**Risk.** a gate that has never once been able to fail, reported as evidence.
+
+**Improved direction.** make the predicate self-validating so a missing subject
+errors, assert a positive control first, or pair the check with a case whose
+expected count is non-zero.
+
+**When justified.** A test that observes the condition present and then removes
+it needs no separate control, because the transition proves the observation.

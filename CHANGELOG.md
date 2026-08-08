@@ -4,6 +4,36 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.7.0] — 2026-08-08
+
+Adds one normative rule. An assertion expecting nothing — an empty collection, a zero
+count, an uncalled double — passes identically whether the condition was searched for
+and absent or the search matched nothing. The corpus already governed the compile-fail
+instance of that principle through `RUST-DOC-0008-R005` and gate `T18`; it governed the
+runtime instance nowhere. Four recorded incidents, three of them in this repository,
+show the runtime form passing while examining nothing. The corpus grows from 207
+normative rules to 208, so this is a minor release for an added obligation. RFC-0006.
+
+### Added in 0.7.0
+
+- `RUST-DOC-0008-R022`, requiring a runtime absence assertion to establish that its
+  predicate can observe the condition — through a self-validating predicate that fails
+  when its subject is missing, a positive control asserted alongside it, or a paired
+  assertion whose expected count is non-zero. Applicability is bounded to runtime
+  assertions whose expected result is empty, so the rule cannot itself be applicable and
+  vacuous; compile-fail evidence stays with `R005` and `T18`, and production telemetry
+  stays with the existing anti-pattern.
+- Gate `T61` in the RUST-DOC-0008 review standard, and a matching anti-pattern entry
+  naming the shape: a zero count produced by a predicate that selected nothing.
+- Three tests in the examples inventory crate, run against one registry that violates the
+  invariant: the vacuous form passing on it, a positive control separating a blind
+  predicate from a seeing one, and a non-zero pair naming the violation the vacuous form
+  missed.
+
+### Changed in 0.7.0
+
+- RUST-DOC-0008 moves to `0.2.0`; no other doctrine version moves.
+
 ## [0.6.1] — 2026-08-08
 
 Navigation became enforceable. Of 245 canonical Markdown files, 104 had no inbound link
