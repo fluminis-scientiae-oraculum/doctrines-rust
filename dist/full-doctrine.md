@@ -112,28 +112,30 @@ Canonical content has distinct responsibilities:
 
 - `foundations/` defines shared language for invariants, evidence, boundaries, guarantees,
   and complexity.
-- `doctrines/` contains versioned normative packages. Every normative rule has a stable
-  `RUST-DOC-####-R###` identifier, intent, applicability, exception policy, and expected
-  evidence.
-- `patterns/` describes reusable representation choices, their exact guarantees, their
-  limitations, and their costs.
-- `boundaries/` explains how untrusted HTTP, database, message, configuration, filesystem,
-  Serde, and FFI representations become trusted domain evidence.
-- `reviews/` contains pass/fail/not-applicable/waiver-oriented procedures.
-- `agents/` provides role overlays that select canonical doctrine instead of manually
-  duplicating it.
-- `case-studies/` follows complete problems from weak representations through improved
-  designs and residual uncertainty.
-- `examples/` provides positive tests, compiler-rejection evidence, and an
-  isolated unsafe abstraction checked under Miri.
-- `sources/` records provenance, accepted ideas, refinements, and doctrine additions.
-- `decisions/` holds the architecture decision records that survive the last-resort test in
-  RUST-DOC-0011, with their template and worked examples. The active set is currently empty.
-- `templates/` and `rfcs/` govern future doctrine work.
-- `manifest/` exposes doctrine and agent-pack discovery through YAML validated against Draft
-  2020-12 JSON Schemas.
-- `tools/` contains the doctrine linter, the deterministic context bundler, and the
-  `doctrine-manifest` crate both decode the manifests through, so one schema-owned
+- [`doctrines/`](../doctrines/README.md) contains versioned normative packages. Every normative rule
+  has a stable `RUST-DOC-####-R###` identifier, intent, applicability, exception policy, and
+  expected evidence.
+- [`patterns/`](../patterns/README.md) describes reusable representation choices, their exact
+  guarantees, their limitations, and their costs.
+- [`boundaries/`](../boundaries/README.md) explains how untrusted HTTP, database, message,
+  configuration, filesystem, Serde, and FFI representations become trusted domain evidence.
+- [`reviews/`](../reviews/README.md) contains pass/fail/not-applicable/waiver-oriented procedures.
+- [`agents/`](../agents/README.md) provides role overlays that select canonical doctrine instead of
+  manually duplicating it.
+- [`case-studies/`](../case-studies/README.md) follows complete problems from weak representations
+  through improved designs and residual uncertainty.
+- [`examples/`](../examples/README.md) provides positive tests, compiler-rejection evidence, and an
+  [isolated unsafe abstraction](../examples/unsafe-evidence/README.md) checked under Miri.
+- [`sources/`](../sources/README.md) records provenance, accepted ideas, refinements, and doctrine
+  additions.
+- [`decisions/`](../decisions/README.md) holds the architecture decision records that survive the
+  last-resort test in RUST-DOC-0011, with their template and worked examples. The active set is
+  currently empty.
+- [`templates/`](../templates/README.md) and [`rfcs/`](../rfcs/README.md) govern future doctrine work.
+- [`manifest/`](../manifest/README.md) exposes doctrine and agent-pack discovery through YAML
+  validated against Draft 2020-12 JSON Schemas.
+- [`tools/`](../tools/README.md) contains the doctrine linter, the deterministic context bundler, and
+  the `doctrine-manifest` crate both decode the manifests through, so one schema-owned
   vocabulary has one decoder rather than one per tool.
 
 Definitions flow into doctrine; doctrine constrains patterns, boundary guides, reviews, and
@@ -288,10 +290,11 @@ discovered behavior; it is not the first compiler, linter, or formatter.
 
 ## Contributing and evolution
 
-Read `CONTRIBUTING.md` and repository `AGENTS.md` before changing content. Corrections that
-preserve normative meaning may use an ordinary pull request. New doctrines, normative rule
-additions or weakening, new escape hatches, supersession, normative-term changes, significant
-bundle restructuring, license changes, and MSRV policy changes require an RFC under `rfcs/`.
+Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) and repository [`AGENTS.md`](../AGENTS.md) before changing
+content. Corrections that preserve normative meaning may use an ordinary pull request. New
+doctrines, normative rule additions or weakening, new escape hatches, supersession,
+normative-term changes, significant bundle restructuring, license changes, and MSRV policy
+changes require an RFC under [`rfcs/`](../rfcs/README.md).
 
 Every normative change identifies affected rule IDs, updates manifests and source provenance,
 states compatibility and migration consequences, and regenerates `dist/`. A reviewer requires
@@ -299,14 +302,18 @@ a guarantee ledger separating what a mechanism establishes from what remains unp
 claim is stronger than its constructors, boundary decoding, or external evidence, use the
 guarantee-overclaim issue form.
 
+Released changes are recorded in [`CHANGELOG.md`](../CHANGELOG.md). Participation is governed by the
+[`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md), and vulnerability reporting by
+[`SECURITY.md`](../SECURITY.md).
+
 ## License
 
 Documentation — including Markdown doctrine, manifests, schemas, and generated doctrine
 bundles — is licensed under Creative Commons Attribution 4.0 International; see
-`LICENSE-DOCS`. Rust source, test fixtures, repository tools, and reusable workflow or
-configuration code are available under MIT OR Apache-2.0 at the recipient's option; see
-`LICENSE-CODE`. External quotations and linked source material remain subject to their
-respective rights.
+[`LICENSE-DOCS`](../LICENSE-DOCS). Rust source, test fixtures, repository tools, and reusable
+workflow or configuration code are available under MIT OR Apache-2.0 at the recipient's option;
+see [`LICENSE-CODE`](../LICENSE-CODE). External quotations and linked source material remain subject
+to their respective rights.
 
 ---
 
@@ -1738,6 +1745,18 @@ The desired result is not the greatest amount of type machinery. It is a legible
 which consequential invalid states and transitions are hard or impossible to express, runtime
 truth remains validated, and external uncertainty is reported honestly.
 
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0001-invalid-states/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0001-invalid-states/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0001-invalid-states/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0001-invalid-states/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0001-invalid-states/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0001-invalid-states/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0001-invalid-states/references.md)                 | external sources, with the scope each one actually supports   |
+
 ---
 
 ## Source: `doctrines/0001-invalid-states/doctrine.md`
@@ -2381,29 +2400,23 @@ The first selection table is:
 
 ## Operational decision tree
 
-```text
-Is the problem mutually exclusive states?
-├─ yes → enum / sum type
-└─ no
-   Is it a single value with a stable local invariant?
-   ├─ yes → opaque validated newtype
-   └─ no
-      Is it a collection invariant?
-      ├─ yes → validated collection wrapper
-      └─ no
-         Is it locally controlled operation sequencing?
-         ├─ yes
-         │  Is state count small and API static?
-         │  ├─ yes → typestate or consuming transitions
-         │  └─ no → runtime state machine
-         └─ no
-            Is it authority?
-            ├─ yes → capability type
-            └─ no
-               Is it external or mutable reality?
-               ├─ yes → runtime observation + Result
-               │        + explicit uncertainty where needed
-               └─ no → ordinary runtime rule or domain service
+```mermaid
+flowchart TD
+    exclusive{Is the problem mutually exclusive states?}
+    exclusive -->|yes| enum[enum / sum type]
+    exclusive -->|no| value{Is it a single value with a stable local invariant?}
+    value -->|yes| newtype[opaque validated newtype]
+    value -->|no| collection{Is it a collection invariant?}
+    collection -->|yes| wrapper[validated collection wrapper]
+    collection -->|no| sequencing{Is it locally controlled operation sequencing?}
+    sequencing -->|yes| small{Is state count small and API static?}
+    small -->|yes| typestate[typestate or consuming transitions]
+    small -->|no| machine[runtime state machine]
+    sequencing -->|no| authority{Is it authority?}
+    authority -->|yes| capability[capability type]
+    authority -->|no| external{Is it external or mutable reality?}
+    external -->|yes| observation["runtime observation + Result<br>+ explicit uncertainty where needed"]
+    external -->|no| ordinary[ordinary runtime rule or domain service]
 ```
 
 Before accepting the leaf, apply complexity and honesty checks:
@@ -3234,6 +3247,18 @@ and references. Core obligations:
 - redact secrets at every recipient boundary;
 - and treat public error shape as compatibility surface.
 
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0002-error-modeling/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0002-error-modeling/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0002-error-modeling/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0002-error-modeling/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0002-error-modeling/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0002-error-modeling/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0002-error-modeling/references.md)                 | external sources, with the scope each one actually supports   |
+
 ---
 
 ## Source: `doctrines/0002-error-modeling/doctrine.md`
@@ -3908,6 +3933,18 @@ Read foundations on [invariants](../foundations/invariants.md),
   behavior, and external storage.
 - Do not default to `Arc<Mutex<T>>`; define ownership and synchronization first.
 - Use lifetimes only for real borrowing relationships.
+
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0003-ownership-and-capabilities/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0003-ownership-and-capabilities/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0003-ownership-and-capabilities/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0003-ownership-and-capabilities/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0003-ownership-and-capabilities/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0003-ownership-and-capabilities/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0003-ownership-and-capabilities/references.md)                 | external sources, with the scope each one actually supports   |
 
 ---
 
@@ -4630,6 +4667,18 @@ harness, deadlock detector, Loom model, or backpressure load test. Systems
 applying this doctrine supply evidence for those runtime-specific claims; the
 current examples do not establish them.
 
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0004-concurrency-and-async/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0004-concurrency-and-async/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0004-concurrency-and-async/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0004-concurrency-and-async/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0004-concurrency-and-async/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0004-concurrency-and-async/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0004-concurrency-and-async/references.md)                 | external sources, with the scope each one actually supports   |
+
 ---
 
 ## Source: `doctrines/0004-concurrency-and-async/doctrine.md`
@@ -5196,19 +5245,17 @@ when measured workload does not need overlap.
 
 For each `.await`:
 
-```text
-Has local or external state changed before suspension?
-├─ no → verify drop releases acquired resources
-└─ yes
-   Can drop leave the invariant valid and progress recoverable?
-   ├─ yes → document recovery owner and resume identity
-   └─ no
-      Can the mutation move after the suspension?
-      ├─ yes → reorder operation
-      └─ no
-         Can a guard/owner task finish it despite caller cancellation?
-         ├─ yes → supervise bounded completion
-         └─ no → add compensation or explicit reconciliation
+```mermaid
+flowchart TD
+    changed{Has local or external state changed before suspension?}
+    changed -->|no| drop[verify drop releases acquired resources]
+    changed -->|yes| valid{Can drop leave the invariant valid and progress recoverable?}
+    valid -->|yes| owner[document recovery owner and resume identity]
+    valid -->|no| move{Can the mutation move after the suspension?}
+    move -->|yes| reorder[reorder operation]
+    move -->|no| guard{Can a guard/owner task finish it despite caller cancellation?}
+    guard -->|yes| supervise[supervise bounded completion]
+    guard -->|no| compensate[add compensation or explicit reconciliation]
 ```
 
 A timeout around the future adds another cancellation edge. It does not prove a
@@ -5813,6 +5860,18 @@ messaging requires durable coordination such as an outbox or an explicit
 reconciliation design. Historical invalid data is quarantined or migrated; it
 is never forged into a trusted value for convenience.
 
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0005-persistence-boundaries/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0005-persistence-boundaries/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0005-persistence-boundaries/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0005-persistence-boundaries/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0005-persistence-boundaries/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0005-persistence-boundaries/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0005-persistence-boundaries/references.md)                 | external sources, with the scope each one actually supports   |
+
 ---
 
 ## Source: `doctrines/0005-persistence-boundaries/doctrine.md`
@@ -6324,15 +6383,13 @@ If the database cannot enforce an invariant, state the race and repair model.
 
 ## Decode decision
 
-```text
-Does the target type carry an invariant?
-├─ no → ordinary physical decoding may be sufficient
-└─ yes
-   Can the driver call a fallible checked constructor?
-   ├─ yes → implement checked mapping
-   └─ no
-      Decode a raw storage type first
-      then convert through TryFrom
+```mermaid
+flowchart TD
+    invariant{Does the target type carry an invariant?}
+    invariant -->|no| physical[ordinary physical decoding may be sufficient]
+    invariant -->|yes| driver{Can the driver call a fallible checked constructor?}
+    driver -->|yes| checked[implement checked mapping]
+    driver -->|no| raw["Decode a raw storage type first<br>then convert through TryFrom"]
 ```
 
 Reject any solution that writes private fields through unsafe code for
@@ -6374,16 +6431,15 @@ column.
 
 ## Persistence plus effect decision
 
-```text
-Must the durable transition and effect intent stay coupled?
-├─ no → document accepted loss or independent retry
-└─ yes
-   Can both occur in one actual transactional resource?
-   ├─ yes → use that transaction and state its boundary
-   └─ no
-      Can durable intent be stored with the domain change?
-      ├─ yes → outbox/event log + idempotent publisher
-      └─ no → saga/reconciliation with explicit uncertainty
+```mermaid
+flowchart TD
+    coupled{Must the durable transition and effect intent stay coupled?}
+    coupled -->|no| loss[document accepted loss or independent retry]
+    coupled -->|yes| resource{Can both occur in one actual transactional resource?}
+    resource -->|yes| transaction[use that transaction and state its boundary]
+    resource -->|no| intent{Can durable intent be stored with the domain change?}
+    intent -->|yes| outbox[outbox/event log + idempotent publisher]
+    intent -->|no| saga[saga/reconciliation with explicit uncertainty]
 ```
 
 Never call compensation rollback. Compensation is a new fallible effect.
@@ -6917,6 +6973,18 @@ Compensation is a new fallible action, not rollback. Audit trails preserve
 operation identity, attempts, correlation, causality, observations, and final
 resolution. Time-based authority names its clock, timing bounds, and behavior
 when those assumptions fail.
+
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0006-distributed-uncertainty/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0006-distributed-uncertainty/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0006-distributed-uncertainty/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0006-distributed-uncertainty/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0006-distributed-uncertainty/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0006-distributed-uncertainty/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0006-distributed-uncertainty/references.md)                 | external sources, with the scope each one actually supports   |
 
 ---
 
@@ -7457,16 +7525,15 @@ protocol.
 
 ## Outcome decision tree
 
-```text
-Did authoritative evidence confirm success?
-├─ yes → Confirmed(success evidence)
-└─ no
-   Did authoritative evidence confirm rejection/non-execution?
-   ├─ yes → Rejected(reason)
-   └─ no
-      Is it proven no request crossed the execution boundary?
-      ├─ yes → LocalFailure(retry guidance)
-      └─ no → Unknown(reconciliation evidence)
+```mermaid
+flowchart TD
+    success{Did authoritative evidence confirm success?}
+    success -->|yes| confirmed["Confirmed(success evidence)"]
+    success -->|no| rejection{Did authoritative evidence confirm rejection/non-execution?}
+    rejection -->|yes| rejected["Rejected(reason)"]
+    rejection -->|no| crossed{Is it proven no request crossed the execution boundary?}
+    crossed -->|yes| local["LocalFailure(retry guidance)"]
+    crossed -->|no| unknown["Unknown(reconciliation evidence)"]
 ```
 
 ## Idempotency decision
@@ -8019,6 +8086,18 @@ This evidence supports only that abstraction under the exercised interpreter
 and inputs. It is not sanitizer, FFI-target, fuzzing, concurrent-unsafe, or
 universal provenance evidence, and it does not replace the safety argument.
 
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0007-unsafe-rust/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0007-unsafe-rust/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0007-unsafe-rust/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0007-unsafe-rust/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0007-unsafe-rust/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0007-unsafe-rust/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0007-unsafe-rust/references.md)                 | external sources, with the scope each one actually supports   |
+
 ---
 
 ## Source: `doctrines/0007-unsafe-rust/doctrine.md`
@@ -8528,13 +8607,13 @@ Any unanswered applicable row blocks implementation.
 
 ## Choose the API boundary
 
-```text
-Can all safety preconditions be checked or enforced internally?
-├─ yes → safe API over private unsafe implementation
-└─ no
-   Can ownership/type structure encode them?
-   ├─ yes → redesign until safe
-   └─ no → narrow unsafe API with complete caller obligations
+```mermaid
+flowchart TD
+    internal{Can all safety preconditions be checked or enforced internally?}
+    internal -->|yes| safe[safe API over private unsafe implementation]
+    internal -->|no| encode{Can ownership/type structure encode them?}
+    encode -->|yes| redesign[redesign until safe]
+    encode -->|no| narrow[narrow unsafe API with complete caller obligations]
 ```
 
 Do not make an API safe by moving obligations into prose.
@@ -9051,6 +9130,18 @@ not include property-based generation, fault injection, schedule exploration,
 contract testing against a deployed service, sanitizers, fuzzing, or production
 telemetry. Those classes remain conditional tools whose value depends on the
 claim; the existing suite establishes only the behaviors it executes.
+
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0008-testing-and-evidence/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0008-testing-and-evidence/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0008-testing-and-evidence/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0008-testing-and-evidence/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0008-testing-and-evidence/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0008-testing-and-evidence/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0008-testing-and-evidence/references.md)                 | external sources, with the scope each one actually supports   |
 
 ---
 
@@ -10117,6 +10208,18 @@ allocation profile, flamegraph, or performance-regression threshold. It
 therefore makes no measured claim about example speed, latency, allocation, or
 binary size. This doctrine specifies the evidence required when such a claim is
 introduced; it does not convert unmeasured examples into performance evidence.
+
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0009-performance-and-measurement/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0009-performance-and-measurement/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0009-performance-and-measurement/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0009-performance-and-measurement/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0009-performance-and-measurement/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0009-performance-and-measurement/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0009-performance-and-measurement/references.md)                 | external sources, with the scope each one actually supports   |
 
 ---
 
@@ -11225,6 +11328,18 @@ and a concurrency token, and persisted lifecycle stays a runtime model.
 - the example crate, its topology assertion, and the compiler-rejection cases are linked;
 - generated bundles reproduce after the manifest update.
 
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0010-staged-protocols/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0010-staged-protocols/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0010-staged-protocols/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0010-staged-protocols/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0010-staged-protocols/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0010-staged-protocols/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0010-staged-protocols/references.md)                 | external sources, with the scope each one actually supports   |
+
 ---
 
 ## Source: `doctrines/0010-staged-protocols/doctrine.md`
@@ -11916,30 +12031,31 @@ evidence plan. A protocol cannot be assessed from its happy path alone.
 
 ## Decision tree
 
-```text
-Is the ordering consequential when violated?
-├─ no  → ordinary functions; record the sequence in the design note and stop
-└─ yes → Does each stage establish a fact a later stage consumes?
-   ├─ no  → merge the steps until they do; re-enter this tree
-   └─ yes → Is the sequence advanced by one owner within one process?
-      ├─ no  → runtime state model is authoritative (RUST-DOC-0005, RUST-DOC-0006)
-      │        └─ is there also a local pass worth enforcing?
-      │           ├─ no  → stop; runtime model only
-      │           └─ yes → typed stages for the pass, issued by checked restoration
-      └─ yes → How many transitions?
-         ├─ one   → consuming transition with a concrete successor; stop
-         ├─ two   → typestate with concrete successors unless a second
-         │          implementation is already known
-         └─ three or more → Will one capability have several implementations
-                            producing different successor evidence?
-            ├─ no  → typestate with concrete successors; revisit if that changes
-            └─ yes → capability traits with bounded associated successors
-                     ├─ add named sum types for material branches
-                     ├─ add named stages for retry, revision, and recovery
-                     ├─ add the topology assertion
-                     └─ is the stage count still justifiable against the budget?
-                        ├─ no  → merge to proof boundaries and re-enter
-                        └─ yes → proceed to the evidence plan
+```mermaid
+flowchart TD
+    ordering{Is the ordering consequential when violated?}
+    ordering -->|no| functions["ordinary functions; record the sequence in the design note and stop"]
+    ordering -->|yes| establishes{Does each stage establish a fact a later stage consumes?}
+    establishes -->|no| merge["merge the steps until they do; re-enter this tree"]
+    establishes -->|yes| owner{Is the sequence advanced by one owner within one process?}
+    owner -->|no| runtime["runtime state model is authoritative (RUST-DOC-0005, RUST-DOC-0006)"]
+    runtime --> localpass{is there also a local pass worth enforcing?}
+    localpass -->|no| runtimeonly["stop; runtime model only"]
+    localpass -->|yes| pass["typed stages for the pass, issued by checked restoration"]
+    owner -->|yes| transitions{How many transitions?}
+    transitions -->|one| consuming["consuming transition with a concrete successor; stop"]
+    transitions -->|two| twostate["typestate with concrete successors unless a second<br>implementation is already known"]
+    transitions -->|three or more| several{"Will one capability have several implementations<br>producing different successor evidence?"}
+    several -->|no| concrete["typestate with concrete successors; revisit if that changes"]
+    several -->|yes| traits[capability traits with bounded associated successors]
+    traits --> sums[add named sum types for material branches]
+    traits --> stages[add named stages for retry, revision, and recovery]
+    traits --> topology[add the topology assertion]
+    sums --> budget{is the stage count still justifiable against the budget?}
+    stages --> budget
+    topology --> budget
+    budget -->|no| remerge[merge to proof boundaries and re-enter]
+    budget -->|yes| proceed[proceed to the evidence plan]
 ```
 
 The tree has two deliberate exits into simpler designs. A protocol that cannot answer the second
@@ -12746,6 +12862,18 @@ under.
 - the decision-record registry, its schema, and the linter checks are linked;
 - generated bundles reproduce after the manifest update.
 
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](../doctrines/0011-executable-narrative/doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](../doctrines/0011-executable-narrative/rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](../doctrines/0011-executable-narrative/decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](../doctrines/0011-executable-narrative/review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](../doctrines/0011-executable-narrative/anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](../doctrines/0011-executable-narrative/glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](../doctrines/0011-executable-narrative/references.md)                 | external sources, with the scope each one actually supports   |
+
 ---
 
 ## Source: `doctrines/0011-executable-narrative/doctrine.md`
@@ -13430,6 +13558,10 @@ registry designed to hold only what somebody chose to record.
 | Onboarding difficulty                                              | names, types, tests, generated views, examples           | `RUST-DOC-0011-R006`, `RUST-DOC-0011-R016` |
 
 ## Decision tree
+
+This tree stays a text block while the corpus's other decision trees are drawn. Its four gates
+continue in reading order rather than by a stated edge, so drawing them would require inventing
+the edges between them and fixing one reading of a continuation the prose leaves open.
 
 ```text
 Is the claim about a durable, remote, or externally governed fact?

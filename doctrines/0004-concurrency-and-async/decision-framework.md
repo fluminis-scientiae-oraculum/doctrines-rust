@@ -34,19 +34,17 @@ when measured workload does not need overlap.
 
 For each `.await`:
 
-```text
-Has local or external state changed before suspension?
-├─ no → verify drop releases acquired resources
-└─ yes
-   Can drop leave the invariant valid and progress recoverable?
-   ├─ yes → document recovery owner and resume identity
-   └─ no
-      Can the mutation move after the suspension?
-      ├─ yes → reorder operation
-      └─ no
-         Can a guard/owner task finish it despite caller cancellation?
-         ├─ yes → supervise bounded completion
-         └─ no → add compensation or explicit reconciliation
+```mermaid
+flowchart TD
+    changed{Has local or external state changed before suspension?}
+    changed -->|no| drop[verify drop releases acquired resources]
+    changed -->|yes| valid{Can drop leave the invariant valid and progress recoverable?}
+    valid -->|yes| owner[document recovery owner and resume identity]
+    valid -->|no| move{Can the mutation move after the suspension?}
+    move -->|yes| reorder[reorder operation]
+    move -->|no| guard{Can a guard/owner task finish it despite caller cancellation?}
+    guard -->|yes| supervise[supervise bounded completion]
+    guard -->|no| compensate[add compensation or explicit reconciliation]
 ```
 
 A timeout around the future adds another cancellation edge. It does not prove a

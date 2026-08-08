@@ -101,10 +101,12 @@ does not prove funds are irrevocable or immune to later dispute.
 
 Reversal is a separate command authorized under current policy:
 
-```text
-Captured/Settled
-    → reversal requested with stable operation ID
-    → confirmed reversed | rejected | reversal unknown
+```mermaid
+flowchart LR
+    settled["Captured/Settled"] --> requested[reversal requested with stable operation ID]
+    requested --> reversed[confirmed reversed]
+    requested --> rejected
+    requested --> unknown[reversal unknown]
 ```
 
 It is never called rollback. Its amount may be full or partial under explicit

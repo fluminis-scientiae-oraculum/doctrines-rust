@@ -30,13 +30,14 @@ the change is normative and requires an RFC.
 
 ## Lifecycle
 
-1. Copy [`template.md`](template.md) into `proposed/` with a unique numeric ID
-   and descriptive slug.
+1. Copy [`template.md`](template.md) into [`proposed/`](proposed/) with a unique
+   numeric ID and descriptive slug.
 2. Complete evidence, compatibility, migration, and impact sections.
 3. Open review and link affected doctrine/issue/PR.
 4. Record objections and revisions without erasing decision history.
-5. Move accepted, rejected, or superseded RFCs into their state directory with
-   a final decision record.
+5. Move accepted, rejected, or superseded RFCs into their state directory —
+   [`accepted/`](accepted/README.md), [`rejected/`](rejected/), or
+   [`superseded/`](superseded/) — with a final decision record.
 6. Apply accepted changes in a separate or clearly reviewable implementation,
    updating versions, manifests, source notes, examples, agents, bundles, and
    CHANGELOG.

@@ -36,13 +36,13 @@ Any unanswered applicable row blocks implementation.
 
 ## Choose the API boundary
 
-```text
-Can all safety preconditions be checked or enforced internally?
-├─ yes → safe API over private unsafe implementation
-└─ no
-   Can ownership/type structure encode them?
-   ├─ yes → redesign until safe
-   └─ no → narrow unsafe API with complete caller obligations
+```mermaid
+flowchart TD
+    internal{Can all safety preconditions be checked or enforced internally?}
+    internal -->|yes| safe[safe API over private unsafe implementation]
+    internal -->|no| encode{Can ownership/type structure encode them?}
+    encode -->|yes| redesign[redesign until safe]
+    encode -->|no| narrow[narrow unsafe API with complete caller obligations]
 ```
 
 Do not make an API safe by moving obligations into prose.

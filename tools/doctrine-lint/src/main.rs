@@ -39,6 +39,36 @@ const CANONICAL_ROOTS: &[&str] = &[
 
 const DOCTRINE_INDEX: &str = "doctrines/README.md";
 
+/// Maintained Markdown that legitimately has nothing linking to it, and why.
+///
+/// A reader reaches every other canonical document by clicking. These three are not
+/// reached that way: one is where a reader starts, and two are inputs a generator
+/// reads rather than pages anyone opens. Each is named individually, so a file cannot
+/// acquire the exemption by resembling one.
+/// Directories the reachability gate walks beyond the canonical roots.
+///
+/// Each holds maintained Markdown a reader navigates but no doctrine projection
+/// carries: scaffolding, discovery schemas, and the tool and example indexes. They are
+/// listed here rather than added to `CANONICAL_ROOTS` because that list also selects
+/// what the normative-term scan and the drift checks read, and widening it would apply
+/// those rules to files deliberately outside them.
+const REACHABILITY_EXTRA_ROOTS: &[&str] = &["templates", "manifest", "tools", "examples"];
+
+const REACHABILITY_EXEMPTIONS: &[(&str, &str)] = &[
+    (
+        "README.md",
+        "the repository entry point, which a reader opens directly",
+    ),
+    (
+        "doctrines/map-overview.md",
+        "a generator input for doctrines/map.md rather than a page",
+    ),
+    (
+        "rfcs/accepted/overview.md",
+        "a generator input for rfcs/accepted/README.md rather than a page",
+    ),
+];
+
 const ACTIVE_RECORD_DIRECTORY: &str = "decisions/active/";
 const ARCHIVED_RECORD_DIRECTORY: &str = "decisions/archive/";
 const ARCHIVAL_MARKER: &str = "NOT CURRENT OPERATIONAL AUTHORITY";
@@ -240,6 +270,7 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     check_verbosity_annotations(root, &doctrine_manifest, &agent_manifest, &mut diagnostics);
     check_reserved_ceiling(root, &agent_manifest, &mut diagnostics);
     check_alert_vocabulary(root, &mut diagnostics);
+    check_reachability(root, &mut diagnostics);
     check_generated_files(root, &mut diagnostics);
     diagnostics
 }
@@ -1623,6 +1654,148 @@ fn contains_normative_term(line: &str) -> bool {
         .any(|word| matches!(word, "MUST" | "SHOULD" | "MAY"))
 }
 
+/// Rejects maintained Markdown that no other maintained Markdown file links to.
+///
+/// The corpus reached 245 files with 104 of them unreachable by clicking, because a
+/// package index named its siblings in backticks rather than links. Backticked prose
+/// looks like a reference and navigates nowhere, and nothing detected the difference.
+///
+/// This checks inbound links, not reachability from the root: a file linked only by an
+/// unreachable file still passes. That is the weaker claim, and it is the one made here
+/// rather than the one the name might suggest.
+fn check_reachability(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
+    let files = reachability_scope(root, diagnostics);
+    let mut linked: BTreeSet<String> = BTreeSet::new();
+
+    for file in &files {
+        let Some(text) = read_text(file, diagnostics) else {
+            continue;
+        };
+        for href in outbound_links(&text) {
+            let Some(relative) = resolve_link(root, file, &href) else {
+                continue;
+            };
+            // A link to a directory reaches that directory's index, so credit it.
+            let absolute = root.join(&relative);
+            if absolute.is_dir() {
+                linked.insert(format!("{relative}/README.md"));
+            }
+            linked.insert(relative);
+        }
+    }
+
+    for file in &files {
+        let relative = file
+            .strip_prefix(root)
+            .unwrap_or(file)
+            .to_string_lossy()
+            .replace('\\', "/");
+        if REACHABILITY_EXEMPTIONS
+            .iter()
+            .any(|(exempt, _)| *exempt == relative)
+        {
+            continue;
+        }
+        if !linked.contains(&relative) {
+            diagnostics.push(Diagnostic::new(
+                file,
+                "no maintained Markdown file links to it; add a link from its index, or \
+                 exempt it in REACHABILITY_EXEMPTIONS with a stated reason",
+            ));
+        }
+    }
+}
+
+/// Every Markdown file the reachability gate holds to an inbound link.
+///
+/// This is the canonical set plus [`REACHABILITY_EXTRA_ROOTS`], and it is assembled
+/// here rather than by widening `CANONICAL_ROOTS`. Those roots also drive the
+/// normative-term scan and both drift checks, and `templates/` is deliberately exempt
+/// from the marker scan because scaffolding text is expected there. Navigation is a
+/// different question from normative scope, so it gets a different set.
+fn reachability_scope(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Vec<PathBuf> {
+    let mut paths = maintained_markdown(root, diagnostics);
+    for directory in REACHABILITY_EXTRA_ROOTS {
+        let mut collected = Vec::new();
+        collect_files(&root.join(directory), diagnostics, &mut |path| {
+            if path.extension().and_then(|value| value.to_str()) == Some("md") {
+                collected.push(path.to_path_buf());
+            }
+        });
+        paths.append(&mut collected);
+    }
+    paths.sort();
+    paths.dedup();
+    paths
+}
+
+/// Link destinations in Markdown prose, skipping fenced code.
+///
+/// Fenced content is skipped for the reason the normative-term scan skips it: a path
+/// inside an example is not navigation, and counting it would let a code sample satisfy
+/// the reachability of a real document.
+fn outbound_links(text: &str) -> Vec<String> {
+    let mut targets = Vec::new();
+    let mut in_fence = false;
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            in_fence = !in_fence;
+            continue;
+        }
+        if in_fence {
+            continue;
+        }
+        let mut index = 0;
+        while let Some(offset) = line[index..].find("](") {
+            let start = index + offset + 2;
+            let Some(length) = line[start..].find(')') else {
+                break;
+            };
+            targets.push(line[start..start + length].to_owned());
+            index = start + length + 1;
+        }
+    }
+    targets
+}
+
+/// Resolves one Markdown link to a repository-relative path, or `None` when it does not
+/// name a file in this repository.
+///
+/// Normalization is textual rather than `canonicalize`, because a link to a path that
+/// does not exist must resolve to a comparable string rather than an error; the link
+/// checker owns whether a target exists, and this check owns only what points where.
+fn resolve_link(root: &Path, from: &Path, href: &str) -> Option<String> {
+    let target = href.split('#').next()?.trim();
+    if target.is_empty() || target.contains("://") || target.starts_with("mailto:") {
+        return None;
+    }
+    let joined = from.parent()?.join(target);
+
+    let mut parts: Vec<std::ffi::OsString> = Vec::new();
+    for component in joined.components() {
+        match component {
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                parts.pop();
+            }
+            other => parts.push(other.as_os_str().to_owned()),
+        }
+    }
+    let mut absolute = PathBuf::new();
+    for part in parts {
+        absolute.push(part);
+    }
+
+    Some(
+        absolute
+            .strip_prefix(root)
+            .ok()?
+            .to_string_lossy()
+            .replace('\\', "/"),
+    )
+}
+
 /// The generated files that live inside a canonical root rather than under `dist/`.
 ///
 /// Each carries a banner comment naming its sources, so each is exempt from the scan that
@@ -2014,9 +2187,11 @@ mod tests {
         workspace_package_version,
     };
     use super::{
-        GENERATED_IN_CANONICAL_ROOTS, RuleInventory, check_reserved_ceiling, check_stated_counts,
-        collect_files, doctrine_index_rows, maintained_markdown, root_documents, scan_marker_file,
-        table_row_cells, unknown_alert, validation_sequence_copies,
+        GENERATED_IN_CANONICAL_ROOTS, REACHABILITY_EXEMPTIONS, REACHABILITY_EXTRA_ROOTS,
+        RuleInventory, check_reachability, check_reserved_ceiling, check_stated_counts,
+        collect_files, doctrine_index_rows, maintained_markdown, outbound_links,
+        reachability_scope, resolve_link, root_documents, scan_marker_file, table_row_cells,
+        unknown_alert, validation_sequence_copies,
     };
     use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity, states_obligations};
     use std::collections::BTreeSet;
@@ -3018,5 +3193,149 @@ mod tests {
         );
         assert_eq!(diagnostics.len(), 1);
         assert!(diagnostics[0].message.contains("capitalized noun-phrase"));
+    }
+
+    #[test]
+    fn outbound_links_ignore_fenced_paths() {
+        let text = "See [one](a.md) and [two](../b.md#frag).\n\
+                    ```text\n\
+                    [three](c.md)\n\
+                    ```\n\
+                    Then [four](https://example.com/d).\n";
+        assert_eq!(
+            outbound_links(text),
+            vec![
+                "a.md".to_owned(),
+                "../b.md#frag".to_owned(),
+                "https://example.com/d".to_owned(),
+            ]
+        );
+    }
+
+    #[test]
+    fn resolve_link_normalizes_and_rejects_external() {
+        let root = Path::new("/repo");
+        let from = Path::new("/repo/doctrines/0001-invalid-states/README.md");
+        assert_eq!(
+            resolve_link(root, from, "doctrine.md").as_deref(),
+            Some("doctrines/0001-invalid-states/doctrine.md")
+        );
+        assert_eq!(
+            resolve_link(root, from, "../../foundations/evidence.md#anchor").as_deref(),
+            Some("foundations/evidence.md")
+        );
+        assert_eq!(resolve_link(root, from, "https://example.com"), None);
+        assert_eq!(resolve_link(root, from, "mailto:someone@example.com"), None);
+        assert_eq!(resolve_link(root, from, "#section-only"), None);
+    }
+
+    /// The reachability check ships with a corpus that satisfies it, so the failing
+    /// direction is exercised here rather than left unproved.
+    #[test]
+    fn reachability_reports_a_file_nothing_links_to() {
+        let root = temporary_directory("reachability");
+        fs::create_dir_all(root.join("sources")).unwrap();
+        fs::write(root.join("README.md"), "# Root\n\n[index](sources/)\n").unwrap();
+        fs::write(
+            root.join("sources/README.md"),
+            "# Sources\n\n[linked](linked.md)\n",
+        )
+        .unwrap();
+        fs::write(root.join("sources/linked.md"), "# Linked\n").unwrap();
+        fs::write(root.join("sources/orphan.md"), "# Orphan\n").unwrap();
+
+        let mut diagnostics = Vec::new();
+        check_reachability(&root, &mut diagnostics);
+
+        let reported: Vec<String> = diagnostics
+            .iter()
+            .map(|diagnostic| diagnostic.path.to_string_lossy().replace('\\', "/"))
+            .collect();
+        assert!(
+            reported
+                .iter()
+                .any(|path| path.ends_with("sources/orphan.md")),
+            "orphan.md was not reported; reported {reported:?}"
+        );
+        assert!(
+            !reported
+                .iter()
+                .any(|path| path.ends_with("sources/linked.md")),
+            "linked.md was reported despite an inbound link"
+        );
+        // The directory link in README.md reaches sources/README.md.
+        assert!(
+            !reported
+                .iter()
+                .any(|path| path.ends_with("sources/README.md")),
+            "a directory link did not credit that directory's index"
+        );
+        // The root document is exempt, so its absence of inbound links is not a finding.
+        assert!(
+            !reported
+                .iter()
+                .any(|path| path.ends_with("/README.md") && !path.contains("sources")),
+            "the repository entry point should be exempt"
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    /// A check is only as wide as its file list. This one silently covered nothing
+    /// under `templates/`, `manifest/`, `tools/`, or `examples/` until the scope was
+    /// widened, and a passing repository looks identical either way — so the scope is
+    /// asserted against the real tree rather than inferred from the constant.
+    #[test]
+    fn reachability_scope_covers_every_extra_root() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mut diagnostics = Vec::new();
+        let scope = reachability_scope(&root, &mut diagnostics);
+        let relative: BTreeSet<String> = scope
+            .iter()
+            .map(|path| {
+                path.strip_prefix(&root)
+                    .unwrap_or(path)
+                    .to_string_lossy()
+                    .replace('\\', "/")
+            })
+            .collect();
+
+        for directory in REACHABILITY_EXTRA_ROOTS {
+            let prefix = format!("{directory}/");
+            assert!(
+                relative.iter().any(|path| path.starts_with(&prefix)),
+                "the reachability scope covers no Markdown under {directory}/, so nothing \
+                 there can ever be reported"
+            );
+        }
+        // The canonical roots must survive the widening.
+        assert!(relative.contains("doctrines/README.md"));
+        assert!(relative.contains("README.md"));
+    }
+
+    #[test]
+    fn reachability_scope_lists_each_file_once() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mut diagnostics = Vec::new();
+        let scope = reachability_scope(&root, &mut diagnostics);
+        let mut unique = scope.clone();
+        unique.dedup();
+        assert_eq!(
+            scope.len(),
+            unique.len(),
+            "a duplicated path would report the same file twice"
+        );
+    }
+
+    #[test]
+    fn reachability_exemptions_name_a_reason() {
+        assert!(!REACHABILITY_EXEMPTIONS.is_empty());
+        for (path, reason) in REACHABILITY_EXEMPTIONS {
+            assert!(!path.is_empty(), "an exemption has no path");
+            assert!(
+                reason.len() > 20,
+                "exemption {path} has no stated reason worth reading"
+            );
+        }
     }
 }

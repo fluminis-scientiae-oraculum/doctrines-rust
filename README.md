@@ -94,28 +94,30 @@ Canonical content has distinct responsibilities:
 
 - `foundations/` defines shared language for invariants, evidence, boundaries, guarantees,
   and complexity.
-- `doctrines/` contains versioned normative packages. Every normative rule has a stable
-  `RUST-DOC-####-R###` identifier, intent, applicability, exception policy, and expected
-  evidence.
-- `patterns/` describes reusable representation choices, their exact guarantees, their
-  limitations, and their costs.
-- `boundaries/` explains how untrusted HTTP, database, message, configuration, filesystem,
-  Serde, and FFI representations become trusted domain evidence.
-- `reviews/` contains pass/fail/not-applicable/waiver-oriented procedures.
-- `agents/` provides role overlays that select canonical doctrine instead of manually
-  duplicating it.
-- `case-studies/` follows complete problems from weak representations through improved
-  designs and residual uncertainty.
-- `examples/` provides positive tests, compiler-rejection evidence, and an
-  isolated unsafe abstraction checked under Miri.
-- `sources/` records provenance, accepted ideas, refinements, and doctrine additions.
-- `decisions/` holds the architecture decision records that survive the last-resort test in
-  RUST-DOC-0011, with their template and worked examples. The active set is currently empty.
-- `templates/` and `rfcs/` govern future doctrine work.
-- `manifest/` exposes doctrine and agent-pack discovery through YAML validated against Draft
-  2020-12 JSON Schemas.
-- `tools/` contains the doctrine linter, the deterministic context bundler, and the
-  `doctrine-manifest` crate both decode the manifests through, so one schema-owned
+- [`doctrines/`](doctrines/README.md) contains versioned normative packages. Every normative rule
+  has a stable `RUST-DOC-####-R###` identifier, intent, applicability, exception policy, and
+  expected evidence.
+- [`patterns/`](patterns/README.md) describes reusable representation choices, their exact
+  guarantees, their limitations, and their costs.
+- [`boundaries/`](boundaries/README.md) explains how untrusted HTTP, database, message,
+  configuration, filesystem, Serde, and FFI representations become trusted domain evidence.
+- [`reviews/`](reviews/README.md) contains pass/fail/not-applicable/waiver-oriented procedures.
+- [`agents/`](agents/README.md) provides role overlays that select canonical doctrine instead of
+  manually duplicating it.
+- [`case-studies/`](case-studies/README.md) follows complete problems from weak representations
+  through improved designs and residual uncertainty.
+- [`examples/`](examples/README.md) provides positive tests, compiler-rejection evidence, and an
+  [isolated unsafe abstraction](examples/unsafe-evidence/README.md) checked under Miri.
+- [`sources/`](sources/README.md) records provenance, accepted ideas, refinements, and doctrine
+  additions.
+- [`decisions/`](decisions/README.md) holds the architecture decision records that survive the
+  last-resort test in RUST-DOC-0011, with their template and worked examples. The active set is
+  currently empty.
+- [`templates/`](templates/README.md) and [`rfcs/`](rfcs/README.md) govern future doctrine work.
+- [`manifest/`](manifest/README.md) exposes doctrine and agent-pack discovery through YAML
+  validated against Draft 2020-12 JSON Schemas.
+- [`tools/`](tools/README.md) contains the doctrine linter, the deterministic context bundler, and
+  the `doctrine-manifest` crate both decode the manifests through, so one schema-owned
   vocabulary has one decoder rather than one per tool.
 
 Definitions flow into doctrine; doctrine constrains patterns, boundary guides, reviews, and
@@ -270,10 +272,11 @@ discovered behavior; it is not the first compiler, linter, or formatter.
 
 ## Contributing and evolution
 
-Read `CONTRIBUTING.md` and repository `AGENTS.md` before changing content. Corrections that
-preserve normative meaning may use an ordinary pull request. New doctrines, normative rule
-additions or weakening, new escape hatches, supersession, normative-term changes, significant
-bundle restructuring, license changes, and MSRV policy changes require an RFC under `rfcs/`.
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) and repository [`AGENTS.md`](AGENTS.md) before changing
+content. Corrections that preserve normative meaning may use an ordinary pull request. New
+doctrines, normative rule additions or weakening, new escape hatches, supersession,
+normative-term changes, significant bundle restructuring, license changes, and MSRV policy
+changes require an RFC under [`rfcs/`](rfcs/README.md).
 
 Every normative change identifies affected rule IDs, updates manifests and source provenance,
 states compatibility and migration consequences, and regenerates `dist/`. A reviewer requires
@@ -281,11 +284,15 @@ a guarantee ledger separating what a mechanism establishes from what remains unp
 claim is stronger than its constructors, boundary decoding, or external evidence, use the
 guarantee-overclaim issue form.
 
+Released changes are recorded in [`CHANGELOG.md`](CHANGELOG.md). Participation is governed by the
+[`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), and vulnerability reporting by
+[`SECURITY.md`](SECURITY.md).
+
 ## License
 
 Documentation — including Markdown doctrine, manifests, schemas, and generated doctrine
 bundles — is licensed under Creative Commons Attribution 4.0 International; see
-`LICENSE-DOCS`. Rust source, test fixtures, repository tools, and reusable workflow or
-configuration code are available under MIT OR Apache-2.0 at the recipient's option; see
-`LICENSE-CODE`. External quotations and linked source material remain subject to their
-respective rights.
+[`LICENSE-DOCS`](LICENSE-DOCS). Rust source, test fixtures, repository tools, and reusable
+workflow or configuration code are available under MIT OR Apache-2.0 at the recipient's option;
+see [`LICENSE-CODE`](LICENSE-CODE). External quotations and linked source material remain subject
+to their respective rights.

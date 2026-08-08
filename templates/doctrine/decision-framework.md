@@ -24,9 +24,18 @@ plan as relevant.
 
 ## Decision tree
 
-```text
 <Write an operational tree whose leaves select mechanisms or require more
-evidence. Include an explicit simpler-design exit.>
+evidence, and include an explicit simpler-design exit. Replace every label
+below. A branching structure is a `mermaid` flowchart, so a reader sees the
+shape; a linear sequence or a list stays a `text` block. Two things stay
+`text` whatever their shape: a file under foundations/ or agents/, which
+generated agent packs copy verbatim and must not grow, and a tree whose gates
+continue in reading order rather than by a stated edge.>
+
+```mermaid
+flowchart TD
+    question{First branching question} -->|yes| leaf[Mechanism or evidence leaf]
+    question -->|no| exit[Simpler-design exit]
 ```
 
 ## Complexity check

@@ -32,16 +32,15 @@ protocol.
 
 ## Outcome decision tree
 
-```text
-Did authoritative evidence confirm success?
-├─ yes → Confirmed(success evidence)
-└─ no
-   Did authoritative evidence confirm rejection/non-execution?
-   ├─ yes → Rejected(reason)
-   └─ no
-      Is it proven no request crossed the execution boundary?
-      ├─ yes → LocalFailure(retry guidance)
-      └─ no → Unknown(reconciliation evidence)
+```mermaid
+flowchart TD
+    success{Did authoritative evidence confirm success?}
+    success -->|yes| confirmed["Confirmed(success evidence)"]
+    success -->|no| rejection{Did authoritative evidence confirm rejection/non-execution?}
+    rejection -->|yes| rejected["Rejected(reason)"]
+    rejection -->|no| crossed{Is it proven no request crossed the execution boundary?}
+    crossed -->|yes| local["LocalFailure(retry guidance)"]
+    crossed -->|no| unknown["Unknown(reconciliation evidence)"]
 ```
 
 ## Idempotency decision

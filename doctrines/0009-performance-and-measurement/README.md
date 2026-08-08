@@ -104,3 +104,15 @@ allocation profile, flamegraph, or performance-regression threshold. It
 therefore makes no measured claim about example speed, latency, allocation, or
 binary size. This doctrine specifies the evidence required when such a claim is
 introduced; it does not convert unmeasured examples into performance evidence.
+
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](references.md)                 | external sources, with the scope each one actually supports   |

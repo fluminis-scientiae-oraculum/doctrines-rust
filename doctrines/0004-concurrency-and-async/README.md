@@ -117,3 +117,15 @@ connection. It does not include an async-runtime integration, cancellation
 harness, deadlock detector, Loom model, or backpressure load test. Systems
 applying this doctrine supply evidence for those runtime-specific claims; the
 current examples do not establish them.
+
+## Package contents
+
+| File                                             | What it carries                                               |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [`doctrine.md`](doctrine.md)                     | the normative rules, under stable rule identifiers            |
+| [`rationale.md`](rationale.md)                   | why the rules take this shape, and what was rejected          |
+| [`decision-framework.md`](decision-framework.md) | the operational path from a problem to a chosen mechanism     |
+| [`review-standard.md`](review-standard.md)       | the auditable checks a reviewer records against this doctrine |
+| [`anti-patterns.md`](anti-patterns.md)           | the bypass shapes this doctrine exists to catch               |
+| [`glossary.md`](glossary.md)                     | terms as this package uses them                               |
+| [`references.md`](references.md)                 | external sources, with the scope each one actually supports   |
