@@ -45,6 +45,15 @@ const DOCTRINE_INDEX: &str = "doctrines/README.md";
 /// reached that way: one is where a reader starts, and two are inputs a generator
 /// reads rather than pages anyone opens. Each is named individually, so a file cannot
 /// acquire the exemption by resembling one.
+/// Directories the reachability gate walks beyond the canonical roots.
+///
+/// Each holds maintained Markdown a reader navigates but no doctrine projection
+/// carries: scaffolding, discovery schemas, and the tool and example indexes. They are
+/// listed here rather than added to `CANONICAL_ROOTS` because that list also selects
+/// what the normative-term scan and the drift checks read, and widening it would apply
+/// those rules to files deliberately outside them.
+const REACHABILITY_EXTRA_ROOTS: &[&str] = &["templates", "manifest", "tools", "examples"];
+
 const REACHABILITY_EXEMPTIONS: &[(&str, &str)] = &[
     (
         "README.md",
@@ -1655,7 +1664,7 @@ fn contains_normative_term(line: &str) -> bool {
 /// unreachable file still passes. That is the weaker claim, and it is the one made here
 /// rather than the one the name might suggest.
 fn check_reachability(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
-    let files = maintained_markdown(root, diagnostics);
+    let files = reachability_scope(root, diagnostics);
     let mut linked: BTreeSet<String> = BTreeSet::new();
 
     for file in &files {
@@ -1695,6 +1704,29 @@ fn check_reachability(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
             ));
         }
     }
+}
+
+/// Every Markdown file the reachability gate holds to an inbound link.
+///
+/// This is the canonical set plus [`REACHABILITY_EXTRA_ROOTS`], and it is assembled
+/// here rather than by widening `CANONICAL_ROOTS`. Those roots also drive the
+/// normative-term scan and both drift checks, and `templates/` is deliberately exempt
+/// from the marker scan because scaffolding text is expected there. Navigation is a
+/// different question from normative scope, so it gets a different set.
+fn reachability_scope(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Vec<PathBuf> {
+    let mut paths = maintained_markdown(root, diagnostics);
+    for directory in REACHABILITY_EXTRA_ROOTS {
+        let mut collected = Vec::new();
+        collect_files(&root.join(directory), diagnostics, &mut |path| {
+            if path.extension().and_then(|value| value.to_str()) == Some("md") {
+                collected.push(path.to_path_buf());
+            }
+        });
+        paths.append(&mut collected);
+    }
+    paths.sort();
+    paths.dedup();
+    paths
 }
 
 /// Link destinations in Markdown prose, skipping fenced code.
@@ -2155,10 +2187,11 @@ mod tests {
         workspace_package_version,
     };
     use super::{
-        GENERATED_IN_CANONICAL_ROOTS, REACHABILITY_EXEMPTIONS, RuleInventory, check_reachability,
-        check_reserved_ceiling, check_stated_counts, collect_files, doctrine_index_rows,
-        maintained_markdown, outbound_links, resolve_link, root_documents, scan_marker_file,
-        table_row_cells, unknown_alert, validation_sequence_copies,
+        GENERATED_IN_CANONICAL_ROOTS, REACHABILITY_EXEMPTIONS, REACHABILITY_EXTRA_ROOTS,
+        RuleInventory, check_reachability, check_reserved_ceiling, check_stated_counts,
+        collect_files, doctrine_index_rows, maintained_markdown, outbound_links,
+        reachability_scope, resolve_link, root_documents, scan_marker_file, table_row_cells,
+        unknown_alert, validation_sequence_copies,
     };
     use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity, states_obligations};
     use std::collections::BTreeSet;
@@ -3246,6 +3279,52 @@ mod tests {
         );
 
         let _ = fs::remove_dir_all(&root);
+    }
+
+    /// A check is only as wide as its file list. This one silently covered nothing
+    /// under `templates/`, `manifest/`, `tools/`, or `examples/` until the scope was
+    /// widened, and a passing repository looks identical either way — so the scope is
+    /// asserted against the real tree rather than inferred from the constant.
+    #[test]
+    fn reachability_scope_covers_every_extra_root() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mut diagnostics = Vec::new();
+        let scope = reachability_scope(&root, &mut diagnostics);
+        let relative: BTreeSet<String> = scope
+            .iter()
+            .map(|path| {
+                path.strip_prefix(&root)
+                    .unwrap_or(path)
+                    .to_string_lossy()
+                    .replace('\\', "/")
+            })
+            .collect();
+
+        for directory in REACHABILITY_EXTRA_ROOTS {
+            let prefix = format!("{directory}/");
+            assert!(
+                relative.iter().any(|path| path.starts_with(&prefix)),
+                "the reachability scope covers no Markdown under {directory}/, so nothing \
+                 there can ever be reported"
+            );
+        }
+        // The canonical roots must survive the widening.
+        assert!(relative.contains("doctrines/README.md"));
+        assert!(relative.contains("README.md"));
+    }
+
+    #[test]
+    fn reachability_scope_lists_each_file_once() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mut diagnostics = Vec::new();
+        let scope = reachability_scope(&root, &mut diagnostics);
+        let mut unique = scope.clone();
+        unique.dedup();
+        assert_eq!(
+            scope.len(),
+            unique.len(),
+            "a duplicated path would report the same file twice"
+        );
     }
 
     #[test]
