@@ -21,7 +21,7 @@ condition and updates doctrine version, manifests, schemas, source notes,
 examples, role packs, generated outputs, and CHANGELOG as applicable.
 
 Exit condition is supersession by a later accepted RFC. Move the old file to
-`../superseded/` only when the replacement is accepted and the relationship is
+[`../superseded/`](../superseded/) only when the replacement is accepted and the relationship is
 recorded in both decision records. Rejection is not a valid later state for an
 already accepted historical decision.
 

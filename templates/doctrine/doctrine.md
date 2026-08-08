@@ -1,7 +1,7 @@
 # Normative doctrine: <Replace with title>
 
 Use uppercase normative terms according to
-`foundations/normative-language.md`. Assign stable IDs sequentially; never reuse
+[`foundations/normative-language.md`](../../foundations/normative-language.md). Assign stable IDs sequentially; never reuse
 an old ID for new meaning.
 
 ## RUST-DOC-NNNN-R001 — <Replace with concise rule title>

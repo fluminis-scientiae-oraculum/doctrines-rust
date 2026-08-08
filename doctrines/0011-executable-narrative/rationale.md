@@ -55,12 +55,11 @@ sitting in a package whose `RUST-DOC-0010-R018` and `RUST-DOC-0010-R019` exist p
 prose cannot detect a widened bound or a redirected successor. The package argued the partition
 and then denied it. The defect was live in this corpus until the restatement recorded in RFC-0003.
 
-**The index nobody regenerated.** `rfcs/accepted/README.md` listed RFC-0001 and omitted RFC-0002
-within a single release, because the index of accepted proposals is maintained by hand beside a
-directory that already contains the answer. The cost was small and the mechanism is the general
-one: a hand-maintained view of a machine-readable fact is wrong as soon as attention lapses.
-`RUST-DOC-0011-R005` prefers generation, and `RUST-DOC-0011-R017` makes the count of maintained
-representations something a review states rather than estimates.
+**The index nobody regenerated.** [`rfcs/accepted/README.md`](../../rfcs/accepted/README.md) listed RFC-0001 and omitted
+RFC-0002 within a single release, because the index of accepted proposals is maintained by hand beside a directory that
+already contains the answer. The cost was small and the mechanism is the general one: a hand-maintained view of a
+machine-readable fact is wrong as soon as attention lapses. `RUST-DOC-0011-R005` prefers generation, and
+`RUST-DOC-0011-R017` makes the count of maintained representations something a review states rather than estimates.
 
 ## Why weaker alternatives fail
 

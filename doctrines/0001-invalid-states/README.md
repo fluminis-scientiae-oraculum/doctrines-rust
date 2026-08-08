@@ -49,24 +49,24 @@ Architects use it with the complexity budget to choose proportionate mechanisms.
 ## Normative status
 
 `doctrine.md` is normative. Requirements use the interpretation in
-`foundations/normative-language.md` and stable IDs beginning `RUST-DOC-0001-R`. Rationale,
-examples, anti-patterns, glossary, and references are informative unless a rule incorporates
-them.
+[`foundations/normative-language.md`](../../foundations/normative-language.md) and stable IDs beginning
+`RUST-DOC-0001-R`. Rationale, examples, anti-patterns, glossary, and references are informative unless a rule
+incorporates them.
 
 Rule identifiers remain stable within the doctrine version, which this file's front matter and
-`manifest/doctrines.yaml` record. Waivers follow the repository waiver contract. A new escape
-hatch, weakened obligation, or changed rule meaning requires an RFC.
+[`manifest/doctrines.yaml`](../../manifest/doctrines.yaml) record. Waivers follow the repository waiver contract. A new
+escape hatch, weakened obligation, or changed rule meaning requires an RFC.
 
 ## Prerequisite foundations
 
 Read, in order:
 
 1. `foundations/normative-language.md`;
-2. `foundations/invariants.md`;
-3. `foundations/evidence.md`;
-4. `foundations/trust-boundaries.md`;
-5. `foundations/guarantee-honesty.md`;
-6. `foundations/complexity-budget.md`.
+2. [`foundations/invariants.md`](../../foundations/invariants.md);
+3. [`foundations/evidence.md`](../../foundations/evidence.md);
+4. [`foundations/trust-boundaries.md`](../../foundations/trust-boundaries.md);
+5. [`foundations/guarantee-honesty.md`](../../foundations/guarantee-honesty.md);
+6. [`foundations/complexity-budget.md`](../../foundations/complexity-budget.md).
 
 ## Related material
 

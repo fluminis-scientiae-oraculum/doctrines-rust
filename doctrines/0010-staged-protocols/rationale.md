@@ -112,7 +112,7 @@ invitation-based signup both need to reach the authorization stage while carryin
 proofs. Without an associated successor type, that requires either one widened successor
 carrying both proofs as options, which reintroduces the optional-field failure, or a duplicated
 protocol. This is the specific gap `RUST-DOC-0010-R003` fills, and it is why the doctrine exists
-separately from `patterns/typestate.md`.
+separately from [`patterns/typestate.md`](../../patterns/typestate.md).
 
 **A runtime state machine.** An enum with a `state` field and a `transition` method handles
 dynamic, persisted, heterogeneous, and externally-determined state well, and it is the correct

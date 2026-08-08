@@ -200,13 +200,13 @@ which claim.
 ## 13. Executable example
 
 This repository is its own worked instance of the generated-view half.
-`tools/bundle-agent-context` builds every [generated distribution](../dist/README.md) from the canonical
-sources named in [`../manifest/doctrines.yaml`](../manifest/doctrines.yaml) and
-[`../manifest/agents.yaml`](../manifest/agents.yaml), stamps each output with a banner naming the
-canonical roots, and its `check` mode fails on drift. No file under `dist/` is edited by hand, and
-the drift check is part of the ordinary validation set.
+[`tools/bundle-agent-context`](../tools/bundle-agent-context/) builds every [generated distribution](../dist/README.md)
+from the canonical sources named in [`../manifest/doctrines.yaml`](../manifest/doctrines.yaml) and
+[`../manifest/agents.yaml`](../manifest/agents.yaml), stamps each output with a banner naming the canonical roots, and
+its `check` mode fails on drift. No file under `dist/` is edited by hand, and the drift check is part of the ordinary
+validation set.
 
-`tools/doctrine-lint` is the enforcement half. It validates the decision-record registry at
+[`tools/doctrine-lint`](../tools/doctrine-lint/) is the enforcement half. It validates the decision-record registry at
 [`../manifest/decision-records.yaml`](../manifest/decision-records.yaml) against its schema and
 against the obligations `RUST-DOC-0011-R007` states, so a record without an owner, a revalidation
 trigger, an obsolescence condition, or resolvable executable authorities fails the build rather

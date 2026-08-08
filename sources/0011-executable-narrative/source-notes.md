@@ -13,10 +13,10 @@ the error happened.
 
 ## Correction of the earlier record
 
-`sources/0010-staged-protocols/source-notes.md` originally listed, under "Rejected claims", an
-item headed "Code as sufficient contract". It summarized the source as arguing "that the
-executable protocol is the authoritative live contract and that documentation should not be the
-only enforcement", accepted the second half, and rejected the first.
+[`sources/0010-staged-protocols/source-notes.md`](../0010-staged-protocols/source-notes.md) originally listed, under
+"Rejected claims", an item headed "Code as sufficient contract". It summarized the source as arguing "that the
+executable protocol is the authoritative live contract and that documentation should not be the only enforcement",
+accepted the second half, and rejected the first.
 
 That summary attributed a claim the source did not make. The source did not argue that code
 explains external constraints, accepted risk, or change authority. It argued that an obligation
@@ -70,11 +70,10 @@ its reason ends, and `RUST-DOC-0011-R010` governs the citation even while the re
 active, since a record can be current and still be cited without checking whether it applies to
 the change at hand.
 
-**Agent context.** The source argues that current authority should be easier to find than
-historical decisions. Accepted and delivered through this repository's existing mechanism:
-`manifest/agents.yaml` selects canonical sources and the bundler produces deterministic hydration
-packs, so `RUST-DOC-0011-R018` states the obligation in terms of that mechanism rather than as a
-general recommendation about repository layout.
+**Agent context.** The source argues that current authority should be easier to find than historical decisions. Accepted
+and delivered through this repository's existing mechanism: [`manifest/agents.yaml`](../../manifest/agents.yaml) selects
+canonical sources and the bundler produces deterministic hydration packs, so `RUST-DOC-0011-R018` states the obligation
+in terms of that mechanism rather than as a general recommendation about repository layout.
 
 **Rationale boundaries.** The source's position on rationale is mostly negative, saying what
 should not be written. The repository adds the positive obligation: an absent reason is recorded

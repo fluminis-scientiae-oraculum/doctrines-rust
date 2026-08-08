@@ -70,7 +70,7 @@ interpretation.
 
 Uppercase requirement terms in `doctrine.md` are normative. Stable rule IDs are the citation
 unit. Package metadata records whether the doctrine is normative and its lifecycle state.
-Repository governance contracts such as `AGENTS.md`, `CONTRIBUTING.md`, and `rfcs/README.md`
+Repository governance contracts such as [`AGENTS.md`](../AGENTS.md), [`CONTRIBUTING.md`](../CONTRIBUTING.md), and [`rfcs/README.md`](../rfcs/README.md)
 may use the same vocabulary for repository operations; those obligations are governance, not
 unnumbered doctrine rules. Definition documents may mention the uppercase terms as terms.
 Other informative material uses ordinary lowercase language or cites the governing doctrine

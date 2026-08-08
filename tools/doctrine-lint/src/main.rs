@@ -271,6 +271,7 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     check_reserved_ceiling(root, &agent_manifest, &mut diagnostics);
     check_alert_vocabulary(root, &mut diagnostics);
     check_reachability(root, &mut diagnostics);
+    check_path_references(root, &mut diagnostics);
     check_generated_files(root, &mut diagnostics);
     diagnostics
 }
@@ -1706,6 +1707,175 @@ fn check_reachability(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     }
 }
 
+/// Rejects a backticked path that resolves to a real file and is never linked.
+///
+/// A reader cannot click `foundations/invariants.md`. Backticked prose reads like a
+/// reference and navigates nowhere, which is how 104 files ended up unreachable and how
+/// 133 further mentions stayed inert after that was fixed. The rule is per document and
+/// per target: mention a path as many times as reads well, but link it at least once.
+///
+/// A directory under `dist/` is never required, and must not be linked. The bundler
+/// rewrites a link relative to the output carrying it, so a canonical file emitted into
+/// `dist/<x>/` that links the `dist/<x>` directory produces an empty relative path and
+/// then `(/)`. Only the link checker catches that, and only in the generated file.
+fn check_path_references(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
+    for file in reachability_scope(root, diagnostics) {
+        let Some(text) = read_text(&file, diagnostics) else {
+            continue;
+        };
+
+        let mut linked: BTreeSet<String> = BTreeSet::new();
+        for href in outbound_links(&text) {
+            if let Some(target) = resolve_link(root, &file, &href) {
+                linked.insert(target);
+            }
+        }
+
+        let relative_file = file
+            .strip_prefix(root)
+            .unwrap_or(&file)
+            .to_string_lossy()
+            .replace('\\', "/");
+
+        // A generated projection is not hand-edited, so reporting an inert path in one
+        // would name a file no author can fix. Its source is scanned instead.
+        if GENERATED_IN_CANONICAL_ROOTS.contains(&relative_file.as_str()) {
+            continue;
+        }
+
+        let mut reported: BTreeSet<String> = BTreeSet::new();
+        for span in inline_code_spans(&text) {
+            if !looks_like_path(&span) {
+                continue;
+            }
+            // A mention is written either relative to its own file or from the
+            // repository root, and both forms are used throughout the corpus. Trying
+            // only the first silently skipped every root-relative mention, which is
+            // most of them, and left this check reporting nothing at all.
+            let Some(target) = resolve_link(root, &file, &span)
+                .filter(|candidate| root.join(candidate).exists())
+                .or_else(|| {
+                    let from_root = span.trim_end_matches('/').to_owned();
+                    root.join(&from_root).exists().then_some(from_root)
+                })
+            else {
+                continue;
+            };
+            let absolute = root.join(&target);
+            if target == relative_file {
+                continue;
+            }
+            if absolute.is_dir() && (target == "dist" || target.starts_with("dist/")) {
+                continue;
+            }
+            if linked.contains(&target) || !reported.insert(target.clone()) {
+                continue;
+            }
+            diagnostics.push(Diagnostic::new(
+                &file,
+                format!(
+                    "mentions `{span}` as code but never links it; link the first mention, \
+                     so a reader can reach {target}"
+                ),
+            ));
+        }
+    }
+}
+
+/// Whether an inline-code span is shaped like a repository path rather than an
+/// identifier. A bare word is only a candidate when it carries a known file extension,
+/// so `unwrap` and `NonZeroU64` are not mistaken for paths.
+fn looks_like_path(span: &str) -> bool {
+    if span.is_empty() || span.contains(' ') || span.contains("://") {
+        return false;
+    }
+    if !span
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '/' | '-'))
+    {
+        return false;
+    }
+    span.contains('/')
+        || matches!(
+            Path::new(span).extension().and_then(|e| e.to_str()),
+            Some("md" | "yaml" | "yml" | "toml" | "rs" | "json" | "jsonc")
+        )
+}
+
+/// Inline-code spans in prose, skipping front matter, fenced blocks, and the text of
+/// existing links.
+///
+/// Link constructs are removed before scanning, so `[`doctrine.md`](doctrine.md)` does
+/// not report the very path it already links.
+fn inline_code_spans(text: &str) -> Vec<String> {
+    let body = match text.strip_prefix("---\n") {
+        Some(rest) => rest.find("\n---\n").map_or(text, |end| &rest[end + 5..]),
+        None => text,
+    };
+
+    let mut prose = String::new();
+    let mut in_fence = false;
+    for line in body.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            in_fence = !in_fence;
+            continue;
+        }
+        if !in_fence {
+            prose.push_str(line);
+            prose.push('\n');
+        }
+    }
+
+    let without_links = remove_link_constructs(&prose);
+
+    // Scanned per line, so one unbalanced backtick cannot flip the parity of the whole
+    // document and reclassify every span after it.
+    let mut spans = Vec::new();
+    for line in without_links.lines() {
+        for (index, chunk) in line.split('`').enumerate() {
+            if index % 2 == 1 {
+                spans.push(chunk.trim().to_owned());
+            }
+        }
+    }
+    spans
+}
+
+/// Removes every `[text](destination)` construct, so its contents are not rescanned.
+///
+/// A bracket only opens a link when its `]` is immediately followed by `(`. Searching
+/// for the next `](` anywhere ahead instead made a callout marker such as `[!NOTE]`
+/// swallow everything up to the next real link, which silently emptied the text this
+/// scan reads and made the check pass on a document it had never examined.
+fn remove_link_constructs(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    loop {
+        let Some(open) = rest.find('[') else {
+            out.push_str(rest);
+            return out;
+        };
+        out.push_str(&rest[..open]);
+        let after_open = &rest[open + 1..];
+
+        let is_link = after_open
+            .find(']')
+            .filter(|close| after_open[close + 1..].starts_with('('))
+            .and_then(|close| {
+                let tail = &after_open[close + 2..];
+                tail.find(')').map(|end| &tail[end + 1..])
+            });
+
+        if let Some(remainder) = is_link {
+            rest = remainder;
+        } else {
+            out.push('[');
+            rest = after_open;
+        }
+    }
+}
+
 /// Every Markdown file the reachability gate holds to an inbound link.
 ///
 /// This is the canonical set plus [`REACHABILITY_EXTRA_ROOTS`], and it is assembled
@@ -2188,10 +2358,11 @@ mod tests {
     };
     use super::{
         GENERATED_IN_CANONICAL_ROOTS, REACHABILITY_EXEMPTIONS, REACHABILITY_EXTRA_ROOTS,
-        RuleInventory, check_reachability, check_reserved_ceiling, check_stated_counts,
-        collect_files, doctrine_index_rows, maintained_markdown, outbound_links,
-        reachability_scope, resolve_link, root_documents, scan_marker_file, table_row_cells,
-        unknown_alert, validation_sequence_copies,
+        RuleInventory, check_path_references, check_reachability, check_reserved_ceiling,
+        check_stated_counts, collect_files, doctrine_index_rows, inline_code_spans,
+        looks_like_path, maintained_markdown, outbound_links, reachability_scope, resolve_link,
+        root_documents, scan_marker_file, table_row_cells, unknown_alert,
+        validation_sequence_copies,
     };
     use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity, states_obligations};
     use std::collections::BTreeSet;
@@ -3325,6 +3496,76 @@ mod tests {
             unique.len(),
             "a duplicated path would report the same file twice"
         );
+    }
+
+    /// A callout marker is not a link. Searching for the next `](` anywhere ahead made
+    /// `[!NOTE]` swallow the text up to the next real link, which emptied the scanned
+    /// prose and made the inert-path check pass on documents it never examined.
+    #[test]
+    fn a_callout_marker_does_not_swallow_the_text_after_it() {
+        let text = "> [!NOTE]\n> Keep `foundations/invariants.md` visible.\n\nSee [x](y.md).\n";
+        let spans = inline_code_spans(text);
+        assert!(
+            spans.iter().any(|s| s == "foundations/invariants.md"),
+            "span was swallowed; got {spans:?}"
+        );
+    }
+
+    #[test]
+    fn inline_code_spans_skip_fences_front_matter_and_link_text() {
+        let text = "---\ntitle: `front/matter.md`\n---\n\nProse `a/one.md` here.\n\n\
+                    ```text\n`b/two.md`\n```\n\nAnd [`c/three.md`](c/three.md).\n";
+        let spans = inline_code_spans(text);
+        assert_eq!(spans, vec!["a/one.md".to_owned()]);
+    }
+
+    #[test]
+    fn path_shaped_spans_exclude_identifiers() {
+        assert!(looks_like_path("foundations/invariants.md"));
+        assert!(looks_like_path("Cargo.toml"));
+        assert!(looks_like_path("dist/"));
+        assert!(!looks_like_path("unwrap"));
+        assert!(!looks_like_path("NonZeroU64"));
+        assert!(!looks_like_path("cargo run -p doctrine-lint"));
+        assert!(!looks_like_path("https://example.com/a.md"));
+    }
+
+    /// Mentions are written both ways in this corpus. Resolving only against the file's
+    /// own directory skipped every root-relative one, which is most of them, and left
+    /// the check reporting nothing.
+    #[test]
+    fn an_inert_root_relative_mention_is_reported() {
+        let root = temporary_directory("path-references");
+        fs::create_dir_all(root.join("reviews")).unwrap();
+        fs::create_dir_all(root.join("manifest")).unwrap();
+        fs::write(
+            root.join("manifest/doctrines.yaml"),
+            "schema_version: \"1.0\"\n",
+        )
+        .unwrap();
+        fs::write(root.join("README.md"), "# Root\n\n[reviews](reviews/)\n").unwrap();
+        fs::write(
+            root.join("reviews/README.md"),
+            "# Reviews\n\nSee `manifest/doctrines.yaml` for discovery.\n",
+        )
+        .unwrap();
+
+        let mut diagnostics = Vec::new();
+        check_path_references(&root, &mut diagnostics);
+        assert_eq!(diagnostics.len(), 1, "got {diagnostics:?}");
+        assert!(diagnostics[0].message.contains("manifest/doctrines.yaml"));
+
+        // Linking it anywhere in the file clears the finding.
+        fs::write(
+            root.join("reviews/README.md"),
+            "# Reviews\n\nSee [`manifest/doctrines.yaml`](../manifest/doctrines.yaml).\n",
+        )
+        .unwrap();
+        let mut cleared = Vec::new();
+        check_path_references(&root, &mut cleared);
+        assert!(cleared.is_empty(), "got {cleared:?}");
+
+        let _ = fs::remove_dir_all(&root);
     }
 
     #[test]

@@ -6,26 +6,27 @@ contract.
 
 ## Required reading
 
-Before changing doctrine, read every document under `foundations/` in its stated order. Then
+Before changing doctrine, read every document under [`foundations/`](foundations/) in its stated order. Then
 read the complete affected doctrine package: its metadata, normative rules, rationale,
 decision framework, review standard, anti-pattern catalogue, glossary, and references. Read
 the corresponding source notes and every boundary or pattern document named in
-`manifest/doctrines.yaml`.
+[`manifest/doctrines.yaml`](manifest/doctrines.yaml).
 
 Before changing code only, read the doctrines implicated by the behavior and the relevant
 example or tool README. Code changes can alter doctrine evidence even when prose is untouched.
 
 ## Canonical source discipline
 
-Canonical sources live under `foundations/`, `doctrines/`, `patterns/`, `boundaries/`,
-`reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
-Files under `dist/`, the accepted-RFC index `rfcs/accepted/README.md`, and the doctrine coverage
-map `doctrines/map.md` are generated projections.
+Canonical sources live under `foundations/`, [`doctrines/`](doctrines/), [`patterns/`](patterns/),
+[`boundaries/`](boundaries/), [`reviews/`](reviews/), [`agents/`](agents/), [`case-studies/`](case-studies/),
+[`decisions/`](decisions/), [`templates/`](templates/), [`rfcs/`](rfcs/), and [`sources/`](sources/). Files under
+`dist/`, the accepted-RFC index [`rfcs/accepted/README.md`](rfcs/accepted/README.md), and the doctrine coverage map
+[`doctrines/map.md`](doctrines/map.md) are generated projections.
 
-An agent MUST NOT edit a generated file manually. `dist/` is generated in full;
-`rfcs/accepted/README.md` is generated from `rfcs/accepted/overview.md` and each RFC's front
-matter; `doctrines/map.md` is generated from `doctrines/map-overview.md` and both manifests. Each
-carries a banner naming its source. After any canonical change, run:
+An agent MUST NOT edit a generated file manually. `dist/` is generated in full; `rfcs/accepted/README.md` is generated
+from [`rfcs/accepted/overview.md`](rfcs/accepted/overview.md) and each RFC's front matter; `doctrines/map.md` is
+generated from [`doctrines/map-overview.md`](doctrines/map-overview.md) and both manifests. Each carries a banner naming
+its source. After any canonical change, run:
 
 ```bash
 cargo run -p bundle-agent-context -- generate
@@ -52,16 +53,15 @@ Architecture claims must be contract-shaped: identify the concern and owner; sta
 preconditions, postconditions, invariants, obligations, failure semantics, and evidence.
 Known context is evidence, not permission to publish facts unrelated to this repository.
 
-Before writing any document that describes an obligation, apply RUST-DOC-0011. Classify the
-claim, name the single artifact authoritative for it, and prefer moving an enforceable obligation
-into the mechanism that enforces it over describing it. Do not add a second manually maintained
-copy of something an artifact already enforces, and prefer a generated, drift-checked view to a
-synchronized one. Create a decision record only for a fact that cannot be represented, enforced,
-generated, or recovered from the artifacts, and then only with an owner, a revalidation trigger,
+Before writing any document that describes an obligation, apply RUST-DOC-0011. Classify the claim, name the single
+artifact authoritative for it, and prefer moving an enforceable obligation into the mechanism that enforces it over
+describing it. Do not add a second manually maintained copy of something an artifact already enforces, and prefer a
+generated, drift-checked view to a synchronized one. Create a decision record only for a fact that cannot be
+represented, enforced, generated, or recovered from the artifacts, and then only with an owner, a revalidation trigger,
 an obsolescence condition, and links to the artifacts that stay authoritative; register it in
-`manifest/decision-records.yaml`. Do not cite an existing record against a change without
-confirming its constraint still applies. Where a rationale is unavailable, record it as unknown
-rather than inferring one from the implementation.
+[`manifest/decision-records.yaml`](manifest/decision-records.yaml). Do not cite an existing record against a change
+without confirming its constraint still applies. Where a rationale is unavailable, record it as unknown rather than
+inferring one from the implementation.
 
 ## Guarantee honesty
 

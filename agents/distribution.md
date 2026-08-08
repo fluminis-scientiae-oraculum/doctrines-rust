@@ -25,15 +25,15 @@ bundle can be fetched without the archive.
 Pick one file. Do not concatenate several: they overlap heavily, and the overlap is
 duplicated rules rather than added coverage.
 
-| You want                                          | Load                       |
-| ------------------------------------------------- | -------------------------- |
-| One agent doing one job, and you know which job   | `dist/agents/<role>.md`    |
-| A general assistant with limited context          | `dist/compact-doctrine.md` |
-| Everything, for search, audit, or offline reading | `dist/full-doctrine.md`    |
+| You want                                          | Load                                                      |
+| ------------------------------------------------- | --------------------------------------------------------- |
+| One agent doing one job, and you know which job   | `dist/agents/<role>.md`                                   |
+| A general assistant with limited context          | [`dist/compact-doctrine.md`](../dist/compact-doctrine.md) |
+| Everything, for search, audit, or offline reading | [`dist/full-doctrine.md`](../dist/full-doctrine.md)       |
 
 The roles are `planner`, `implementer`, `reviewer`, `auditor`, `maintainer`, and `shared`.
-`shared.md` is the common obligations every other role already includes; load it alone only
-when the agent's job does not match any single role. `doctrines/map.md` in the repository
+[`shared.md`](shared.md) is the common obligations every other role already includes; load it alone only
+when the agent's job does not match any single role. [`doctrines/map.md`](../doctrines/map.md) in the repository
 shows which doctrine each role pack carries.
 
 Sizes are listed at the end of this file. Check them against your context window before
@@ -48,7 +48,7 @@ system prompt accepts them.
 - **A project instruction file** — copy the bundle to whatever your tool reads on every
   turn, or reference it from there. Claude Code reads `CLAUDE.md`, Cursor reads
   `.cursor/rules/`, Windsurf reads `.windsurfrules`, Copilot reads
-  `.github/copilot-instructions.md`, Codex reads `AGENTS.md`.
+  `.github/copilot-instructions.md`, Codex reads [`AGENTS.md`](../AGENTS.md).
 - **A system prompt** — paste the bundle ahead of your own instructions. Put the doctrine
   first so your task-specific text is the more recent context.
 - **A retrieval index** — split on the `## Source:` headings. Each carries the canonical
@@ -66,7 +66,7 @@ cp dist/agents/implementer.md .claude/doctrine/
 
 Then put the framing in `CLAUDE.md` and reference the pack rather than pasting it, so the
 file stays readable and the pack stays replaceable. Fill in the version you downloaded; it
-is the release tag, and also `repository_version` in `manifest/doctrines.yaml`:
+is the release tag, and also `repository_version` in [`manifest/doctrines.yaml`](../manifest/doctrines.yaml):
 
 ```markdown
 ## Rust engineering doctrine
@@ -106,10 +106,10 @@ Without these the agent treats the bundle as complete and current, and it is nei
    disagree, the repository wins. Cite rules by their stable `RUST-DOC-####-R###`
    identifier so a claim can be checked against the canonical source.
 2. **A role pack is a subset.** A doctrine absent from the pack is not out of force; it is
-   a doctrine the pack does not carry, and it can be read from `doctrines/`. Each pack
+   a doctrine the pack does not carry, and it can be read from [`doctrines/`](../doctrines/). Each pack
    states its own ceiling and what it withheld in its `## Assembly` section.
 3. **The corpus is versioned and moves.** Record which version you loaded. It is in the
-   `repository_version` field of `manifest/doctrines.yaml`, and in the `CHANGELOG.md`
+   `repository_version` field of `manifest/doctrines.yaml`, and in the [`CHANGELOG.md`](../CHANGELOG.md)
    heading for that release.
 
 ### What not to do

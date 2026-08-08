@@ -12,9 +12,9 @@ no proposal changes active doctrine merely by existing or by having code.
 Exit conditions:
 
 - **accepted**: decision owners approve the exact proposal and conditions; move
-  the file to `../accepted/`;
+  the file to [`../accepted/`](../accepted/);
 - **rejected**: the proposal is declined with rationale; move it to
-  `../rejected/`;
+  [`../rejected/`](../rejected/);
 - **withdrawn**: record withdrawal as rejection with author rationale so the ID
   and history remain;
 - **replaced while proposed**: finalize the old proposal as superseded/rejected

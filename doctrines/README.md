@@ -9,7 +9,7 @@ established; review procedures operationalize checks.
 
 Every doctrine started at version `0.1.0`; repository and doctrine versions have
 since diverged, and each doctrine's current version lives in
-`manifest/doctrines.yaml` and in that package's front matter. A patch release
+[`manifest/doctrines.yaml`](../manifest/doctrines.yaml) and in that package's front matter. A patch release
 clarifies without changing normative meaning. A minor release may add normative
 rules or substantial compatible guidance. A major release denotes normative
 incompatibility, removal, or contract change. Status and supersession are

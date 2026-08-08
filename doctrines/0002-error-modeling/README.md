@@ -40,10 +40,10 @@ outcome modeling, security response policy, or protocol specifications.
 
 ## Readers and status
 
-Planners define the failure vocabulary before APIs. Implementers preserve actionable
-categories and sources. Reviewers trace conversion and retry. Auditors search for hidden
-indeterminacy, panic on external input, secret leakage, and category erasure. `doctrine.md` is
-normative under `foundations/normative-language.md`; other package files explain and
+Planners define the failure vocabulary before APIs. Implementers preserve actionable categories and sources. Reviewers
+trace conversion and retry. Auditors search for hidden indeterminacy, panic on external input, secret leakage, and
+category erasure. `doctrine.md` is normative under
+[`foundations/normative-language.md`](../../foundations/normative-language.md); other package files explain and
 operationalize it.
 
 ## Prerequisites and related material

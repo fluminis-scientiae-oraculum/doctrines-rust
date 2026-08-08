@@ -40,11 +40,11 @@ repository.
 
 ## Related repository material
 
-`foundations/guarantee-honesty.md` supplies the discipline that separates a claim from its
-limits, which is what `RUST-DOC-0011-R003` relies on when it requires the unenforced part of a
-claim to be stated separately. `foundations/evidence.md` supplies the evidence classes the
-decision framework selects between. `foundations/complexity-budget.md` supplies the assessment
-`RUST-DOC-0011-R002` requires before an obligation is left prose-carried.
+[`foundations/guarantee-honesty.md`](../../foundations/guarantee-honesty.md) supplies the discipline that separates a
+claim from its limits, which is what `RUST-DOC-0011-R003` relies on when it requires the unenforced part of a claim to
+be stated separately. [`foundations/evidence.md`](../../foundations/evidence.md) supplies the evidence classes the
+decision framework selects between. [`foundations/complexity-budget.md`](../../foundations/complexity-budget.md)
+supplies the assessment `RUST-DOC-0011-R002` requires before an obligation is left prose-carried.
 
 RUST-DOC-0010 applies this doctrine's partition to staged protocols in `RUST-DOC-0010-R022`, and
 its `RUST-DOC-0010-R018` and `RUST-DOC-0010-R019` are worked instances of an obligation moved into

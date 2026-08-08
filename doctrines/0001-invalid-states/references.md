@@ -26,7 +26,6 @@ Primary and authoritative sources:
 - [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110) defines method semantics,
   retries, and idempotency terminology used at HTTP boundaries.
 
-Pedagogical provenance for the originating video and the doctrine's accepted, refined, and
-added claims is recorded under `sources/0001-invalid-states/`. The video is not a language
-specification; normative claims in this package are bounded by the primary sources and the
-explicit contracts above.
+Pedagogical provenance for the originating video and the doctrine's accepted, refined, and added claims is recorded
+under [`sources/0001-invalid-states/`](../../sources/0001-invalid-states/). The video is not a language specification;
+normative claims in this package are bounded by the primary sources and the explicit contracts above.

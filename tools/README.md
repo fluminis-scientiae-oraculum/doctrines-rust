@@ -27,8 +27,8 @@ cargo run -p bundle-agent-context -- check
 `generate` reads canonical sources and both manifests, then writes full,
 compact, and role-specific Markdown distributions with a generated warning and
 source provenance. It also writes two generated files that live outside `dist/`:
-the accepted-RFC index `rfcs/accepted/README.md`, and the doctrine coverage map
-`doctrines/map.md`, which transposes `doctrine_selections` so a reader can see
+the accepted-RFC index [`rfcs/accepted/README.md`](../rfcs/accepted/README.md), and the doctrine coverage map
+[`doctrines/map.md`](../doctrines/map.md), which transposes `doctrine_selections` so a reader can see
 which packs carry a given doctrine. Relative canonical links are rewritten for
 each output location, and each source is projected at the destination's
 verbosity ceiling, except where it states obligations and is projected whole.

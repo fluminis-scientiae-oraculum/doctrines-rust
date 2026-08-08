@@ -5,11 +5,11 @@
 > these vocabularies is a checked view of it, not a second source: tests assert the variants
 > against the `enum` arrays here.
 
-| Schema                        | Validates                  | Notable closed vocabularies                                              |
-| ----------------------------- | -------------------------- | ------------------------------------------------------------------------ |
-| `doctrine.schema.json`        | `../doctrines.yaml`        | doctrine `status`                                                        |
-| `agent-pack.schema.json`      | `../agents.yaml`           | pack `id` and `maximum_verbosity`                                        |
-| `decision-record.schema.json` | `../decision-records.yaml` | registry membership only; a record's own front matter governs its status |
+| Schema                                                       | Validates                                              | Notable closed vocabularies                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------ |
+| [`doctrine.schema.json`](doctrine.schema.json)               | [`../doctrines.yaml`](../doctrines.yaml)               | doctrine `status`                                                        |
+| [`agent-pack.schema.json`](agent-pack.schema.json)           | [`../agents.yaml`](../agents.yaml)                     | pack `id` and `maximum_verbosity`                                        |
+| [`decision-record.schema.json`](decision-record.schema.json) | [`../decision-records.yaml`](../decision-records.yaml) | registry membership only; a record's own front matter governs its status |
 
 Validation runs as part of `cargo run -p doctrine-lint -- check`, before any other check, so a
 malformed manifest is reported rather than half-interpreted.

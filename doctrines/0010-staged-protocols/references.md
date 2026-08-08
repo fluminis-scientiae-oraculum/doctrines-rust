@@ -60,6 +60,6 @@ under [`sources/0010-staged-protocols/`](../../sources/0010-staged-protocols/sou
 classify which ideas this package accepts, refines, rejects, and adds, and identify which
 vocabulary is local to this repository rather than external.
 
-References are informative. A normative obligation exists only where `doctrine.md` states it
+References are informative. A normative obligation exists only where [`doctrine.md`](doctrine.md) states it
 with a rule identifier. Changing facts, including tool versions and product behavior, carry the
 version or date checked and are rechecked when the package is maintained.
