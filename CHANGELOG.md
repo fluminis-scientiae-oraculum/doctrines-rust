@@ -17,7 +17,8 @@ meaning changes.
   whose premise was removed; `RUST-DOC-0006`'s idempotency section opened on a "none of
   these" whose antecedent was gone; and `RUST-DOC-0007`'s partial-initialization paragraph
   lost the subject of "leaking values". Each is repaired without restoring the restatement
-  `R012` removed.
+  `R012` removed. The repairs move `rationale.md` from the 1,383 lines `0.8.0` and RFC-0007
+  record to 1,386; both remain accurate as statements about `0.8.0`.
 - `foundations/normative-language.md` listed five rule fields while the corpus required six,
   understating its own contract.
 - `templates/doctrine/doctrine.md` had no `**Enforcement.**` field and
