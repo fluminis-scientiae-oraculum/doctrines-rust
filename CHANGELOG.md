@@ -4,6 +4,53 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.6.1] — 2026-08-08
+
+Navigation became enforceable. Of 245 canonical Markdown files, 104 had no inbound link
+from anywhere, because package indexes named their siblings in backticks rather than
+links: prose that reads like a reference and navigates nowhere. Two remain, both
+generator inputs exempted by name, and a `doctrine-lint` gate now fails the build if the
+count rises. No normative rule changes, so this is a patch release. The generated
+distributions change content rather than shape, and every file under `dist/agents/` is
+byte-identical, because the material added lives in files no role pack carries.
+
+### Added in 0.6.1
+
+- A package-contents table in every doctrine package README, linking all seven sibling
+  files. A table rather than links threaded through existing prose, because several
+  packages never mention some siblings at all — RUST-DOC-0003 mentions none of its six
+  non-normative siblings — so linkifying prose could not have reached them without
+  inventing sentences.
+- A situation-keyed selector in `doctrines/README.md`, mapping the work in front of a
+  reader to a primary doctrine, its companions, and where that doctrine stops applying.
+  It is marked informative and owned under `RUST-DOC-0011-R005` rather than called
+  generated, because a generator would need a hand-written description of each package's
+  scope. Its boundaries come from each package's own scope statement, and the two
+  packages that name no successor say so instead of carrying an invented one.
+- A reachability gate in `doctrine-lint`: maintained Markdown that nothing links to fails
+  the build, with three exemptions that each state a reason. It walks the canonical roots
+  plus `templates/`, `manifest/`, `tools/`, and `examples/`, assembled separately from
+  `CANONICAL_ROOTS` so the normative-term scan and the drift checks keep their narrower
+  set. It checks inbound links rather than reachability from the root, and says so.
+- Mermaid rendering for branching structures: the decision trees in six doctrine
+  packages, the registration-onboarding stage graph, and two case-study blocks. The
+  doctrine template states the rule, which is that a branching structure renders and a
+  linear sequence stays a text block, with `foundations/` and `agents/` excepted so
+  generated packs stay byte-stable.
+
+### Fixed in 0.6.1
+
+- Root governance documents, directory indexes, per-doctrine source notes, RFC state
+  directories, and the template files were unreachable by clicking. Each is now linked
+  from the index that owns it.
+- Five cells of the situation selector described boundaries their packages do not state,
+  two of them contradicting the doctrine they cited: the error-modeling row implied
+  ambiguous outcomes were out of scope, when `RUST-DOC-0002-R008` keeps them, and the
+  distributed-uncertainty row treated a locally failed request as a handoff when it is
+  one of that doctrine's four outcome variants. The underlying error was reading a
+  package's stop conditions as handoffs; in this corpus they resolve inward, and the
+  outward routing lives in each package's scope statement.
+
 ## [0.6.0] — 2026-08-06
 
 A declared field that enforced nothing became real, and the corpus became navigable.
