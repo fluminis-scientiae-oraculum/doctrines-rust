@@ -36,8 +36,8 @@ RUST-DOC-0001 governs which invariants are representable; this rule governs whet
 representable obligation was in fact represented.
 
 **Allowed exceptions.** An obligation whose enforcement cost exceeds the assessment required by
-`foundations/complexity-budget.md` MAY remain prose-carried when the assessment, its owner, and
-the residual risk are recorded on the terms of RUST-DOC-0011-R020.
+[`foundations/complexity-budget.md`](../../foundations/complexity-budget.md) MAY remain prose-carried when the
+assessment, its owner, and the residual risk are recorded on the terms of RUST-DOC-0011-R020.
 
 **Review evidence.** The enforcing artifact, or the recorded assessment showing that no available
 mechanism enforces the obligation proportionately.
@@ -208,8 +208,8 @@ artifacts now carry.
 must reconcile against current behavior.
 
 **Applicability.** Accepted RFCs and equivalent proposal documents after their implementation has
-landed. This rule does not weaken the RFC obligations stated in `AGENTS.md` and
-`rfcs/README.md`, which govern the change process rather than the resulting contract.
+landed. This rule does not weaken the RFC obligations stated in [`AGENTS.md`](../../AGENTS.md) and
+[`rfcs/README.md`](../../rfcs/README.md), which govern the change process rather than the resulting contract.
 
 **Allowed exceptions.** A proposal MAY remain cited for its decision, its date, its owners, its
 accepted conditions, and its recorded alternatives, which are rationale rather than
@@ -406,8 +406,9 @@ material, an irreversible commitment, a regulatory interpretation, a contractual
 accepted trade-off, and migration history that affects compatibility. RUST-DOC-0011-R012 keeps
 them from restating the topology.
 
-Non-guarantee and residual-risk statements are authoritative for what a design deliberately does
-not prove and who accepted the remainder, on the terms `foundations/guarantee-honesty.md` states.
+Non-guarantee and residual-risk statements are authoritative for what a design deliberately does not prove and who
+accepted the remainder, on the terms [`foundations/guarantee-honesty.md`](../../foundations/guarantee-honesty.md)
+states.
 
 Governance artifacts are authoritative for who may change a normative contract, the required
 review, waiver ownership, versioning policy, migration obligations, release gates, and legal or
@@ -440,14 +441,14 @@ constraints. Absence of a record is evidence about the record set, not about the
 
 ## Boundary requirements
 
-Where an obligation crosses a boundary, the enforcing mechanism changes and the authority moves
-with it. A wire contract is enforced by its canonical encoder, decoder, schema, and compatibility
-suite under `boundaries/serde.md` and `boundaries/http-and-rpc.md`. A persistence invariant is
-enforced by schema constraints, checked decoding, and transaction predicates under
-RUST-DOC-0005 and `boundaries/database-decoding.md`. An operational policy is enforced by
-deployable configuration and machine-checked manifests under `boundaries/configuration.md`. A
-claim that crosses into another system's ownership becomes an external claim governed by
-RUST-DOC-0011-R014.
+Where an obligation crosses a boundary, the enforcing mechanism changes and the authority moves with it. A wire contract
+is enforced by its canonical encoder, decoder, schema, and compatibility suite under
+[`boundaries/serde.md`](../../boundaries/serde.md) and [`boundaries/http-and-rpc.md`](../../boundaries/http-and-rpc.md).
+A persistence invariant is enforced by schema constraints, checked decoding, and transaction predicates under
+RUST-DOC-0005 and [`boundaries/database-decoding.md`](../../boundaries/database-decoding.md). An operational policy is
+enforced by deployable configuration and machine-checked manifests under
+[`boundaries/configuration.md`](../../boundaries/configuration.md). A claim that crosses into another system's ownership
+becomes an external claim governed by RUST-DOC-0011-R014.
 
 ## Waiver requirements
 

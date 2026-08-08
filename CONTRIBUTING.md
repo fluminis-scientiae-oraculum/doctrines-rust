@@ -14,14 +14,14 @@ or reports a guarantee overclaim whose safe resolution is uncertain.
 
 An RFC is mandatory for a new doctrine, a normative rule addition or weakening, a new escape
 hatch, doctrine supersession, a change to normative-term meaning, significant distribution
-restructuring, license change, or MSRV policy change. Follow `rfcs/README.md`; an issue can
+restructuring, license change, or MSRV policy change. Follow [`rfcs/README.md`](rfcs/README.md); an issue can
 establish motivation, but it does not replace the RFC decision record.
 
 ## Doctrine package anatomy
 
 Every doctrine contains eight substantive files:
 
-1. `README.md` with validated metadata, scope, relationships, and reading order;
+1. [`README.md`](README.md) with validated metadata, scope, relationships, and reading order;
 2. `doctrine.md` with stable rule IDs and normative contracts;
 3. `rationale.md` with failure modes, alternatives, costs, and limits;
 4. `decision-framework.md` with selection tables, trees, stop conditions, and simpler cases;
@@ -30,16 +30,16 @@ Every doctrine contains eight substantive files:
 7. `glossary.md` with doctrine-specific terms;
 8. `references.md` with authoritative sources.
 
-Use `templates/doctrine/` when proposing a package. Do not copy an existing doctrine and leave
+Use [`templates/doctrine/`](templates/doctrine/) when proposing a package. Do not copy an existing doctrine and leave
 its IDs, cross-links, or assumptions unchanged.
 
 ## Normative language
 
-Read `foundations/normative-language.md`. Uppercase requirement terms in a doctrine's
-`doctrine.md` carry their defined normative meanings. Repository governance contracts can also
-use those terms for contributor obligations, but they do not create unnumbered doctrine rules.
-Each doctrine rule has one stable `RUST-DOC-####-R###` identifier and records statement, intent,
-applicability, allowed exceptions, and expected review evidence.
+Read [`foundations/normative-language.md`](foundations/normative-language.md). Uppercase requirement terms in a
+doctrine's `doctrine.md` carry their defined normative meanings. Repository governance contracts can also use those
+terms for contributor obligations, but they do not create unnumbered doctrine rules. Each doctrine rule has one stable
+`RUST-DOC-####-R###` identifier and records statement, intent, applicability, allowed exceptions, and expected review
+evidence.
 
 Rationale is informative unless a rule incorporates it. Examples illustrate a mechanism
 unless marked required. A waiver is explicit, scoped, reviewed, owned, risk-assessed, and
@@ -47,7 +47,7 @@ linked from the affected work; silence is not a waiver.
 
 ## Source provenance
 
-Update the matching `sources/` package when external material influences a rule or its
+Update the matching [`sources/`](sources/) package when external material influences a rule or its
 rationale. Prefer the Rust Reference, standard-library documentation, Rustonomicon, Rust
 RFCs, protocol specifications, official tool documentation, and foundational or
 peer-reviewed systems literature. Record which idea was accepted, refined, rejected, or
@@ -94,7 +94,7 @@ regenerate them so their bytes remain a deterministic projection. Configuration 
 must describe a repository structure that cannot satisfy the default rule; do not suppress a
 rule solely to avoid repairing content.
 
-`package.json` contains a narrow `js-yaml` override because the selected markdownlint-cli2
+[`package.json`](package.json) contains a narrow `js-yaml` override because the selected markdownlint-cli2
 release declares an affected exact transitive version while a patched compatible release is
 available. Dependency updates must inspect `npm ls js-yaml markdownlint-cli2 --all`, rerun the
 audit and Markdown gate, and remove the override only after the upstream dependency declaration
@@ -103,10 +103,11 @@ resolves to a patched version without it.
 ## Generated content
 
 Three sets of files are generated: everything under `dist/`; the accepted-RFC index
-`rfcs/accepted/README.md`, built from `rfcs/accepted/overview.md` and each accepted RFC's front
-matter; and the doctrine coverage map `doctrines/map.md`, built from `doctrines/map-overview.md`
-and both manifests. All three are excluded from Prettier and markdownlint, and each carries a
-banner naming its sources. Edit canonical sources or bundler behavior, then run:
+[`rfcs/accepted/README.md`](rfcs/accepted/README.md), built from
+[`rfcs/accepted/overview.md`](rfcs/accepted/overview.md) and each accepted RFC's front matter; and the doctrine coverage
+map [`doctrines/map.md`](doctrines/map.md), built from [`doctrines/map-overview.md`](doctrines/map-overview.md) and both
+manifests. All three are excluded from Prettier and markdownlint, and each carries a banner naming its sources. Edit
+canonical sources or bundler behavior, then run:
 
 ```bash
 cargo run -p bundle-agent-context -- generate
@@ -158,4 +159,4 @@ files already committed at that tag.
 Use the guarantee-overclaim issue form. Identify the exact prose claim or type name, the
 implementation that establishes evidence, the stronger fact not proved, any bypass or
 external mutability, operational severity, and safer wording or design. Security-sensitive
-claims may instead use private reporting described in `SECURITY.md`.
+claims may instead use private reporting described in [`SECURITY.md`](SECURITY.md).

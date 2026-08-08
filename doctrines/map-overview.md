@@ -2,12 +2,12 @@
 
 > [!NOTE]
 > This document is informative. It describes which doctrine each generated agent pack
-> hydrates, and it decides nothing. `manifest/agents.yaml` is the authority for pack
-> composition, and `doctrines/README.md` is the reader-facing index of the corpus.
+> hydrates, and it decides nothing. [`manifest/agents.yaml`](../manifest/agents.yaml) is the authority for pack
+> composition, and [`doctrines/README.md`](README.md) is the reader-facing index of the corpus.
 
 A doctrine a pack does not select is one that is not available from that hydration pack alone, and
 must be loaded separately from its canonical source. That is a fact about the pack, not about the
-role: `agents/shared.md` directs an agent to read the applicable canonical doctrine, and an agent
+role: [`agents/shared.md`](../agents/shared.md) directs an agent to read the applicable canonical doctrine, and an agent
 working inside this repository can open it directly.
 
 The selections live in `manifest/agents.yaml` as six separate `doctrine_selections` lists, which

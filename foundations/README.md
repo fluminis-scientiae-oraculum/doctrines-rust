@@ -38,18 +38,18 @@ downstream document may be affected.
 
 Read the foundation documents in this order:
 
-1. `normative-language.md` defines the force and scope of requirements, informative text,
+1. [`normative-language.md`](normative-language.md) defines the force and scope of requirements, informative text,
    examples, exceptions, and waivers.
-2. `invariants.md` distinguishes invariants from preconditions, policies, assumptions,
+2. [`invariants.md`](invariants.md) distinguishes invariants from preconditions, policies, assumptions,
    observations, and desired outcomes. It supplies the inventory that precedes representation
    choice.
-3. `evidence.md` describes the evidence carried by a value or capability and requires names
+3. [`evidence.md`](evidence.md) describes the evidence carried by a value or capability and requires names
    to match what construction actually established.
-4. `trust-boundaries.md` maps untrusted representations through parse and validation into
+4. [`trust-boundaries.md`](trust-boundaries.md) maps untrusted representations through parse and validation into
    trusted domain values, then through effects into observations or explicit uncertainty.
-5. `guarantee-honesty.md` requires a ledger for proofs, protected construction, boundary
+5. [`guarantee-honesty.md`](guarantee-honesty.md) requires a ledger for proofs, protected construction, boundary
    preservation, escape hatches, non-guarantees, and residual risk.
-6. `complexity-budget.md` keeps structural enforcement proportional to consequence and
+6. [`complexity-budget.md`](complexity-budget.md) keeps structural enforcement proportional to consequence and
    prevents type machinery from obscuring the system.
 
 The order is a reasoning sequence, not a ranking. Complexity does not override a safety

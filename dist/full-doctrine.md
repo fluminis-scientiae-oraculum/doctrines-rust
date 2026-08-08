@@ -110,7 +110,7 @@ into a fictional failure.
 
 Canonical content has distinct responsibilities:
 
-- `foundations/` defines shared language for invariants, evidence, boundaries, guarantees,
+- [`foundations/`](../foundations/) defines shared language for invariants, evidence, boundaries, guarantees,
   and complexity.
 - [`doctrines/`](../doctrines/README.md) contains versioned normative packages. Every normative rule
   has a stable `RUST-DOC-####-R###` identifier, intent, applicability, exception policy, and
@@ -148,8 +148,9 @@ evidence by doctrine and names the material gaps that remain.
 
 ## Canonical and generated content
 
-Canonical doctrine lives under `foundations/`, `doctrines/`, `patterns/`, `boundaries/`,
-`reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
+Canonical doctrine lives under `foundations/`, [`doctrines/`](../doctrines/), [`patterns/`](../patterns/),
+[`boundaries/`](../boundaries/), [`reviews/`](../reviews/), [`agents/`](../agents/), [`case-studies/`](../case-studies/),
+[`decisions/`](../decisions/), [`templates/`](../templates/), [`rfcs/`](../rfcs/), and [`sources/`](../sources/).
 
 > [!TIP]
 > To load this corpus into an agent, read
@@ -162,9 +163,9 @@ Three kinds of file are generated and are never edited by hand:
 - everything under [`dist/`](README.md), the hydration bundles projected from canonical
   sources;
 - [`rfcs/accepted/README.md`](../rfcs/accepted/README.md), the accepted-RFC index, built from
-  `rfcs/accepted/overview.md` and the front matter of each accepted RFC;
+  [`rfcs/accepted/overview.md`](../rfcs/accepted/overview.md) and the front matter of each accepted RFC;
 - [`doctrines/map.md`](../doctrines/map.md), the doctrine coverage map, built from
-  `doctrines/map-overview.md` and the two manifests.
+  [`doctrines/map-overview.md`](../doctrines/map-overview.md) and the two manifests.
 
 Every generated file carries a banner naming the sources it was built from. After a canonical
 change, run:
@@ -225,17 +226,16 @@ under `dist/agents/` combine those overlays with selected canonical rules.
 > a pack omits is one that is not available from that pack alone and has to be loaded from its
 > canonical source; the exclusions are the interesting cells.
 
-For constrained context windows, `dist/compact-doctrine.md` contains the shared thesis,
-classification and boundary pipelines, every active doctrine's normative rules, the central
-decision tree, and the core audit gates. `dist/full-doctrine.md` retains the repository identity,
-foundations, every file in each active doctrine package, patterns, boundary guides, operational
-reviews, and shared agent obligations in stable order. Case studies, source notes, RFCs,
-templates, and role-specific overlays remain canonical but are deliberately outside that
-hydration bundle.
+For constrained context windows, [`dist/compact-doctrine.md`](compact-doctrine.md) contains the shared thesis,
+classification and boundary pipelines, every active doctrine's normative rules, the central decision tree, and the core
+audit gates. [`dist/full-doctrine.md`](full-doctrine.md) retains the repository identity, foundations, every file
+in each active doctrine package, patterns, boundary guides, operational reviews, and shared agent obligations in stable
+order. Case studies, source notes, RFCs, templates, and role-specific overlays remain canonical but are deliberately
+outside that hydration bundle.
 
 ## Doctrine index
 
-`manifest/doctrines.yaml` is the machine-readable discovery source, and
+[`manifest/doctrines.yaml`](../manifest/doctrines.yaml) is the machine-readable discovery source, and
 [`doctrines/README.md`](../doctrines/README.md) is the reader-facing index derived from it. This
 file deliberately does not repeat that table. It previously did, and the copy was wrong within
 one release: two doctrines were added and the table still listed nine while claiming to be
@@ -260,7 +260,7 @@ This file names no version number, for the same reason it no longer repeats the 
 The pinned development toolchain is Rust 1.97.1. The workspace MSRV is Rust 1.85.0, the first
 stable release supporting Edition 2024; selected dependencies declare compatibility with that
 floor. Markdown tooling uses the exact Node.js, Prettier, and markdownlint-cli2 versions pinned
-by `.node-version` and `package-lock.json`. Run from the repository root:
+by `.node-version` and [`package-lock.json`](../package-lock.json). Run from the repository root:
 
 ```bash
 npm ci --ignore-scripts --no-audit
@@ -359,18 +359,18 @@ downstream document may be affected.
 
 Read the foundation documents in this order:
 
-1. `normative-language.md` defines the force and scope of requirements, informative text,
+1. [`normative-language.md`](../foundations/normative-language.md) defines the force and scope of requirements, informative text,
    examples, exceptions, and waivers.
-2. `invariants.md` distinguishes invariants from preconditions, policies, assumptions,
+2. [`invariants.md`](../foundations/invariants.md) distinguishes invariants from preconditions, policies, assumptions,
    observations, and desired outcomes. It supplies the inventory that precedes representation
    choice.
-3. `evidence.md` describes the evidence carried by a value or capability and requires names
+3. [`evidence.md`](../foundations/evidence.md) describes the evidence carried by a value or capability and requires names
    to match what construction actually established.
-4. `trust-boundaries.md` maps untrusted representations through parse and validation into
+4. [`trust-boundaries.md`](../foundations/trust-boundaries.md) maps untrusted representations through parse and validation into
    trusted domain values, then through effects into observations or explicit uncertainty.
-5. `guarantee-honesty.md` requires a ledger for proofs, protected construction, boundary
+5. [`guarantee-honesty.md`](../foundations/guarantee-honesty.md) requires a ledger for proofs, protected construction, boundary
    preservation, escape hatches, non-guarantees, and residual risk.
-6. `complexity-budget.md` keeps structural enforcement proportional to consequence and
+6. [`complexity-budget.md`](../foundations/complexity-budget.md) keeps structural enforcement proportional to consequence and
    prevents type machinery from obscuring the system.
 
 The order is a reasoning sequence, not a ranking. Complexity does not override a safety
@@ -530,7 +530,7 @@ interpretation.
 
 Uppercase requirement terms in `doctrine.md` are normative. Stable rule IDs are the citation
 unit. Package metadata records whether the doctrine is normative and its lifecycle state.
-Repository governance contracts such as `AGENTS.md`, `CONTRIBUTING.md`, and `rfcs/README.md`
+Repository governance contracts such as [`AGENTS.md`](../AGENTS.md), [`CONTRIBUTING.md`](../CONTRIBUTING.md), and [`rfcs/README.md`](../rfcs/README.md)
 may use the same vocabulary for repository operations; those obligations are governance, not
 unnumbered doctrine rules. Definition documents may mention the uppercase terms as terms.
 Other informative material uses ordinary lowercase language or cites the governing doctrine
@@ -1669,24 +1669,24 @@ Architects use it with the complexity budget to choose proportionate mechanisms.
 ## Normative status
 
 `doctrine.md` is normative. Requirements use the interpretation in
-`foundations/normative-language.md` and stable IDs beginning `RUST-DOC-0001-R`. Rationale,
-examples, anti-patterns, glossary, and references are informative unless a rule incorporates
-them.
+[`foundations/normative-language.md`](../foundations/normative-language.md) and stable IDs beginning
+`RUST-DOC-0001-R`. Rationale, examples, anti-patterns, glossary, and references are informative unless a rule
+incorporates them.
 
 Rule identifiers remain stable within the doctrine version, which this file's front matter and
-`manifest/doctrines.yaml` record. Waivers follow the repository waiver contract. A new escape
-hatch, weakened obligation, or changed rule meaning requires an RFC.
+[`manifest/doctrines.yaml`](../manifest/doctrines.yaml) record. Waivers follow the repository waiver contract. A new
+escape hatch, weakened obligation, or changed rule meaning requires an RFC.
 
 ## Prerequisite foundations
 
 Read, in order:
 
 1. `foundations/normative-language.md`;
-2. `foundations/invariants.md`;
-3. `foundations/evidence.md`;
-4. `foundations/trust-boundaries.md`;
-5. `foundations/guarantee-honesty.md`;
-6. `foundations/complexity-budget.md`.
+2. [`foundations/invariants.md`](../foundations/invariants.md);
+3. [`foundations/evidence.md`](../foundations/evidence.md);
+4. [`foundations/trust-boundaries.md`](../foundations/trust-boundaries.md);
+5. [`foundations/guarantee-honesty.md`](../foundations/guarantee-honesty.md);
+6. [`foundations/complexity-budget.md`](../foundations/complexity-budget.md).
 
 ## Related material
 
@@ -3162,10 +3162,9 @@ Primary and authoritative sources:
 - [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110) defines method semantics,
   retries, and idempotency terminology used at HTTP boundaries.
 
-Pedagogical provenance for the originating video and the doctrine's accepted, refined, and
-added claims is recorded under `sources/0001-invalid-states/`. The video is not a language
-specification; normative claims in this package are bounded by the primary sources and the
-explicit contracts above.
+Pedagogical provenance for the originating video and the doctrine's accepted, refined, and added claims is recorded
+under [`sources/0001-invalid-states/`](../sources/0001-invalid-states/). The video is not a language specification;
+normative claims in this package are bounded by the primary sources and the explicit contracts above.
 
 ---
 
@@ -3213,10 +3212,10 @@ outcome modeling, security response policy, or protocol specifications.
 
 ## Readers and status
 
-Planners define the failure vocabulary before APIs. Implementers preserve actionable
-categories and sources. Reviewers trace conversion and retry. Auditors search for hidden
-indeterminacy, panic on external input, secret leakage, and category erasure. `doctrine.md` is
-normative under `foundations/normative-language.md`; other package files explain and
+Planners define the failure vocabulary before APIs. Implementers preserve actionable categories and sources. Reviewers
+trace conversion and retry. Auditors search for hidden indeterminacy, panic on external input, secret leakage, and
+category erasure. `doctrine.md` is normative under
+[`foundations/normative-language.md`](../foundations/normative-language.md); other package files explain and
 operationalize it.
 
 ## Prerequisites and related material
@@ -11320,7 +11319,7 @@ and a concurrency token, and persisted lifecycle stays a runtime model.
 
 ## Package completion check
 
-- metadata agrees with `manifest/doctrines.yaml` and its JSON Schema;
+- metadata agrees with [`manifest/doctrines.yaml`](../manifest/doctrines.yaml) and its JSON Schema;
 - rule IDs use `RUST-DOC-0010-RNNN` and every one appears in `review-standard.md`;
 - all eight files carry domain-specific substance;
 - references and source notes separate external facts from repository governance, and record
@@ -11911,7 +11910,7 @@ invitation-based signup both need to reach the authorization stage while carryin
 proofs. Without an associated successor type, that requires either one widened successor
 carrying both proofs as options, which reintroduces the optional-field failure, or a duplicated
 protocol. This is the specific gap `RUST-DOC-0010-R003` fills, and it is why the doctrine exists
-separately from `patterns/typestate.md`.
+separately from [`patterns/typestate.md`](../patterns/typestate.md).
 
 **A runtime state machine.** An enum with a `state` field and a `transition` method handles
 dynamic, persisted, heterogeneous, and externally-determined state well, and it is the correct
@@ -12704,7 +12703,7 @@ under [`sources/0010-staged-protocols/`](../sources/0010-staged-protocols/source
 classify which ideas this package accepts, refines, rejects, and adds, and identify which
 vocabulary is local to this repository rather than external.
 
-References are informative. A normative obligation exists only where `doctrine.md` states it
+References are informative. A normative obligation exists only where [`doctrine.md`](../doctrines/0010-staged-protocols/doctrine.md) states it
 with a rule identifier. Changing facts, including tool versions and product behavior, carry the
 version or date checked and are rechecked when the package is maintained.
 
@@ -12854,7 +12853,7 @@ under.
 
 ## Package completion check
 
-- metadata agrees with `manifest/doctrines.yaml` and its JSON Schema;
+- metadata agrees with [`manifest/doctrines.yaml`](../manifest/doctrines.yaml) and its JSON Schema;
 - rule IDs use `RUST-DOC-0011-RNNN` and every one appears in `review-standard.md`;
 - all eight files carry domain-specific substance;
 - references and source notes separate external facts from repository governance, and record the
@@ -12916,8 +12915,8 @@ RUST-DOC-0001 governs which invariants are representable; this rule governs whet
 representable obligation was in fact represented.
 
 **Allowed exceptions.** An obligation whose enforcement cost exceeds the assessment required by
-`foundations/complexity-budget.md` MAY remain prose-carried when the assessment, its owner, and
-the residual risk are recorded on the terms of RUST-DOC-0011-R020.
+[`foundations/complexity-budget.md`](../foundations/complexity-budget.md) MAY remain prose-carried when the
+assessment, its owner, and the residual risk are recorded on the terms of RUST-DOC-0011-R020.
 
 **Review evidence.** The enforcing artifact, or the recorded assessment showing that no available
 mechanism enforces the obligation proportionately.
@@ -13088,8 +13087,8 @@ artifacts now carry.
 must reconcile against current behavior.
 
 **Applicability.** Accepted RFCs and equivalent proposal documents after their implementation has
-landed. This rule does not weaken the RFC obligations stated in `AGENTS.md` and
-`rfcs/README.md`, which govern the change process rather than the resulting contract.
+landed. This rule does not weaken the RFC obligations stated in [`AGENTS.md`](../AGENTS.md) and
+[`rfcs/README.md`](../rfcs/README.md), which govern the change process rather than the resulting contract.
 
 **Allowed exceptions.** A proposal MAY remain cited for its decision, its date, its owners, its
 accepted conditions, and its recorded alternatives, which are rationale rather than
@@ -13286,8 +13285,9 @@ material, an irreversible commitment, a regulatory interpretation, a contractual
 accepted trade-off, and migration history that affects compatibility. RUST-DOC-0011-R012 keeps
 them from restating the topology.
 
-Non-guarantee and residual-risk statements are authoritative for what a design deliberately does
-not prove and who accepted the remainder, on the terms `foundations/guarantee-honesty.md` states.
+Non-guarantee and residual-risk statements are authoritative for what a design deliberately does not prove and who
+accepted the remainder, on the terms [`foundations/guarantee-honesty.md`](../foundations/guarantee-honesty.md)
+states.
 
 Governance artifacts are authoritative for who may change a normative contract, the required
 review, waiver ownership, versioning policy, migration obligations, release gates, and legal or
@@ -13320,14 +13320,14 @@ constraints. Absence of a record is evidence about the record set, not about the
 
 ## Boundary requirements
 
-Where an obligation crosses a boundary, the enforcing mechanism changes and the authority moves
-with it. A wire contract is enforced by its canonical encoder, decoder, schema, and compatibility
-suite under `boundaries/serde.md` and `boundaries/http-and-rpc.md`. A persistence invariant is
-enforced by schema constraints, checked decoding, and transaction predicates under
-RUST-DOC-0005 and `boundaries/database-decoding.md`. An operational policy is enforced by
-deployable configuration and machine-checked manifests under `boundaries/configuration.md`. A
-claim that crosses into another system's ownership becomes an external claim governed by
-RUST-DOC-0011-R014.
+Where an obligation crosses a boundary, the enforcing mechanism changes and the authority moves with it. A wire contract
+is enforced by its canonical encoder, decoder, schema, and compatibility suite under
+[`boundaries/serde.md`](../boundaries/serde.md) and [`boundaries/http-and-rpc.md`](../boundaries/http-and-rpc.md).
+A persistence invariant is enforced by schema constraints, checked decoding, and transaction predicates under
+RUST-DOC-0005 and [`boundaries/database-decoding.md`](../boundaries/database-decoding.md). An operational policy is
+enforced by deployable configuration and machine-checked manifests under
+[`boundaries/configuration.md`](../boundaries/configuration.md). A claim that crosses into another system's ownership
+becomes an external claim governed by RUST-DOC-0011-R014.
 
 ## Waiver requirements
 
@@ -13406,12 +13406,11 @@ sitting in a package whose `RUST-DOC-0010-R018` and `RUST-DOC-0010-R019` exist p
 prose cannot detect a widened bound or a redirected successor. The package argued the partition
 and then denied it. The defect was live in this corpus until the restatement recorded in RFC-0003.
 
-**The index nobody regenerated.** `rfcs/accepted/README.md` listed RFC-0001 and omitted RFC-0002
-within a single release, because the index of accepted proposals is maintained by hand beside a
-directory that already contains the answer. The cost was small and the mechanism is the general
-one: a hand-maintained view of a machine-readable fact is wrong as soon as attention lapses.
-`RUST-DOC-0011-R005` prefers generation, and `RUST-DOC-0011-R017` makes the count of maintained
-representations something a review states rather than estimates.
+**The index nobody regenerated.** [`rfcs/accepted/README.md`](../rfcs/accepted/README.md) listed RFC-0001 and omitted
+RFC-0002 within a single release, because the index of accepted proposals is maintained by hand beside a directory that
+already contains the answer. The cost was small and the mechanism is the general one: a hand-maintained view of a
+machine-readable fact is wrong as soon as attention lapses. `RUST-DOC-0011-R005` prefers generation, and
+`RUST-DOC-0011-R017` makes the count of maintained representations something a review states rather than estimates.
 
 ## Why weaker alternatives fail
 
@@ -13523,7 +13522,7 @@ registry designed to hold only what somebody chose to record.
 - the mechanisms available in the language, schema, build, and deployment configuration;
 - the systems that own any durable or remote fact the claim depends on;
 - the existing artifacts that already describe the claim, and who maintains each;
-- the complexity budget assessment from `foundations/complexity-budget.md`;
+- the complexity budget assessment from [`foundations/complexity-budget.md`](../foundations/complexity-budget.md);
 - the audience that has to act on the claim, and what they consult today.
 
 ## Questions
@@ -14107,11 +14106,11 @@ repository.
 
 ## Related repository material
 
-`foundations/guarantee-honesty.md` supplies the discipline that separates a claim from its
-limits, which is what `RUST-DOC-0011-R003` relies on when it requires the unenforced part of a
-claim to be stated separately. `foundations/evidence.md` supplies the evidence classes the
-decision framework selects between. `foundations/complexity-budget.md` supplies the assessment
-`RUST-DOC-0011-R002` requires before an obligation is left prose-carried.
+[`foundations/guarantee-honesty.md`](../foundations/guarantee-honesty.md) supplies the discipline that separates a
+claim from its limits, which is what `RUST-DOC-0011-R003` relies on when it requires the unenforced part of a claim to
+be stated separately. [`foundations/evidence.md`](../foundations/evidence.md) supplies the evidence classes the
+decision framework selects between. [`foundations/complexity-budget.md`](../foundations/complexity-budget.md)
+supplies the assessment `RUST-DOC-0011-R002` requires before an obligation is left prose-carried.
 
 RUST-DOC-0010 applies this doctrine's partition to staged protocols in `RUST-DOC-0010-R022`, and
 its `RUST-DOC-0010-R018` and `RUST-DOC-0010-R019` are worked instances of an obligation moved into
@@ -15949,13 +15948,13 @@ which claim.
 ## 13. Executable example
 
 This repository is its own worked instance of the generated-view half.
-`tools/bundle-agent-context` builds every [generated distribution](README.md) from the canonical
-sources named in [`../manifest/doctrines.yaml`](../manifest/doctrines.yaml) and
-[`../manifest/agents.yaml`](../manifest/agents.yaml), stamps each output with a banner naming the
-canonical roots, and its `check` mode fails on drift. No file under `dist/` is edited by hand, and
-the drift check is part of the ordinary validation set.
+[`tools/bundle-agent-context`](../tools/bundle-agent-context/) builds every [generated distribution](README.md)
+from the canonical sources named in [`../manifest/doctrines.yaml`](../manifest/doctrines.yaml) and
+[`../manifest/agents.yaml`](../manifest/agents.yaml), stamps each output with a banner naming the canonical roots, and
+its `check` mode fails on drift. No file under `dist/` is edited by hand, and the drift check is part of the ordinary
+validation set.
 
-`tools/doctrine-lint` is the enforcement half. It validates the decision-record registry at
+[`tools/doctrine-lint`](../tools/doctrine-lint/) is the enforcement half. It validates the decision-record registry at
 [`../manifest/decision-records.yaml`](../manifest/decision-records.yaml) against its schema and
 against the obligations `RUST-DOC-0011-R007` states, so a record without an owner, a revalidation
 trigger, an obsolescence condition, or resolvable executable authorities fails the build rather
@@ -17890,7 +17889,7 @@ audit.
 Produce Rust systems whose important guarantees are discoverable, accurately
 named, protected at construction and transition, preserved at boundaries, and
 supported by proportionate evidence. Compilation and test success are evidence
-layers, not the definition of correctness. Follow repository `AGENTS.md` and
+layers, not the definition of correctness. Follow repository [`AGENTS.md`](../AGENTS.md) and
 read applicable canonical doctrine before changing code or doctrine.
 
 ## Required reasoning order
@@ -17994,15 +17993,15 @@ Never claim:
 ## Canonical and generated sources
 
 Never edit a generated file manually: everything under `dist/`, the accepted-RFC
-index `rfcs/accepted/README.md`, and the doctrine coverage map
-`doctrines/map.md`. Each carries a banner naming its sources. Change canonical
+index [`rfcs/accepted/README.md`](../rfcs/accepted/README.md), and the doctrine coverage map
+[`doctrines/map.md`](../doctrines/map.md). Each carries a banner naming its sources. Change canonical
 material, update manifests where selection changes, regenerate, and check
 deterministic output. Generated text must retain its banner and source
 provenance. A bundle mismatch is a failed repository state.
 
 A pack carries the doctrine its role routinely applies. A doctrine absent from
 this pack is not thereby out of force: read the applicable canonical doctrine
-from `doctrines/` when the work turns on it.
+from [`doctrines/`](../doctrines/) when the work turns on it.
 
 ## Escalation
 

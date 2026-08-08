@@ -36,7 +36,7 @@ engineering roles.>
 
 ## Normative status
 
-State that `doctrine.md` is normative, identify version/status, and explain
+State that [`doctrine.md`](doctrine.md) is normative, identify version/status, and explain
 waiver boundaries. Do not let rationale create hidden requirements.
 
 ## Prerequisite foundations
@@ -62,7 +62,7 @@ every rule.>
 
 ## Package completion check
 
-- metadata agrees with `manifest/doctrines.yaml` and its JSON Schema;
+- metadata agrees with [`manifest/doctrines.yaml`](../../manifest/doctrines.yaml) and its JSON Schema;
 - rule IDs use `RUST-DOC-NNNN-RNNN`;
 - all eight files contain domain-specific substance;
 - references and source notes distinguish external facts from repository

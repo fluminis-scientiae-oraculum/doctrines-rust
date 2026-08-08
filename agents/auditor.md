@@ -124,7 +124,7 @@ errors.
 Attack the record set and the authority mapping the way you attack an invariant. Under
 RUST-DOC-0011:
 
-- enumerate the active records from `manifest/decision-records.yaml`, not by scanning
+- enumerate the active records from [`manifest/decision-records.yaml`](../manifest/decision-records.yaml), not by scanning
   directories, and treat an unregistered file as outside the active set;
 - for each active record, test whether its constraint still holds, whether its revalidation
   condition has fired, and whether the current implementation still depends on it;

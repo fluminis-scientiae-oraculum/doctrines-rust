@@ -4,7 +4,7 @@
 
 Transform requirements into a reviewable invariant-first design without
 prematurely choosing Rust mechanisms. The planner produces artifacts that an
-implementer can follow and a reviewer can challenge. Read `shared.md`,
+implementer can follow and a reviewer can challenge. Read [`shared.md`](shared.md),
 foundations on invariants, trust boundaries, guarantee honesty, and complexity,
 then the doctrine packages selected for the domain.
 

@@ -17,10 +17,10 @@ obsolete_when:
 
 # Example: subscriber data stays inside one jurisdiction
 
-**This is an illustration, not a record.** It records no obligation of this repository, describes
-a system that does not exist here, and names no real organization. It is absent from
-`manifest/decision-records.yaml` and its identifier does not match the pattern the registry
-requires. It exists to show what surviving the test in
+**This is an illustration, not a record.** It records no obligation of this repository, describes a system that does not
+exist here, and names no real organization. It is absent from
+[`manifest/decision-records.yaml`](../../manifest/decision-records.yaml) and its identifier does not match the pattern
+the registry requires. It exists to show what surviving the test in
 [RUST-DOC-0011](../../doctrines/0011-executable-narrative/) looks like.
 
 ## The one question

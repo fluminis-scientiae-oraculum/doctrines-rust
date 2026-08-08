@@ -92,7 +92,7 @@ into a fictional failure.
 
 Canonical content has distinct responsibilities:
 
-- `foundations/` defines shared language for invariants, evidence, boundaries, guarantees,
+- [`foundations/`](foundations/) defines shared language for invariants, evidence, boundaries, guarantees,
   and complexity.
 - [`doctrines/`](doctrines/README.md) contains versioned normative packages. Every normative rule
   has a stable `RUST-DOC-####-R###` identifier, intent, applicability, exception policy, and
@@ -130,8 +130,9 @@ evidence by doctrine and names the material gaps that remain.
 
 ## Canonical and generated content
 
-Canonical doctrine lives under `foundations/`, `doctrines/`, `patterns/`, `boundaries/`,
-`reviews/`, `agents/`, `case-studies/`, `decisions/`, `templates/`, `rfcs/`, and `sources/`.
+Canonical doctrine lives under `foundations/`, [`doctrines/`](doctrines/), [`patterns/`](patterns/),
+[`boundaries/`](boundaries/), [`reviews/`](reviews/), [`agents/`](agents/), [`case-studies/`](case-studies/),
+[`decisions/`](decisions/), [`templates/`](templates/), [`rfcs/`](rfcs/), and [`sources/`](sources/).
 
 > [!TIP]
 > To load this corpus into an agent, read
@@ -144,9 +145,9 @@ Three kinds of file are generated and are never edited by hand:
 - everything under [`dist/`](dist/README.md), the hydration bundles projected from canonical
   sources;
 - [`rfcs/accepted/README.md`](rfcs/accepted/README.md), the accepted-RFC index, built from
-  `rfcs/accepted/overview.md` and the front matter of each accepted RFC;
+  [`rfcs/accepted/overview.md`](rfcs/accepted/overview.md) and the front matter of each accepted RFC;
 - [`doctrines/map.md`](doctrines/map.md), the doctrine coverage map, built from
-  `doctrines/map-overview.md` and the two manifests.
+  [`doctrines/map-overview.md`](doctrines/map-overview.md) and the two manifests.
 
 Every generated file carries a banner naming the sources it was built from. After a canonical
 change, run:
@@ -207,17 +208,16 @@ under `dist/agents/` combine those overlays with selected canonical rules.
 > a pack omits is one that is not available from that pack alone and has to be loaded from its
 > canonical source; the exclusions are the interesting cells.
 
-For constrained context windows, `dist/compact-doctrine.md` contains the shared thesis,
-classification and boundary pipelines, every active doctrine's normative rules, the central
-decision tree, and the core audit gates. `dist/full-doctrine.md` retains the repository identity,
-foundations, every file in each active doctrine package, patterns, boundary guides, operational
-reviews, and shared agent obligations in stable order. Case studies, source notes, RFCs,
-templates, and role-specific overlays remain canonical but are deliberately outside that
-hydration bundle.
+For constrained context windows, [`dist/compact-doctrine.md`](dist/compact-doctrine.md) contains the shared thesis,
+classification and boundary pipelines, every active doctrine's normative rules, the central decision tree, and the core
+audit gates. [`dist/full-doctrine.md`](dist/full-doctrine.md) retains the repository identity, foundations, every file
+in each active doctrine package, patterns, boundary guides, operational reviews, and shared agent obligations in stable
+order. Case studies, source notes, RFCs, templates, and role-specific overlays remain canonical but are deliberately
+outside that hydration bundle.
 
 ## Doctrine index
 
-`manifest/doctrines.yaml` is the machine-readable discovery source, and
+[`manifest/doctrines.yaml`](manifest/doctrines.yaml) is the machine-readable discovery source, and
 [`doctrines/README.md`](doctrines/README.md) is the reader-facing index derived from it. This
 file deliberately does not repeat that table. It previously did, and the copy was wrong within
 one release: two doctrines were added and the table still listed nine while claiming to be
@@ -242,7 +242,7 @@ This file names no version number, for the same reason it no longer repeats the 
 The pinned development toolchain is Rust 1.97.1. The workspace MSRV is Rust 1.85.0, the first
 stable release supporting Edition 2024; selected dependencies declare compatibility with that
 floor. Markdown tooling uses the exact Node.js, Prettier, and markdownlint-cli2 versions pinned
-by `.node-version` and `package-lock.json`. Run from the repository root:
+by `.node-version` and [`package-lock.json`](package-lock.json). Run from the repository root:
 
 ```bash
 npm ci --ignore-scripts --no-audit

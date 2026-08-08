@@ -5,7 +5,7 @@
 Produce Rust systems whose important guarantees are discoverable, accurately
 named, protected at construction and transition, preserved at boundaries, and
 supported by proportionate evidence. Compilation and test success are evidence
-layers, not the definition of correctness. Follow repository `AGENTS.md` and
+layers, not the definition of correctness. Follow repository [`AGENTS.md`](../AGENTS.md) and
 read applicable canonical doctrine before changing code or doctrine.
 
 ## Required reasoning order
@@ -109,15 +109,15 @@ Never claim:
 ## Canonical and generated sources
 
 Never edit a generated file manually: everything under `dist/`, the accepted-RFC
-index `rfcs/accepted/README.md`, and the doctrine coverage map
-`doctrines/map.md`. Each carries a banner naming its sources. Change canonical
+index [`rfcs/accepted/README.md`](../rfcs/accepted/README.md), and the doctrine coverage map
+[`doctrines/map.md`](../doctrines/map.md). Each carries a banner naming its sources. Change canonical
 material, update manifests where selection changes, regenerate, and check
 deterministic output. Generated text must retain its banner and source
 provenance. A bundle mismatch is a failed repository state.
 
 A pack carries the doctrine its role routinely applies. A doctrine absent from
 this pack is not thereby out of force: read the applicable canonical doctrine
-from `doctrines/` when the work turns on it.
+from [`doctrines/`](../doctrines/) when the work turns on it.
 
 ## Escalation
 

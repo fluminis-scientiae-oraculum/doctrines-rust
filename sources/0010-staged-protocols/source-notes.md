@@ -15,13 +15,12 @@ added, so that borrowed ideas do not arrive carrying more authority than their a
 
 ## Accepted core
 
-The central mechanism is accepted. A stage capability that has a legal successor benefits from
-naming that successor as an associated type bounded by the capability the successor must
-satisfy. This is genuinely stronger than returning one concrete successor type, and the
-repository did not previously express it: `patterns/typestate.md` covers marker generics with
-state-specific inherent implementations, and `patterns/consuming-transitions.md` covers
-ownership transfer, but neither abstracts the successor relationship through a trait. It became
-`RUST-DOC-0010-R003`.
+The central mechanism is accepted. A stage capability that has a legal successor benefits from naming that successor as
+an associated type bounded by the capability the successor must satisfy. This is genuinely stronger than returning one
+concrete successor type, and the repository did not previously express it:
+[`patterns/typestate.md`](../../patterns/typestate.md) covers marker generics with state-specific inherent
+implementations, and [`patterns/consuming-transitions.md`](../../patterns/consuming-transitions.md) covers ownership
+transfer, but neither abstracts the successor relationship through a trait. It became `RUST-DOC-0010-R003`.
 
 The reason the abstraction earns its cost is also accepted: one capability may have several
 implementations producing different successor evidence, and without an associated successor type
@@ -35,14 +34,14 @@ and escape hatches are restricted rather than ambient.
 
 ## Refined claims
 
-**Scope of application.** The source lists payment settlement, registration and onboarding,
-workflow engines, database migration phases, and deployment promotion as fits for the mechanism.
-Most of those are durable, multi-actor lifecycles. This repository's existing position, in
-`AGENTS.md` and `foundations/guarantee-honesty.md`, restricts type-level protocol enforcement to
-locally controlled, small, static protocols and prefers a runtime representation for dynamic,
-persisted, heterogeneous, or externally chosen state. The claim is narrowed rather than adopted:
-`RUST-DOC-0010-R015` scopes the typed protocol to one in-process pass and keeps the durable model
-at runtime, and `patterns/hybrid-state-machines.md` remains the mechanism for combining them.
+**Scope of application.** The source lists payment settlement, registration and onboarding, workflow engines, database
+migration phases, and deployment promotion as fits for the mechanism. Most of those are durable, multi-actor lifecycles.
+This repository's existing position, in [`AGENTS.md`](../../AGENTS.md) and
+[`foundations/guarantee-honesty.md`](../../foundations/guarantee-honesty.md), restricts type-level protocol enforcement
+to locally controlled, small, static protocols and prefers a runtime representation for dynamic, persisted,
+heterogeneous, or externally chosen state. The claim is narrowed rather than adopted: `RUST-DOC-0010-R015` scopes the
+typed protocol to one in-process pass and keeps the durable model at runtime, and
+[`patterns/hybrid-state-machines.md`](../../patterns/hybrid-state-machines.md) remains the mechanism for combining them.
 
 **Persistence and nominal database types.** The source proposes extending nominal domain
 semantics into PostgreSQL base types so that comparing two identifier species fails without an
@@ -62,17 +61,16 @@ mechanics belong to RUST-DOC-0004; `RUST-DOC-0010-R016` requires only the per-st
 cancellation behavior, retry safety, the identity under which a retry deduplicates, and whether
 the successor proof exists only after a durable acknowledgment.
 
-**Guidance for agents.** The source ends with an interpretation contract and a copy-and-paste
-prompt intended to calibrate another agent. The repository already carries agent obligations in
-`agents/` with deterministic generated hydration packs selected through `manifest/agents.yaml`.
-The content is therefore delivered through that mechanism rather than as free-floating prompt
-text, so that agent instructions stay versioned, reviewable, and consistent with the doctrine
-they cite.
+**Guidance for agents.** The source ends with an interpretation contract and a copy-and-paste prompt intended to
+calibrate another agent. The repository already carries agent obligations in [`agents/`](../../agents/) with
+deterministic generated hydration packs selected through [`manifest/agents.yaml`](../../manifest/agents.yaml). The
+content is therefore delivered through that mechanism rather than as free-floating prompt text, so that agent
+instructions stay versioned, reviewable, and consistent with the doctrine they cite.
 
-**Terminology.** The source's own caution about its coinage is accepted and made binding.
-`RUST-DOC-0010-R021` requires local vocabulary to travel with its family attribution; the
-glossary records CT³ as local vocabulary, and `patterns/successor-capabilities.md` states the term
-and explains what each of its words carries, so older internal documents remain readable.
+**Terminology.** The source's own caution about its coinage is accepted and made binding. `RUST-DOC-0010-R021` requires
+local vocabulary to travel with its family attribution; the glossary records CT³ as local vocabulary, and
+[`patterns/successor-capabilities.md`](../../patterns/successor-capabilities.md) states the term and explains what each
+of its words carries, so older internal documents remain readable.
 
 **Executable authority.** The source argues that an enforceable architectural obligation should
 live in the mechanism that enforces it rather than survive only as prose. The repository accepts
@@ -103,12 +101,11 @@ provenance file whose errors are edited out teaches nothing about how they happe
 
 ## Rejected claims
 
-**The scored review rubric.** The source proposes rating a design zero to two across ten
-categories and reading the total as a verdict, with bands from "ordinary runtime workflow" to
-"exemplary." This repository records each gate as pass, fail, not applicable, or waiver
-reference, and `reviews/README.md` states that blank status is not approval. A numeric total lets
-strong scores in cheap categories offset a critical failure in an expensive one, which is
-precisely what the severity model exists to prevent. The rubric is not adopted in any form.
+**The scored review rubric.** The source proposes rating a design zero to two across ten categories and reading the
+total as a verdict, with bands from "ordinary runtime workflow" to "exemplary." This repository records each gate as
+pass, fail, not applicable, or waiver reference, and [`reviews/README.md`](../../reviews/README.md) states that blank
+status is not approval. A numeric total lets strong scores in cheap categories offset a critical failure in an expensive
+one, which is precisely what the severity model exists to prevent. The rubric is not adopted in any form.
 
 **Stage-per-step granularity.** Several of the source's worked flows introduce a stage for
 transformations that establish no fact a later stage consumes. `RUST-DOC-0010-R012` requires a

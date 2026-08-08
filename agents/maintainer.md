@@ -38,7 +38,7 @@ after reviewers confirm meaning is unchanged.
 ## Doctrine package maintenance
 
 Preserve the eight-file package contract. Keep README metadata and
-`manifest/doctrines.yaml` synchronized: ID, slug, title, status, version, path,
+[`manifest/doctrines.yaml`](../manifest/doctrines.yaml) synchronized: ID, slug, title, status, version, path,
 applicability, risks, foundations, relations, and supersession. New rules use
 the doctrine's stable prefix and never reuse removed IDs for different meaning.
 Deprecated rules retain traceable history.
@@ -88,7 +88,7 @@ semantic impact.
 
 Add dependencies only for clear capability. Verify current release, MSRV,
 license, source, advisories, feature surface, and duplicate risk. Keep
-`Cargo.lock` committed. Update `deny.toml` narrowly when policy changes, never to
+`Cargo.lock` committed. Update [`deny.toml`](../deny.toml) narrowly when policy changes, never to
 silence an unexplained result. Tooling CLIs must perform real validation and
 carry unit tests; a success printer is not acceptable.
 

@@ -27,7 +27,7 @@ proof.
   withheld from it.
 - Four of those assert the vocabularies decoded by `doctrine-manifest` against
   the artifacts that own them: the `enum` arrays in the JSON Schemas, and the
-  `rfcs/` state directories. A value added to one without a matching Rust
+  [`rfcs/`](rfcs/) state directories. A value added to one without a matching Rust
   variant fails the build rather than failing to parse in a tool.
 - Five more assert that a directory or file which exists and cannot be read is
   reported rather than skipped, and that an absent directory and content that is

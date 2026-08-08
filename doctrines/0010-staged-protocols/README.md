@@ -137,7 +137,7 @@ and a concurrency token, and persisted lifecycle stays a runtime model.
 
 ## Package completion check
 
-- metadata agrees with `manifest/doctrines.yaml` and its JSON Schema;
+- metadata agrees with [`manifest/doctrines.yaml`](../../manifest/doctrines.yaml) and its JSON Schema;
 - rule IDs use `RUST-DOC-0010-RNNN` and every one appears in `review-standard.md`;
 - all eight files carry domain-specific substance;
 - references and source notes separate external facts from repository governance, and record

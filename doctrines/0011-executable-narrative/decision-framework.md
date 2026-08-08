@@ -6,7 +6,7 @@
 - the mechanisms available in the language, schema, build, and deployment configuration;
 - the systems that own any durable or remote fact the claim depends on;
 - the existing artifacts that already describe the claim, and who maintains each;
-- the complexity budget assessment from `foundations/complexity-budget.md`;
+- the complexity budget assessment from [`foundations/complexity-budget.md`](../../foundations/complexity-budget.md);
 - the audience that has to act on the claim, and what they consult today.
 
 ## Questions

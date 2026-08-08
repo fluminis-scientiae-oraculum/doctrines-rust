@@ -8,8 +8,8 @@ created: 2026-08-04
 
 # Example: a record that should not be written
 
-**This is an illustration, not a record.** It records no obligation of this repository, and it is
-absent from `manifest/decision-records.yaml`. It shows a proposal failing the test in
+**This is an illustration, not a record.** It records no obligation of this repository, and it is absent from
+[`manifest/decision-records.yaml`](../../manifest/decision-records.yaml). It shows a proposal failing the test in
 [RUST-DOC-0011](../../doctrines/0011-executable-narrative/), and what happened instead.
 
 ## The proposal
