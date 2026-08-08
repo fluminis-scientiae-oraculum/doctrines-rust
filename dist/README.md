@@ -168,13 +168,13 @@ carries a warning banner and source headings.
 
 | Distribution | Bytes | Approximate tokens |
 | --- | ---: | ---: |
-| `dist/agents/maintainer.md` | 146499 | 36624 |
-| `dist/agents/shared.md` | 148315 | 37078 |
-| `dist/agents/planner.md` | 196827 | 49206 |
-| `dist/compact-doctrine.md` | 212496 | 53124 |
-| `dist/agents/implementer.md` | 223901 | 55975 |
-| `dist/agents/auditor.md` | 230117 | 57529 |
-| `dist/agents/reviewer.md` | 247902 | 61975 |
-| `dist/full-doctrine.md` | 937040 | 234260 |
+| `dist/agents/maintainer.md` | 147537 | 36884 |
+| `dist/agents/shared.md` | 149353 | 37338 |
+| `dist/agents/planner.md` | 197865 | 49466 |
+| `dist/compact-doctrine.md` | 213534 | 53383 |
+| `dist/agents/implementer.md` | 224939 | 56234 |
+| `dist/agents/auditor.md` | 231155 | 57788 |
+| `dist/agents/reviewer.md` | 248940 | 62235 |
+| `dist/full-doctrine.md` | 939930 | 234982 |
 
 The token column divides bytes by a fixed estimate of four. It is a planning figure for choosing a bundle against a context window, not a measurement: a real count depends on the tokenizer.

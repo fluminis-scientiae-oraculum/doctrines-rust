@@ -3,7 +3,7 @@ id: RUST-DOC-0008
 slug: testing-and-evidence
 title: Testing as Layered Evidence
 status: active
-version: 0.1.1
+version: 0.2.0
 normative: true
 applies_to:
   - planning

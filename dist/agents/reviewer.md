@@ -3139,6 +3139,27 @@ contract.
 
 **Review evidence.** Evidence ledger tied to invariant inventory.
 
+## RUST-DOC-0008-R022 — Prove the observer looked before accepting absence
+
+**Statement.** An assertion that a condition is absent at runtime MUST establish
+that its predicate can observe the condition, through a self-validating
+predicate that fails when its subject is missing, a positive control asserted
+alongside it, or a paired assertion whose expected count is non-zero.
+
+**Intent.** Separate "the condition was searched for and not found" from "the
+search matched nothing", which an empty result reports identically.
+
+**Applicability.** Runtime assertions whose expected result is an empty
+collection, a zero count, an unset value, or an uncalled test double, in tests
+and in checks that gate a build.
+
+**Allowed exceptions.** An assertion MAY omit the control when the same test
+first observes the condition present and then removes it, because the transition
+is itself the proof of observation.
+
+**Review evidence.** The control and its assertion, or the non-zero paired case,
+shown beside the absence assertion they protect.
+
 ---
 
 ## Source: `doctrines/0009-performance-and-measurement/doctrine.md`

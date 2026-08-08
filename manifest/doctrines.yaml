@@ -1,5 +1,5 @@
 schema_version: "1.0"
-repository_version: "0.6.1"
+repository_version: "0.7.0"
 doctrines:
   - id: RUST-DOC-0001
     slug: invalid-states
@@ -194,7 +194,7 @@ doctrines:
     slug: testing-and-evidence
     title: Testing as Layered Evidence
     status: active
-    version: "0.1.1"
+    version: "0.2.0"
     package_path: doctrines/0008-testing-and-evidence
     normative_path: doctrines/0008-testing-and-evidence/doctrine.md
     applies_to: [planning, implementation, review, audit, maintenance]
