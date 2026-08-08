@@ -80,24 +80,16 @@ usually belongs in an enum or a runtime state machine.
 
 The reasoning lifecycle is:
 
-```text
-requirements
-    ↓
-invariant discovery
-    ↓
-invariant classification
-    ↓
-trust-boundary identification
-    ↓
-representation choice
-    ↓
-legal construction and transition design
-    ↓
-external failure and uncertainty modelling
-    ↓
-executable evidence
-    ↓
-review and guarantee audit
+```mermaid
+flowchart TD
+    requirements --> discovery[invariant discovery]
+    discovery --> classification[invariant classification]
+    classification --> boundaries[trust-boundary identification]
+    boundaries --> representation[representation choice]
+    representation --> construction[legal construction and transition design]
+    construction --> uncertainty[external failure and uncertainty modelling]
+    uncertainty --> evidence[executable evidence]
+    evidence --> audit[review and guarantee audit]
 ```
 
 Skipping a stage creates predictable blind spots. Starting with structs can preserve
@@ -2381,29 +2373,23 @@ The first selection table is:
 
 ## Operational decision tree
 
-```text
-Is the problem mutually exclusive states?
-├─ yes → enum / sum type
-└─ no
-   Is it a single value with a stable local invariant?
-   ├─ yes → opaque validated newtype
-   └─ no
-      Is it a collection invariant?
-      ├─ yes → validated collection wrapper
-      └─ no
-         Is it locally controlled operation sequencing?
-         ├─ yes
-         │  Is state count small and API static?
-         │  ├─ yes → typestate or consuming transitions
-         │  └─ no → runtime state machine
-         └─ no
-            Is it authority?
-            ├─ yes → capability type
-            └─ no
-               Is it external or mutable reality?
-               ├─ yes → runtime observation + Result
-               │        + explicit uncertainty where needed
-               └─ no → ordinary runtime rule or domain service
+```mermaid
+flowchart TD
+    exclusive{Is the problem mutually exclusive states?}
+    exclusive -->|yes| enum[enum / sum type]
+    exclusive -->|no| value{Is it a single value with a stable local invariant?}
+    value -->|yes| newtype[opaque validated newtype]
+    value -->|no| collection{Is it a collection invariant?}
+    collection -->|yes| wrapper[validated collection wrapper]
+    collection -->|no| sequencing{Is it locally controlled operation sequencing?}
+    sequencing -->|yes| small{Is state count small and API static?}
+    small -->|yes| typestate[typestate or consuming transitions]
+    small -->|no| machine[runtime state machine]
+    sequencing -->|no| authority{Is it authority?}
+    authority -->|yes| capability[capability type]
+    authority -->|no| external{Is it external or mutable reality?}
+    external -->|yes| observation["runtime observation + Result<br>+ explicit uncertainty where needed"]
+    external -->|no| ordinary[ordinary runtime rule or domain service]
 ```
 
 Before accepting the leaf, apply complexity and honesty checks:
@@ -5196,19 +5182,17 @@ when measured workload does not need overlap.
 
 For each `.await`:
 
-```text
-Has local or external state changed before suspension?
-├─ no → verify drop releases acquired resources
-└─ yes
-   Can drop leave the invariant valid and progress recoverable?
-   ├─ yes → document recovery owner and resume identity
-   └─ no
-      Can the mutation move after the suspension?
-      ├─ yes → reorder operation
-      └─ no
-         Can a guard/owner task finish it despite caller cancellation?
-         ├─ yes → supervise bounded completion
-         └─ no → add compensation or explicit reconciliation
+```mermaid
+flowchart TD
+    changed{Has local or external state changed before suspension?}
+    changed -->|no| drop[verify drop releases acquired resources]
+    changed -->|yes| valid{Can drop leave the invariant valid and progress recoverable?}
+    valid -->|yes| owner[document recovery owner and resume identity]
+    valid -->|no| move{Can the mutation move after the suspension?}
+    move -->|yes| reorder[reorder operation]
+    move -->|no| guard{"Can a guard/owner task finish it despite caller cancellation?"}
+    guard -->|yes| supervise[supervise bounded completion]
+    guard -->|no| compensate[add compensation or explicit reconciliation]
 ```
 
 A timeout around the future adds another cancellation edge. It does not prove a
@@ -6324,15 +6308,13 @@ If the database cannot enforce an invariant, state the race and repair model.
 
 ## Decode decision
 
-```text
-Does the target type carry an invariant?
-├─ no → ordinary physical decoding may be sufficient
-└─ yes
-   Can the driver call a fallible checked constructor?
-   ├─ yes → implement checked mapping
-   └─ no
-      Decode a raw storage type first
-      then convert through TryFrom
+```mermaid
+flowchart TD
+    invariant{Does the target type carry an invariant?}
+    invariant -->|no| physical[ordinary physical decoding may be sufficient]
+    invariant -->|yes| driver{Can the driver call a fallible checked constructor?}
+    driver -->|yes| checked[implement checked mapping]
+    driver -->|no| raw["decode a raw storage type first,<br>then convert through TryFrom"]
 ```
 
 Reject any solution that writes private fields through unsafe code for
@@ -6374,16 +6356,15 @@ column.
 
 ## Persistence plus effect decision
 
-```text
-Must the durable transition and effect intent stay coupled?
-├─ no → document accepted loss or independent retry
-└─ yes
-   Can both occur in one actual transactional resource?
-   ├─ yes → use that transaction and state its boundary
-   └─ no
-      Can durable intent be stored with the domain change?
-      ├─ yes → outbox/event log + idempotent publisher
-      └─ no → saga/reconciliation with explicit uncertainty
+```mermaid
+flowchart TD
+    coupled{Must the durable transition and effect intent stay coupled?}
+    coupled -->|no| loss[document accepted loss or independent retry]
+    coupled -->|yes| resource{Can both occur in one actual transactional resource?}
+    resource -->|yes| transaction[use that transaction and state its boundary]
+    resource -->|no| intent{Can durable intent be stored with the domain change?}
+    intent -->|yes| outbox[outbox/event log + idempotent publisher]
+    intent -->|no| saga[saga/reconciliation with explicit uncertainty]
 ```
 
 Never call compensation rollback. Compensation is a new fallible effect.
@@ -7457,16 +7438,15 @@ protocol.
 
 ## Outcome decision tree
 
-```text
-Did authoritative evidence confirm success?
-├─ yes → Confirmed(success evidence)
-└─ no
-   Did authoritative evidence confirm rejection/non-execution?
-   ├─ yes → Rejected(reason)
-   └─ no
-      Is it proven no request crossed the execution boundary?
-      ├─ yes → LocalFailure(retry guidance)
-      └─ no → Unknown(reconciliation evidence)
+```mermaid
+flowchart TD
+    success{Did authoritative evidence confirm success?}
+    success -->|yes| confirmed["Confirmed(success evidence)"]
+    success -->|no| rejection{"Did authoritative evidence confirm rejection/non-execution?"}
+    rejection -->|yes| rejected["Rejected(reason)"]
+    rejection -->|no| crossed{Is it proven no request crossed the execution boundary?}
+    crossed -->|yes| local["LocalFailure(retry guidance)"]
+    crossed -->|no| unknown["Unknown(reconciliation evidence)"]
 ```
 
 ## Idempotency decision
@@ -8528,13 +8508,13 @@ Any unanswered applicable row blocks implementation.
 
 ## Choose the API boundary
 
-```text
-Can all safety preconditions be checked or enforced internally?
-├─ yes → safe API over private unsafe implementation
-└─ no
-   Can ownership/type structure encode them?
-   ├─ yes → redesign until safe
-   └─ no → narrow unsafe API with complete caller obligations
+```mermaid
+flowchart TD
+    internal{Can all safety preconditions be checked or enforced internally?}
+    internal -->|yes| safe[safe API over private unsafe implementation]
+    internal -->|no| encode{"Can ownership/type structure encode them?"}
+    encode -->|yes| redesign[redesign until safe]
+    encode -->|no| narrow[narrow unsafe API with complete caller obligations]
 ```
 
 Do not make an API safe by moving obligations into prose.
@@ -11916,30 +11896,26 @@ evidence plan. A protocol cannot be assessed from its happy path alone.
 
 ## Decision tree
 
-```text
-Is the ordering consequential when violated?
-├─ no  → ordinary functions; record the sequence in the design note and stop
-└─ yes → Does each stage establish a fact a later stage consumes?
-   ├─ no  → merge the steps until they do; re-enter this tree
-   └─ yes → Is the sequence advanced by one owner within one process?
-      ├─ no  → runtime state model is authoritative (RUST-DOC-0005, RUST-DOC-0006)
-      │        └─ is there also a local pass worth enforcing?
-      │           ├─ no  → stop; runtime model only
-      │           └─ yes → typed stages for the pass, issued by checked restoration
-      └─ yes → How many transitions?
-         ├─ one   → consuming transition with a concrete successor; stop
-         ├─ two   → typestate with concrete successors unless a second
-         │          implementation is already known
-         └─ three or more → Will one capability have several implementations
-                            producing different successor evidence?
-            ├─ no  → typestate with concrete successors; revisit if that changes
-            └─ yes → capability traits with bounded associated successors
-                     ├─ add named sum types for material branches
-                     ├─ add named stages for retry, revision, and recovery
-                     ├─ add the topology assertion
-                     └─ is the stage count still justifiable against the budget?
-                        ├─ no  → merge to proof boundaries and re-enter
-                        └─ yes → proceed to the evidence plan
+```mermaid
+flowchart TD
+    ordering{Is the ordering consequential when violated?}
+    ordering -->|no| functions["ordinary functions; record the sequence in the design note and stop"]
+    ordering -->|yes| establishes{Does each stage establish a fact a later stage consumes?}
+    establishes -->|no| merge["merge the steps until they do; re-enter this tree"]
+    establishes -->|yes| owner{Is the sequence advanced by one owner within one process?}
+    owner -->|no| runtime["runtime state model is authoritative (RUST-DOC-0005, RUST-DOC-0006)"]
+    runtime --> localpass{Is there also a local pass worth enforcing?}
+    localpass -->|no| runtimeonly["stop; runtime model only"]
+    localpass -->|yes| pass["typed stages for the pass, issued by checked restoration"]
+    owner -->|yes| transitions{How many transitions?}
+    transitions -->|one| consuming["consuming transition with a concrete successor; stop"]
+    transitions -->|two| twostate["typestate with concrete successors unless a second<br>implementation is already known"]
+    transitions -->|three or more| several{"Will one capability have several implementations<br>producing different successor evidence?"}
+    several -->|no| concrete["typestate with concrete successors; revisit if that changes"]
+    several -->|yes| traits["capability traits with bounded associated successors:<br>add named sum types for material branches,<br>named stages for retry, revision, and recovery,<br>and the topology assertion"]
+    traits --> budget{Is the stage count still justifiable against the budget?}
+    budget -->|no| remerge[merge to proof boundaries and re-enter]
+    budget -->|yes| proceed[proceed to the evidence plan]
 ```
 
 The tree has two deliberate exits into simpler designs. A protocol that cannot answer the second
@@ -15889,16 +15865,12 @@ with the reasoning, is in
 
 Boundary guides operationalize the shared pipeline:
 
-```text
-untrusted representation
-    ↓ parse
-structural representation
-    ↓ validate
-trusted domain representation
-    ↓ execute
-external side effect
-    ↓ observe / reconcile
-new trusted evidence or explicit uncertainty
+```mermaid
+flowchart TD
+    untrusted[untrusted representation] -->|parse| structural[structural representation]
+    structural -->|validate| trusted[trusted domain representation]
+    trusted -->|execute| effect[external side effect]
+    effect -->|observe / reconcile| evidence[new trusted evidence or explicit uncertainty]
 ```
 
 Validation is relocated and centralized; it is not eliminated. A wire decoder

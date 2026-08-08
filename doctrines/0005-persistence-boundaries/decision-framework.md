@@ -48,15 +48,13 @@ If the database cannot enforce an invariant, state the race and repair model.
 
 ## Decode decision
 
-```text
-Does the target type carry an invariant?
-├─ no → ordinary physical decoding may be sufficient
-└─ yes
-   Can the driver call a fallible checked constructor?
-   ├─ yes → implement checked mapping
-   └─ no
-      Decode a raw storage type first
-      then convert through TryFrom
+```mermaid
+flowchart TD
+    invariant{Does the target type carry an invariant?}
+    invariant -->|no| physical[ordinary physical decoding may be sufficient]
+    invariant -->|yes| driver{Can the driver call a fallible checked constructor?}
+    driver -->|yes| checked[implement checked mapping]
+    driver -->|no| raw["decode a raw storage type first,<br>then convert through TryFrom"]
 ```
 
 Reject any solution that writes private fields through unsafe code for
@@ -98,16 +96,15 @@ column.
 
 ## Persistence plus effect decision
 
-```text
-Must the durable transition and effect intent stay coupled?
-├─ no → document accepted loss or independent retry
-└─ yes
-   Can both occur in one actual transactional resource?
-   ├─ yes → use that transaction and state its boundary
-   └─ no
-      Can durable intent be stored with the domain change?
-      ├─ yes → outbox/event log + idempotent publisher
-      └─ no → saga/reconciliation with explicit uncertainty
+```mermaid
+flowchart TD
+    coupled{Must the durable transition and effect intent stay coupled?}
+    coupled -->|no| loss[document accepted loss or independent retry]
+    coupled -->|yes| resource{Can both occur in one actual transactional resource?}
+    resource -->|yes| transaction[use that transaction and state its boundary]
+    resource -->|no| intent{Can durable intent be stored with the domain change?}
+    intent -->|yes| outbox[outbox/event log + idempotent publisher]
+    intent -->|no| saga[saga/reconciliation with explicit uncertainty]
 ```
 
 Never call compensation rollback. Compensation is a new fallible effect.

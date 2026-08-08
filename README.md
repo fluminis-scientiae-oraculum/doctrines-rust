@@ -62,24 +62,16 @@ usually belongs in an enum or a runtime state machine.
 
 The reasoning lifecycle is:
 
-```text
-requirements
-    ↓
-invariant discovery
-    ↓
-invariant classification
-    ↓
-trust-boundary identification
-    ↓
-representation choice
-    ↓
-legal construction and transition design
-    ↓
-external failure and uncertainty modelling
-    ↓
-executable evidence
-    ↓
-review and guarantee audit
+```mermaid
+flowchart TD
+    requirements --> discovery[invariant discovery]
+    discovery --> classification[invariant classification]
+    classification --> boundaries[trust-boundary identification]
+    boundaries --> representation[representation choice]
+    representation --> construction[legal construction and transition design]
+    construction --> uncertainty[external failure and uncertainty modelling]
+    uncertainty --> evidence[executable evidence]
+    evidence --> audit[review and guarantee audit]
 ```
 
 Skipping a stage creates predictable blind spots. Starting with structs can preserve

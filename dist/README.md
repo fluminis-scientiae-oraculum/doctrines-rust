@@ -171,10 +171,10 @@ carries a warning banner and source headings.
 | `dist/agents/maintainer.md` | 146011 | 36502 |
 | `dist/agents/shared.md` | 147947 | 36986 |
 | `dist/agents/planner.md` | 196433 | 49108 |
-| `dist/compact-doctrine.md` | 211853 | 52963 |
+| `dist/compact-doctrine.md` | 211946 | 52986 |
 | `dist/agents/implementer.md` | 223533 | 55883 |
 | `dist/agents/auditor.md` | 229709 | 57427 |
 | `dist/agents/reviewer.md` | 247534 | 61883 |
-| `dist/full-doctrine.md` | 918976 | 229744 |
+| `dist/full-doctrine.md` | 919848 | 229962 |
 
 The token column divides bytes by a fixed estimate of four. It is a planning figure for choosing a bundle against a context window, not a measurement: a real count depends on the tokenizer.

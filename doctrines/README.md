@@ -42,6 +42,29 @@ repeating it.
 | RUST-DOC-0010 | [Staged Protocols and Successor Capabilities](0010-staged-protocols/)                 | stage evidence, successor capability, branch and recovery edges |
 | RUST-DOC-0011 | [Executable Narrative and Minimal Decision Records](0011-executable-narrative/)       | authority partition, duplication, generated views, records      |
 
+## Choosing a doctrine by situation
+
+The index above is organized by doctrine. This table is organized by the work in
+front of you: find the row matching the task at hand, start with its primary
+doctrine, and read the last column as the boundary where that doctrine hands the
+problem to a different one. Every doctrine is the best tool for its own row and
+the wrong tool somewhere else; the boundaries below come from each package's own
+decision framework.
+
+| When the work is…                                                | Start with                                         | Also load                                                                                         | The wrong lever when…                                                                                        |
+| ---------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| representing domain state, values, or transitions                | [RUST-DOC-0001](0001-invalid-states/)              | [RUST-DOC-0002](0002-error-modeling/), [RUST-DOC-0010](0010-staged-protocols/)                    | the fact is externally owned or can go stale — model the observation and its uncertainty instead             |
+| designing error types and failure APIs                           | [RUST-DOC-0002](0002-error-modeling/)              | [RUST-DOC-0001](0001-invalid-states/), [RUST-DOC-0006](0006-distributed-uncertainty/)             | the failure is an ambiguous external outcome, which is uncertainty rather than a known error category        |
+| deciding who may perform an operation, or custody of resources   | [RUST-DOC-0003](0003-ownership-and-capabilities/)  | [RUST-DOC-0001](0001-invalid-states/), [RUST-DOC-0010](0010-staged-protocols/)                    | authority changes per use under a policy engine — model the runtime authorization decision, not a capability |
+| sharing state across tasks, cancellation, queues, and locks      | [RUST-DOC-0004](0004-concurrency-and-async/)       | [RUST-DOC-0003](0003-ownership-and-capabilities/), [RUST-DOC-0006](0006-distributed-uncertainty/) | the risk is a remote effect that may already have executed                                                   |
+| decoding rows, migrating schemas, designing transactions         | [RUST-DOC-0005](0005-persistence-boundaries/)      | [RUST-DOC-0001](0001-invalid-states/), [RUST-DOC-0006](0006-distributed-uncertainty/)             | the invariant lives in one process's memory rather than in durable state                                     |
+| calling external services, retrying, consuming messages          | [RUST-DOC-0006](0006-distributed-uncertainty/)     | [RUST-DOC-0002](0002-error-modeling/), [RUST-DOC-0005](0005-persistence-boundaries/)              | the operation provably never left the process — that is a local failure with an ordinary error model         |
+| writing or reviewing unsafe code or FFI                          | [RUST-DOC-0007](0007-unsafe-rust/)                 | [RUST-DOC-0003](0003-ownership-and-capabilities/), [RUST-DOC-0008](0008-testing-and-evidence/)    | safe ownership or type structure can encode the precondition — redesign until safe instead                   |
+| planning which tests would prove a design claim                  | [RUST-DOC-0008](0008-testing-and-evidence/)        | [RUST-DOC-0009](0009-performance-and-measurement/)                                                | the claim is about throughput or latency, which needs measurement rather than more unit tests                |
+| making or challenging a performance claim                        | [RUST-DOC-0009](0009-performance-and-measurement/) | [RUST-DOC-0008](0008-testing-and-evidence/)                                                       | the question is whether the code is correct rather than fast                                                 |
+| enforcing a multi-step operation order within one process        | [RUST-DOC-0010](0010-staged-protocols/)            | [RUST-DOC-0001](0001-invalid-states/), [RUST-DOC-0003](0003-ownership-and-capabilities/)          | stages are advanced by several actors or survive restarts — the durable state model is authoritative         |
+| deciding where an obligation, document, or decision record lives | [RUST-DOC-0011](0011-executable-narrative/)        | —                                                                                                 | the claim already has an enforcing mechanism — then that mechanism, not a document, is the authority         |
+
 ## Dependency direction
 
 Doctrines depend on foundations and may reference earlier or adjacent doctrine

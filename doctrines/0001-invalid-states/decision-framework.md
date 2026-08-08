@@ -25,29 +25,23 @@ The first selection table is:
 
 ## Operational decision tree
 
-```text
-Is the problem mutually exclusive states?
-├─ yes → enum / sum type
-└─ no
-   Is it a single value with a stable local invariant?
-   ├─ yes → opaque validated newtype
-   └─ no
-      Is it a collection invariant?
-      ├─ yes → validated collection wrapper
-      └─ no
-         Is it locally controlled operation sequencing?
-         ├─ yes
-         │  Is state count small and API static?
-         │  ├─ yes → typestate or consuming transitions
-         │  └─ no → runtime state machine
-         └─ no
-            Is it authority?
-            ├─ yes → capability type
-            └─ no
-               Is it external or mutable reality?
-               ├─ yes → runtime observation + Result
-               │        + explicit uncertainty where needed
-               └─ no → ordinary runtime rule or domain service
+```mermaid
+flowchart TD
+    exclusive{Is the problem mutually exclusive states?}
+    exclusive -->|yes| enum[enum / sum type]
+    exclusive -->|no| value{Is it a single value with a stable local invariant?}
+    value -->|yes| newtype[opaque validated newtype]
+    value -->|no| collection{Is it a collection invariant?}
+    collection -->|yes| wrapper[validated collection wrapper]
+    collection -->|no| sequencing{Is it locally controlled operation sequencing?}
+    sequencing -->|yes| small{Is state count small and API static?}
+    small -->|yes| typestate[typestate or consuming transitions]
+    small -->|no| machine[runtime state machine]
+    sequencing -->|no| authority{Is it authority?}
+    authority -->|yes| capability[capability type]
+    authority -->|no| external{Is it external or mutable reality?}
+    external -->|yes| observation["runtime observation + Result<br>+ explicit uncertainty where needed"]
+    external -->|no| ordinary[ordinary runtime rule or domain service]
 ```
 
 Before accepting the leaf, apply complexity and honesty checks:

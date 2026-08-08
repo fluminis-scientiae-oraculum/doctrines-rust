@@ -39,30 +39,26 @@ evidence plan. A protocol cannot be assessed from its happy path alone.
 
 ## Decision tree
 
-```text
-Is the ordering consequential when violated?
-├─ no  → ordinary functions; record the sequence in the design note and stop
-└─ yes → Does each stage establish a fact a later stage consumes?
-   ├─ no  → merge the steps until they do; re-enter this tree
-   └─ yes → Is the sequence advanced by one owner within one process?
-      ├─ no  → runtime state model is authoritative (RUST-DOC-0005, RUST-DOC-0006)
-      │        └─ is there also a local pass worth enforcing?
-      │           ├─ no  → stop; runtime model only
-      │           └─ yes → typed stages for the pass, issued by checked restoration
-      └─ yes → How many transitions?
-         ├─ one   → consuming transition with a concrete successor; stop
-         ├─ two   → typestate with concrete successors unless a second
-         │          implementation is already known
-         └─ three or more → Will one capability have several implementations
-                            producing different successor evidence?
-            ├─ no  → typestate with concrete successors; revisit if that changes
-            └─ yes → capability traits with bounded associated successors
-                     ├─ add named sum types for material branches
-                     ├─ add named stages for retry, revision, and recovery
-                     ├─ add the topology assertion
-                     └─ is the stage count still justifiable against the budget?
-                        ├─ no  → merge to proof boundaries and re-enter
-                        └─ yes → proceed to the evidence plan
+```mermaid
+flowchart TD
+    ordering{Is the ordering consequential when violated?}
+    ordering -->|no| functions["ordinary functions; record the sequence in the design note and stop"]
+    ordering -->|yes| establishes{Does each stage establish a fact a later stage consumes?}
+    establishes -->|no| merge["merge the steps until they do; re-enter this tree"]
+    establishes -->|yes| owner{Is the sequence advanced by one owner within one process?}
+    owner -->|no| runtime["runtime state model is authoritative (RUST-DOC-0005, RUST-DOC-0006)"]
+    runtime --> localpass{Is there also a local pass worth enforcing?}
+    localpass -->|no| runtimeonly["stop; runtime model only"]
+    localpass -->|yes| pass["typed stages for the pass, issued by checked restoration"]
+    owner -->|yes| transitions{How many transitions?}
+    transitions -->|one| consuming["consuming transition with a concrete successor; stop"]
+    transitions -->|two| twostate["typestate with concrete successors unless a second<br>implementation is already known"]
+    transitions -->|three or more| several{"Will one capability have several implementations<br>producing different successor evidence?"}
+    several -->|no| concrete["typestate with concrete successors; revisit if that changes"]
+    several -->|yes| traits["capability traits with bounded associated successors:<br>add named sum types for material branches,<br>named stages for retry, revision, and recovery,<br>and the topology assertion"]
+    traits --> budget{Is the stage count still justifiable against the budget?}
+    budget -->|no| remerge[merge to proof boundaries and re-enter]
+    budget -->|yes| proceed[proceed to the evidence plan]
 ```
 
 The tree has two deliberate exits into simpler designs. A protocol that cannot answer the second

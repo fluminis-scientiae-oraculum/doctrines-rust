@@ -24,10 +24,15 @@ plan as relevant.
 
 ## Decision tree
 
-```text
-<Write an operational tree whose leaves select mechanisms or require more
-evidence. Include an explicit simpler-design exit.>
+```mermaid
+flowchart TD
+    question{Replace with the first branching question} -->|yes| leaf[Replace with a mechanism or evidence leaf]
+    question -->|no| exit[Include an explicit simpler-design exit]
 ```
+
+Write an operational tree whose leaves select mechanisms or require more
+evidence, as a `mermaid` flowchart when the logic branches or a `text` block
+when it is a short linear sequence. Include an explicit simpler-design exit.
 
 ## Complexity check
 

@@ -2,16 +2,12 @@
 
 Boundary guides operationalize the shared pipeline:
 
-```text
-untrusted representation
-    ↓ parse
-structural representation
-    ↓ validate
-trusted domain representation
-    ↓ execute
-external side effect
-    ↓ observe / reconcile
-new trusted evidence or explicit uncertainty
+```mermaid
+flowchart TD
+    untrusted[untrusted representation] -->|parse| structural[structural representation]
+    structural -->|validate| trusted[trusted domain representation]
+    trusted -->|execute| effect[external side effect]
+    effect -->|observe / reconcile| evidence[new trusted evidence or explicit uncertainty]
 ```
 
 Validation is relocated and centralized; it is not eliminated. A wire decoder

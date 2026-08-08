@@ -2,23 +2,20 @@
 
 ## Stage graph
 
-```text
-SelfServiceSubmission ─┐
-                       ├─ canonicalize ─→ CanonicalRegistration<O>
-InvitedSubmission ─────┘                          │
-                                          check_identity
-                                                  │
-                    ┌─────────────────────────────┼──────────────────────────┐
-                    │                             │                          │
-              Available                     Conflicting              Err(undetermined)
-                    │                             │
-             accept_policy                     resolve
-                    │                     ┌──────┴────────┐
-           AcceptedRegistration        Revised         Abandoned
-                    │                (re-enters at         (terminal)
-          prepare_persistence         canonicalize)
-                    │
-         PersistableRegistration ──→ [durable write, outside the typed protocol]
+```mermaid
+flowchart TD
+    self[SelfServiceSubmission] -->|canonicalize| canonical["CanonicalRegistration&lt;O&gt;"]
+    invited[InvitedSubmission] -->|canonicalize| canonical
+    canonical --> check[check_identity]
+    check --> available[Available]
+    check --> conflicting[Conflicting]
+    check --> undetermined["Err(undetermined)"]
+    available -->|accept_policy| accepted[AcceptedRegistration]
+    accepted -->|prepare_persistence| persistable[PersistableRegistration]
+    persistable --> durable["durable write, outside the typed protocol"]
+    conflicting -->|resolve| revised[Revised]
+    conflicting -->|resolve| abandoned["Abandoned (terminal)"]
+    revised -.->|re-enters at canonicalize| canonical
 ```
 
 Two entry stages, one branch with a genuine third failure outcome, one recovery edge that
