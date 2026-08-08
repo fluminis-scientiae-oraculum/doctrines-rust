@@ -21,6 +21,9 @@ not yet stated precisely enough to review.
 **Review evidence.** The claim classification and the single artifact cited as authority for each
 classified claim.
 
+**Enforcement.** Unenforceable: No check classifies claims; classification exists only in review
+prose
+
 ## RUST-DOC-0011-R002 — Represent an enforceable obligation in the mechanism that enforces it
 
 **Statement.** An ordering, invariant, construction restriction, capability boundary, transition
@@ -42,6 +45,9 @@ assessment, its owner, and the residual risk are recorded on the terms of RUST-D
 **Review evidence.** The enforcing artifact, or the recorded assessment showing that no available
 mechanism enforces the obligation proportionately.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_rule_enforcement
+
 ## RUST-DOC-0011-R003 — Treat the enforcing artifact as the operational authority
 
 **Statement.** Where an executable or machine-checked artifact completely enforces a claim, that
@@ -61,6 +67,9 @@ by the enforced part.
 
 **Review evidence.** The artifact cited for the claim, and the statement of any part of the claim
 it does not enforce.
+
+**Enforcement.** Unenforceable: Nothing detects prose being cited as authority over the enforcing
+artifact
 
 ## RUST-DOC-0011-R004 — Keep no competing manually maintained copy of an enforced claim
 
@@ -82,6 +91,9 @@ artifact is named at the point of quotation.
 **Review evidence.** The generation command or drift check for each derived view, or the
 informative marking and the authority it points to.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_doctrine_index
+
 ## RUST-DOC-0011-R005 — Generate a derived view and declare its source
 
 **Statement.** A derived view of a machine-readable source SHOULD be generated from that source
@@ -101,6 +113,9 @@ enforcing artifact directly.
 
 **Review evidence.** The generator, its declared source, the drift check, and the reason for any
 view left hand-written.
+
+**Enforcement.** [`tools/bundle-agent-context/src/main.rs`](../../tools/bundle-agent-context/src/main.rs)
+— the drift check, with check_generated_files
 
 ## RUST-DOC-0011-R006 — Create a decision record only for what cannot live elsewhere
 
@@ -125,6 +140,9 @@ better names, types, tests, generated views, and examples.
 **Review evidence.** The executability assessment, the artifact each recoverable part of the
 decision now lives in, and the justification required by RUST-DOC-0011-R007 for whatever remains.
 
+**Enforcement.** Unenforceable: Registry stores membership only; no check judges whether a record
+should exist
+
 ## RUST-DOC-0011-R007 — State the last-resort justification in the record
 
 **Statement.** An active decision record MUST state which fact cannot be represented executably
@@ -143,6 +161,9 @@ RUST-DOC-0011-R006 and is not created.
 
 **Review evidence.** The record's own metadata and the registry entry that makes it discoverable.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_active_record
+
 ## RUST-DOC-0011-R008 — Keep a decision record narrow
 
 **Statement.** A decision record MUST answer one decision question, MUST state what it does not
@@ -159,6 +180,9 @@ owner and expiry, or one record and an executable representation of the rest.
 
 **Review evidence.** The record's stated question, its stated exclusions, and the review record
 confirming no adjacent decision was folded in.
+
+**Enforcement.** Unenforceable: Only a non-empty scope field is checked; narrowness and exclusions
+are not
 
 ## RUST-DOC-0011-R009 — Expire a record whose reason has ended
 
@@ -178,6 +202,9 @@ remain discoverable when it is marked as archival and is excluded from the activ
 **Review evidence.** The registry status, the archival marking, and the trigger or condition that
 was observed.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_archived_record and status agreement
+
 ## RUST-DOC-0011-R010 — Confirm applicability before citing a record as a constraint
 
 **Statement.** A decision record MUST NOT be cited to block or restrict a change unless its
@@ -196,6 +223,9 @@ an open question rather than as a constraint.
 
 **Review evidence.** The confirmation of current applicability, its date, and the person or role
 that made it.
+
+**Enforcement.** Unenforceable: No mechanism observes record citations in review comments or agent
+reasoning
 
 ## RUST-DOC-0011-R011 — Retire an implemented proposal from operational authority
 
@@ -218,6 +248,9 @@ specification.
 **Review evidence.** The canonical doctrine and executable artifacts the proposal points to, and
 the absence of a normative obligation stated only in the proposal.
 
+**Enforcement.** Unenforceable: No check detects an accepted RFC being cited as current
+specification
+
 ## RUST-DOC-0011-R012 — Record only rationale that cannot be recovered
 
 **Statement.** Rationale MUST be recorded when it cannot be reconstructed safely from executable
@@ -236,6 +269,9 @@ when the artifact is named as the authority at the point of reference.
 **Review evidence.** The rationale text, the artifact it points to, and the statement of why the
 recorded reason is not recoverable from that artifact.
 
+**Enforcement.** Unenforceable: No check separates irrecoverable rationale from restatement of
+enforced topology
+
 ## RUST-DOC-0011-R013 — Do not invent rationale for an existing constraint
 
 **Statement.** Where the governing rationale for an enforced constraint is absent, a reviewer,
@@ -253,6 +289,8 @@ agent-generated summaries of code whose history is unavailable.
 its evidence, and states that the governing rationale is unknown.
 
 **Review evidence.** The unknown-rationale record, or the labelled inference with its evidence.
+
+**Enforcement.** Unenforceable: No mechanism distinguishes a recorded reason from an inferred one
 
 ## RUST-DOC-0011-R014 — Keep an external claim outside the executable authority
 
@@ -273,6 +311,9 @@ protocol; this rule adds the obligation to name the authoritative external syste
 
 **Review evidence.** The claim, the named external authority, and the check that consults it.
 
+**Enforcement.** Unenforceable: No check identifies external facts or verifies the named
+authoritative system
+
 ## RUST-DOC-0011-R015 — Make a compatibility or migration promise executable
 
 **Statement.** A compatibility promise, migration obligation, or negative guarantee SHOULD be
@@ -291,6 +332,8 @@ RUST-DOC-0011-R020.
 
 **Review evidence.** The enforcing test, check, fixture, or migration, or the recorded statement
 that the promise is unenforced.
+
+**Enforcement.** Unenforceable: No check links a compatibility promise to a test, schema, or fixture
 
 ## RUST-DOC-0011-R016 — Keep the enforced structure readable as its domain story
 
@@ -313,6 +356,9 @@ abbreviations when they are defined at the artifact's entry point.
 **Review evidence.** Names, state definitions, effect disclosure, capability scope, and the
 location of any erasure boundary.
 
+**Enforcement.** Unenforceable: No lint judges domain naming, effect disclosure, capability width,
+or erasure timing
+
 ## RUST-DOC-0011-R017 — Count and reduce the maintained representations of a claim
 
 **Statement.** A design review MUST identify every maintained representation of an architectural
@@ -332,6 +378,9 @@ when it is generated, mechanically checked, or marked informative and owned.
 **Review evidence.** The representation inventory for the claim, and the disposition recorded for
 each entry.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_validation_sequence_copies
+
 ## RUST-DOC-0011-R018 — Hydrate agents from current authority
 
 **Statement.** Generated agent context MUST be built from current canonical and executable
@@ -347,6 +396,9 @@ context for planning, implementation, review, audit, or maintenance.
 when the inclusion is explicit and the archival status travels with it.
 
 **Review evidence.** The agent manifest, the generated pack contents, and the drift check.
+
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_agent_packs_exclude_archive
 
 ## RUST-DOC-0011-R019 — Govern a change without duplicating what it changes
 
@@ -366,6 +418,9 @@ of decision, as the record of what was decided, when it is dated and is not main
 **Review evidence.** The governance artifact, the canonical contract it governs, and the absence
 of a maintained restatement.
 
+**Enforcement.** [`tools/doctrine-lint/src/main.rs`](../../tools/doctrine-lint/src/main.rs) —
+check_normative_scope
+
 ## RUST-DOC-0011-R020 — Record the terms of a prose-only obligation
 
 **Statement.** An exception that leaves an obligation carried by prose alone, or that keeps a
@@ -382,6 +437,8 @@ RUST-DOC-0011-R009, RUST-DOC-0011-R015, and RUST-DOC-0011-R017.
 
 **Review evidence.** The recorded exception with all five terms, and the review that confirmed the
 trigger has not fired.
+
+**Enforcement.** Unenforceable: No schema or check requires the five exception terms anywhere
 
 ## Authority partition
 

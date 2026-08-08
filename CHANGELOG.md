@@ -4,6 +4,48 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.8.0] — 2026-08-08
+
+Adds no normative rule and changes no rule statement, applicability, exception, or
+identifier. Every rule now names what enforces it, and every review gate declares whether
+a command decides it. The measured result is the point: 80 of 208 rules name an
+enforcement artifact and 128 state a waiver, while 32 of 486 gates are command-decidable
+and 454 are judgment. Gate identifiers are unified, which changes review-evidence
+citations in three packages and is why those take a minor version. RFC-0007, closing
+issues #12, #13, and #14.
+
+### Added in 0.8.0
+
+- An `**Enforcement.**` field on all 208 rules, naming a linked repository artifact that
+  must exist, or opening with `Unenforceable:` and a stated reason. The field lives on the
+  rule rather than in the manifest, because a per-rule manifest entry would copy 208 rule
+  identifiers into a second maintained file — the competing copy `RUST-DOC-0011-R004`
+  prohibits.
+- A `Check` column on all 486 review gates, valued `judgment` or `mechanical(<command>)`,
+  so "how much of review is mechanical" is a property of the table rather than an estimate.
+- Two `doctrine-lint` checks enforcing both, each positive-controlled against a violation
+  seeded in the real corpus.
+- A typed `CommandFailure` in `bundle-agent-context`, separating stale bundles from a run
+  that could not complete, with distinct exit codes so CI need not parse the message.
+
+### Changed in 0.8.0
+
+- `RUST-DOC-0001` gates move from `## Gate N` headings to the shared table as `I01`–`I18`;
+  `RUST-DOC-0002` prose names become `F01`–`F18` and `RUST-DOC-0003` become `O01`–`O18`.
+  Each gate keeps its title as the lead-in of its question, in its original order. All 486
+  gates are now citable by a stable identifier.
+- `rationale.md` falls from 1,787 to 1,383 lines. Forty sections restating rules, types, or
+  manifests are removed under `RUST-DOC-0011-R012`; rejected alternatives, accepted risks,
+  and constraints no artifact holds are kept, and the per-file outcome is recorded in
+  RFC-0007.
+- `check_rule_enforcement` parses rule sections rather than tracking an open field with a
+  boolean, which had made two contradictory states representable in the tool that rejects
+  exactly that shape.
+- Two corpus-wide tests that asserted absence now assert a non-zero observation first, so
+  an empty file list can no longer satisfy them.
+- `EVIDENCE.md` reports eighty tooling tests and names the three crates they span; the
+  previous count was stale.
+
 ## [0.7.0] — 2026-08-08
 
 Adds one normative rule. An assertion expecting nothing — an empty collection, a zero

@@ -3,7 +3,7 @@ id: RUST-DOC-0006
 slug: distributed-uncertainty
 title: Distributed Effects, Uncertainty, and Reconciliation
 status: active
-version: 0.2.0
+version: 0.2.1
 normative: true
 applies_to:
   - planning

@@ -56,18 +56,6 @@ task responsible for it, but detached tasks can outlive request scope and lose e
 reporting. Structured supervision, join handles, cancellation tokens, channel closure, and
 graceful shutdown identify who reclaims resources and observes failure.
 
-Examples compose these ideas:
-
-- an authorization capability is issuer-created, operation-scoped, non-forgeable, and
-  revalidated if revocable;
-- a transaction guard is consumed by commit or rollback and reports ambiguous commit;
-- a secret wrapper redacts formatting and controls exposure;
-- a single-use token is non-cloneable and consumed;
-- a leased resource carries expiry and fencing identity;
-- a file lock states local operating-system semantics and releases on drop;
-- a shutdown permit moves to one supervisor;
-- a task-owned handle returns completion through a join path.
-
 Ownership removes certain local invalid programs. It does not create external truth. The
 guarantee ledger must keep those scopes separate.
 
@@ -94,11 +82,6 @@ continued local mutation through the same guard. The database remains an indepen
 isolation level, server failover, connection loss, and ambiguous acknowledgement determine the
 actual outcome.
 
-An API can return `CommitOutcome::Confirmed`, a definite pre-commit failure with a reusable or
-released guard, or an unknown outcome with transaction identity. It should not return the
-original guard after possible commit as though the transaction were safely reusable. Drop may
-attempt rollback only while local protocol evidence still supports it.
-
 ## Leases and file locks
 
 Leases require more than an expiry timestamp stored in a Rust struct. State the clock source,
@@ -123,15 +106,3 @@ Transferring a handle through a channel moves custody only when send succeeds. A
 returns the value, leaving the sender responsible. Once received, channel closure and task
 panic determine recovery. Tests should cover send failure, receiver cancellation, and
 supervisor shutdown — not only the successful handoff.
-
-## Choosing less machinery
-
-Not every right needs a new capability type. If a private function is called only after one
-obvious authorization branch and no value crosses asynchronous or module boundaries, a
-separate capability can add ceremony without reducing risk. Conversely, a capability is
-valuable when authority would otherwise travel as a boolean, broad context object, or repeated
-comment.
-
-The complexity decision should compare an owned token, runtime policy check, narrow trait,
-closure-based authority, and ordinary parameter passing. Select the mechanism that keeps
-issuance, use, and end of authority visible with the least misleading surface.

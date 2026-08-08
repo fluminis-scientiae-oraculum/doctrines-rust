@@ -3,7 +3,7 @@ id: RUST-DOC-0002
 slug: error-modeling
 title: Error Modeling as Domain Design
 status: active
-version: 0.1.0
+version: 0.2.0
 normative: true
 applies_to:
   - planning

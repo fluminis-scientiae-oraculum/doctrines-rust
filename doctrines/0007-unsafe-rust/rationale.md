@@ -10,17 +10,8 @@ preconditions. The programmer does not receive permission to ignore those
 preconditions; responsibility moves into a proof argument.
 
 A safety comment that merely restates "this pointer is dereferenced here" adds
-no evidence. A useful argument identifies where the pointer came from, why it is
-aligned and in bounds, what initializes the bytes, which aliases exist, how long
-the allocation lives, and why concurrent mutation cannot invalidate the access.
 
 ## Safe abstraction means adversarial safe callers
-
-The soundness test for a safe wrapper is not whether intended callers use it
-correctly. Safe callers may pass empty slices, zero-sized types, panicking
-callbacks, unusual drop implementations, repeated methods, aliases allowed by
-the signature, and concurrent calls allowed by `Send` or `Sync`. If one such
-safe sequence causes undefined behavior, the safe abstraction is unsound.
 
 Hidden documentation such as "do not call twice" cannot repair a safe signature.
 The API must enforce the lifecycle, perform a runtime check, consume a value, or
@@ -59,35 +50,11 @@ lifetime. Reallocation can invalidate addresses into vectors. Foreign libraries
 may retain callbacks or buffers beyond the call. A slice length can overflow or
 extend beyond its allocation even when the starting pointer is valid.
 
-Proof should start from the allocation and follow custody to each use. Keeping
-raw pointers raw until the shortest needed borrow often avoids claiming a long
-lifetime. Foreign handles should remain opaque unless their contract explicitly
-permits memory access.
-
 ## Partial initialization
-
-`MaybeUninit<T>` avoids falsely claiming that bytes already contain a valid
-`T`. It does not track which array elements are initialized or automatically
-drop them on a panic. Construction code needs a progress count or guard whose
-destructor drops exactly the completed prefix. Only after every element is
-initialized may the buffer be converted to the complete typed value.
 
 Leaking values may be memory-safe for some `T`, but can leak locks, file
 descriptors, or secrets. Correct resource behavior remains part of the broader
 contract even where language-level undefined behavior is absent.
-
-## FFI combines several trust boundaries
-
-FFI crosses language layout, ABI, allocator, unwind, lifetime, thread, and error
-models simultaneously. `repr(C)` gives specified layout relationships for
-supported field types; it does not make arbitrary Rust types portable to C.
-Pointers require nullability and length conventions. Strings require encoding
-and ownership. Objects allocated on one side generally require their matching
-deallocator. Callbacks require a retention and threading contract.
-
-A robust wrapper uses raw foreign types at the boundary, validates return codes
-and lengths, converts to owned Rust values where practical, and exposes a safe
-API only for obligations it can enforce.
 
 ## Unwinding and panic
 

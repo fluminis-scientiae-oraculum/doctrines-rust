@@ -3,7 +3,7 @@ id: RUST-DOC-0011
 slug: executable-narrative
 title: Executable Narrative and Minimal Decision Records
 status: active
-version: 0.1.0
+version: 0.1.1
 normative: true
 applies_to:
   - planning

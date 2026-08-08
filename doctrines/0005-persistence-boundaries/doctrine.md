@@ -18,6 +18,9 @@ remove the construction obligation.
 **Review evidence.** A complete read-path inventory and conversions that call
 the trusted constructor.
 
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— fallible row conversion treats a stored row as untrusted
+
 ## RUST-DOC-0005-R002 — Separate models when contracts differ
 
 **Statement.** Persistence models and domain models SHOULD be separated when
@@ -33,6 +36,9 @@ contracts are demonstrably identical and decoding still preserves invariants.
 
 **Review evidence.** Field mapping, rationale for shared or separate models,
 and tests for invalid stored representations.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— raw row kept distinct from the domain type
 
 ## RUST-DOC-0005-R003 — Validate trusted newtypes during decoding
 
@@ -53,6 +59,9 @@ tested.
 **Review evidence.** `TryFrom`, parser, or smart-constructor calls and negative
 decoding tests.
 
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— serde and row decode both route through the checked constructor
+
 ## RUST-DOC-0005-R004 — Reinforce invariants in the schema
 
 **Statement.** Schema constraints SHOULD reinforce stable value and
@@ -70,6 +79,8 @@ coupling, or rollout cannot yet guarantee compatibility.
 
 **Review evidence.** Invariant mapping to domain constructor, schema constraint,
 transactional validation, or explicit residual gap.
+
+**Enforcement.** Unenforceable: No schema in repo; zero SQL or DDL files exist
 
 ## RUST-DOC-0005-R005 — Avoid contradictory nullable records
 
@@ -90,6 +101,9 @@ domain entity.
 **Review evidence.** Row-state truth table, schema checks where feasible, and
 conversion tests for every invalid combination.
 
+**Enforcement.** Unenforceable: No example row carries nullable or flag columns forming
+contradictory combinations
+
 ## RUST-DOC-0005-R006 — Make migrations invariant-aware
 
 **Statement.** Every migration MUST state which invariants it preserves,
@@ -107,6 +121,8 @@ invariants are unaffected, with evidence.
 **Review evidence.** Precondition query, transformation, postcondition query,
 rollback or forward-repair strategy, and representative migration test.
 
+**Enforcement.** Unenforceable: Repository ships no migrations; zero migration or SQL files exist
+
 ## RUST-DOC-0005-R007 — Version durable representations
 
 **Statement.** Persisted formats that can outlive one release MUST be versioned
@@ -122,6 +138,9 @@ version changes, if stale values cannot be interpreted.
 
 **Review evidence.** Version field or schema version, supported-reader matrix,
 unknown-version behavior, and fixture tests.
+
+**Enforcement.** Unenforceable: No persisted format carries a version field or supported-reader
+matrix
 
 ## RUST-DOC-0005-R008 — Plan enum evolution
 
@@ -139,6 +158,9 @@ and rebuild from canonical input.
 
 **Review evidence.** Stable encoding table, unknown-value path, migration plan,
 and old/new reader tests.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— unknown persisted discriminator is rejected
 
 ## RUST-DOC-0005-R009 — Align transactions with cross-entity invariants
 
@@ -161,6 +183,9 @@ violation is a documented domain state with bounded detection and repair.
 taxonomy, locking or constraint mechanism, concurrent test, and named residual
 anomaly set.
 
+**Enforcement.** Unenforceable: No database, isolation level, or concurrent-writer test exists in
+workspace
+
 ## RUST-DOC-0005-R010 — Prevent lost updates
 
 **Statement.** Read-modify-write operations subject to concurrent writers MUST
@@ -179,6 +204,9 @@ needed.
 
 **Review evidence.** Version predicate or locking query, conflict error,
 concurrency test, and caller conflict policy.
+
+**Enforcement.** Unenforceable: Only a conflict enum name; no version predicate or competing-writer
+test
 
 ## RUST-DOC-0005-R011 — Preserve transaction-handle lifecycle
 
@@ -199,6 +227,9 @@ driver.
 **Review evidence.** Handle transition tests, compile-fail evidence where
 useful, and connection-loss behavior.
 
+**Enforcement.** [`reuse_consumed_transaction.rs`](../../examples/compile-fail/ui/reuse_consumed_transaction.rs)
+— staging after commit does not compile
+
 ## RUST-DOC-0005-R012 — Do not extend database atomicity to external effects
 
 **Statement.** Database transaction success MUST NOT be claimed to include a
@@ -214,6 +245,9 @@ state only the boundary and failure model it actually provides.
 
 **Review evidence.** Effect inventory, atomic boundary diagram, failure matrix,
 and reconciliation path.
+
+**Enforcement.** Unenforceable: Examples ship no database transaction, so no commit boundary can be
+overclaimed
 
 ## RUST-DOC-0005-R013 — Coordinate persistence and messaging durably
 
@@ -231,6 +265,9 @@ coordination when loss is an accepted, documented outcome.
 **Review evidence.** Atomic write, publisher retry, deduplication identity,
 retention, ordering scope, and operational lag metrics.
 
+**Enforcement.** Unenforceable: No outbox, inbox, or event log exists; examples avoid messaging
+entirely
+
 ## RUST-DOC-0005-R014 — Quarantine invalid historical data
 
 **Statement.** A stored representation that fails current domain validation
@@ -247,6 +284,9 @@ operational recovery.
 **Review evidence.** Diagnostic classification, record identity, sensitive-data
 handling, repair workflow, and metrics.
 
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— invalid stored value yields a structured error, not a forged domain type
+
 ## RUST-DOC-0005-R015 — Preserve unknown fields and values deliberately
 
 **Statement.** Readers MUST choose and document whether unknown fields or values
@@ -261,6 +301,9 @@ if documented and tested.
 
 **Review evidence.** Compatibility matrix and tests for extra fields, missing
 fields, and unknown discriminators.
+
+**Enforcement.** [`examples/boundary-validation/src/lib.rs`](../../examples/boundary-validation/src/lib.rs)
+— unknown persisted value policy is reject, and is asserted
 
 ## RUST-DOC-0005-R016 — Bound stored-input resource use
 
@@ -280,6 +323,9 @@ that bound and document it.
 **Review evidence.** Limits, streaming behavior, oversized fixtures, and failure
 mapping.
 
+**Enforcement.** Unenforceable: Only a name-length constant; no oversized, nested, compressed, or
+batch fixtures
+
 ## RUST-DOC-0005-R017 — Record persistence guarantees and non-guarantees
 
 **Statement.** Persistence designs MUST document the exact durability,
@@ -295,3 +341,6 @@ guarantees than deployed behavior.
 
 **Review evidence.** Guarantee ledger linked to database documentation,
 configuration, tests, monitoring, and residual failure modes.
+
+**Enforcement.** Unenforceable: No deployed database; no durability or isolation configuration
+exists to document

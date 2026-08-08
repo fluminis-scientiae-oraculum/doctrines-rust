@@ -23,13 +23,6 @@ layers agree.
 
 ## Invariants make test selection concrete
 
-"Add tests" is underspecified. For a `PositiveMoney` invariant, test zero
-rejection, valid construction, and arithmetic overflow/currency mismatch. For a
-private verified-email constructor, add compile-fail evidence that external code
-cannot construct it and runtime evidence that verifier proof is checked. For a
-message consumer, test duplicates and acknowledgement loss. For a lock-free
-protocol, combine invariant reasoning with model exploration.
-
 An evidence plan therefore starts from the invariant inventory, not from test
 framework preferences.
 
@@ -55,11 +48,6 @@ Unicode edge cases, large lengths, or invalid state sequences, clean runs say
 nothing about them. Properties also need an independent oracle; asserting that
 encoding followed by the same flawed decoder returns something can preserve a
 shared defect.
-
-Strong properties include round-trip through independently specified formats,
-normalization idempotence, arithmetic laws with stated overflow domain,
-ordering/uniqueness after every mutation, and state-machine invariants over
-generated commands.
 
 ## Real boundaries matter
 
@@ -142,16 +130,6 @@ mechanisms are themselves tested. Silent data corruption or missing events may
 produce no metric. An incident supplies high-authority evidence that one
 failure mechanism is real; it should produce a regression test, fault scenario,
 or doctrine correction where appropriate.
-
-## Evidence ledger example
-
-| Claim                                          | Evidence                                    | Scope                         | Does not prove              | Residual risk                  |
-| ---------------------------------------------- | ------------------------------------------- | ----------------------------- | --------------------------- | ------------------------------ |
-| direct verified-email construction is blocked  | compile-fail test                           | public API on pinned compiler | verifier truth              | unsafe/internal future escape  |
-| raw DB email is validated                      | integration fixtures plus constructor tests | tested schema/driver versions | all historical rows valid   | alternate writer or corruption |
-| duplicate command does not repeat local effect | transactional integration test              | local database boundary       | remote effect uniqueness    | retention expiry               |
-| atomic protocol preserves one-owner state      | Loom model plus reasoning                   | modeled bounds and primitives | unsupported target behavior | model mismatch                 |
-| timeout remains unknown                        | fault injection after dispatch              | selected protocol points      | provider final state        | reconciliation outage          |
 
 ## Proportionality
 

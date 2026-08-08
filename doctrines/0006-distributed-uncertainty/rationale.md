@@ -12,32 +12,11 @@ Binary `Result<Success, Failure>` is suitable only when the error side retains
 the distinctions callers need. Consequential effects often benefit from a
 domain-specific shape:
 
-```rust
-pub enum OperationOutcome<T, R, E> {
-    Confirmed(T),
-    Rejected(E),
-    Unknown { reconciliation: R },
-}
-```
-
 Local failures known to occur before dispatch can remain an outer error or an
 additional variant. The important property is not the generic spelling but
 that confirmed rejection and unknown execution cannot be confused.
 
 ## Idempotency is a protocol
-
-An idempotency key has value only when a receiver stores and interprets it. The
-contract must answer:
-
-- uniqueness scope: global, account, resource, or endpoint;
-- who generates the key and when;
-- whether the same key binds to a request fingerprint;
-- behavior for same key with different payload;
-- behavior while the first attempt is still running;
-- response replay semantics;
-- retention duration and expiry;
-- atomic relationship to the effect;
-- behavior after retention expires.
 
 A random string alone proves none of these. Client-generated keys can be
 reliable identities when generation occurs once per logical intent and every
@@ -71,12 +50,6 @@ before the effect occurred.
 
 ## Reconciliation is normal execution
 
-An unknown payment capture should become a durable state with operation ID,
-provider key, target account, amount fingerprint, attempt history, and a next
-safe observation. A reconciler queries the authoritative provider or consumes a
-signed event, compares evidence, and transitions to confirmed success,
-confirmed rejection, still unknown, or human escalation.
-
 Reconciliation queries can fail and observations can be stale. A response
 saying "not found" may be definitive only after the provider's processing and
 retention windows. The state machine must allow repeated observation without
@@ -90,11 +63,6 @@ consumers, retries, and dead-letter replay can still change processing order.
 Global total order usually requires stronger coordination and may reduce
 availability or throughput.
 
-Business logic should ask for the weakest sufficient order: per-account
-sequence, causal predecessor, monotonic version, or commutative merge. An
-explicit stale-version rejection may be more robust than relying on delivery
-order.
-
 ## Exactly once requires a boundary
 
 Some stream processors can coordinate input offsets and output state in one
@@ -102,12 +70,6 @@ transaction. A database unique constraint can make one operation identity apply
 once to that database mutation. These are valuable guarantees, but they do not
 automatically encompass an HTTP call, human action, email delivery, or an
 uncoordinated database.
-
-Review should rewrite every broad exactly-once claim into:
-
-> For operation identities retained for the stated period, this mechanism
-> atomically records the local effect and processed identity in the stated
-> resource under the documented failure assumptions.
 
 Anything outside that sentence remains subject to duplicates, loss, or
 uncertainty.
@@ -135,16 +97,6 @@ may reduce overlap likelihood without preventing stale-owner execution.
 Clock skew, process pauses, renewal delay, and resource support belong in the
 guarantee ledger. Rust ownership can prevent cloning a local lease handle; it
 cannot revoke authority already accepted by a remote system.
-
-A reviewable time-based authority contract names:
-
-- the component that supplies authority time;
-- monotonic elapsed time versus civil wall time and any conversion between
-  them;
-- maximum accepted skew, process pause, scheduling delay, and renewal latency;
-- the safety margin between renewal and expiry;
-- the protected resource's fencing or rejection behavior; and
-- the transition taken when a bound is exceeded or the clock is unavailable.
 
 Tests then force overlap, delayed renewal, and bound failure at the protocol
 seam. They provide scoped evidence for the implementation; they do not prove

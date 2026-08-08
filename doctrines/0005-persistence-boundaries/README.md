@@ -3,7 +3,7 @@ id: RUST-DOC-0005
 slug: persistence-boundaries
 title: Persistence Boundaries and Domain Integrity
 status: active
-version: 0.2.0
+version: 0.2.1
 normative: true
 applies_to:
   - planning

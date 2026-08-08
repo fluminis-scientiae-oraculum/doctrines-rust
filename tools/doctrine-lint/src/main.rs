@@ -1787,6 +1787,32 @@ fn check_path_references(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
 /// Whether an inline-code span is shaped like a repository path rather than an
 /// identifier. A bare word is only a candidate when it carries a known file extension,
 /// so `unwrap` and `NonZeroU64` are not mistaken for paths.
+/// Splits Markdown links out of a value: the prose with link labels removed, and the
+/// link targets. A label is not a path even when it is shaped like one.
+fn split_links(value: &str) -> (String, Vec<String>) {
+    let mut bare = String::new();
+    let mut links = Vec::new();
+    let mut cursor = 0usize;
+    while cursor < value.len() {
+        let Some(open) = value[cursor..].find('[') else {
+            break;
+        };
+        let open = cursor + open;
+        let after = &value[open..];
+        let Some(close) = after.find("](") else {
+            break;
+        };
+        let Some(end) = after[close + 2..].find(')') else {
+            break;
+        };
+        bare.push_str(&value[cursor..open]);
+        links.push(after[close + 2..close + 2 + end].to_owned());
+        cursor = open + close + 2 + end + 1;
+    }
+    bare.push_str(&value[cursor..]);
+    (bare, links)
+}
+
 fn looks_like_path(span: &str) -> bool {
     if span.is_empty() || span.contains(' ') || span.contains("://") {
         return false;
@@ -1879,7 +1905,7 @@ fn remove_link_constructs(text: &str) -> String {
 }
 
 /// The per-rule field naming what enforces the rule.
-const ENFORCEMENT_FIELD: &str = "**Enforcement.** ";
+const ENFORCEMENT_FIELD: &str = "**Enforcement.**";
 
 /// The opening of an enforcement value that declares no mechanism can carry the rule.
 const UNENFORCEABLE_PREFIX: &str = "Unenforceable:";
@@ -1908,24 +1934,19 @@ fn check_rule_enforcement(
             continue;
         };
 
-        let mut rule: Option<(String, usize)> = None;
-        let mut enforcement: Option<String> = None;
-
-        let finish = |rule: &Option<(String, usize)>,
-                      enforcement: &Option<String>,
-                      diagnostics: &mut Vec<Diagnostic>| {
-            let Some((rule_id, line)) = rule else {
-                return;
-            };
-            let Some(value) = enforcement else {
+        let lines: Vec<&str> = text.lines().collect();
+        for section in rule_sections(&lines) {
+            let rule_id = section.id;
+            let Some(value) = enforcement_field(section.body) else {
                 diagnostics.push(Diagnostic::new(
                     &path,
                     format!(
-                        "rule {rule_id} at line {line} has no {ENFORCEMENT_FIELD}field; name the \
-                         artifact that enforces it, or open with {UNENFORCEABLE_PREFIX} and say why"
+                        "rule {rule_id} at line {} has no {ENFORCEMENT_FIELD} field; name the \
+                         artifact that enforces it, or open with {UNENFORCEABLE_PREFIX} and say why",
+                        section.line
                     ),
                 ));
-                return;
+                continue;
             };
             if let Some(reason) = value.strip_prefix(UNENFORCEABLE_PREFIX) {
                 if reason.trim().len() < 12 {
@@ -1934,14 +1955,25 @@ fn check_rule_enforcement(
                         format!("rule {rule_id} declares itself unenforceable without a reason"),
                     ));
                 }
-                return;
+                continue;
             }
-            let referenced: Vec<&str> = value
+            // The field links its artifact so a reader can reach it, and a link whose
+            // label repeats a long path cannot fit the line budget — so those labels
+            // are shortened and the target is the only exact name. Read both, and
+            // never mistake a shortened label for a path that ought to exist.
+            let (bare, targets) = split_links(&value);
+            let mut referenced: Vec<String> = bare
                 .split('`')
                 .skip(1)
                 .step_by(2)
-                .filter(|token| token.contains('/'))
+                .filter(|token| looks_like_path(token))
+                .map(ToOwned::to_owned)
                 .collect();
+            referenced.extend(
+                targets
+                    .iter()
+                    .filter_map(|href| resolve_link(root, &path, href)),
+            );
             if referenced.is_empty() {
                 diagnostics.push(Diagnostic::new(
                     &path,
@@ -1950,36 +1982,86 @@ fn check_rule_enforcement(
                          backticked repository path, or open with {UNENFORCEABLE_PREFIX}"
                     ),
                 ));
-                return;
+                continue;
             }
             for artifact in referenced {
-                if !root.join(artifact).exists() {
+                if !root.join(&artifact).exists() {
                     diagnostics.push(Diagnostic::new(
                         &path,
                         format!("rule {rule_id} names enforcement artifact {artifact}, which does not exist"),
                     ));
                 }
             }
-        };
-
-        for (index, line) in text.lines().enumerate() {
-            if let Some(heading) = line.strip_prefix("## ") {
-                if heading.starts_with("RUST-DOC-") {
-                    finish(&rule, &enforcement, diagnostics);
-                    let id = heading
-                        .split_whitespace()
-                        .next()
-                        .unwrap_or_default()
-                        .to_owned();
-                    rule = Some((id, index + 1));
-                    enforcement = None;
-                }
-            } else if let Some(value) = line.strip_prefix(ENFORCEMENT_FIELD) {
-                enforcement = Some(value.trim().to_owned());
-            }
         }
-        finish(&rule, &enforcement, diagnostics);
     }
+}
+
+/// One rule of a normative document: its identifier, the line it opens on, and the
+/// lines beneath it up to the next heading.
+struct RuleSection<'a> {
+    id: &'a str,
+    line: usize,
+    body: &'a [&'a str],
+}
+
+/// Splits a normative document into its rule sections.
+///
+/// Reading a field means reading a section, so the section is what this produces. The
+/// alternative — walking lines while a flag remembers which field is open — makes
+/// "inside a field" and "no field read yet" separately representable and therefore
+/// able to contradict each other, which is the shape gate `I02` exists to reject.
+fn rule_sections<'a>(lines: &'a [&'a str]) -> Vec<RuleSection<'a>> {
+    let headings: Vec<usize> = lines
+        .iter()
+        .enumerate()
+        .filter(|(_, line)| line.starts_with("## "))
+        .map(|(at, _)| at)
+        .collect();
+
+    headings
+        .iter()
+        .enumerate()
+        .filter_map(|(nth, &at)| {
+            let id = lines[at].strip_prefix("## ")?.split_whitespace().next()?;
+            if !id.starts_with("RUST-DOC-") {
+                return None;
+            }
+            let end = headings.get(nth + 1).copied().unwrap_or(lines.len());
+            Some(RuleSection {
+                id,
+                line: at + 1,
+                body: &lines[at + 1..end],
+            })
+        })
+        .collect()
+}
+
+/// The enforcement value of one rule, read to the end of its paragraph.
+///
+/// The field wraps like every other field in these documents, and the longest artifact
+/// links cannot share a line with the label and stay inside the line budget, so the
+/// value may open on the line below. Reading only the label's own line lost both.
+fn enforcement_field(body: &[&str]) -> Option<String> {
+    let at = body
+        .iter()
+        .position(|line| line.trim_end().starts_with(ENFORCEMENT_FIELD))?;
+    let opening = body[at]
+        .trim_end()
+        .strip_prefix(ENFORCEMENT_FIELD)
+        .unwrap_or_default()
+        .trim();
+    let continuation = body[at + 1..]
+        .iter()
+        .take_while(|line| !line.trim().is_empty())
+        .map(|line| line.trim());
+
+    Some(
+        std::iter::once(opening)
+            .chain(continuation)
+            .filter(|part| !part.is_empty())
+            .collect::<Vec<_>>()
+            .join(" "),
+    )
 }
 
 /// Rejects a review gate that does not declare whether a command can decide it.
@@ -2685,8 +2767,10 @@ mod tests {
         .expect("parse agents");
 
         let mut tierable = Vec::new();
+        let mut examined = 0usize;
         for pack in &agents.packs {
             for path in pack.canonical_sources.iter().chain(&pack.review_checklists) {
+                examined += 1;
                 if !states_obligations(path, &doctrines, &agents) {
                     tierable.push(format!("{} lists {path}", pack.id));
                 }
@@ -2700,6 +2784,12 @@ mod tests {
                 }
             }
         }
+        // `RUST-DOC-0008-R022`: a manifest that listed no sources would leave the loop
+        // examining nothing and this assertion passing on it.
+        assert!(
+            examined > 0,
+            "no role pack listed a source, so the absence below establishes nothing"
+        );
         assert!(
             tierable.is_empty(),
             "a role pack source that can be withheld: {tierable:?}"
@@ -2743,6 +2833,13 @@ mod tests {
             .iter()
             .filter(|path| !permitted.contains(path.as_str()))
             .collect();
+        // `RUST-DOC-0008-R022`: the generated files named by the constant do carry an
+        // HTML comment, so a scan that found none examined nothing and the absence
+        // below would hold for the wrong reason.
+        assert!(
+            !carriers.is_empty(),
+            "no Markdown carried an HTML comment, so the scan observed nothing"
+        );
         assert!(
             unexpected.is_empty(),
             "a new HTML comment in canonical Markdown must be a verbosity annotation: {unexpected:?}"

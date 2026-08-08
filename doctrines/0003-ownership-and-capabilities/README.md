@@ -3,7 +3,7 @@ id: RUST-DOC-0003
 slug: ownership-and-capabilities
 title: Ownership as Authority and Lifecycle
 status: active
-version: 0.1.0
+version: 0.2.0
 normative: true
 applies_to:
   - planning
