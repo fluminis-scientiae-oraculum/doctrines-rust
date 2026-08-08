@@ -3,10 +3,19 @@
 Record every gate as **pass**, **fail**, **not applicable**, or **waiver
 reference**.
 
-| Gate    | Question             | Pass evidence       | Failure example           | Severity               | Remediation                    |
-| ------- | -------------------- | ------------------- | ------------------------- | ---------------------- | ------------------------------ |
-| NNNN-01 | <Auditable question> | <Concrete artifact> | <Specific counterexample> | <critical/high/medium> | <Direction, not vague request> |
-| NNNN-02 | <Next question>      | <Evidence>          | <Failure>                 | <Severity>             | <Remediation>                  |
+Every gate needs a stable coded identifier: one to three uppercase letters
+naming the package, then exactly two digits. Choose a prefix letter no active
+package already uses. A gate that cannot be named cannot be cited from a
+waiver, a review record, or a CI job.
+
+The `Check` column says who decides the gate: `judgment`, or
+`mechanical(...)` naming the command that settles it. Judgment is the ordinary
+answer, and stating it is what makes the mechanical share countable.
+
+| Gate | Question             | Check                  | Pass evidence       | Failure example           | Severity               | Remediation                    |
+| ---- | -------------------- | ---------------------- | ------------------- | ------------------------- | ---------------------- | ------------------------------ |
+| X01  | <Auditable question> | judgment               | <Concrete artifact> | <Specific counterexample> | <critical/high/medium> | <Direction, not vague request> |
+| X02  | <Next question>      | mechanical(cargo test) | <Evidence>          | <Failure>                 | <Severity>             | <Remediation>                  |
 
 ## Required gate groups
 

@@ -590,6 +590,8 @@ A normative rule uses one stable ID such as `RUST-DOC-0001-R004` and includes:
 - **Applicability:** the systems, paths, or conditions that trigger it.
 - **Allowed exceptions:** bounded conditions or "none."
 - **Review evidence:** artifacts and observations sufficient to assess it.
+- **Enforcement:** the linked repository artifact that enforces it, or
+  `Unenforceable:` and the reason no artifact can.
 
 The applicability and review-evidence fields use capitalized noun-phrase lists consistently.
 This register keeps machine extraction predictable while the statement, intent, and exception
@@ -6653,7 +6655,7 @@ id: RUST-DOC-0006
 slug: distributed-uncertainty
 title: Distributed Effects, Uncertainty, and Reconciliation
 status: active
-version: 0.2.1
+version: 0.2.2
 normative: true
 applies_to:
   - planning
@@ -7159,7 +7161,8 @@ that confirmed rejection and unknown execution cannot be confused.
 
 ## Idempotency is a protocol
 
-A random string alone proves none of these. Client-generated keys can be
+An idempotency key has value only when a receiver stores and interprets it, so a
+random string alone proves nothing. Client-generated keys can be
 reliable identities when generation occurs once per logical intent and every
 attempt reuses them. Generating a key inside the retry loop defeats the
 protocol.
@@ -7766,7 +7769,7 @@ id: RUST-DOC-0007
 slug: unsafe-rust
 title: Unsafe Rust as a Proof Obligation
 status: active
-version: 0.1.2
+version: 0.1.3
 normative: true
 applies_to:
   - planning
@@ -8307,7 +8310,8 @@ extend beyond its allocation even when the starting pointer is valid.
 
 ## Partial initialization
 
-Leaking values may be memory-safe for some `T`, but can leak locks, file
+Leaking a partially initialized value may be memory-safe for some `T`, but can
+leak locks, file
 descriptors, or secrets. Correct resource behavior remains part of the broader
 contract even where language-level undefined behavior is absent.
 
@@ -8836,7 +8840,7 @@ id: RUST-DOC-0008
 slug: testing-and-evidence
 title: Testing as Layered Evidence
 status: active
-version: 0.2.1
+version: 0.2.2
 normative: true
 applies_to:
   - planning
@@ -9394,8 +9398,8 @@ layers agree.
 
 ## Invariants make test selection concrete
 
-An evidence plan therefore starts from the invariant inventory, not from test
-framework preferences.
+An evidence plan starts from the invariant inventory, not from test framework
+preferences.
 
 ## Negative tests protect the boundary
 
@@ -9995,7 +9999,7 @@ id: RUST-DOC-0009
 slug: performance-and-measurement
 title: Performance Claims Require Measurement
 status: active
-version: 0.1.1
+version: 0.1.2
 normative: true
 applies_to:
   - planning
@@ -10615,6 +10619,7 @@ matters rather than applying slogans.
 ## Regression gates
 
 Shared CI hosts are noisy. A strict one-percent wall-time gate may fail
+randomly, training maintainers to rerun or ignore it.
 
 ## Performance guarantee ledger
 

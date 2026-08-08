@@ -126,6 +126,7 @@ matters rather than applying slogans.
 ## Regression gates
 
 Shared CI hosts are noisy. A strict one-percent wall-time gate may fail
+randomly, training maintainers to rerun or ignore it.
 
 ## Performance guarantee ledger
 
