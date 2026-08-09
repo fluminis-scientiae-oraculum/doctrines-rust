@@ -1,6 +1,15 @@
 # Repository tools
 
-Two Rust CLIs make doctrine integrity executable.
+Three Rust crates make doctrine integrity executable: two binaries a contributor
+runs, and the library both of them decode the manifests through.
+
+## Package contents
+
+| Crate                                                    | Kind    | Responsibility                                              |
+| -------------------------------------------------------- | ------- | ----------------------------------------------------------- |
+| [`doctrine-lint`](doctrine-lint/README.md)               | binary  | fails the build when the corpus disagrees with itself       |
+| [`bundle-agent-context`](bundle-agent-context/README.md) | binary  | projects canonical sources into the generated distributions |
+| [`doctrine-manifest`](doctrine-manifest/README.md)       | library | decodes the manifest vocabularies once, for both binaries   |
 
 ## `doctrine-lint`
 
@@ -16,6 +25,14 @@ rejects unsafe manifest paths, enforces the informative/normative language
 boundary and structured-field register, scans repository text for forbidden
 filler markers, resolves related and agent paths, and verifies generated-file
 banners. It prints path-specific diagnostics and exits nonzero on any finding.
+
+The same command carries the connectivity gates: every maintained Markdown file
+has an inbound link, every backticked path that resolves on disk is also linked,
+every workspace crate is linked from prose, every crate and every directory
+holding maintained Markdown has an index, and every remaining file is either
+named by some document or registered with a stated reason. Its own
+[package README](doctrine-lint/README.md) lists each register and what it
+exempts.
 
 ## `bundle-agent-context`
 
@@ -37,5 +54,24 @@ differs from disk, and a verbosity annotation in a file that states obligations.
 `check` computes the same bytes without writing and fails on missing, changed,
 or unexpected distribution files of any type.
 
-Both tools operate from the repository root, use stable ordering, and have unit
-tests. They do not call Git, access the network, or commit changes.
+## `doctrine-manifest`
+
+This crate holds no filesystem or link logic. It owns the vocabularies the
+manifests are written in — doctrine status, agent role, verbosity ceiling,
+decision-record status, evidence kind — as Rust types, together with
+front-matter parsing, the verbosity annotation grammar, and the section filter
+both binaries apply. Each closed vocabulary is asserted by test against the
+artifact that owns it: the `enum` arrays in the JSON Schemas under
+[`manifest/schema/`](../manifest/schema/README.md), and the state directories
+under [`rfcs/`](../rfcs/README.md).
+
+The two binaries began as siblings with no shared library, and every concept
+both needed existed twice. Independently maintained parsers drift in their error
+text before they drift in their behavior, which is the harder failure to notice.
+A value added to a schema without a matching Rust variant now fails the build,
+rather than failing to parse inside one tool and not the other.
+
+Both binaries operate from the repository root and use stable ordering;
+`doctrine-manifest` performs no filesystem access at all, so every path it
+reasons about was handed to it by a caller. All three have unit tests. None
+calls Git, accesses the network, or commits changes.

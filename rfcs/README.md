@@ -62,3 +62,9 @@ An accepted RFC authorizes implementation; it does not itself activate a
 doctrine. Status changes occur when canonical doctrine, manifest, examples,
 generated bundles, and validation land. A supersession RFC names replacement
 and migration. Rejected RFCs do not change doctrine.
+
+## Markdown configuration
+
+[`.markdownlint.jsonc`](.markdownlint.jsonc) relaxes the single-title rule for
+this directory, because [`template.md`](template.md) carries an instructional
+title above the replacement title an author fills in.

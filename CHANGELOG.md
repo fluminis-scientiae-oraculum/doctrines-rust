@@ -4,6 +4,78 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.9.0] — 2026-08-09
+
+Connects every file, directory, and crate the corpus had left unreachable, and gates the
+connection so the next one cannot land unnoticed. No normative meaning changes; the version
+is minor because the new gates add requirements a future change has to satisfy.
+
+### Fixed in 0.9.0
+
+- `tools/README.md` described "two Rust CLIs" and never named `doctrine-manifest`, the
+  library both binaries decode the manifests through. It was the one workspace member no
+  Markdown file had ever linked — mentioned six times in backticks, reachable from nowhere.
+- `examples/README.md` inventoried seven crates while the workspace held nine. The missing
+  two were `staged-protocol` and `doctrine-examples`, the latter being the crate the
+  directory itself compiles to and the named enforcement artifact for three rules of
+  `RUST-DOC-0008`. Crate names in both indexes were backticks rather than links.
+- `.github/pull_request_template.md` had no inbound link from anywhere in the repository,
+  and named four manifest and generated paths in backticks that navigated nowhere. Neither
+  defect was visible, because no scan reached `.github/`.
+- `CONTRIBUTING.md` and the root `README.md` referred to "the guarantee-overclaim issue
+  form" in prose a reader could not click. All three issue forms, the pull-request template,
+  and the release workflow are now links.
+- `EVIDENCE.md` claimed eighty tooling tests when the workspace held eighty-one.
+
+### Added in 0.9.0
+
+- Eleven package indexes: one per `tools/` crate, one per `examples/` crate that lacked one,
+  and `.github/README.md`, which describes what each workflow gates and which issue form
+  answers which question.
+- A `Repository configuration` section in the root `README.md` linking every root
+  configuration file and naming what each governs, and a paragraph in `rfcs/README.md` and
+  `templates/README.md` explaining the nested Markdown-lint override each directory carries.
+- Four checks in `doctrine-lint`. A workspace crate has to be linked from prose; a crate and
+  any directory holding maintained Markdown has to carry an index; every remaining file has
+  to be named by some document; and the `-p` package list in `rust-examples.yml` has to equal
+  the example half of `[workspace] members` in both directions. That list was a
+  hand-maintained second copy with nothing comparing it.
+- `.github` joins the reachability scope, which is what made the pull-request template's
+  defects visible at all.
+- Three registers — `INDEXLESS_DIRECTORIES`, `UNREFERENCED_FILE_EXEMPTIONS`, and
+  `UNSCANNED_TOP_LEVEL` — recording what is deliberately unconnected and why, in the shape
+  `REACHABILITY_EXEMPTIONS` already used. Every entry states a reason, and a test asserts
+  each reason is long enough to be one and that each named path still exists.
+- Twelve tests. Each new check is exercised on a seeded violation rather than on the passing
+  corpus; four more pin the parsers the checks depend on, and four control the checks
+  themselves — that the walk reaches `.github/`, that every register entry states a reason,
+  that every registered path still exists, and that the membership parser reads either array
+  shape. Every check was also positive-controlled live: seeded in the working tree, observed
+  failing with its own diagnostic, and restored.
+
+### Fixed before release in 0.9.0
+
+An adversarial review of this change found six defects in the new checks, each reproduced and
+then fixed here rather than shipped:
+
+- The new walk read the working tree, not the repository, so a contributor with an editor
+  open (`*.swp`) or who had run the link checker (`.lycheecache`) failed the mandatory local
+  validation sequence. It now honours `.gitignore`, and reports a pattern it cannot express
+  instead of silently misreading it.
+- The walk pruned skipped directories by first path component only, so a nested
+  `node_modules/` or `target/` was descended into and every file under it reported.
+- The mention test was an unanchored substring search: `ci.yml` counted as named because a
+  document mentioned `doctrine-ci.yml`. Anchoring it then over-corrected — treating `/` as
+  part of a name un-named six files their indexes do link — so a separator is a boundary.
+- The workspace-member parser left the array only on a line beginning `]`, so an array
+  closing as `"last"]` swept the rest of the manifest in as members, and a commented-out
+  member counted as live.
+- The workflow package list was harvested from the whole file, so a crate tested only by the
+  Miri job, or merely named in a YAML comment, satisfied the gate that exists to prove the
+  matrix builds it. The `-p` scanner also truncated any package name at an underscore.
+- Three checks each re-walked the Markdown scope, so one unreadable entry or symbolic link
+  was reported once per check.
+
 ## [0.8.1] — 2026-08-08
 
 Repairs prose the `0.8.0` rationale audit damaged, and closes the schema gap that audit

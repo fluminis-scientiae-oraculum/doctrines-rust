@@ -26,3 +26,9 @@ one of them has to be found and changed.
 > This directory is excluded from the repository-wide marker scan precisely because scaffolding
 > text is expected here. That exclusion is also why template prose never reaches a generated
 > bundle: no manifest references it.
+
+For the same reason, [`.markdownlint.jsonc`](.markdownlint.jsonc) relaxes two rules here: an
+authoring template carries both an instructional and a replacement title, and repeats section
+names that become unique once the template is instantiated. [`lychee.toml`](../lychee.toml)
+skips this directory as well, because a template's example links are notation rather than
+destinations.
