@@ -362,6 +362,19 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     check_rule_enforcement(root, &doctrine_manifest, &mut diagnostics);
     check_gate_check_column(root, &doctrine_manifest, &mut diagnostics);
     check_generated_files(root, &mut diagnostics);
+
+    // Collapse identical (path, message) pairs. Several checks legitimately read the same
+    // file, and each reports what it could not read, so one unreadable document produced
+    // the same sentence two or three times and the trailing count stopped meaning
+    // "defects found". Deduplicating here rather than in each check keeps every check
+    // free to report what it observed, which is what makes them independently correct.
+    let mut seen = BTreeSet::new();
+    diagnostics.retain(|diagnostic| {
+        seen.insert((
+            diagnostic.path.to_string_lossy().to_string(),
+            diagnostic.message.clone(),
+        ))
+    });
     diagnostics
 }
 
@@ -418,8 +431,33 @@ fn check_connectivity(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     let mut discarded = Vec::new();
     let scope = reachability_scope(root, &mut discarded);
 
-    check_workspace_crate_coverage(root, &scope, &members, diagnostics);
-    check_directory_indexes(root, &scope, &members, diagnostics);
+    // Read once, here, and state the completeness of the observation ONCE. Both gates
+    // below reason about absence — no document links this crate, no document links this
+    // directory — so both need to know whether every document was actually read. Having
+    // each say so itself turned a single unreadable file into three diagnostics saying
+    // the same thing, which is the noise this function was written to remove.
+    let mut documents: Vec<(PathBuf, String)> = Vec::new();
+    for path in &scope {
+        if let Some(text) = read_text(path, &mut Vec::new()) {
+            documents.push((path.clone(), text));
+        }
+    }
+    let complete = documents.len() == scope.len();
+    if !complete {
+        diagnostics.push(Diagnostic::new(
+            &cargo_path,
+            format!(
+                "{} of {} maintained documents could not be read, so neither crate coverage \
+                 nor the index obligation can conclude that something is linked from \
+                 nowhere; fix the unreadable file reported above and run again",
+                scope.len() - documents.len(),
+                scope.len()
+            ),
+        ));
+    }
+
+    check_workspace_crate_coverage(root, &documents, &members, complete, diagnostics);
+    check_directory_indexes(root, &documents, &members, diagnostics);
 }
 
 /// Workspace members with Cargo's `dir/*` globs expanded to the crates they name.
@@ -1313,35 +1351,15 @@ fn workspace_excludes(cargo: &str) -> Result<Vec<String>, String> {
 /// question the check asks is whether a reader can get there at all.
 fn check_workspace_crate_coverage(
     root: &Path,
-    scope: &[PathBuf],
+    documents: &[(PathBuf, String)],
     members: &[String],
+    complete: bool,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
-    // Read with a throwaway sink: `check_reachability` walked and read this same set and
-    // already reported whatever it could not.
-    let documents: Vec<(PathBuf, String)> = scope
-        .iter()
-        .filter_map(|path| Some((path.clone(), read_text(path, &mut Vec::new())?)))
-        .collect();
-
     // This check asserts an absence — that no document links the crate — so under
-    // `RUST-DOC-0008-R022` it has to establish that it could have observed one. A file
-    // that does not decode leaves the link set incomplete, and the crate whose only
-    // inbound link lived in that file was reported as linked from nowhere, sending a
-    // contributor to add a link already present. The decode failure itself is reported by
-    // `check_reachability`, which reads the same set with a real sink; what is fixed here
-    // is asserting absence over an admittedly partial observation.
-    if documents.len() != scope.len() {
-        diagnostics.push(Diagnostic::new(
-            root.join("Cargo.toml"),
-            format!(
-                "crate coverage examined {} of {} maintained documents, so it cannot \
-                 establish that a crate is linked from nowhere; fix the unreadable file \
-                 reported above and run again",
-                documents.len(),
-                scope.len()
-            ),
-        ));
+    // `RUST-DOC-0008-R022` it may not report when the observation was incomplete. The
+    // caller owns that verdict and has already stated it.
+    if !complete {
         return;
     }
 
@@ -1505,7 +1523,13 @@ fn check_lint_parity(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
         }
     };
     let members = match workspace_members(&workspace_text) {
-        Ok(members) => expand_member_globs(root, &members, &[]),
+        Ok(members) => {
+            // Excludes matter here too: a crate Cargo does not consider a member is not
+            // held to the workspace's lint configuration by Cargo, so holding it here
+            // would report a divergence the build never enforces.
+            let excludes = workspace_excludes(&workspace_text).unwrap_or_default();
+            expand_member_globs(root, &members, &excludes)
+        }
         Err(reason) => {
             diagnostics.push(Diagnostic::new(
                 &workspace_manifest,
@@ -1710,7 +1734,7 @@ fn check_declared_top_level(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
 /// manifest rather than from the disk.
 fn check_directory_indexes(
     root: &Path,
-    scope: &[PathBuf],
+    documents: &[(PathBuf, String)],
     members: &[String],
     diagnostics: &mut Vec<Diagnostic>,
 ) {
@@ -1729,27 +1753,18 @@ fn check_directory_indexes(
     // the walk failed on a gitignored scratch directory; dropping it entirely lost the
     // obligation for two dozen nested indexes, and `case-studies/README.md` could link a
     // directory with nothing to read in it while every gate stayed green.
-    let mut unread = 0usize;
-    for file in scope {
-        // `check_reachability` reads this same set with a real sink and reports whatever
-        // it cannot; counting here rather than re-reporting keeps one unreadable file to
-        // one diagnostic while still refusing to conclude from a partial observation.
-        let Some(text) = read_text(file, &mut Vec::new()) else {
-            unread += 1;
-            continue;
-        };
-        for href in outbound_links(&text) {
+    for (file, text) in documents {
+        for href in outbound_links(text) {
             let Some(target) = resolve_link(root, file, &href) else {
                 continue;
             };
             if target.is_empty() || !root.join(&target).is_dir() {
                 continue;
             }
-            // The two carve-outs every other consumer of this convention carries, and
-            // this one shipped without. A directory under `dist/` is generated: the
-            // bundler emits no index there, so demanding one names a file no edit to a
-            // canonical source can create. A scratch directory is not repository content
-            // at all, which is the whole reason four walkers were taught to skip it.
+            // The two carve-outs every other consumer of this convention carries. A
+            // directory under `dist/` is generated: the bundler emits no index there, so
+            // demanding one names a file no edit to a canonical source can create. A
+            // scratch directory is not repository content at all.
             if target == "dist"
                 || target.starts_with("dist/")
                 || Path::new(&target)
@@ -1760,23 +1775,6 @@ fn check_directory_indexes(
             }
             required.insert(target);
         }
-    }
-
-    // An index obligation derived from links this run could not read is an absence
-    // concluded without observation, which `RUST-DOC-0008-R022` forbids. Reporting the
-    // shortfall is what keeps a missing README from looking absent when it was never
-    // looked for.
-    if unread > 0 {
-        diagnostics.push(Diagnostic::new(
-            root.join("Cargo.toml"),
-            format!(
-                "the index obligation was derived from {} of {} maintained documents, so a \
-                 directory whose only inbound link is in an unreadable file is not held to \
-                 it; fix the unreadable file reported above and run again",
-                scope.len() - unread,
-                scope.len()
-            ),
-        ));
     }
 
     for directory in required {
@@ -3443,8 +3441,9 @@ mod tests {
         REACHABILITY_EXTRA_ROOTS, RuleInventory, check_gate_check_column, check_path_references,
         check_reachability, check_reserved_ceiling, check_rule_enforcement, check_stated_counts,
         collect_files, doctrine_index_rows, inline_code_spans, is_gate_id, looks_like_path,
-        maintained_markdown, outbound_links, reachability_scope, resolve_link, root_documents,
-        scan_marker_file, table_row_cells, unknown_alert, validation_sequence_copies,
+        maintained_markdown, outbound_links, reachability_scope, read_text, resolve_link,
+        root_documents, scan_marker_file, table_row_cells, unknown_alert,
+        validation_sequence_copies,
     };
     use super::{INDEXLESS_DIRECTORIES, check_directory_indexes, check_workspace_crate_coverage};
     use doctrine_manifest::{
@@ -3465,6 +3464,17 @@ mod tests {
     /// The Markdown scope as the connectivity checks receive it.
     fn read_scope(root: &Path) -> Vec<PathBuf> {
         reachability_scope(root, &mut Vec::new())
+    }
+
+    /// The shared document set, built the way `check_connectivity` builds it.
+    fn read_documents(root: &Path) -> Vec<(PathBuf, String)> {
+        read_scope(root)
+            .into_iter()
+            .filter_map(|path| {
+                let text = read_text(&path, &mut Vec::new())?;
+                Some((path, text))
+            })
+            .collect()
     }
 
     /// Writes a record file and returns the repository-relative path it was written to.
@@ -5007,6 +5017,51 @@ mod tests {
         let _ = fs::remove_dir_all(&root);
     }
 
+    /// One unreadable file must not be reported by its sentence more than once.
+    ///
+    /// Several checks legitimately read the same document and each reports what it could
+    /// not read, so the same sentence appeared two and three times and the trailing count
+    /// stopped meaning "defects found". This asserts the collapse happens AND that the
+    /// distinct sentences survive it, because a deduplication that swallowed a real second
+    /// finding would be worse than the noise.
+    #[test]
+    fn identical_diagnostics_collapse_but_distinct_ones_survive() {
+        let root = temporary_directory("dedupe");
+        fs::create_dir_all(root.join("tools")).unwrap();
+        fs::write(root.join("Cargo.toml"), "[workspace]\nmembers = []\n").unwrap();
+        // Invalid UTF-8: every check that reads it reports the same sentence.
+        fs::write(root.join("tools/broken.md"), [0xff, 0xfe, 0x23, 0x00]).unwrap();
+
+        let mut diagnostics = Vec::new();
+        check_reachability(&root, &mut diagnostics);
+        check_path_references(&root, &mut diagnostics);
+        let before = diagnostics.len();
+
+        let mut seen = BTreeSet::new();
+        diagnostics.retain(|diagnostic| {
+            seen.insert((
+                diagnostic.path.to_string_lossy().to_string(),
+                diagnostic.message.clone(),
+            ))
+        });
+
+        assert!(
+            before > diagnostics.len(),
+            "the fixture produced no duplicate, so this asserted nothing about collapsing"
+        );
+        let messages: BTreeSet<&str> = diagnostics
+            .iter()
+            .map(|diagnostic| diagnostic.message.as_str())
+            .collect();
+        assert_eq!(
+            messages.len(),
+            diagnostics.len(),
+            "a distinct message was lost to the collapse"
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
     /// The scratch-directory constant and `.gitignore` state one convention twice, because
     /// reading `.gitignore` would mean reproducing its pattern language. Two declarations
     /// of one fact are only safe while something holds them equal; this is that something.
@@ -5200,8 +5255,8 @@ mod tests {
 
         let members = vec!["tools/linked".to_owned(), "tools/mentioned".to_owned()];
         let mut diagnostics = Vec::new();
-        let scope = read_scope(&root);
-        check_workspace_crate_coverage(&root, &scope, &members, &mut diagnostics);
+        let documents = read_documents(&root);
+        check_workspace_crate_coverage(&root, &documents, &members, true, &mut diagnostics);
 
         let messages: Vec<String> = diagnostics
             .iter()
@@ -5269,7 +5324,8 @@ mod tests {
             "tools/group/nested".to_owned(),
         ];
         let mut diagnostics = Vec::new();
-        check_workspace_crate_coverage(&root, &scope, &members, &mut diagnostics);
+        let documents = read_documents(&root);
+        check_workspace_crate_coverage(&root, &documents, &members, true, &mut diagnostics);
         let messages: Vec<String> = diagnostics
             .iter()
             .map(|diagnostic| diagnostic.message.clone())
@@ -5307,9 +5363,9 @@ mod tests {
             "# Tools\n\n[nested](group/nested)\n",
         )
         .unwrap();
-        let scope = read_scope(&root);
+        let documents = read_documents(&root);
         let mut island_only = Vec::new();
-        check_workspace_crate_coverage(&root, &scope, &members, &mut island_only);
+        check_workspace_crate_coverage(&root, &documents, &members, true, &mut island_only);
         assert!(
             island_only
                 .iter()
@@ -5355,8 +5411,8 @@ mod tests {
 
         let members = vec!["tools/indexed".to_owned(), "tools/bare".to_owned()];
         let mut diagnostics = Vec::new();
-        let scope = read_scope(&root);
-        check_directory_indexes(&root, &scope, &members, &mut diagnostics);
+        let documents = read_documents(&root);
+        check_directory_indexes(&root, &documents, &members, &mut diagnostics);
 
         let reported: Vec<String> = diagnostics
             .iter()
