@@ -11,15 +11,20 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Eighty-seven tooling tests across `doctrine-lint`, `doctrine-manifest`, and
+- Ninety-two tooling tests across `doctrine-lint`, `doctrine-manifest`, and
   `bundle-agent-context` exercise doctrine linting, decision-record validation,
   doctrine-index agreement with the manifest, counted-claim, rule-citation and
   duplicated-validation-sequence drift detection, per-rule enforcement and
   per-gate check declarations, and deterministic bundle generation.
-- Six of those hold the repository's own connectivity. Three seed a violation and require
-  the matching diagnostic: a workspace crate that only its own contents link, which is an
-  island rather than a reachable crate; a crate with no index; and a prose directory with
-  no index. One pins the workspace membership parser against a `members` key in a foreign
+- Eleven of those hold the repository's own connectivity and configuration. Three seed a
+  violation and require the matching diagnostic: a workspace crate that only its own
+  contents link, which is an island rather than a reachable crate; a crate with no index;
+  and a workflow the index does not name. One asserts the opposite direction, that a
+  directory found by walking is _not_ required to carry an index, because deriving that
+  requirement from the tree failed on a gitignored scratch directory. Two hold a forced
+  duplicate honest: the scratch-directory constant against `.gitignore`, and the one crate
+  that cannot inherit workspace clippy lints against the workspace table. One pins the
+  workspace membership parser against a `members` key in a foreign
   table, an array closing on its last value, a literal string, and a comment. Two control
   the checks themselves: that every register entry states a reason, and that every
   registered path still exists — a register entry for a deleted file silences nothing and

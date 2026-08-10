@@ -26,9 +26,39 @@ is minor because the new gates add requirements a future change has to satisfy.
   form" in prose a reader could not click. All three issue forms, the pull-request template,
   and the release workflow are now links.
 - `EVIDENCE.md` claimed eighty tooling tests when the workspace held eighty-one.
+- A fourth review round found fifteen defects in the gates this release adds, and all
+  fifteen are fixed here. Three made a gate silently wrong: crate coverage credited a link
+  whose target does not exist, so a typo satisfied the very check written to catch a crate
+  linked from nowhere; deleting the file-coverage gate silently removed a second obligation
+  nobody reasoned about, leaving Markdown outside every declared root subject to no rule;
+  and the dated-record filter let a directory of archived records escape the index
+  requirement. Five made the gates fail on correct repositories inside the sequence the
+  README calls mandatory — a trailing-slash or globbed `[workspace] members` entry, a
+  Cargo-excluded crate, a gitignored `wip/` scratch directory, a Markdown issue template,
+  and a directory name that does not round-trip through `to_string_lossy`, which blamed a
+  correct `Cargo.toml` with a diagnostic no edit to it could clear.
+- The file-coverage gate was deleted in this release because a check needing another tool's
+  ignore semantics cannot be made correct, but `check_directory_indexes` was left walking
+  the same working tree with the same dependency, and reproduced the same false failure.
+  The index requirement is now derived from declared artifacts only — `[workspace] members`
+  plus the root lists — never from a filesystem walk.
+- Three claims that had stopped being true: `doctrine-lint`'s README advertised a control
+  test deleted with that gate, the root `README.md` said every invocation resolves to the
+  pinned toolchain when the MSRV matrix and the Miri job deliberately override it, and
+  `examples/boundary-validation` promised it reused the shared bound while re-implementing
+  it, duplicate constant included. The example now uses `BoundedName`.
+- The workspace clippy denies added in this release never reached
+  `examples/unsafe-evidence`, the one crate holding `unsafe`, because Cargo cannot inherit
+  lints into a crate that declares any lint table of its own. The copy is now compared
+  mechanically. A comment claiming two lints rejected a collected `Vec<&String>` was false
+  in both directions and is replaced by a statement of what nothing enforces.
 
 ### Added in 0.9.0
 
+- `check_declared_top_level`, `check_workflow_index`, and `check_lint_parity`: every
+  top-level directory is a declared root or is registered with a reason; the workflow index
+  names exactly the workflows on disk; and the one crate that cannot inherit workspace
+  clippy lints restates them without drift.
 - Eleven package indexes: one per `tools/` crate, one per `examples/` crate that lacked one,
   and `.github/README.md`, which describes what each workflow gates and which issue form
   answers which question.

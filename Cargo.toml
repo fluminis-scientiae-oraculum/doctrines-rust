@@ -49,11 +49,18 @@ must_use_candidate = "allow"
 # could be `const` and were not. A doctrine repository about making guarantees visible in
 # the type system should not leave compile-time evaluability implicit.
 missing_const_for_fn = "deny"
-# `ptr_arg` (already in `all`) rejects a `&String` or `&Vec<T>` parameter. These two
-# reject the same shape where it is produced rather than consumed: collecting references
-# to owned types instead of the borrowed view.
-ref_option_ref = "deny"
+# `redundant_clone` catches a clone whose value is never read again. It is named because
+# the connectivity work introduced two.
 redundant_clone = "deny"
+
+# Recorded because a comment here previously claimed the opposite, and a false claim
+# about what a lint enforces is worse than no claim: it stops the next reviewer looking.
+#
+# `ptr_arg` (in `all`) rejects `&String` and `&Vec<T>` as a *parameter*, which is the
+# shape that matters at an API boundary. Nothing clippy ships rejects the same shape
+# *collected* — `let refs: Vec<&String> = owned.iter().collect()` passes every lint in
+# this file, verified against the pinned toolchain. The two occurrences fixed in 0.9.0
+# were found by reading, and that shape is held by review alone.
 
 # Waiver, scoped and reasoned rather than silent. `option_if_let_else` rewrites a
 # two-armed `match` on an `Option` into `map_or_else`, whose arguments are the default

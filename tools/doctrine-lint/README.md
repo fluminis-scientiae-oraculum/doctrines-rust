@@ -43,15 +43,29 @@ judgment or a named mechanical command. Every generated file under
 ## The connectivity gates
 
 The repository is a graph a reader navigates by clicking. These checks hold the
-invariant that every node in it is reachable, or is registered as deliberately
-not.
+invariant that every node **inside a declared root** is reachable, or is
+registered as deliberately not. The qualifier is load-bearing: the root lists are
+the real specification, and `check_declared_top_level` is what stops a directory
+from sitting outside all of them unnoticed.
 
-| Check                            | Obligation                                                                                |
-| -------------------------------- | ----------------------------------------------------------------------------------------- |
-| `check_reachability`             | every maintained Markdown file has at least one inbound link                              |
-| `check_path_references`          | every backticked path that resolves on disk is also linked, once per document             |
-| `check_workspace_crate_coverage` | every Cargo workspace member is linked, as a directory or a file inside it                |
-| `check_directory_indexes`        | every workspace crate, and every directory holding maintained Markdown, has a `README.md` |
+| Check                            | Obligation                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------ |
+| `check_reachability`             | every maintained Markdown file has at least one inbound link                         |
+| `check_path_references`          | every backticked path that resolves on disk is also linked, once per document        |
+| `check_declared_top_level`       | every top-level directory is a declared root, or is registered with a reason         |
+| `check_workspace_crate_coverage` | every Cargo workspace member is linked, as a directory or a file inside it           |
+| `check_directory_indexes`        | every workspace crate and every declared root has a `README.md`                      |
+| `check_workflow_index`           | the workflow index names exactly the workflows on disk                               |
+| `check_lint_parity`              | the one crate that cannot inherit workspace clippy lints restates them without drift |
+
+`check_directory_indexes` requires an index of **declared** directories only —
+workspace members plus the root lists — never of directories discovered by
+walking. Deriving the requirement from whatever Markdown happened to be on disk
+made a gitignored `wip/` scratch directory fail the mandatory sequence, would
+have forced an index into the GitHub issue-template directory, which GitHub renders as a
+selectable issue template, and silently exempted a directory holding only dated
+records. Doctrine packages keep their index requirement through
+`check_front_matter`, which reads the path from the manifest.
 
 Two checks that once sat here are gone, and both removals are the point rather than a
 retreat.
@@ -125,11 +139,15 @@ that introduced them.
 
 Each check is exercised in both directions — a tree that passes, and the same tree
 with one seeded violation that fails. Further tests pin the parsers the checks
-depend on, and control the file sets against the real repository rather than a
-fixture: that the Markdown scope reaches every extra root, and that the
-non-Markdown walk reaches [`.github/`](../../.github/README.md),
-[`templates/`](../../templates/README.md) and the compile-fail cases while
-descending into none of the directories it declares it skips.
+depend on, and control the Markdown scope against the real repository rather than
+a fixture: that it reaches every extra root, and that it lists each file once.
+
+This paragraph previously also claimed a control on a non-Markdown walk. That walk
+and its test were deleted in 0.9.0 with the file-coverage gate, and the sentence
+describing them survived the commit — so the README promised a pinned boundary
+that no test held, which is worse than promising nothing. It is recorded here
+rather than quietly corrected, because a maintainer who later narrows
+[`REACHABILITY_EXTRA_ROOTS`] is the person the false claim would have misled.
 
 A check can pass its predicate control because its file list omitted the file it
 was supposed to read, and a repository that passes looks identical either way.

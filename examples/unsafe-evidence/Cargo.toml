@@ -12,8 +12,18 @@ publish = false
 [lints.rust]
 unsafe_code = "allow"
 
+# Cargo has no partial inheritance: a crate that needs any `[lints.rust]` entry of its
+# own cannot also write `[lints] workspace = true`, so this table restates the workspace
+# clippy configuration verbatim. That duplication is forced, not chosen, and it drifted
+# silently once already — 0.9.0 added workspace denies that never reached the one crate
+# holding `unsafe`, so the corpus shipped its most-copied example outside the idiom it
+# teaches. `check_lint_parity` in doctrine-lint now compares the two tables, which is
+# the checked-view exception RUST-DOC-0011-R004 allows.
 [lints.clippy]
 all = { level = "deny", priority = -1 }
 pedantic = { level = "deny", priority = -1 }
 module_name_repetitions = "allow"
 must_use_candidate = "allow"
+missing_const_for_fn = "deny"
+redundant_clone = "deny"
+option_if_let_else = "allow"

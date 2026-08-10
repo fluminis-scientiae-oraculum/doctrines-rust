@@ -276,11 +276,13 @@ repeat it are described in [`.github/`](.github/README.md).
 ### Repository configuration
 
 Each command above reads its policy from a file at the repository root. None of them is
-optional, and none carries a default worth relying on:
+optional, and none carries a default worth relying on. This table is maintained by hand;
+unlike the workflow index it has no gate, because "configuration" is not a set this
+repository can enumerate mechanically.
 
 | File                                                   | Governs                                                                |
 | ------------------------------------------------------ | ---------------------------------------------------------------------- |
-| [`rust-toolchain.toml`](rust-toolchain.toml)           | the pinned Rust toolchain every local and CI invocation resolves to    |
+| [`rust-toolchain.toml`](rust-toolchain.toml)           | the toolchain resolved when nothing overrides it — see the note below  |
 | [`rustfmt.toml`](rustfmt.toml)                         | edition, maximum width, and newline style for `cargo fmt`              |
 | [`clippy.toml`](clippy.toml)                           | the MSRV Clippy lints against, and the exported-API breakage allowance |
 | [`deny.toml`](deny.toml)                               | the license and advisory policy `cargo deny` enforces                  |
@@ -292,6 +294,14 @@ optional, and none carries a default worth relying on:
 | [`.node-version`](.node-version)                       | the Node.js version those scripts are pinned to                        |
 | [`.gitattributes`](.gitattributes)                     | normalization to LF, so a checkout on any platform hashes identically  |
 | [`.gitignore`](.gitignore)                             | build output and local artifacts kept out of the tree                  |
+
+The toolchain row is deliberately narrow. `RUSTUP_TOOLCHAIN` outranks
+[`rust-toolchain.toml`](rust-toolchain.toml) in rustup's precedence, and two jobs set it on
+purpose: the examples matrix pins the MSRV and the current stable in turn, and the unsafe
+evidence job pins the Miri nightly. The same override is documented locally, as
+`cargo +nightly-2026-07-13 miri test`. So running the local sequence does **not** reproduce
+the MSRV job — only the matrix does, and an MSRV regression is visible in CI rather than
+before it.
 
 Three directories override those Markdown rules for a stated reason.
 [`rfcs/`](rfcs/README.md) allows a second title, because its template carries an instructional

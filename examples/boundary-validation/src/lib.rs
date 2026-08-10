@@ -3,17 +3,15 @@
 use serde::Deserialize;
 use std::error::Error;
 use std::fmt;
-use validated_newtypes::{EmailAddress, EmailError};
-
-const MAX_NAME_CHARS: usize = 80;
+use validated_newtypes::{BoundedName, EmailAddress, EmailError, NameError};
 
 /// Domain conversion failure shared by request and row adapters.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ContactError {
     /// Email violates the example syntax policy.
     InvalidEmail(EmailError),
-    /// Display name is empty, too long, or contains controls.
-    InvalidDisplayName,
+    /// Display name failed the shared bound in `validated-newtypes`.
+    InvalidDisplayName(NameError),
     /// Persistence status tag is unsupported.
     UnsupportedStatus,
 }
@@ -22,7 +20,7 @@ impl fmt::Display for ContactError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
             Self::InvalidEmail(_) => "contact email is invalid",
-            Self::InvalidDisplayName => "contact display name is invalid",
+            Self::InvalidDisplayName(_) => "contact display name is invalid",
             Self::UnsupportedStatus => "contact status is unsupported",
         };
         formatter.write_str(message)
@@ -33,30 +31,9 @@ impl Error for ContactError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::InvalidEmail(source) => Some(source),
-            Self::InvalidDisplayName | Self::UnsupportedStatus => None,
+            Self::InvalidDisplayName(source) => Some(source),
+            Self::UnsupportedStatus => None,
         }
-    }
-}
-
-/// Bounded nonempty display name.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct DisplayName(String);
-
-impl DisplayName {
-    fn parse(value: &str) -> Result<Self, ContactError> {
-        let value = value.trim();
-        if value.is_empty()
-            || value.chars().count() > MAX_NAME_CHARS
-            || value.chars().any(char::is_control)
-        {
-            return Err(ContactError::InvalidDisplayName);
-        }
-        Ok(Self(value.to_owned()))
-    }
-
-    /// Returns the normalized display name.
-    pub fn as_str(&self) -> &str {
-        &self.0
     }
 }
 
@@ -71,7 +48,7 @@ struct RawContactDto {
 #[serde(try_from = "RawContactDto")]
 pub struct Contact {
     email: EmailAddress,
-    display_name: DisplayName,
+    display_name: BoundedName,
 }
 
 impl Contact {
@@ -81,7 +58,7 @@ impl Contact {
     }
 
     /// Returns the validated display name.
-    pub const fn display_name(&self) -> &DisplayName {
+    pub const fn display_name(&self) -> &BoundedName {
         &self.display_name
     }
 }
@@ -92,7 +69,8 @@ impl TryFrom<RawContactDto> for Contact {
     fn try_from(raw: RawContactDto) -> Result<Self, Self::Error> {
         Ok(Self {
             email: EmailAddress::try_from(raw.email).map_err(ContactError::InvalidEmail)?,
-            display_name: DisplayName::parse(&raw.display_name)?,
+            display_name: BoundedName::try_from(raw.display_name)
+                .map_err(ContactError::InvalidDisplayName)?,
         })
     }
 }
@@ -117,7 +95,8 @@ impl TryFrom<ContactRow> for Contact {
         }
         Ok(Self {
             email: EmailAddress::try_from(row.email).map_err(ContactError::InvalidEmail)?,
-            display_name: DisplayName::parse(&row.display_name)?,
+            display_name: BoundedName::try_from(row.display_name)
+                .map_err(ContactError::InvalidDisplayName)?,
         })
     }
 }
