@@ -42,11 +42,24 @@ Expanded gate sections remain valid when a procedure needs a fuller argument
 per question. The two forms carry the same disposition and traceability
 requirements.
 
-The current corpus deliberately uses the expanded form only for the
-foundational RUST-DOC-0001 package review; RUST-DOC-0002 through
-RUST-DOC-0009 use tables. Do not normalize that exception mechanically if doing
-so would discard its evidence and remediation detail. New divergence must
-explain what additional review value the expanded form supplies.
+Every review artifact in the corpus now uses the table form: all eleven package
+review standards, and all seven procedures listed above. The expanded form has no
+current instance.
+
+That is a change, not the original design. RUST-DOC-0001's review standard was
+written in the expanded form and stayed there while the corpus grew; it became a
+table when every gate acquired the `Check` column that declares whether it is
+judgment or a named mechanical command, because that column has to be readable
+across gates rather than buried in one section per gate. This paragraph went on
+describing the old shape, and named RUST-DOC-0002 through RUST-DOC-0009 as the
+packages using tables — an enumeration that had already been stale since
+RUST-DOC-0010 and RUST-DOC-0011 were added. It instructed readers to preserve an
+exception that no longer existed, which is worse than saying nothing: it invited
+someone to restore a form the enforcement column cannot carry.
+
+The expanded form remains valid where a procedure genuinely needs a fuller
+argument per question. Reintroducing it means keeping the `Check` declaration
+legible per gate, and saying what review value the expansion supplies.
 
 ## Severity and disposition
 

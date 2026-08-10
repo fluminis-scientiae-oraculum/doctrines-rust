@@ -7,8 +7,41 @@ compatible normative requirements, and major releases may change doctrine contra
 ## [0.9.0] — 2026-08-10
 
 Connects every file, directory, and crate the corpus had left unreachable, and gates the
-connection so the next one cannot land unnoticed. No normative meaning changes; the version
-is minor because the new gates add requirements a future change has to satisfy.
+connection so the next one cannot land unnoticed. A repository-wide audit before release then
+held the corpus to its own doctrine and fixed what it found. No normative meaning changes; the
+version is minor because the new gates add requirements a future change has to satisfy.
+
+### Audited before release
+
+- The pinned development toolchain, the workspace MSRV, and the Miri nightly were each
+  restated by hand in several places with nothing comparing them — the clippy MSRV, the
+  examples matrix and its display names, the CI install step, the Miri job's own name and
+  install step, and every Miri invocation the corpus tells a reader to run. That is
+  `RUST-DOC-0011-R004` in this repository's own tree. `check_pinned_versions` now holds each
+  restatement equal to the file that declares it, reading only artifacts the repository owns.
+  Both prose copies were removed rather than gated, since the remedy R004 prefers is to delete
+  the second source.
+- `RUST-DOC-0002-R010` waived itself with "No production unwrap or expect exists to justify".
+  Two do, in `tools/bundle-agent-context/src/main.rs`, and they are model compliance with the
+  rule: each states the invariant that makes failure a defect. The waiver is now the artifact.
+- `RUST-DOC-0008-R020` said the inventory test "scopes its reads to the manifest directory".
+  It reads the workspace manifest one level above it. What is true, and what the rule is about,
+  is that every read derives from `CARGO_MANIFEST_DIR` rather than the working directory.
+- Gate `T20` declared `grep -q 'channel = "1.97.1"' rust-toolchain.toml`, which decided only
+  that a file contains a string, embedded a fourth copy of the toolchain version in a doctrine
+  package, and could pass while `RUSTUP_TOOLCHAIN` overrode the pin. It now declares the
+  command that does decide it: `trybuild` fails when recorded diagnostics disagree with the
+  resolved compiler.
+- Gate `T48` declared the workspace test command for "Are tests isolated in parallel?". A green
+  run is equally consistent with isolated and non-isolated tests; one that shares a fixed file
+  passes or fails by scheduling. The gate is judgment, which is what its own pass evidence
+  ("unique resources") always described.
+- `EVIDENCE.md` omitted the three `evidence_of_absence` tests for the whole release that
+  introduced the rule they enforce, so its counts summed to three fewer tests than the
+  workspace runs. It also said six `doctrine-manifest` tests check a decoded vocabulary while
+  the next paragraph said four — four is right — and opened its connectivity bullet with a
+  count of eleven against nine described items, two of which were one test counted twice.
+- The root `README.md` said "This file names no version number" four lines above naming two.
 
 ### Fixed in 0.9.0
 

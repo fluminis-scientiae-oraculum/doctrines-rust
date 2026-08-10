@@ -241,9 +241,12 @@ This file names no version number, for the same reason it no longer repeats the 
 
 ## Local validation
 
-The pinned development toolchain is Rust 1.97.1. The workspace MSRV is Rust 1.85.0, the first
-stable release supporting Edition 2024; selected dependencies declare compatibility with that
-floor. Markdown tooling uses the exact Node.js, Prettier, and markdownlint-cli2 versions pinned
+The pinned development toolchain is the channel [`rust-toolchain.toml`](rust-toolchain.toml)
+declares, and the workspace MSRV is the `rust-version` in [`Cargo.toml`](Cargo.toml) — the first
+stable release supporting Edition 2024, which selected dependencies declare compatibility with.
+Neither number is repeated here: `doctrine-lint` holds every restatement of them equal to those
+two files, and a copy in this paragraph would be one more place a bump has to reach. Markdown
+tooling uses the exact Node.js, Prettier, and markdownlint-cli2 versions pinned
 by `.node-version` and [`package-lock.json`](package-lock.json). Run from the repository root:
 
 ```bash

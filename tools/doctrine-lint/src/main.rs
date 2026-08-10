@@ -358,6 +358,7 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     // itself, and one diagnostic silently replaced two.
     check_lint_parity(root, &mut diagnostics);
     check_workflow_index(root, &mut diagnostics);
+    check_pinned_versions(root, &mut diagnostics);
 
     check_rule_enforcement(root, &doctrine_manifest, &mut diagnostics);
     check_gate_check_column(root, &doctrine_manifest, &mut diagnostics);
@@ -1427,6 +1428,10 @@ fn check_workspace_crate_coverage(
 /// CI table. `.github` is registered in [`INDEXLESS_DIRECTORIES`] for the same reason.
 const WORKFLOW_INDEX: &str = ".github/AUTOMATION.md";
 
+/// The two workflows that restate a pinned toolchain version.
+const EXAMPLES_WORKFLOW: &str = ".github/workflows/rust-examples.yml";
+const DOCTRINE_CI_WORKFLOW: &str = ".github/workflows/doctrine-ci.yml";
+
 /// Rejects a workflow index that does not name exactly the workflows on disk.
 ///
 /// The automation index carries a hand-written table of the workflows and what each gates.
@@ -1491,6 +1496,389 @@ fn check_workflow_index(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
         diagnostics.push(Diagnostic::new(
             &index_path,
             format!("this index links workflows/{workflow}, which does not exist"),
+        ));
+    }
+}
+
+/// A workflow, read only for the toolchain versions it restates.
+///
+/// Deserialized into named fields rather than pattern-matched out of the text: the values
+/// live at known keys, and a structural change has to fail loudly here rather than quietly
+/// stop comparing. Unknown keys are ignored, so an unrelated workflow edit does not reach
+/// this check.
+#[derive(serde::Deserialize)]
+struct Workflow {
+    jobs: std::collections::BTreeMap<String, WorkflowJob>,
+}
+
+#[derive(serde::Deserialize)]
+struct WorkflowJob {
+    #[serde(default)]
+    name: Option<String>,
+    #[serde(default)]
+    env: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    steps: Vec<WorkflowStep>,
+    #[serde(default)]
+    strategy: Option<WorkflowStrategy>,
+}
+
+#[derive(serde::Deserialize)]
+struct WorkflowStrategy {
+    matrix: WorkflowMatrix,
+}
+
+#[derive(serde::Deserialize)]
+struct WorkflowMatrix {
+    include: Vec<WorkflowMatrixEntry>,
+}
+
+#[derive(serde::Deserialize)]
+struct WorkflowMatrixEntry {
+    name: String,
+    toolchain: String,
+}
+
+#[derive(serde::Deserialize)]
+struct WorkflowStep {
+    #[serde(default)]
+    with: Option<WorkflowStepInputs>,
+}
+
+#[derive(serde::Deserialize)]
+struct WorkflowStepInputs {
+    #[serde(default)]
+    toolchain: Option<String>,
+}
+
+/// `[workspace.package] rust-version` — the MSRV Cargo itself enforces.
+fn workspace_rust_version(cargo: &str) -> Option<String> {
+    let document: toml::Value = toml::from_str(cargo).ok()?;
+    document
+        .get("workspace")?
+        .get("package")?
+        .get("rust-version")?
+        .as_str()
+        .map(str::to_owned)
+}
+
+/// `[toolchain] channel` — what rustup resolves when nothing overrides it.
+fn toolchain_channel(text: &str) -> Option<String> {
+    let document: toml::Value = toml::from_str(text).ok()?;
+    document
+        .get("toolchain")?
+        .get("channel")?
+        .as_str()
+        .map(str::to_owned)
+}
+
+/// The `msrv` key clippy lints against.
+fn clippy_msrv(text: &str) -> Option<String> {
+    let document: toml::Value = toml::from_str(text).ok()?;
+    document.get("msrv")?.as_str().map(str::to_owned)
+}
+
+/// Every resolvable toolchain a document invokes Miri with.
+///
+/// Restricted to Miri because that is the only command in this corpus whose toolchain is a
+/// pinned repository fact. `cargo +stable fmt` names a channel, not a pin, and reporting it
+/// would put a false failure in the mandatory sequence.
+///
+/// Restricted to resolvable names for the same reason: prose that writes the command shape
+/// instead of issuing it names nothing rustup could install. This file's own README tripped
+/// on that before the filter existed.
+fn miri_command_toolchains(text: &str) -> Vec<String> {
+    const PREFIX: &str = "cargo +";
+    let mut found = Vec::new();
+    for (offset, _) in text.match_indices(PREFIX) {
+        // `PREFIX` is ASCII, so this offset is a character boundary; `name` is collected
+        // from `rest`'s own characters, so slicing past it is one too. A previous release
+        // shipped a UTF-8 slicing panic in a scan written without that argument.
+        let rest = &text[offset + PREFIX.len()..];
+        let name: String = rest.chars().take_while(|c| !c.is_whitespace()).collect();
+        if name.is_empty() {
+            continue;
+        }
+        let after = &rest[name.len()..];
+        let line = &after[..after.find('\n').unwrap_or(after.len())];
+        // Only where a toolchain could actually be resolved: a named channel, or a spec
+        // carrying a digit. Prose describing the command shape rather than issuing it — a
+        // metasyntactic `+toolchain` — names nothing rustup could install, and reporting it
+        // put a false failure in the mandatory sequence the first time this check's own
+        // documentation was written.
+        let resolvable = matches!(name.as_str(), "stable" | "beta" | "nightly")
+            || name.chars().any(|character| character.is_ascii_digit());
+        if line.contains("miri") && resolvable {
+            found.push(name);
+        }
+    }
+    found
+}
+
+/// Holds every restatement of a pinned toolchain equal to the artifact that declares it.
+///
+/// Three versions decide how this repository builds: the development channel in
+/// `rust-toolchain.toml`, the MSRV in `[workspace.package] rust-version`, and the Miri
+/// nightly the unsafe-evidence job pins. Each was restated by hand elsewhere — the clippy
+/// MSRV, the examples matrix and its display names, the CI install step, the Miri job's own
+/// name and install step, and every Miri invocation the corpus gives a reader to run.
+/// Nothing compared any of them.
+///
+/// That is `RUST-DOC-0011-R004` in this repository's own tree: a second independently
+/// editable copy of an enforced fact. The copies are forced rather than chosen — a workflow
+/// cannot read `rust-toolchain.toml`, and a reviewer needs a command they can paste — which
+/// is the case R004 permits a mechanically checked view for, and this is that check.
+///
+/// It reads only artifacts this repository owns, through the same parsers Cargo and the
+/// workflow runner use. It never inspects an installed toolchain: what rustup would resolve
+/// on a contributor's machine is not a question the corpus can decide, and a gate that
+/// needed to would be the kind this repository has already deleted twice.
+fn check_pinned_versions(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
+    let cargo_path = root.join("Cargo.toml");
+    let toolchain_path = root.join("rust-toolchain.toml");
+    let clippy_path = root.join("clippy.toml");
+    let examples_path = root.join(EXAMPLES_WORKFLOW);
+
+    let Some(cargo) = read_text(&cargo_path, diagnostics) else {
+        return;
+    };
+    let Some(toolchain) = read_text(&toolchain_path, diagnostics) else {
+        return;
+    };
+    let Some(examples_text) = read_text(&examples_path, diagnostics) else {
+        return;
+    };
+
+    let Some(msrv) = workspace_rust_version(&cargo) else {
+        diagnostics.push(Diagnostic::new(
+            &cargo_path,
+            "cannot read [workspace.package] rust-version, so no MSRV restatement was compared",
+        ));
+        return;
+    };
+    let Some(channel) = toolchain_channel(&toolchain) else {
+        diagnostics.push(Diagnostic::new(
+            &toolchain_path,
+            "cannot read [toolchain] channel, so no toolchain restatement was compared",
+        ));
+        return;
+    };
+    let examples: Workflow = match serde_yaml_ng::from_str(&examples_text) {
+        Ok(parsed) => parsed,
+        Err(error) => {
+            diagnostics.push(Diagnostic::new(
+                &examples_path,
+                format!(
+                    "cannot read the toolchain pins out of this workflow, so nothing was \
+                     compared against them: {error}"
+                ),
+            ));
+            return;
+        }
+    };
+
+    // clippy lints against a floor it is told separately. A disagreement means the lint
+    // pass accepts or rejects language features the build does not.
+    if let Some(clippy) = read_text(&clippy_path, diagnostics) {
+        match clippy_msrv(&clippy) {
+            Some(stated) if stated == msrv => {}
+            Some(stated) => diagnostics.push(Diagnostic::new(
+                &clippy_path,
+                format!("msrv {stated} does not match [workspace.package] rust-version {msrv}"),
+            )),
+            None => diagnostics.push(Diagnostic::new(
+                &clippy_path,
+                format!("no msrv key, so clippy does not lint against the declared MSRV {msrv}"),
+            )),
+        }
+    }
+
+    compare_toolchain_matrix(&examples_path, &examples, &msrv, &channel, diagnostics);
+    compare_ci_toolchain(root, &channel, diagnostics);
+    let Some(nightly) = miri_nightly(&examples_path, &examples, diagnostics) else {
+        return;
+    };
+    compare_miri_install(&examples_path, &examples, nightly, diagnostics);
+    compare_documented_miri_commands(root, nightly, diagnostics);
+}
+
+/// The examples matrix must build both declared toolchains and nothing else.
+///
+/// An entry too few leaves a version advertised but never built, which is how a Rust 1.88
+/// construct once shipped into a workspace declaring 1.85.0.
+fn compare_toolchain_matrix(
+    path: &Path,
+    examples: &Workflow,
+    msrv: &str,
+    channel: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    let Some(matrix_job) = examples.jobs.get("examples") else {
+        diagnostics.push(Diagnostic::new(
+            path,
+            "no `examples` job, so the toolchain matrix was not compared",
+        ));
+        return;
+    };
+    let Some(strategy) = &matrix_job.strategy else {
+        diagnostics.push(Diagnostic::new(
+            path,
+            "the `examples` job declares no matrix, so no toolchain was compared",
+        ));
+        return;
+    };
+
+    let built: BTreeSet<&str> = strategy
+        .matrix
+        .include
+        .iter()
+        .map(|entry| entry.toolchain.as_str())
+        .collect();
+    let declared: BTreeSet<&str> = [msrv, channel].into_iter().collect();
+    if built != declared {
+        diagnostics.push(Diagnostic::new(
+            path,
+            format!(
+                "the examples matrix builds {built:?}, but the declared toolchains are \
+                 {declared:?} (MSRV from Cargo.toml, channel from rust-toolchain.toml)"
+            ),
+        ));
+    }
+    for entry in &strategy.matrix.include {
+        if !entry.name.contains(&entry.toolchain) {
+            diagnostics.push(Diagnostic::new(
+                path,
+                format!(
+                    "matrix entry named {:?} builds {}, so the CI check name reports a \
+                     toolchain it does not use",
+                    entry.name, entry.toolchain
+                ),
+            ));
+        }
+    }
+}
+
+/// The nightly the Miri job actually runs under, which is the authority for every other
+/// statement of it.
+fn miri_nightly<'a>(
+    path: &Path,
+    examples: &'a Workflow,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Option<&'a String> {
+    let Some(miri_job) = examples.jobs.get("miri") else {
+        diagnostics.push(Diagnostic::new(
+            path,
+            "no `miri` job, so the pinned nightly was not compared",
+        ));
+        return None;
+    };
+    let nightly = miri_job.env.get("RUSTUP_TOOLCHAIN");
+    if nightly.is_none() {
+        diagnostics.push(Diagnostic::new(
+            path,
+            "the `miri` job sets no RUSTUP_TOOLCHAIN, so the pinned nightly has no authority",
+        ));
+    }
+    nightly
+}
+
+/// The Miri job states its nightly twice more: the toolchain it installs, and the job name
+/// branch protection sees. Installing one nightly and running under another is a job that
+/// silently tests nothing it claims to.
+fn compare_miri_install(
+    path: &Path,
+    examples: &Workflow,
+    nightly: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    let Some(miri_job) = examples.jobs.get("miri") else {
+        return;
+    };
+    for step in &miri_job.steps {
+        let Some(inputs) = &step.with else { continue };
+        let Some(stated) = &inputs.toolchain else {
+            continue;
+        };
+        if stated != nightly {
+            diagnostics.push(Diagnostic::new(
+                path,
+                format!("the miri job installs {stated} but runs under RUSTUP_TOOLCHAIN {nightly}"),
+            ));
+        }
+    }
+    match &miri_job.name {
+        Some(name) if name.contains(nightly) => {}
+        Some(name) => diagnostics.push(Diagnostic::new(
+            path,
+            format!("the miri job is named {name:?} but runs {nightly}"),
+        )),
+        // A job with no `name` renders as its own key, which carries no version and so has
+        // nothing that can drift. Requiring one here would report a workflow that is right.
+        None => {}
+    }
+}
+
+/// Doctrine CI installs one toolchain by literal value, and it is the development pin. A
+/// templated value belongs to the matrix, compared separately.
+fn compare_ci_toolchain(root: &Path, channel: &str, diagnostics: &mut Vec<Diagnostic>) {
+    let ci_path = root.join(DOCTRINE_CI_WORKFLOW);
+    let Some(ci_text) = read_text(&ci_path, diagnostics) else {
+        return;
+    };
+    let ci: Workflow = match serde_yaml_ng::from_str(&ci_text) {
+        Ok(parsed) => parsed,
+        Err(error) => {
+            diagnostics.push(Diagnostic::new(
+                &ci_path,
+                format!(
+                    "cannot read this workflow's toolchain steps, so none were compared: {error}"
+                ),
+            ));
+            return;
+        }
+    };
+    for job in ci.jobs.values() {
+        for step in &job.steps {
+            let Some(inputs) = &step.with else { continue };
+            let Some(stated) = &inputs.toolchain else {
+                continue;
+            };
+            if !stated.contains("${{") && stated != channel {
+                diagnostics.push(Diagnostic::new(
+                    &ci_path,
+                    format!("installs toolchain {stated}; rust-toolchain.toml pins {channel}"),
+                ));
+            }
+        }
+    }
+}
+
+/// Every Miri invocation the corpus hands a reader has to name the pinned nightly, including
+/// the two inside review-standard gate declarations.
+fn compare_documented_miri_commands(root: &Path, nightly: &str, diagnostics: &mut Vec<Diagnostic>) {
+    let mut observed = 0_usize;
+    for path in reachability_scope(root, diagnostics) {
+        let Some(text) = read_text(&path, diagnostics) else {
+            continue;
+        };
+        for stated in miri_command_toolchains(&text) {
+            observed += 1;
+            if stated != nightly {
+                diagnostics.push(Diagnostic::new(
+                    &path,
+                    format!("this document runs Miri on {stated}; the pinned nightly is {nightly}"),
+                ));
+            }
+        }
+    }
+    // `RUST-DOC-0008-R022`: finding no mismatch proves nothing unless the scan saw a command
+    // at all. The corpus documents the Miri invocation in several places, so zero
+    // observations means this scan stopped reading, not that every copy agrees.
+    if observed == 0 {
+        diagnostics.push(Diagnostic::new(
+            root.join(EXAMPLES_WORKFLOW),
+            "no Miri invocation was found in any maintained document, so the pinned-nightly \
+             comparison examined nothing",
         ));
     }
 }
@@ -3437,6 +3825,10 @@ mod tests {
         workspace_excludes, workspace_members,
     };
     use super::{
+        DOCTRINE_CI_WORKFLOW, EXAMPLES_WORKFLOW, check_pinned_versions, clippy_msrv,
+        miri_command_toolchains, toolchain_channel, workspace_rust_version,
+    };
+    use super::{
         ENFORCEMENT_FIELD, GENERATED_IN_CANONICAL_ROOTS, REACHABILITY_EXEMPTIONS,
         REACHABILITY_EXTRA_ROOTS, RuleInventory, check_gate_check_column, check_path_references,
         check_reachability, check_reserved_ceiling, check_rule_enforcement, check_stated_counts,
@@ -4965,6 +5357,262 @@ mod tests {
         );
 
         let _ = fs::remove_dir_all(&root);
+    }
+
+    /// Writes a tree whose five toolchain restatements all agree, so a test can disagree
+    /// with exactly one of them and attribute the diagnostic to that one.
+    fn pinned_version_tree(name: &str) -> PathBuf {
+        let root = temporary_directory(name);
+        fs::create_dir_all(root.join(".github/workflows")).unwrap();
+        fs::write(
+            root.join("Cargo.toml"),
+            "[workspace.package]\nversion = \"0.9.0\"\nrust-version = \"1.85.0\"\n",
+        )
+        .unwrap();
+        fs::write(
+            root.join("rust-toolchain.toml"),
+            "[toolchain]\nchannel = \"1.97.1\"\n",
+        )
+        .unwrap();
+        fs::write(root.join("clippy.toml"), "msrv = \"1.85.0\"\n").unwrap();
+        fs::write(
+            root.join(EXAMPLES_WORKFLOW),
+            concat!(
+                "jobs:\n",
+                "  examples:\n",
+                "    strategy:\n",
+                "      matrix:\n",
+                "        include:\n",
+                "          - name: MSRV 1.85.0\n",
+                "            toolchain: \"1.85.0\"\n",
+                "          - name: stable 1.97.1\n",
+                "            toolchain: \"1.97.1\"\n",
+                "  miri:\n",
+                "    name: Unsafe evidence (Miri nightly-2026-07-13)\n",
+                "    env:\n",
+                "      RUSTUP_TOOLCHAIN: nightly-2026-07-13\n",
+                "    steps:\n",
+                "      - name: Install pinned nightly with Miri\n",
+                "        with:\n",
+                "          toolchain: nightly-2026-07-13\n",
+            ),
+        )
+        .unwrap();
+        fs::write(
+            root.join(DOCTRINE_CI_WORKFLOW),
+            concat!(
+                "jobs:\n",
+                "  doctrine:\n",
+                "    steps:\n",
+                "      - name: Install pinned Rust toolchain\n",
+                "        with:\n",
+                "          toolchain: 1.97.1\n",
+            ),
+        )
+        .unwrap();
+        fs::write(
+            root.join("README.md"),
+            "# Root\n\n```bash\ncargo +nightly-2026-07-13 miri test --locked -p unsafe-evidence\n```\n",
+        )
+        .unwrap();
+        root
+    }
+
+    /// Each of the five restatements is disagreed with in turn, and each produces the
+    /// diagnostic naming that restatement rather than a different one.
+    #[test]
+    fn pinned_versions_report_every_restatement_that_disagrees() {
+        let root = pinned_version_tree("pinned-versions");
+
+        // The agreeing tree first: without this the seeded runs below could not be
+        // attributed to the seed, because a tree that always reports is not a check.
+        let mut agreeing = Vec::new();
+        check_pinned_versions(&root, &mut agreeing);
+        assert!(
+            agreeing.is_empty(),
+            "a tree whose restatements agree was reported: {agreeing:?}"
+        );
+
+        // Every case below was written because deleting the guard it covers left the suite
+        // green. Two of them — the matrix display name and the doctrine-CI install step —
+        // were missing from the first version of this test, so those guards shipped
+        // unproven until a mutation run said so.
+        let cases: [(&str, &str, &str, &str); 7] = [
+            (
+                "clippy.toml",
+                "msrv = \"1.85.0\"\n",
+                "msrv = \"1.90.0\"\n",
+                "does not match [workspace.package] rust-version 1.85.0",
+            ),
+            (
+                EXAMPLES_WORKFLOW,
+                "          - name: MSRV 1.85.0\n",
+                "          - name: MSRV floor\n",
+                "reports a toolchain it does not use",
+            ),
+            (
+                DOCTRINE_CI_WORKFLOW,
+                "          toolchain: 1.97.1\n",
+                "          toolchain: 1.96.0\n",
+                "installs toolchain 1.96.0; rust-toolchain.toml pins 1.97.1",
+            ),
+            (
+                EXAMPLES_WORKFLOW,
+                "            toolchain: \"1.85.0\"\n",
+                "            toolchain: \"1.86.0\"\n",
+                "but the declared toolchains are",
+            ),
+            (
+                EXAMPLES_WORKFLOW,
+                "          toolchain: nightly-2026-07-13\n",
+                "          toolchain: nightly-2026-07-20\n",
+                "installs nightly-2026-07-20 but runs under RUSTUP_TOOLCHAIN",
+            ),
+            (
+                EXAMPLES_WORKFLOW,
+                "    name: Unsafe evidence (Miri nightly-2026-07-13)\n",
+                "    name: Unsafe evidence (Miri)\n",
+                "but runs nightly-2026-07-13",
+            ),
+            (
+                "README.md",
+                "cargo +nightly-2026-07-13 miri",
+                "cargo +nightly-2026-01-01 miri",
+                "runs Miri on nightly-2026-01-01",
+            ),
+        ];
+
+        for (relative, from, to, expected) in cases {
+            let path = root.join(relative);
+            let original = fs::read_to_string(&path).unwrap();
+            assert!(
+                original.contains(from),
+                "the fixture no longer contains {from:?}, so this case seeds nothing"
+            );
+            fs::write(&path, original.replace(from, to)).unwrap();
+
+            let mut seeded = Vec::new();
+            check_pinned_versions(&root, &mut seeded);
+            assert!(
+                seeded
+                    .iter()
+                    .any(|diagnostic| diagnostic.message.contains(expected)),
+                "seeding {relative} with {to:?} did not report {expected:?}; got {seeded:?}"
+            );
+
+            fs::write(&path, original).unwrap();
+        }
+
+        // Restored, the tree is silent again, so every diagnostic above came from its seed.
+        let mut restored = Vec::new();
+        check_pinned_versions(&root, &mut restored);
+        assert!(
+            restored.is_empty(),
+            "the restored tree was still reported: {restored:?}"
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    /// A corpus that names no Miri command must not leave the check silently satisfied.
+    ///
+    /// This is the `RUST-DOC-0008-R022` obligation applied to this gate: the comparison's
+    /// pass condition is "no mismatch found", which an empty scan reports identically.
+    #[test]
+    fn a_corpus_naming_no_miri_command_is_reported_rather_than_passing() {
+        let root = pinned_version_tree("pinned-versions-blind");
+        fs::write(root.join("README.md"), "# Root\n\nNo command here.\n").unwrap();
+
+        let mut diagnostics = Vec::new();
+        check_pinned_versions(&root, &mut diagnostics);
+        assert!(
+            diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.message.contains("examined nothing")),
+            "a corpus with no Miri command passed silently; got {diagnostics:?}"
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    /// The real corpus still contains a Miri command for the scan above to read.
+    ///
+    /// The predicate control runs against a fixture. This runs against the tree the
+    /// mandatory sequence checks, so narrowing `reachability_scope` or moving the
+    /// documented command out of its roots is reported here rather than quietly turning
+    /// the pinned-nightly comparison into a scan of nothing.
+    #[test]
+    fn the_real_corpus_still_documents_a_miri_command_to_compare() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mut diagnostics = Vec::new();
+        let observed: usize = reachability_scope(&root, &mut diagnostics)
+            .iter()
+            .filter_map(|path| fs::read_to_string(path).ok())
+            .map(|text| miri_command_toolchains(&text).len())
+            .sum();
+        assert!(
+            observed > 0,
+            "no document in the reachability scope runs Miri, so check_pinned_versions \
+             compares nothing against the pinned nightly"
+        );
+    }
+
+    /// The parser reads a toolchain only out of a Miri invocation.
+    #[test]
+    fn miri_command_toolchains_reads_only_miri_invocations() {
+        assert_eq!(
+            miri_command_toolchains("run `cargo +nightly-2026-07-13 miri test -p x` to check"),
+            vec!["nightly-2026-07-13".to_owned()]
+        );
+        // A pinned channel that is not a Miri run is somebody else's business.
+        assert!(miri_command_toolchains("cargo +stable fmt --all").is_empty());
+        // `miri` on a later line belongs to a later command, not this one.
+        assert!(miri_command_toolchains("cargo +stable build\nthen miri").is_empty());
+        // A final command with no trailing newline still parses.
+        assert_eq!(
+            miri_command_toolchains("cargo +nightly-2026-07-13 miri setup"),
+            vec!["nightly-2026-07-13".to_owned()]
+        );
+        // Multi-byte text on both sides must not split a character boundary.
+        assert_eq!(
+            miri_command_toolchains("— run cargo +nightly-2026-07-13 miri test — done"),
+            vec!["nightly-2026-07-13".to_owned()]
+        );
+        assert!(miri_command_toolchains("cargo + miri").is_empty());
+        // Prose describing the command shape names no resolvable toolchain. This check's
+        // own README tripped on exactly this before the guard existed.
+        assert!(miri_command_toolchains("every `cargo +toolchain miri` command").is_empty());
+        // A named channel is resolvable, so an unpinned Miri run is still reported.
+        assert_eq!(
+            miri_command_toolchains("cargo +nightly miri test"),
+            vec!["nightly".to_owned()]
+        );
+    }
+
+    /// The three authorities are read from their own key, not from any string that resembles
+    /// a version elsewhere in the same file.
+    #[test]
+    fn pinned_version_authorities_come_from_their_own_keys() {
+        assert_eq!(
+            workspace_rust_version(
+                "[package]\nrust-version = \"1.70.0\"\n\n[workspace.package]\nrust-version = \"1.85.0\"\n"
+            ),
+            Some("1.85.0".to_owned())
+        );
+        assert_eq!(workspace_rust_version("[workspace.package]\n"), None);
+        assert_eq!(
+            toolchain_channel("# channel = \"1.0.0\"\n[toolchain]\nchannel = \"1.97.1\"\n"),
+            Some("1.97.1".to_owned())
+        );
+        assert_eq!(
+            toolchain_channel("[toolchain]\nprofile = \"minimal\"\n"),
+            None
+        );
+        assert_eq!(
+            clippy_msrv("avoid-breaking-exported-api = false\nmsrv = \"1.85.0\"\n"),
+            Some("1.85.0".to_owned())
+        );
+        assert_eq!(clippy_msrv("avoid-breaking-exported-api = false\n"), None);
     }
 
     /// Lint parity reaches every member that does not inherit, not one hardcoded crate.

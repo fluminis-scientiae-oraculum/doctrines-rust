@@ -179,8 +179,9 @@ being taught and failure location remains clear.
 **Review evidence.** Search results, invariant comments where not obvious, and negative tests
 for external input.
 
-**Enforcement.** Unenforceable: No production unwrap or expect exists to justify; clippy config does
-not deny them
+**Enforcement.**
+[`tools/bundle-agent-context/src/main.rs`](../../tools/bundle-agent-context/src/main.rs) — two
+production `expect` calls whose message states the invariant that makes failure a defect
 
 ## RUST-DOC-0002-R011 — Preserve security and reconciliation evidence
 

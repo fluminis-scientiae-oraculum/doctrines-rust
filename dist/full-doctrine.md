@@ -259,9 +259,12 @@ This file names no version number, for the same reason it no longer repeats the 
 
 ## Local validation
 
-The pinned development toolchain is Rust 1.97.1. The workspace MSRV is Rust 1.85.0, the first
-stable release supporting Edition 2024; selected dependencies declare compatibility with that
-floor. Markdown tooling uses the exact Node.js, Prettier, and markdownlint-cli2 versions pinned
+The pinned development toolchain is the channel [`rust-toolchain.toml`](../rust-toolchain.toml)
+declares, and the workspace MSRV is the `rust-version` in [`Cargo.toml`](../Cargo.toml) — the first
+stable release supporting Edition 2024, which selected dependencies declare compatibility with.
+Neither number is repeated here: `doctrine-lint` holds every restatement of them equal to those
+two files, and a copy in this paragraph would be one more place a bump has to reach. Markdown
+tooling uses the exact Node.js, Prettier, and markdownlint-cli2 versions pinned
 by `.node-version` and [`package-lock.json`](../package-lock.json). Run from the repository root:
 
 ```bash
@@ -3192,8 +3195,9 @@ being taught and failure location remains clear.
 **Review evidence.** Search results, invariant comments where not obvious, and negative tests
 for external input.
 
-**Enforcement.** Unenforceable: No production unwrap or expect exists to justify; clippy config does
-not deny them
+**Enforcement.**
+[`tools/bundle-agent-context/src/main.rs`](../tools/bundle-agent-context/src/main.rs) — two
+production `expect` calls whose message states the invariant that makes failure a defect
 
 ## RUST-DOC-0002-R011 — Preserve security and reconciliation evidence
 
@@ -4285,7 +4289,11 @@ transaction owner.
 
 **Authority** — Permission to cause a domain effect; distinct from memory access alone.
 
-**Capability** — Protected value whose possession grants bounded operations.
+**Capability** — Protected value whose possession grants bounded operations. The term is
+overloaded across this corpus: `RUST-DOC-0010` uses "capability" for a stage trait, where
+possession conveys position in a protocol rather than permission. That glossary states the
+distinction from its side; this entry states it from the authority side, so a reader meeting
+the word in either package learns it has two senses.
 
 **Custody** — Responsibility for a resource's use, transfer, completion, and release.
 
@@ -4923,7 +4931,7 @@ must choose.
 Choosing a non-poisoning lock removes the poison signal, not the possibility
 that a panic interrupted a multi-step invariant update. The same review must
 therefore define whether unwinding can expose partial state and how the
-component repairs or abandons it. In the pinned Rust 1.97.1 documentation,
+component repairs or abandons it. In the Rust 1.97.1 documentation,
 `std::sync::nonpoison` is present but nightly-only and experimental; consumers
 must check the documentation for their actual toolchain rather than infer
 stability from the namespace.
@@ -9365,8 +9373,8 @@ but MUST record reproducible seeds and isolate effects.
 **Review evidence.** Temporary resource strategy, seed capture, controlled
 clock, and parallel-run results.
 
-**Enforcement.** [`examples/src/lib.rs`](../examples/src/lib.rs) — the inventory test scopes its
-reads to the manifest directory
+**Enforcement.** [`examples/src/lib.rs`](../examples/src/lib.rs) — every read in the inventory
+test derives from `CARGO_MANIFEST_DIR` rather than the working directory
 
 ## RUST-DOC-0008-R021 — State evidence limits
 
@@ -9703,7 +9711,7 @@ reference** for every gate.
 | T17  | Is each compile-fail source minimal?                   | judgment                                                                    | one prohibition             | unrelated errors                             | high     | simplify              |
 | T18  | Does diagnostic fail for intended reason?              | judgment                                                                    | semantic inspection         | missing import causes pass                   | critical | repair fixture        |
 | T19  | Was `.stderr` change reviewed?                         | judgment                                                                    | focused diff rationale      | overwrite accepted blindly                   | critical | inspect               |
-| T20  | Is pinned compiler used for UI evidence?               | mechanical(grep -q 'channel = "1.97.1"' rust-toolchain.toml)                | toolchain config            | diagnostics vary unnoticed                   | high     | pin                   |
+| T20  | Is pinned compiler used for UI evidence?               | mechanical(cargo test --locked -p doctrine-compile-fail)                    | toolchain config            | diagnostics vary unnoticed                   | high     | pin                   |
 | T21  | Are real codecs exercised?                             | judgment                                                                    | serialization integration   | hand-built domain only                       | high     | cross boundary        |
 | T22  | Is real database behavior exercised where needed?      | judgment                                                                    | integration setup           | in-memory map stands for isolation           | critical | add DB test           |
 | T23  | Are migrations tested from old fixtures?               | judgment                                                                    | version fixtures            | fresh schema only                            | high     | migrate               |
@@ -9731,7 +9739,7 @@ reference** for every gate.
 | T45  | Are golden fixtures sourced and versioned?             | judgment                                                                    | provenance                  | unexplained blob                             | medium   | document              |
 | T46  | Are flaky signatures retained?                         | judgment                                                                    | issue/log evidence          | rerun erases failure                         | high     | capture first         |
 | T47  | Is retry temporary and visible?                        | judgment                                                                    | owner/expiry                | permanent CI reruns                          | high     | fix cause             |
-| T48  | Are tests isolated in parallel?                        | mechanical(cargo test --workspace --all-features --locked)                  | unique resources            | shared fixed port/file                       | high     | allocate uniquely     |
+| T48  | Are tests isolated in parallel?                        | judgment                                                                    | unique resources            | shared fixed port/file                       | high     | allocate uniquely     |
 | T49  | Are environment mutations restored safely?             | judgment                                                                    | scoped guard/process        | global env races                             | high     | isolate process       |
 | T50  | Are clocks controlled?                                 | judgment                                                                    | injected/paused clock       | wall-clock sleep                             | high     | abstract time         |
 | T51  | Is randomness seeded?                                  | judgment                                                                    | recorded seed               | irreproducible fuzz failure                  | high     | capture               |
@@ -16049,9 +16057,13 @@ the obligation, the accountable owner, and the condition under which it lapses.
 
 That residue is one narrow record. It states the single question it answers, states that it does
 not govern the deployment topology, links the policy-as-code that is authoritative for current
-behavior, names the owner, and names a revalidation trigger and an obsolescence condition. It is
-registered in the active set so it can be audited and expired. The worked form is in
-[`../decisions/examples/justified-data-residency.md`](../decisions/examples/justified-data-residency.md).
+behavior, names the owner, and names a revalidation trigger and an obsolescence condition. A record
+of that shape is registered in the active set so it can be audited and expired. The worked form is
+in
+[`../decisions/examples/justified-data-residency.md`](../decisions/examples/justified-data-residency.md),
+which illustrates the shape rather than recording an obligation of this repository: it carries
+`status: example` and is deliberately absent from both lists in the registry, whose active set is
+empty.
 
 **A record that should not exist.** A proposed record titled "Authentication must happen before
 authorization" restates an obligation the successor bound enforces. It names no fact an artifact
@@ -17164,11 +17176,24 @@ Expanded gate sections remain valid when a procedure needs a fuller argument
 per question. The two forms carry the same disposition and traceability
 requirements.
 
-The current corpus deliberately uses the expanded form only for the
-foundational RUST-DOC-0001 package review; RUST-DOC-0002 through
-RUST-DOC-0009 use tables. Do not normalize that exception mechanically if doing
-so would discard its evidence and remediation detail. New divergence must
-explain what additional review value the expanded form supplies.
+Every review artifact in the corpus now uses the table form: all eleven package
+review standards, and all seven procedures listed above. The expanded form has no
+current instance.
+
+That is a change, not the original design. RUST-DOC-0001's review standard was
+written in the expanded form and stayed there while the corpus grew; it became a
+table when every gate acquired the `Check` column that declares whether it is
+judgment or a named mechanical command, because that column has to be readable
+across gates rather than buried in one section per gate. This paragraph went on
+describing the old shape, and named RUST-DOC-0002 through RUST-DOC-0009 as the
+packages using tables — an enumeration that had already been stale since
+RUST-DOC-0010 and RUST-DOC-0011 were added. It instructed readers to preserve an
+exception that no longer existed, which is worse than saying nothing: it invited
+someone to restore a form the enforcement column cannot carry.
+
+The expanded form remains valid where a procedure genuinely needs a fuller
+argument per question. Reintroducing it means keeping the `Check` declaration
+legible per gate, and saying what review value the expansion supplies.
 
 ## Severity and disposition
 
