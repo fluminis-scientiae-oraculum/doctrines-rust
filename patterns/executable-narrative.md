@@ -237,9 +237,13 @@ the obligation, the accountable owner, and the condition under which it lapses.
 
 That residue is one narrow record. It states the single question it answers, states that it does
 not govern the deployment topology, links the policy-as-code that is authoritative for current
-behavior, names the owner, and names a revalidation trigger and an obsolescence condition. It is
-registered in the active set so it can be audited and expired. The worked form is in
-[`../decisions/examples/justified-data-residency.md`](../decisions/examples/justified-data-residency.md).
+behavior, names the owner, and names a revalidation trigger and an obsolescence condition. A record
+of that shape is registered in the active set so it can be audited and expired. The worked form is
+in
+[`../decisions/examples/justified-data-residency.md`](../decisions/examples/justified-data-residency.md),
+which illustrates the shape rather than recording an obligation of this repository: it carries
+`status: example` and is deliberately absent from both lists in the registry, whose active set is
+empty.
 
 **A record that should not exist.** A proposed record titled "Authentication must happen before
 authorization" restates an obligation the successor bound enforces. It names no fact an artifact

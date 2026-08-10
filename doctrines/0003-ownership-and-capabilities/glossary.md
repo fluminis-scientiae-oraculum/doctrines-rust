@@ -2,7 +2,11 @@
 
 **Authority** — Permission to cause a domain effect; distinct from memory access alone.
 
-**Capability** — Protected value whose possession grants bounded operations.
+**Capability** — Protected value whose possession grants bounded operations. The term is
+overloaded across this corpus: `RUST-DOC-0010` uses "capability" for a stage trait, where
+possession conveys position in a protocol rather than permission. That glossary states the
+distinction from its side; this entry states it from the authority side, so a reader meeting
+the word in either package learns it has two senses.
 
 **Custody** — Responsibility for a resource's use, transfer, completion, and release.
 
