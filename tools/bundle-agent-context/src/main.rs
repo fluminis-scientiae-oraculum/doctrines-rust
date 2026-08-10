@@ -125,7 +125,7 @@ struct Projection<'a> {
 }
 
 impl<'a> Projection<'a> {
-    fn new(
+    const fn new(
         root: &'a Path,
         output_path: &'a Path,
         ceiling: Verbosity,
@@ -154,14 +154,14 @@ impl<'a> Projection<'a> {
 
 /// The strongest verbosity the schema declares. An output at this ceiling withholds
 /// nothing, which is what makes `dist/full-doctrine.md` the complete corpus projection.
-fn widest_ceiling() -> Verbosity {
+const fn widest_ceiling() -> Verbosity {
     *Verbosity::ALL
         .last()
         .expect("the schema declares at least one verbosity")
 }
 
 /// The weakest verbosity the schema declares.
-fn narrowest_ceiling() -> Verbosity {
+const fn narrowest_ceiling() -> Verbosity {
     *Verbosity::ALL
         .first()
         .expect("the schema declares at least one verbosity")
@@ -194,7 +194,7 @@ fn assembly_note(projection: &Projection, authority: &str) -> String {
     )
 }
 
-fn plural(count: usize, singular: &'static str, plural: &'static str) -> &'static str {
+const fn plural(count: usize, singular: &'static str, plural: &'static str) -> &'static str {
     if count == 1 { singular } else { plural }
 }
 
@@ -1076,7 +1076,7 @@ enum CommandFailure {
 
 impl CommandFailure {
     /// Distinct codes, so a caller need not parse the message to tell them apart.
-    fn exit_code(&self) -> i32 {
+    const fn exit_code(&self) -> i32 {
         match self {
             Self::Incomplete(_) => 1,
             Self::Drift(_) => 3,

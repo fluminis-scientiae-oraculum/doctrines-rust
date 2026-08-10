@@ -83,66 +83,6 @@ const REACHABILITY_EXEMPTIONS: &[(&str, &str)] = &[
 /// [`REACHABILITY_EXEMPTIONS`] entries do: named exactly, with a stated reason.
 const INDEXLESS_DIRECTORIES: &[(&str, &str)] = &[];
 
-/// Files no maintained Markdown names, and why that is correct — not an oversight.
-///
-/// The reachability gate covers Markdown. This register covers everything else, and
-/// the same rule applies: a file the corpus never mentions is either connected or
-/// registered, never silently present.
-const UNREFERENCED_FILE_EXEMPTIONS: &[(&str, &str)] = &[
-    (
-        ".fso-amem/project.toml",
-        "an agent memory pointer for tooling outside this repository, not corpus content",
-    ),
-    (
-        "examples/compile-fail/ui/capture_before_authorize.stderr",
-        "a trybuild snapshot regenerated from the case beside it, which the compile-fail index links",
-    ),
-    (
-        "examples/compile-fail/ui/clone_stage_to_duplicate.stderr",
-        "a trybuild snapshot regenerated from the case beside it, which the compile-fail index links",
-    ),
-    (
-        "examples/compile-fail/ui/construct_verified_email_directly.stderr",
-        "a trybuild snapshot regenerated from the case beside it, which the compile-fail index links",
-    ),
-    (
-        "examples/compile-fail/ui/construct_verified_email_fields.stderr",
-        "a trybuild snapshot regenerated from the case beside it, which the compile-fail index links",
-    ),
-    (
-        "examples/compile-fail/ui/forge_stage_evidence.stderr",
-        "a trybuild snapshot regenerated from the case beside it, which the compile-fail index links",
-    ),
-    (
-        "examples/compile-fail/ui/reuse_consumed_stage.stderr",
-        "a trybuild snapshot regenerated from the case beside it, which the compile-fail index links",
-    ),
-    (
-        "examples/compile-fail/ui/reuse_consumed_transaction.stderr",
-        "a trybuild snapshot regenerated from the case beside it, which the compile-fail index links",
-    ),
-    (
-        "examples/compile-fail/ui/send_using_closed_connection.stderr",
-        "a trybuild snapshot regenerated from the case beside it, which the compile-fail index links",
-    ),
-    (
-        "examples/compile-fail/ui/skip_protocol_stage.stderr",
-        "a trybuild snapshot regenerated from the case beside it, which the compile-fail index links",
-    ),
-];
-
-/// Top-level directories no connectivity gate walks, and why.
-///
-/// `dist` is generated and already held to exact set equality by the bundler's own
-/// drift check; the rest are not repository content at all. Naming them here keeps the
-/// walk's boundary a decision rather than an accident of whatever the walker skipped.
-///
-/// Matched at the repository root only, as the name says. Matching these names at any
-/// depth silently unwalked a nested `dist` or `target` that no drift check covers.
-/// Depth is the ignore file's job: `/target/` is root-anchored there and
-/// `node_modules/` is not, and [`IgnoreRules`] honours that distinction.
-const UNSCANNED_TOP_LEVEL: &[&str] = &[".git", "node_modules", "target", "dist"];
-
 const ACTIVE_RECORD_DIRECTORY: &str = "decisions/active/";
 const ARCHIVED_RECORD_DIRECTORY: &str = "decisions/archive/";
 const ARCHIVAL_MARKER: &str = "NOT CURRENT OPERATIONAL AUTHORITY";
@@ -223,14 +163,14 @@ enum RecordBucket {
 }
 
 impl RecordBucket {
-    fn directory(self) -> &'static str {
+    const fn directory(self) -> &'static str {
         match self {
             Self::Active => ACTIVE_RECORD_DIRECTORY,
             Self::Archived => ARCHIVED_RECORD_DIRECTORY,
         }
     }
 
-    fn registry_field(self) -> &'static str {
+    const fn registry_field(self) -> &'static str {
         match self {
             Self::Active => "active_decision_records",
             Self::Archived => "archived_decision_records",
@@ -240,7 +180,7 @@ impl RecordBucket {
     /// Whether a record declaring this status belongs in this registry list. Both
     /// sides are typed, so a status outside the vocabulary cannot reach the
     /// comparison; it fails when the record's front matter is decoded.
-    fn accepts(self, status: RecordStatus) -> bool {
+    const fn accepts(self, status: RecordStatus) -> bool {
         match self {
             Self::Active => matches!(status, RecordStatus::Active),
             Self::Archived => matches!(
@@ -369,7 +309,7 @@ fn check_connectivity(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
         return;
     };
     let members = match workspace_members(&cargo) {
-        Ok(members) if !members.is_empty() => members,
+        Ok(members) if !members.is_empty() => expand_member_globs(root, &members),
         Ok(_) => {
             diagnostics.push(Diagnostic::new(
                 &cargo_path,
@@ -386,22 +326,52 @@ fn check_connectivity(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
         }
     };
 
-    // Walked and read ONCE, with a throwaway sink: `check_reachability` already ran this
-    // same walk and read these same files, and reported whatever it could not. Letting
-    // each sub-check re-read the scope with the real sink turned one unreadable file
-    // into four identical diagnostics.
+    // Walked once, with a throwaway sink: `check_reachability` already ran this same walk
+    // and reported whatever it could not read. Letting each sub-check repeat it turned one
+    // unreadable file into four identical diagnostics.
+    //
+    // The PATHS are the shared unit, not the texts. Pre-reading and dropping what failed
+    // silently removed a directory from the index check's required set, so a directory
+    // whose only Markdown does not decode stopped needing a README at all.
     let mut discarded = Vec::new();
-    let scope: Vec<(PathBuf, String)> = reachability_scope(root, &mut discarded)
-        .into_iter()
-        .filter_map(|path| {
-            let text = read_text(&path, &mut discarded)?;
-            Some((path, text))
-        })
-        .collect();
+    let scope = reachability_scope(root, &mut discarded);
 
     check_workspace_crate_coverage(root, &scope, &members, diagnostics);
     check_directory_indexes(root, &scope, &members, diagnostics);
-    check_referenced_files(root, &scope, diagnostics);
+}
+
+/// Workspace members with Cargo's `dir/*` globs expanded to the crates they name.
+///
+/// Cargo accepts a glob in `[workspace] members`, and taking the entry literally made two
+/// checks demand a README for a directory called `examples/*` and report it as a crate no
+/// document links. Only the trailing-`*` form is expanded, because that is the form Cargo
+/// documents and the one a consolidation actually produces; an entry with any other glob
+/// character is passed through unchanged so it surfaces as a real diagnostic rather than
+/// being silently dropped from the membership.
+fn expand_member_globs(root: &Path, members: &[String]) -> Vec<String> {
+    let mut expanded = Vec::new();
+    for member in members {
+        let Some(parent) = member.strip_suffix("/*") else {
+            expanded.push(member.clone());
+            continue;
+        };
+        let mut matched: Vec<String> = Vec::new();
+        for (path, file_type) in classified_entries(&root.join(parent), &mut Vec::new()) {
+            if file_type.is_dir() && path.join("Cargo.toml").is_file() {
+                matched.push(repository_relative(root, &path));
+            }
+        }
+        if matched.is_empty() {
+            // An expansion that matched nothing is reported as the original entry, so a
+            // typo in the glob is still visible rather than silently emptying the list.
+            expanded.push(member.clone());
+        } else {
+            expanded.append(&mut matched);
+        }
+    }
+    expanded.sort();
+    expanded.dedup();
+    expanded
 }
 
 fn validate_schema(
@@ -1128,7 +1098,8 @@ fn check_repository_version(
     let Some(workspace_version) = workspace_package_version(&cargo) else {
         diagnostics.push(Diagnostic::new(
             &cargo_path,
-            "workspace.package version is missing or is not a quoted string",
+            "cannot read [workspace.package] version; the whole manifest is parsed, so a \
+             syntax error anywhere in Cargo.toml reaches here too",
         ));
         return;
     };
@@ -1204,10 +1175,17 @@ fn workspace_members(cargo: &str) -> Result<Vec<String>, String> {
 /// question the check asks is whether a reader can get there at all.
 fn check_workspace_crate_coverage(
     root: &Path,
-    scope: &[(PathBuf, String)],
+    scope: &[PathBuf],
     members: &[String],
     diagnostics: &mut Vec<Diagnostic>,
 ) {
+    // Read with a throwaway sink: `check_reachability` walked and read this same set and
+    // already reported whatever it could not.
+    let documents: Vec<(PathBuf, String)> = scope
+        .iter()
+        .filter_map(|path| Some((path.clone(), read_text(path, &mut Vec::new())?)))
+        .collect();
+
     for member in members {
         let prefix = format!("{member}/");
         // A member that contains another member is credited only by a link that is not
@@ -1221,7 +1199,7 @@ fn check_workspace_crate_coverage(
             .cloned()
             .collect();
 
-        let covered = scope.iter().any(|(file, text)| {
+        let covered = documents.iter().any(|(file, text)| {
             let from = repository_relative(root, file);
             // A link from inside the crate does not establish that a reader can reach
             // the crate. Two crate-local documents linking each other satisfied this
@@ -1268,13 +1246,13 @@ fn check_workspace_crate_coverage(
 /// feed is an exemption nobody reads.
 fn check_directory_indexes(
     root: &Path,
-    scope: &[(PathBuf, String)],
+    scope: &[PathBuf],
     members: &[String],
     diagnostics: &mut Vec<Diagnostic>,
 ) {
     let mut required: BTreeSet<String> = members.iter().cloned().collect();
 
-    for (file, _) in scope {
+    for file in scope {
         let relative = repository_relative(root, file);
         if let Some((directory, _)) = relative.rsplit_once('/') {
             required.insert(directory.to_owned());
@@ -1310,285 +1288,12 @@ fn check_directory_indexes(
     }
 }
 
-/// Rejects a non-Markdown file the corpus never mentions.
-///
-/// [`check_reachability`] holds every maintained Markdown file to an inbound link and
-/// says nothing about the rest of the repository, so a workflow, a lint configuration,
-/// or a compiler snapshot could sit in the tree named by no document. Twenty-six files
-/// were in that state, including every file under `.github`, and no check could see
-/// them because none of the walks reached outside Markdown.
-///
-/// A mention is weaker than a link on purpose. Requiring a Markdown *link* to every
-/// crate manifest would add thirteen links that serve no reader; requiring the name to
-/// appear at all catches the class that matters, which is a file the corpus has never
-/// heard of. The consequence is that a common basename passes cheaply — a file called
-/// `Cargo.toml` is covered by any mention of any `Cargo.toml` — and that limit is why
-/// this check does not replace [`check_path_references`], which holds a resolvable
-/// mention to a real link.
-///
-/// The mention has to be whole. A plain substring search reported `ci.yml` as covered
-/// because some document mentioned `doctrine-ci.yml`, which silently exempted every
-/// file whose name ends in an already-mentioned one.
-///
-/// Markdown outside every connectivity root is reported here rather than skipped.
-/// Dropping it by extension left it checked by nothing at all: [`check_reachability`]
-/// walks only the declared roots, so a document in an undeclared directory was subject
-/// to no inbound-link rule and no index rule — the blind spot this whole group exists
-/// to close, reopened one directory over.
-fn check_referenced_files(
-    root: &Path,
-    scope: &[(PathBuf, String)],
-    diagnostics: &mut Vec<Diagnostic>,
-) {
-    let mut prose = String::new();
-    for (_, text) in scope {
-        prose.push_str(text);
-        prose.push('\n');
-    }
-
-    let ignored = IgnoreRules::read(root, diagnostics);
-    let mut unreadable = Vec::new();
-    let mut candidates = Vec::new();
-    collect_scannable_files(root, root, &ignored, &mut unreadable, &mut |path| {
-        candidates.push(path.to_path_buf());
-    });
-    diagnostics.append(&mut unreadable);
-
-    for path in candidates {
-        let relative = repository_relative(root, &path);
-        if UNREFERENCED_FILE_EXEMPTIONS
-            .iter()
-            .any(|(exempt, _)| *exempt == relative)
-        {
-            continue;
-        }
-
-        if path.extension().and_then(|value| value.to_str()) == Some("md") {
-            // The test is the DIRECTORY, not scope membership. `CHANGELOG.md` and each
-            // `rfcs/<state>/RFC-*.md` sit under a declared root and are excluded from the
-            // maintained set on purpose, as dated records; reporting them would demand
-            // they be moved somewhere that does not exist.
-            if !within_declared_root(&relative) {
-                diagnostics.push(Diagnostic::new(
-                    &path,
-                    "Markdown in a directory no connectivity root declares, so no \
-                     inbound-link or index rule reaches it; move it under a declared root, \
-                     or add its directory to CANONICAL_ROOTS or REACHABILITY_EXTRA_ROOTS",
-                ));
-            }
-            // Anything under a declared root is the reachability gate's business.
-            continue;
-        }
-
-        let name = match relative.rsplit_once('/') {
-            Some((_, name)) => name,
-            None => relative.as_str(),
-        };
-        if names_whole(&prose, &relative) || names_whole(&prose, name) {
-            continue;
-        }
-        diagnostics.push(Diagnostic::new(
-            &path,
-            "no maintained Markdown names this file; describe it in the relevant index, \
-             or register it in UNREFERENCED_FILE_EXEMPTIONS with a stated reason",
-        ));
-    }
-}
-
-/// Whether `prose` names `needle` as a whole path or filename, rather than as part of a
-/// longer one on either side.
-///
-/// Three defects have lived in this predicate, and each needs its own control.
-///
-/// Unanchored, `"doctrine-ci.yml".contains("ci.yml")` credited a file nothing had ever
-/// mentioned. Anchoring only the left side then let a *prefix* through the same way:
-/// `deny.toml.license` credited `deny.toml`. Both sides are checked here.
-///
-/// `/` is a boundary, not a continuation. Counting it as part of the name broke every
-/// legitimate path mention — `workflows/doctrine-ci.yml` stopped naming
-/// `doctrine-ci.yml` — so only characters that can appear *within* one path segment
-/// continue a name.
-///
-/// Scanning is by `match_indices`, which yields char boundaries. Advancing a byte index
-/// by hand could land inside a multibyte character, and slicing there panics: a file
-/// named `émile.txt` beside a mention of `legacy-émile.txt` aborted the whole lint with
-/// a backtrace instead of a diagnostic.
-fn names_whole(prose: &str, needle: &str) -> bool {
-    if needle.is_empty() {
-        return false;
-    }
-    let continues_a_name =
-        |character: char| character.is_alphanumeric() || matches!(character, '-' | '_' | '.');
-
-    prose.match_indices(needle).any(|(start, matched)| {
-        let before = prose[..start].chars().next_back();
-        let after = prose[start + matched.len()..].chars().next();
-        !before.is_some_and(continues_a_name) && !after.is_some_and(continues_a_name)
-    })
-}
-
-/// The ignore patterns the repository declares, so a contributor's local files are not
-/// reported as unreferenced corpus content.
-///
-/// A walk of the working tree is not a walk of the repository. `.lycheecache` is written
-/// by the link workflow and an editor leaves `*.swp` beside the file being edited; both
-/// are ignored, and both made the repository's own mandatory validation sequence fail
-/// with a diagnostic whose only remedy was registering someone's scratch file.
-///
-/// Read from `.gitignore` and `.git/info/exclude` — files, not Git: this binary calls no
-/// external process. A pattern outside the supported subset is REPORTED, never quietly
-/// turned into one that cannot match. The first version of this reader detected only
-/// negation and silently converted `docs/build/`, `build/*.log` and `temp*` into names
-/// no basename could equal, which is precisely the "a rule this walk ignores must not
-/// look obeyed" state its own comment claimed to prevent.
-///
-/// Not read: a user's global `core.excludesFile`, and nested `.gitignore` files. Both
-/// need Git or a config parser, so files they cover are reported and must be registered.
-/// That limit is stated in `tools/doctrine-lint/README.md` rather than left to be
-/// discovered.
-#[derive(Debug, Default)]
-struct IgnoreRules {
-    /// Names ignored at any depth, from an unanchored pattern such as `node_modules/`.
-    names: Vec<String>,
-    /// Repository-relative paths ignored only at the root, from `/target/`.
-    rooted: Vec<String>,
-    /// Extensions ignored at any depth, from `*.swp`.
-    suffixes: Vec<String>,
-}
-
-impl IgnoreRules {
-    const SOURCES: &'static [&'static str] = &[".gitignore", ".git/info/exclude"];
-
-    fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Self {
-        let mut rules = Self::default();
-        for source in Self::SOURCES {
-            let path = root.join(source);
-            if !path.is_file() {
-                // A repository need not have either file; absence ignores nothing.
-                continue;
-            }
-            let Some(text) = read_text(&path, diagnostics) else {
-                // Present but unreadable is a defect, not an empty ignore list. Silently
-                // returning no rules made every contributor scratch file fail the gate
-                // with nothing pointing at the cause.
-                continue;
-            };
-            rules.absorb(&path, &text, diagnostics);
-        }
-        rules
-    }
-
-    fn absorb(&mut self, path: &Path, text: &str, diagnostics: &mut Vec<Diagnostic>) {
-        for line in text.lines() {
-            let pattern = line.trim_end_matches(['\r', ' ', '\t']).trim_start();
-            if pattern.is_empty() || pattern.starts_with('#') {
-                continue;
-            }
-
-            let rooted = pattern.starts_with('/');
-            let body = pattern
-                .trim_start_matches("**/")
-                .trim_start_matches('/')
-                .trim_end_matches('/');
-
-            if let Some(suffix) = body.strip_prefix("*.") {
-                if !suffix.contains(['*', '?', '/', '[']) {
-                    self.suffixes.push(format!(".{suffix}"));
-                    continue;
-                }
-            }
-            if !body.contains(['*', '?', '[', '!', '/']) && !body.is_empty() {
-                if rooted {
-                    self.rooted.push(body.to_owned());
-                } else {
-                    self.names.push(body.to_owned());
-                }
-                continue;
-            }
-
-            // Everything else — negation, a mid-path slash, an embedded wildcard, a
-            // character class — is named rather than approximated.
-            diagnostics.push(Diagnostic::new(
-                path,
-                format!(
-                    "ignore pattern {pattern} is outside the subset this walk understands                      (a bare name, a `*.suffix`, or either anchored with a leading or                      trailing slash); re-express it, or the walk will scan paths this                      repository means to ignore"
-                ),
-            ));
-        }
-    }
-
-    /// Whether an entry is ignored. `relative` is repository-relative so a rooted
-    /// pattern can be told from one that applies at any depth.
-    fn ignores(&self, relative: &str, name: &str) -> bool {
-        self.names.iter().any(|ignored| ignored == name)
-            || self.rooted.iter().any(|ignored| ignored == relative)
-            || self
-                .suffixes
-                .iter()
-                .any(|suffix| name.ends_with(suffix.as_str()))
-    }
-}
-
-/// Whether a repository-relative path sits under a directory some connectivity root
-/// declares, or at the repository root itself.
-///
-/// This is the union the Markdown gates actually cover: a repository-root document, or
-/// anything beneath [`CANONICAL_ROOTS`] or [`REACHABILITY_EXTRA_ROOTS`]. A document
-/// outside it is subject to no inbound-link rule and no index rule, which is the blind
-/// spot the connectivity group exists to close.
-fn within_declared_root(relative: &str) -> bool {
-    let Some((directory, _)) = relative.rsplit_once('/') else {
-        // A repository-root document; `root_documents` covers these.
-        return true;
-    };
-    CANONICAL_ROOTS
-        .iter()
-        .chain(REACHABILITY_EXTRA_ROOTS)
-        .any(|declared| directory == *declared || directory.starts_with(&format!("{declared}/")))
-}
-
 /// One repository-relative path with forward slashes, for comparison against a register.
 fn repository_relative(root: &Path, path: &Path) -> String {
     path.strip_prefix(root)
         .unwrap_or(path)
         .to_string_lossy()
         .replace('\\', "/")
-}
-
-/// Walks every file the connectivity gates consider repository content.
-///
-/// The skipped set is [`UNSCANNED_TOP_LEVEL`] at the root plus the repository's own
-/// ignore patterns at the depth each declares, rather than whatever a walker happened
-/// to exclude, so what the gate cannot see is written down. `templates/` is walked here,
-/// unlike in the marker scan, because scaffolding is still a file somebody has to be
-/// able to find.
-fn collect_scannable_files(
-    root: &Path,
-    directory: &Path,
-    ignored: &IgnoreRules,
-    unreadable: &mut Vec<Diagnostic>,
-    visit: &mut impl FnMut(&Path),
-) {
-    for (path, file_type) in classified_entries(directory, unreadable) {
-        let relative = repository_relative(root, &path);
-        let name = path
-            .file_name()
-            .map(|value| value.to_string_lossy().into_owned())
-            .unwrap_or_default();
-        if ignored.ignores(&relative, &name) {
-            continue;
-        }
-        if file_type.is_dir() {
-            // The register is about the repository's own top level, so it is tested
-            // against a path with no separator in it.
-            if !relative.contains('/') && UNSCANNED_TOP_LEVEL.contains(&relative.as_str()) {
-                continue;
-            }
-            collect_scannable_files(root, &path, ignored, unreadable, visit);
-        } else if file_type.is_file() {
-            visit(&path);
-        }
-    }
 }
 
 fn check_front_matter(root: &Path, entry: &DoctrineEntry, diagnostics: &mut Vec<Diagnostic>) {
@@ -3185,9 +2890,7 @@ mod tests {
         scan_marker_file, table_row_cells, unknown_alert, validation_sequence_copies,
     };
     use super::{
-        INDEXLESS_DIRECTORIES, IgnoreRules, UNREFERENCED_FILE_EXEMPTIONS, UNSCANNED_TOP_LEVEL,
-        check_directory_indexes, check_referenced_files, check_workspace_crate_coverage,
-        collect_scannable_files, names_whole, repository_relative, within_declared_root,
+        INDEXLESS_DIRECTORIES, check_directory_indexes, check_workspace_crate_coverage,
         workspace_members,
     };
     use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity, states_obligations};
@@ -3203,15 +2906,9 @@ mod tests {
         path
     }
 
-    /// The Markdown scope as the connectivity checks receive it: walked once, read once.
-    fn read_scope(root: &Path) -> Vec<(PathBuf, String)> {
+    /// The Markdown scope as the connectivity checks receive it.
+    fn read_scope(root: &Path) -> Vec<PathBuf> {
         reachability_scope(root, &mut Vec::new())
-            .into_iter()
-            .filter_map(|path| {
-                let text = fs::read_to_string(&path).ok()?;
-                Some((path, text))
-            })
-            .collect()
     }
 
     /// Writes a record file and returns the repository-relative path it was written to.
@@ -3402,9 +3099,10 @@ mod tests {
                     .replace('\\', "/")
             })
             .collect();
-        let unexpected: Vec<&String> = carriers
+        let unexpected: Vec<&str> = carriers
             .iter()
-            .filter(|path| !permitted.contains(path.as_str()))
+            .map(String::as_str)
+            .filter(|path| !permitted.contains(path))
             .collect();
         // `RUST-DOC-0008-R022`: the generated files named by the constant do carry an
         // HTML comment, so a scan that found none examined nothing and the absence
@@ -4568,8 +4266,9 @@ mod tests {
             .iter()
             .position(|cell| cell == "Check")
             .expect("the gate table needs a Check column");
-        let gates: Vec<&Vec<String>> = rows
+        let gates: Vec<&[String]> = rows
             .iter()
+            .map(Vec::as_slice)
             .filter(|cells| cells.first().is_some_and(|cell| is_gate_id(cell)))
             .collect();
         assert!(
@@ -4624,7 +4323,6 @@ mod tests {
         for (label, register) in [
             ("REACHABILITY_EXEMPTIONS", REACHABILITY_EXEMPTIONS),
             ("INDEXLESS_DIRECTORIES", INDEXLESS_DIRECTORIES),
-            ("UNREFERENCED_FILE_EXEMPTIONS", UNREFERENCED_FILE_EXEMPTIONS),
         ] {
             for (path, reason) in register {
                 assert!(!path.is_empty(), "an entry in {label} has no path");
@@ -4634,10 +4332,6 @@ mod tests {
                 );
             }
         }
-        assert!(
-            !UNSCANNED_TOP_LEVEL.is_empty(),
-            "an empty unscanned set would mean the walk boundary is undeclared"
-        );
     }
 
     /// The failing direction for crate coverage: a crate every document mentions in
@@ -4685,53 +4379,96 @@ mod tests {
 
     /// Two ways a crate can look covered without being reachable, neither of which the
     /// first version of this check could tell from real coverage.
+    ///
+    /// The fixture lives under `tools/`, a `REACHABILITY_EXTRA_ROOT`. An earlier version
+    /// used top-level directories, so `reachability_scope` never read the crate READMEs
+    /// and the island was reported for having no inbound link at all — the assertion
+    /// passed while the in-crate-link guard it is named for went unexercised, and could
+    /// be deleted with every test still green.
     #[test]
     fn a_crate_is_covered_only_from_outside_itself_and_never_by_its_own_child() {
         let root = temporary_directory("crate-coverage-island");
-        fs::create_dir_all(root.join("island/src")).unwrap();
-        fs::create_dir_all(root.join("group/nested")).unwrap();
-        fs::write(root.join("README.md"), "# Root\n\n[group](group/nested)\n").unwrap();
-        // An island: the crate's own README is the only thing linking into it.
+        fs::create_dir_all(root.join("tools/island/src")).unwrap();
+        fs::create_dir_all(root.join("tools/group/nested")).unwrap();
         fs::write(
-            root.join("island/README.md"),
+            root.join("README.md"),
+            "# Root\n\n[tools](tools/README.md)\n",
+        )
+        .unwrap();
+        fs::write(
+            root.join("tools/README.md"),
+            "# Tools\n\n[island index](island/README.md) and [nested](group/nested)\n",
+        )
+        .unwrap();
+        // The island's only link INTO itself comes from its own README.
+        fs::write(
+            root.join("tools/island/README.md"),
             "# Island\n\n[source](src/lib.rs)\n",
         )
         .unwrap();
-        fs::write(root.join("group/README.md"), "# Group\n").unwrap();
-        fs::write(root.join("group/nested/README.md"), "# Nested\n").unwrap();
+        fs::write(root.join("tools/group/README.md"), "# Group\n").unwrap();
+        fs::write(root.join("tools/group/nested/README.md"), "# Nested\n").unwrap();
+
+        let scope = read_scope(&root);
+        assert!(
+            scope
+                .iter()
+                .any(|path| path.ends_with("tools/island/README.md")),
+            "the fixture must be inside a declared root, or this test proves nothing"
+        );
 
         let members = vec![
-            "island".to_owned(),
-            "group".to_owned(),
-            "group/nested".to_owned(),
+            "tools/island".to_owned(),
+            "tools/group".to_owned(),
+            "tools/group/nested".to_owned(),
         ];
         let mut diagnostics = Vec::new();
-        let scope = read_scope(&root);
         check_workspace_crate_coverage(&root, &scope, &members, &mut diagnostics);
         let messages: Vec<String> = diagnostics
             .iter()
             .map(|diagnostic| diagnostic.message.clone())
             .collect();
 
+        // tools/README.md links island/README.md, so the crate has a link from OUTSIDE
+        // and is covered. Its own README linking src/lib.rs must not be what covers it —
+        // that is asserted by the group case below, where the only inbound link is local.
         assert!(
-            messages.iter().any(|message| message.contains("island")),
-            "a crate linked only from inside itself is an island, not a covered crate: \
-             {messages:?}"
+            !messages
+                .iter()
+                .any(|message| message.contains("tools/island")),
+            "a crate linked from its parent index is covered: {messages:?}"
         );
         assert!(
             !messages
                 .iter()
-                .any(|message| message.contains("group/nested")),
-            "the nested crate is linked from the root and is covered"
+                .any(|message| message.contains("tools/group/nested")),
+            "the nested crate is linked from tools/README.md and is covered"
         );
-        // The bare directory link `group/nested` resolves with no trailing slash, which
-        // is exactly the shape the first nested guard failed to exclude.
+        // The bare directory link `group/nested` resolves with no trailing slash, which is
+        // exactly the shape the first nested guard failed to exclude, and `tools/group`
+        // has no link of its own.
         assert!(
             messages
                 .iter()
-                .any(|message| message.contains("workspace member group ")),
+                .any(|message| message.contains("workspace member tools/group ")),
             "a link that credits the nested crate must not also credit its container: \
              {messages:?}"
+        );
+
+        // Now make the island genuinely an island: remove the only outside link to it.
+        fs::write(
+            root.join("tools/README.md"),
+            "# Tools\n\n[nested](group/nested)\n",
+        )
+        .unwrap();
+        let scope = read_scope(&root);
+        let mut island_only = Vec::new();
+        check_workspace_crate_coverage(&root, &scope, &members, &mut island_only);
+        assert!(
+            island_only
+                .iter()
+                .any(|diagnostic| diagnostic.message.contains("tools/island")),
+            "a crate whose only inbound link is its own README is an island: {island_only:?}"
         );
 
         let _ = fs::remove_dir_all(&root);
@@ -4779,105 +4516,12 @@ mod tests {
         let _ = fs::remove_dir_all(&root);
     }
 
-    /// The failing direction for the non-Markdown gate, plus the register: an exempt
-    /// path stays silent, and an unexempt one beside it does not.
-    #[test]
-    fn referenced_files_report_a_file_no_document_names() {
-        let root = temporary_directory("referenced-files");
-        fs::create_dir_all(root.join("tools")).unwrap();
-        fs::write(
-            root.join("README.md"),
-            "# Root\n\nThe policy lives in [`named.toml`](named.toml).\n",
-        )
-        .unwrap();
-        fs::write(root.join("named.toml"), "named = true\n").unwrap();
-        fs::write(root.join("unnamed.toml"), "unnamed = true\n").unwrap();
-
-        let mut diagnostics = Vec::new();
-        let scope = read_scope(&root);
-        check_referenced_files(&root, &scope, &mut diagnostics);
-
-        let reported: Vec<String> = diagnostics
-            .iter()
-            .map(|diagnostic| diagnostic.path.to_string_lossy().replace('\\', "/"))
-            .collect();
-        assert!(
-            reported.iter().any(|path| path.ends_with("/unnamed.toml")),
-            "a file no document names was not reported; got {reported:?}"
-        );
-        // `"unnamed.toml".ends_with("named.toml")` is true, so the separator is required
-        // here: without it this assertion passes on the wrong file and proves nothing.
-        assert!(
-            !reported.iter().any(|path| path.ends_with("/named.toml")),
-            "a named file must not be reported; got {reported:?}"
-        );
-        assert!(
-            !reported.iter().any(|path| Path::new(path)
-                .extension()
-                .and_then(|value| value.to_str())
-                == Some("md")),
-            "Markdown belongs to the reachability gate, not this one; got {reported:?}"
-        );
-
-        let _ = fs::remove_dir_all(&root);
-    }
-
-    /// The walk's boundary, asserted against the real tree. A scan that never descends
-    /// into `.github/workflows` reports every file there as referenced, because it
-    /// reports nothing at all — the shape of silent omission these gates exist to end.
-    #[test]
-    fn the_scannable_walk_reaches_every_declared_root() {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-        let mut unreadable = Vec::new();
-        let mut seen: BTreeSet<String> = BTreeSet::new();
-        let ignored = IgnoreRules::read(&root, &mut Vec::new());
-        collect_scannable_files(&root, &root, &ignored, &mut unreadable, &mut |path| {
-            seen.insert(
-                path.strip_prefix(&root)
-                    .unwrap_or(path)
-                    .to_string_lossy()
-                    .replace('\\', "/"),
-            );
-        });
-        assert!(
-            unreadable.is_empty(),
-            "the walk could not read: {unreadable:?}"
-        );
-
-        for expected in [
-            ".github/workflows/rust-examples.yml",
-            ".github/ISSUE_TEMPLATE/doctrine-correction.yml",
-            "clippy.toml",
-            "templates/.markdownlint.jsonc",
-            "examples/compile-fail/ui/skip_protocol_stage.rs",
-            "tools/doctrine-lint/src/main.rs",
-        ] {
-            assert!(
-                seen.contains(expected),
-                "the scannable walk never reached {expected}, so nothing there can be reported"
-            );
-        }
-        for excluded in UNSCANNED_TOP_LEVEL {
-            let prefix = format!("{excluded}/");
-            assert!(
-                !seen.iter().any(|path| path.starts_with(&prefix)),
-                "the walk descended into {excluded}/, which it declares it does not scan"
-            );
-        }
-    }
-
     /// Every registered exemption has to name a path that is really there. A register
     /// entry for a file that has been deleted or renamed silences nothing and hides the
     /// fact that the register is stale.
     #[test]
     fn every_registered_exemption_names_a_real_path() {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-        for (path, _) in UNREFERENCED_FILE_EXEMPTIONS {
-            assert!(
-                root.join(path).is_file(),
-                "UNREFERENCED_FILE_EXEMPTIONS names {path}, which is not a file in this repository"
-            );
-        }
         for (path, _) in INDEXLESS_DIRECTORIES {
             assert!(
                 root.join(path).is_dir(),
@@ -4890,140 +4534,6 @@ mod tests {
                 "REACHABILITY_EXEMPTIONS names {path}, which is not a file in this repository"
             );
         }
-    }
-
-    /// A mention has to name the whole file. `"doctrine-ci.yml".contains("ci.yml")` is
-    /// true, so an unanchored search exempted a file nothing had ever mentioned; and a
-    /// `/` treated as part of the name broke the opposite way, un-naming six files their
-    /// indexes really do link.
-    #[test]
-    fn a_mention_names_a_whole_file_not_the_tail_of_a_longer_one() {
-        // The hole: a suffix of a mentioned name is not a mention.
-        assert!(!names_whole("see doctrine-ci.yml for the gates", "ci.yml"));
-        assert!(!names_whole("unnamed.toml is ignored", "named.toml"));
-        assert!(!names_whole("bundle-agent-context", "agent-context"));
-
-        // The hole the first anchoring attempt left open: a PREFIX of a mentioned name
-        // is not a mention either. Anchoring only the left side let these through, and
-        // the test written to pin this function asserted only the suffix direction.
-        assert!(!names_whole(
-            "deny.toml.license holds the policy",
-            "deny.toml"
-        ));
-        assert!(!names_whole("see clippy.tomlx here", "clippy.toml"));
-        assert!(!names_whole("links.yml-old was removed", "links.yml"));
-
-        // Byte arithmetic on a failed match must not split a character. Advancing by one
-        // byte after a non-boundary hit panicked here, aborting the whole lint.
-        assert!(!names_whole("legacy-émile.txt", "émile.txt"));
-        assert!(names_whole("the file émile.txt is named", "émile.txt"));
-        assert!(!names_whole("ünicode-clippy.toml", "clippy.toml"));
-
-        // The overcorrection: a path separator introduces a name, it does not continue one.
-        assert!(names_whole(
-            "[Doctrine CI](workflows/doctrine-ci.yml)",
-            "doctrine-ci.yml"
-        ));
-        assert!(names_whole("[`src/lib.rs`](src/lib.rs)", "lib.rs"));
-        assert!(names_whole("run `clippy.toml`", "clippy.toml"));
-        assert!(names_whole("clippy.toml at the start", "clippy.toml"));
-        assert!(!names_whole("nothing here", "absent.toml"));
-    }
-
-    /// The walk is over the repository, not over whatever happens to be on disk. A
-    /// contributor with an editor open, or who ran the link checker, produced
-    /// `.README.md.swp` and `.lycheecache` — both in `.gitignore` — and the repository's
-    /// own mandatory validation sequence failed, offering to register their scratch file.
-    #[test]
-    fn the_walk_honours_the_repositorys_own_ignore_patterns() {
-        let root = temporary_directory("ignore-rules");
-        fs::create_dir_all(root.join("tools/node_modules/pkg")).unwrap();
-        fs::create_dir_all(root.join("docs/wip")).unwrap();
-        fs::write(
-            root.join(".gitignore"),
-            "# comment\n\n/target/\n**/wip/\nnode_modules/\n.lycheecache\n*.swp\n",
-        )
-        .unwrap();
-        fs::write(root.join("kept.toml"), "kept = true\n").unwrap();
-        fs::write(root.join(".lycheecache"), "cache\n").unwrap();
-        fs::write(root.join(".README.md.swp"), "swap\n").unwrap();
-        fs::write(root.join("docs/wip/draft.txt"), "draft\n").unwrap();
-        fs::write(root.join("tools/node_modules/pkg/package.json"), "{}\n").unwrap();
-
-        let ignored = IgnoreRules::read(&root, &mut Vec::new());
-        let mut seen = BTreeSet::new();
-        collect_scannable_files(&root, &root, &ignored, &mut Vec::new(), &mut |path| {
-            seen.insert(
-                path.strip_prefix(&root)
-                    .unwrap_or(path)
-                    .to_string_lossy()
-                    .replace('\\', "/"),
-            );
-        });
-
-        assert!(
-            seen.contains("kept.toml"),
-            "a tracked file was skipped: {seen:?}"
-        );
-        assert!(
-            seen.contains(".gitignore"),
-            "the ignore file itself is repository content"
-        );
-        for skipped in [
-            ".lycheecache",
-            ".README.md.swp",
-            "docs/wip/draft.txt",
-            // Nested, so a first-component test would have walked it.
-            "tools/node_modules/pkg/package.json",
-        ] {
-            assert!(
-                !seen.contains(skipped),
-                "{skipped} was walked despite .gitignore"
-            );
-        }
-
-        // `/target/` is root-anchored, so a nested one is NOT ignored by it — it has to
-        // stay visible, because the register that skips the root `target` is top-level
-        // only and nothing else covers a nested build directory.
-        fs::create_dir_all(root.join("crate/target")).unwrap();
-        fs::write(root.join("crate/target/artifact.bin"), "x").unwrap();
-        let mut nested = BTreeSet::new();
-        collect_scannable_files(&root, &root, &ignored, &mut Vec::new(), &mut |path| {
-            nested.insert(repository_relative(&root, path));
-        });
-        assert!(
-            nested.contains("crate/target/artifact.bin"),
-            "a root-anchored pattern was applied at depth: {nested:?}"
-        );
-
-        // Every pattern outside the supported subset is REPORTED, not quietly turned
-        // into one that can never match. Only negation was detected before, so
-        // `docs/build/`, `build/*.log` and `temp*` became names no basename could equal.
-        fs::write(
-            root.join(".gitignore"),
-            "!build/keep.txt\ndocs/build/\nbuild/*.log\ntemp*\nfine.log\n*.tmp\n",
-        )
-        .unwrap();
-        let mut diagnostics = Vec::new();
-        let rules = IgnoreRules::read(&root, &mut diagnostics);
-        assert_eq!(
-            diagnostics.len(),
-            4,
-            "each unsupported pattern must be named: {diagnostics:?}"
-        );
-        assert!(rules.ignores("fine.log", "fine.log"));
-        assert!(rules.ignores("a/b/scratch.tmp", "scratch.tmp"));
-
-        // Present but unreadable is a defect, not an empty ignore list.
-        fs::write(root.join(".gitignore"), [0xffu8, 0xfe]).unwrap();
-        let mut unreadable = Vec::new();
-        let _ = IgnoreRules::read(&root, &mut unreadable);
-        assert!(
-            !unreadable.is_empty(),
-            "an unreadable ignore file must be reported, not silently ignored"
-        );
-
-        let _ = fs::remove_dir_all(&root);
     }
 
     /// The membership feeds three checks, so a silent misread is a silent false pass.
@@ -5076,30 +4586,5 @@ mod tests {
                 .as_deref(),
             Some("0.9.0")
         );
-    }
-
-    /// Every Markdown gate walks a declared root, so a document outside all of them is
-    /// subject to no inbound-link rule and no index rule. Dated records live *inside* a
-    /// declared root and are excluded from the maintained set on purpose — reporting
-    /// them would demand they move somewhere that does not exist.
-    #[test]
-    fn declared_roots_cover_dated_records_but_not_a_stray_directory() {
-        assert!(
-            within_declared_root("README.md"),
-            "a root document is covered"
-        );
-        assert!(
-            within_declared_root("CHANGELOG.md"),
-            "a dated root record is covered"
-        );
-        assert!(within_declared_root("rfcs/accepted/RFC-0001-x.md"));
-        assert!(within_declared_root(
-            "doctrines/0001-invalid-states/doctrine.md"
-        ));
-        assert!(within_declared_root("tools/doctrine-lint/README.md"));
-        assert!(!within_declared_root("zz-probe/note.md"));
-        assert!(!within_declared_root("docs/guide/intro.md"));
-        // A directory whose name merely starts with a declared root is not inside it.
-        assert!(!within_declared_root("toolsmith/note.md"));
     }
 }

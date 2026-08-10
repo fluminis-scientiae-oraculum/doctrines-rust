@@ -35,24 +35,30 @@ is minor because the new gates add requirements a future change has to satisfy.
 - A `Repository configuration` section in the root `README.md` linking every root
   configuration file and naming what each governs, and a paragraph in `rfcs/README.md` and
   `templates/README.md` explaining the nested Markdown-lint override each directory carries.
-- Three checks in `doctrine-lint`. A workspace crate has to be linked from prose outside
-  itself; a crate and any directory holding maintained Markdown has to carry an index; and
-  every remaining file has to be named by some document, with Markdown outside every
-  declared root reported rather than silently uncovered.
+- Two checks in `doctrine-lint`. A workspace crate has to be linked from prose outside
+  itself, so a crate whose own README is its only inbound link is reported as the island it
+  is; and a crate, or any directory holding maintained Markdown, has to carry an index.
 - `rust-examples.yml` now runs `cargo test --workspace --exclude` the three tools instead of
   naming each example with `-p`. The `-p` list was a second copy of `[workspace] members`,
   and the exclusion list is the half that does not grow, so a new example crate is tested
   the day it is added and there is no longer a duplicate to keep in sync.
 - `.github` joins the reachability scope, which is what made the pull-request template's
   defects visible at all.
-- Three registers — `INDEXLESS_DIRECTORIES`, `UNREFERENCED_FILE_EXEMPTIONS`, and
-  `UNSCANNED_TOP_LEVEL` — recording what is deliberately unconnected and why, in the shape
-  `REACHABILITY_EXEMPTIONS` already used. Every entry states a reason, and a test asserts
-  each reason is long enough to be one and that each named path still exists.
-- Eleven tests. Each new check is exercised on a seeded violation rather than on the passing
-  corpus; four pin the parsers the checks depend on, and three control the checks themselves.
-  Every check was also positive-controlled live: seeded in the working tree, observed failing
-  with its own diagnostic, and restored.
+- One register, `INDEXLESS_DIRECTORIES`, recording directories that deliberately carry no
+  index, in the shape `REACHABILITY_EXEMPTIONS` already used. It is empty, which is the
+  healthy state. Every entry states a reason, and a test asserts each reason is long enough
+  to be one and that each named path still exists.
+- Selected `clippy::nursery` lints in `[workspace.lints.clippy]`, named individually rather
+  than enabled as a group so a toolchain bump cannot turn unrelated new lints into build
+  failures. `missing_const_for_fn` found nine functions across the examples and both
+  binaries that could be `const` and were not. `option_if_let_else` is allowed with a
+  stated reason: it rewrites a two-armed `match` into `map_or_else`, whose default argument
+  comes first, and this corpus optimises for a reader following prose and code together.
+- Six tests. Each new check is exercised on a seeded violation rather than on the passing
+  corpus, one pins the workspace-membership parser, and two control the checks themselves.
+  Every check was also positive-controlled live: seeded in the working tree, observed
+  failing with its own diagnostic, and restored. The island test is mutation-controlled —
+  deleting the guard it is named for makes it fail.
 - A `toml` dependency, so the workspace manifest is parsed rather than pattern-matched.
 
 ### Fixed before release in 0.9.0
@@ -94,11 +100,26 @@ themselves. The three worst were a crash and two silent false passes:
 
 The rest were of a kind: hand-rolled parsers for three specified formats. The response was to
 stop hand-rolling them rather than patch them again — a real TOML reader for the manifest,
-deletion of the YAML gate in favour of removing the duplicate list it guarded, and an ignore
-matcher that reports every pattern outside its subset instead of silently turning it into one
-that cannot match. `UNSCANNED_TOP_LEVEL` also returned to matching at the repository root
-only, with depth left to the ignore file's own anchoring, which is what distinguishes a
-nested `target/` from the root one.
+and deletion of the YAML gate in favour of removing the duplicate list it guarded.
+
+A third round, run against those repairs in turn, found fifteen more, and nine of them were
+in one gate: the check requiring every remaining file to be named by some document, together
+with the ignore matcher it needed. Six of the nine were the mandatory gate rejecting a
+correct repository — a filename ending a sentence, a `git worktree` checkout, a developer's
+own exclude file, a gitignored scratch directory, ordinary editor state, a file documented
+in the accepted RFC that introduced it.
+
+That gate is now deleted, and the deletion is the finding. Answering "is every file named
+somewhere?" needs a walk of the working tree, and a working tree is the repository plus
+whatever a contributor's tools left in it, so correctness meant reimplementing `.gitignore`.
+Each round made the matcher more faithful and each round it was still not Git, with the
+failures landing in a pre-commit sequence the repository calls mandatory. The question was
+worth asking once — it found twenty-six files named by nothing, and they are connected now —
+but the answer did not need a permanent gate, and the gate cost more than it returned.
+
+What survived is the two checks that caught the defects this release exists to fix: the one
+that found the shared manifest library linked from nowhere, and the one that found this very
+crate without an index. Both answer a question about the corpus using only the corpus.
 
 ## [0.8.1] — 2026-08-08
 

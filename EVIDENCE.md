@@ -11,24 +11,23 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Ninety-two tooling tests across `doctrine-lint`, `doctrine-manifest`, and
+- Eighty-seven tooling tests across `doctrine-lint`, `doctrine-manifest`, and
   `bundle-agent-context` exercise doctrine linting, decision-record validation,
   doctrine-index agreement with the manifest, counted-claim, rule-citation and
   duplicated-validation-sequence drift detection, per-rule enforcement and
   per-gate check declarations, and deterministic bundle generation.
-- Eleven of those hold the repository's own connectivity. Four seed a violation
-  and require the matching diagnostic: a workspace crate no document links, a
-  crate or prose directory with no index, a non-Markdown file no document names,
-  and a crate that only its own contents link, which is an island rather than a
-  reachable crate. Four pin the parsers those checks depend on: that a mention
-  names a whole file on both sides and survives multibyte text, that the walk
-  honours the repository's declared ignore patterns and reports every pattern it
-  cannot express, that the workspace membership is read from the `[workspace]`
-  table alone, and that a stray Markdown directory is told apart from a dated
-  record. Three control the checks themselves rather than their subject: that the
-  walk reaches [`.github/`](.github/README.md), that every register entry states
-  a reason, and that every registered path still exists. A register entry for a
-  deleted file silences nothing and conceals that the register is stale.
+- Six of those hold the repository's own connectivity. Three seed a violation and require
+  the matching diagnostic: a workspace crate that only its own contents link, which is an
+  island rather than a reachable crate; a crate with no index; and a prose directory with
+  no index. One pins the workspace membership parser against a `members` key in a foreign
+  table, an array closing on its last value, a literal string, and a comment. Two control
+  the checks themselves: that every register entry states a reason, and that every
+  registered path still exists — a register entry for a deleted file silences nothing and
+  conceals that the register is stale.
+- The island test is mutation-controlled: deleting the guard it is named for makes it
+  fail. An earlier version of the same test passed with that guard removed, because its
+  fixture sat outside every declared root and the crate was reported for a different
+  reason than the one under test.
 - Twelve of those govern the verbosity annotation that decides which sections a
   generated pack receives: each malformation Prettier preserves unchanged, a
   tilde fence closed by inner backticks, non-monotone nesting, idempotence, and

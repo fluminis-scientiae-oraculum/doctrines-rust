@@ -33,7 +33,7 @@ are stated. Filler markers appear nowhere. Callouts are limited to a closed
 vocabulary. Every HTML comment in maintained Markdown is a well-formed verbosity
 annotation, and no pack declares the widest tier.
 
-**Connectivity.** Five checks, described below.
+**Connectivity.** Four checks, described below.
 
 **Enforcement and evidence.** Every rule names an enforcing artifact that exists,
 or states why it is unenforceable. Every review gate declares whether it is
@@ -46,89 +46,67 @@ The repository is a graph a reader navigates by clicking. These checks hold the
 invariant that every node in it is reachable, or is registered as deliberately
 not.
 
-| Check                            | Obligation                                                                                         |
-| -------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `check_reachability`             | every maintained Markdown file has at least one inbound link                                       |
-| `check_path_references`          | every backticked path that resolves on disk is also linked, once per document                      |
-| `check_workspace_crate_coverage` | every Cargo workspace member is linked, as a directory or a file inside it                         |
-| `check_directory_indexes`        | every workspace crate, and every directory holding maintained Markdown, has a `README.md`          |
-| `check_referenced_files`         | every remaining file is named by some maintained Markdown, and no Markdown sits outside every root |
+| Check                            | Obligation                                                                                |
+| -------------------------------- | ----------------------------------------------------------------------------------------- |
+| `check_reachability`             | every maintained Markdown file has at least one inbound link                              |
+| `check_path_references`          | every backticked path that resolves on disk is also linked, once per document             |
+| `check_workspace_crate_coverage` | every Cargo workspace member is linked, as a directory or a file inside it                |
+| `check_directory_indexes`        | every workspace crate, and every directory holding maintained Markdown, has a `README.md` |
 
-There was briefly a sixth, comparing the `-p` package list in the examples
-workflow against the workspace. It is gone, and the workflow now says
-`--workspace --exclude` the three tools instead of naming each example. A gate
-that guards a duplicated list is worth less than not duplicating the list: the
-`-p` form had to be kept in sync, and the check that watched it could be
-satisfied by a package named in a comment or tested only under Miri.
+Two checks that once sat here are gone, and both removals are the point rather than a
+retreat.
 
-`check_reachability` asks about inbound links, not reachability from the root: a
-file linked only by an unreachable file passes. That is the weaker claim, and it
-is the one made rather than the one the name suggests.
+A gate compared the `-p` package list in the examples workflow against the workspace.
+The workflow now says `--workspace --exclude` the three tools instead of naming each
+example, so there is no duplicated list left to guard. A gate that watches a duplicate is
+worth less than not duplicating.
 
-`check_referenced_files` accepts a bare mention where the others demand a link.
-Requiring a Markdown link to every crate manifest would add thirteen links no
-reader wants; requiring the name to appear at all catches the class that matters,
-which is a file the corpus has never heard of.
+A gate required every remaining file — every workflow, configuration and snapshot — to be
+named by some document. It asked a question worth asking once: twenty-six files were named
+by nothing, and they are connected now. Keeping it permanently was the mistake. Answering
+it needed a walk of the working tree, and a working tree is the repository plus whatever a
+contributor's tools left there, so being correct meant reimplementing `.gitignore`
+semantics. Three review rounds produced a new false failure each time — a filename ending
+a sentence, a `git worktree` checkout, a developer's own exclude file, an editor
+directory — and every one of them landed in a mandatory pre-commit sequence, which is the
+worst place a false failure can land. The question was one-time; the gate was permanent;
+the cost was permanent too.
 
-The mention has to name the whole file, on both sides. An unanchored search
-credited a file because a longer name ended in its name; anchoring only the left
-side then let a prefix through the same way. Two costs remain, and neither is
-fixable without turning this into a link check: two files with the _same_
-basename cover each other, and prose that discusses a filename names it. This
-document does that deliberately in places, which is one reason this check does
-not replace `check_path_references`.
+What remains are the checks that earn it. Each answers a question about the corpus using
+only the corpus: which documents link which, and which crates the workspace declares.
+Neither needs to know what is on a contributor's disk.
 
-Its walk is over the repository, not over whatever is on disk. It reads
-[`.gitignore`](../../.gitignore) and Git's per-repository exclude file — files,
-not Git; this binary calls no external process — and honours a deliberate subset
-of that syntax: a bare name, a `*.suffix`, and either anchored with a leading or
-trailing slash. Anchoring is respected, so a root-anchored pattern does not
-apply at depth and an unanchored one does.
+`check_reachability` asks about inbound links, not reachability from the root: a file
+linked only by an unreachable file passes. That is the weaker claim, and it is the one
+made rather than the one the name suggests.
 
-**Every pattern outside that subset is reported.** Not only a negation: a
-mid-path slash, an embedded wildcard, and a character class are named too. The
-first version detected negation alone and silently turned the rest into names no
-file could equal, which is the "a rule this walk ignores must not look obeyed"
-state its own comment claimed to prevent. A present-but-unreadable ignore file is
-reported for the same reason.
-
-Two ignore sources are **not** read, because both need Git or a config parser: a
-user's global `core.excludesFile`, and nested `.gitignore` files. A file covered
-only by those is reported here and has to be registered. If you keep editor or
-tool state in the tree, put its pattern in [`.gitignore`](../../.gitignore) or in
-the per-repository exclude file instead.
+`check_workspace_crate_coverage` requires the link to come from outside the crate. A
+crate whose own README is the only thing linking into it is an island, not a reachable
+crate, and the two are indistinguishable to a check that pools every link together.
 
 ## The registers
 
-Four constants record what is deliberately exempt, and why. The first three are
+Two constants record what is deliberately exempt, and why. Each is a
 `&[(&str, &str)]` of path and reason, matched by exact string equality so a file
 cannot acquire an exemption by resembling one; a test asserts that every reason
 is long enough to be a reason rather than a word, and that every path named still
-exists. `UNSCANNED_TOP_LEVEL` is a bare list, because its four entries are
-explained once by the paragraph below rather than one at a time.
+exists.
 
-| Register                       | Exempts                                                 |
-| ------------------------------ | ------------------------------------------------------- |
-| `REACHABILITY_EXEMPTIONS`      | documents a reader opens directly, and generator inputs |
-| `INDEXLESS_DIRECTORIES`        | directories that legitimately carry no index            |
-| `UNREFERENCED_FILE_EXEMPTIONS` | files no document names, correctly                      |
-| `UNSCANNED_TOP_LEVEL`          | repository-root directories no connectivity gate walks  |
+There were four. The two that are gone belonged to the file-coverage gate, and both were
+growing: one had accrued ten entries in a single release, nine of them compiler snapshots
+a contributor would have had to register one at a time. A register that a routine change
+has to feed is a register nobody reads, and it was a symptom of the gate rather than a
+property of the corpus.
+
+| Register                  | Exempts                                                 |
+| ------------------------- | ------------------------------------------------------- |
+| `REACHABILITY_EXEMPTIONS` | documents a reader opens directly, and generator inputs |
+| `INDEXLESS_DIRECTORIES`   | directories that legitimately carry no index            |
 
 This table deliberately carries no entry counts. A count here would be a
 hand-maintained integer restating a fact the source already holds — the drift
 this repository has a check for, and the defect this release exists to remove.
 Read the constants.
-
-`UNSCANNED_TOP_LEVEL` is the boundary of what these gates can see, written down
-rather than left as an accident of whichever walker skipped what. `dist/` is on
-it because the bundler's own drift check already holds that tree to exact set
-equality, over every extension.
-
-It applies at the repository root only, as its name says. Matching those names at
-any depth silently unwalked a nested `dist` or `target` that no drift check
-covers. Depth belongs to the ignore file, which anchors the build directory to
-the root and leaves the dependency directory unanchored, and that distinction is
-honoured.
 
 An empty register is the healthy state, and `INDEXLESS_DIRECTORIES` is empty.
 Build layout — `src`, `tests`, `ui` — needs no entry, because it holds no
