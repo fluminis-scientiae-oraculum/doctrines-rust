@@ -1157,12 +1157,6 @@ fn collect_files(directory: &Path, files: &mut Vec<PathBuf>) -> Result<(), Strin
         let entry = entry
             .map_err(|error| format!("cannot read an entry of {}: {error}", directory.display()))?;
         let path = entry.path();
-        // The same sanctioned scratch space doctrine-lint skips. Without this, a
-        // contributor's `foundations/wip/scratch.md` made `bundle-agent-context check`
-        // fail and `generate` refuse, one command after doctrine-lint reported valid.
-        if is_scratch_directory(&path) {
-            continue;
-        }
         // `Path::is_dir` and `Path::is_file` follow symbolic links and report `false`
         // for a metadata error, so a link is classified as whatever it points at and a
         // classification failure is indistinguishable from "neither". `file_type`
@@ -1178,6 +1172,17 @@ fn collect_files(directory: &Path, files: &mut Vec<PathBuf>) -> Result<(), Strin
             ));
         }
         if file_type.is_dir() {
+            // The same sanctioned scratch space doctrine-lint skips, applied at the same
+            // point in the walk: inside the directory branch, and after the symlink guard
+            // above. Skipping every entry named `wip` before classification made the two
+            // tools disagree — a committed symlink named `wip` (git's `**/wip/` pattern is
+            // directory-only, so it is not ignored) was rejected by doctrine-lint and
+            // silently accepted here, one command apart in the mandatory sequence, which
+            // is the divergence sharing the predicate was meant to end. A plain file named
+            // `wip` is repository content and is bundled.
+            if is_scratch_directory(&path) {
+                continue;
+            }
             collect_files(&path, files)?;
         } else if file_type.is_file() {
             files.push(path);

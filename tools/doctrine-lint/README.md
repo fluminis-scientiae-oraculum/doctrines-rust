@@ -48,24 +48,37 @@ registered as deliberately not. The qualifier is load-bearing: the root lists ar
 the real specification, and `check_declared_top_level` is what stops a directory
 from sitting outside all of them unnoticed.
 
-| Check                            | Obligation                                                                           |
-| -------------------------------- | ------------------------------------------------------------------------------------ |
-| `check_reachability`             | every maintained Markdown file has at least one inbound link                         |
-| `check_path_references`          | every backticked path that resolves on disk is also linked, once per document        |
-| `check_declared_top_level`       | every top-level directory is a declared root, or is registered with a reason         |
-| `check_workspace_crate_coverage` | every Cargo workspace member is linked, as a directory or a file inside it           |
-| `check_directory_indexes`        | every workspace crate and every declared root has a `README.md`                      |
-| `check_workflow_index`           | the workflow index names exactly the workflows on disk                               |
-| `check_lint_parity`              | the one crate that cannot inherit workspace clippy lints restates them without drift |
+| Check                            | Obligation                                                                         |
+| -------------------------------- | ---------------------------------------------------------------------------------- |
+| `check_reachability`             | every maintained Markdown file has at least one inbound link                       |
+| `check_path_references`          | every backticked path that resolves on disk is also linked, once per document      |
+| `check_declared_top_level`       | every top-level directory is a declared root, or is registered with a reason       |
+| `check_workspace_crate_coverage` | every Cargo workspace member is linked, as a directory or a file inside it         |
+| `check_directory_indexes`        | every workspace crate, declared root, and linked directory has a `README.md`       |
+| `check_workflow_index`           | the workflow index names exactly the workflows on disk                             |
+| `check_lint_parity`              | every crate that cannot inherit workspace clippy lints restates them without drift |
 
-`check_directory_indexes` requires an index of **declared** directories only —
-workspace members plus the root lists — never of directories discovered by
-walking. Deriving the requirement from whatever Markdown happened to be on disk
-made a gitignored scratch directory fail the mandatory sequence, would
-have forced an index into the GitHub issue-template directory, which GitHub renders as a
-selectable issue template, and silently exempted a directory holding only dated
-records. Doctrine packages keep their index requirement through
-`check_front_matter`, which reads the path from the manifest.
+`check_directory_indexes` builds its required set from committed content —
+workspace members, the root lists, and every directory a maintained document
+links to — never from a filesystem walk. A directory something links to is one a
+reader can arrive at, so it owes the reader an index; generated output under
+`dist/` and sanctioned scratch space are excluded, because the bundler emits no
+index into what it generates and scratch is not repository content.
+
+Deriving the requirement from whatever Markdown happened to be on disk was tried
+and reverted twice over. It made a gitignored scratch directory fail the
+mandatory sequence, would have forced an index into the GitHub issue-template
+directory that GitHub renders as a selectable form, and silently exempted a
+directory holding only dated records. Dropping it entirely was worse: two dozen
+nested indexes lost their obligation, and an index could link a directory with
+nothing to read in it while every gate stayed green. Doctrine packages keep their
+index requirement through `check_front_matter`, which reads the path from the
+manifest.
+
+`check_lint_parity` reaches every member that does not write `[lints] workspace =
+true`. Cargo has no partial inheritance, so a crate needing any lint entry of its
+own must restate the whole clippy table; guarding only the one crate that had
+already diverged would leave the next one silently outside the configuration.
 
 Two checks that once sat here are gone, and both removals are the point rather than a
 retreat.

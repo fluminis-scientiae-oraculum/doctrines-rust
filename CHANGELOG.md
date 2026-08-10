@@ -60,6 +60,34 @@ is minor because the new gates add requirements a future change has to satisfy.
   rather than every crate that cannot inherit workspace lints; and `[workspace] exclude` was
   subtracted from explicitly listed members, which Cargo does not do and which silently
   removed the crate from every membership gate.
+- A sixth review round found fifteen more, all fixed here. The worst was a test this
+  repository's own `RUST-DOC-0008-R022` forbids: the lint-parity test asserted an empty
+  diagnostic list guarded only by a members-list length, so renaming the single
+  non-inheriting crate would have made it pass having compared nothing. It now counts the
+  comparisons it performed and fails if that count is zero. The only test of the index
+  gate contained no Markdown links at all, leaving the branch it was updated to cover dead
+  during its own run; its fixture now links a directory, generated output, and scratch
+  space, and the branch is mutation-controlled.
+- The link-derived index obligation shipped without the two carve-outs its four sibling
+  consumers already carried, so a link to a directory under `dist/` demanded an index the
+  bundler never emits, and a link to scratch space demanded one inside a gitignored tree.
+  It also concluded absence from a partial read; it now reports the shortfall instead.
+- `check_lint_parity` had been moved behind `check_connectivity`'s four early returns, so a
+  malformed unrelated manifest key silently stopped it running; it reads its own membership
+  and is dispatched independently. A member with no `Cargo.toml` was skipped in silence and
+  is now reported, because no other gate examined it either.
+- The scratch predicate was applied at different points in the two crates — before the
+  symlink guard in one, after it in the other — so a committed symlink named `wip` made the
+  two tools contradict each other one command apart. They now agree.
+- Eight doc comments and README rows described code the same commits had changed: the index
+  gate's own comment still declared its required set was never discovered, the membership
+  reader's rustdoc argued for the exclude behaviour that was reversed, and the workflow
+  index's comment still named the file the rename exists to abolish. A register was spliced
+  between a neighbouring register's doc comment and its declaration, leaving each described
+  by the other's.
+- `PATH_REFERENCE_EXEMPTIONS` suspended the whole check rather than the linking rule, which
+  removed the last verification that the pull-request template names real files. The
+  exemption is now narrow: those paths must still exist.
 - Three claims that had stopped being true: `doctrine-lint`'s README advertised a control
   test deleted with that gate, the root `README.md` said every invocation resolves to the
   pinned toolchain when the MSRV matrix and the Miri job deliberately override it, and
