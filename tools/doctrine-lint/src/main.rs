@@ -1,3 +1,4 @@
+use doctrine_manifest::is_scratch_directory;
 use doctrine_manifest::{
     AgentManifest, AgentPack, AgentRole, DecisionRecordMetadata, DecisionRecordRegistry,
     DoctrineEntry, DoctrineManifest, DoctrineMetadata, RecordStatus, SourcePolicy, Verbosity,
@@ -75,21 +76,6 @@ const REACHABILITY_EXEMPTIONS: &[(&str, &str)] = &[
     ),
 ];
 
-/// Directory names that are sanctioned scratch space at any depth.
-///
-/// A contributor's own working notes are not repository content, and a gate that reports
-/// them fails on a correct repository inside a sequence the README calls mandatory before
-/// every commit. That is the expensive direction: a false positive here cannot be worked
-/// around except by deleting the notes or editing this file.
-///
-/// This is a declaration, not a reimplementation. `.gitignore` states the same convention
-/// as `**/wip/`, and `gitignore_declares_every_scratch_directory` holds the two in
-/// agreement, so neither can move without the other. Reading `.gitignore` itself would
-/// mean reproducing its pattern language — precedence, negation, anchoring, directory-only
-/// matching — which is the unbounded correctness set that made `check_referenced_files`
-/// unrepairable and got it deleted in 0.9.0.
-const SCRATCH_DIRECTORY_NAMES: &[&str] = &["wip"];
-
 /// Top-level directories that no connectivity root declares, and why each is out.
 ///
 /// This register is what makes [`check_declared_top_level`] decidable. The question
@@ -132,7 +118,28 @@ const UNDECLARED_TOP_LEVEL: &[(&str, &str)] = &[
 /// Empty is the correct state. An entry here is a directory a reader can arrive at
 /// with nothing to read, so each one has to earn its place the way
 /// [`REACHABILITY_EXEMPTIONS`] entries do: named exactly, with a stated reason.
-const INDEXLESS_DIRECTORIES: &[(&str, &str)] = &[];
+/// Documents whose backticked paths must stay unlinked, and why.
+///
+/// The rule these are exempt from is correct everywhere it applies; these are files GitHub
+/// renders outside the repository, where a relative link resolves against a different page.
+const PATH_REFERENCE_EXEMPTIONS: &[(&str, &str)] = &[(
+    ".github/pull_request_template.md",
+    "GitHub injects this as a pull-request body, where a relative URL resolves against the \
+     pull-request page and 404s for every reader, while lychee passes on the file as stored",
+)];
+
+const INDEXLESS_DIRECTORIES: &[(&str, &str)] = &[
+    (
+        ".github",
+        "GitHub renders a README.md here as the repository front page, replacing the corpus \
+         entry point, so this directory is indexed by AUTOMATION.md instead",
+    ),
+    (
+        "examples/compile-fail/ui",
+        "trybuild's fixture layout, where each case is a linked .rs file beside the .stderr \
+         snapshot it regenerates, so an index would describe the harness rather than the corpus",
+    ),
+];
 
 const ACTIVE_RECORD_DIRECTORY: &str = "decisions/active/";
 const ARCHIVED_RECORD_DIRECTORY: &str = "decisions/archive/";
@@ -340,7 +347,7 @@ fn check_repository(root: &Path) -> Vec<Diagnostic> {
     check_declared_top_level(root, &mut diagnostics);
     check_connectivity(root, &mut diagnostics);
     check_workflow_index(root, &mut diagnostics);
-    check_lint_parity(root, &mut diagnostics);
+
     check_rule_enforcement(root, &doctrine_manifest, &mut diagnostics);
     check_gate_check_column(root, &doctrine_manifest, &mut diagnostics);
     check_generated_files(root, &mut diagnostics);
@@ -401,7 +408,8 @@ fn check_connectivity(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     let scope = reachability_scope(root, &mut discarded);
 
     check_workspace_crate_coverage(root, &scope, &members, diagnostics);
-    check_directory_indexes(root, &members, diagnostics);
+    check_lint_parity(root, &members, diagnostics);
+    check_directory_indexes(root, &scope, &members, diagnostics);
 }
 
 /// Workspace members with Cargo's `dir/*` globs expanded to the crates they name.
@@ -430,15 +438,21 @@ fn expand_member_globs(root: &Path, members: &[String], excludes: &[String]) -> 
                 matched.push(repository_relative(root, &path));
             }
         }
+        // Cargo applies `exclude` to glob expansions and path dependencies, never to an
+        // explicitly listed member — verified against `cargo metadata`. Subtracting it
+        // from every entry dropped an explicitly named crate out of the membership
+        // entirely, so both gates went silent on it instead of surfacing the manifest's
+        // own contradiction.
+        matched.retain(|candidate| !excludes.iter().any(|excluded| excluded == candidate));
         if matched.is_empty() {
             // An expansion that matched nothing is reported as the original entry, so a
             // typo in the glob is still visible rather than silently emptying the list.
+            // An expansion excluded down to nothing is the same shape and stays visible.
             expanded.push(member.clone());
         } else {
             expanded.append(&mut matched);
         }
     }
-    expanded.retain(|member| !excludes.iter().any(|excluded| excluded == member));
     expanded.sort();
     expanded.dedup();
     expanded
@@ -1378,6 +1392,13 @@ fn check_workspace_crate_coverage(
     }
 }
 
+/// The automation index. Deliberately not `.github/README.md`.
+///
+/// GitHub resolves `.github/README.md` before the root `README.md` and renders it as the
+/// repository's front page, so adding one silently replaced the corpus entry point with a
+/// CI table. `.github` is registered in [`INDEXLESS_DIRECTORIES`] for the same reason.
+const WORKFLOW_INDEX: &str = ".github/AUTOMATION.md";
+
 /// Rejects a workflow index that does not name exactly the workflows on disk.
 ///
 /// `.github/README.md` carries a hand-written table of the workflows and what each gates.
@@ -1390,7 +1411,7 @@ fn check_workspace_crate_coverage(
 /// the link targets of one table on the other. It needs no ignore semantics, because
 /// `.github/workflows` holds nothing but workflows.
 fn check_workflow_index(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
-    let index_path = root.join(".github/README.md");
+    let index_path = root.join(WORKFLOW_INDEX);
     let Some(index) = read_text(&index_path, diagnostics) else {
         return;
     };
@@ -1399,11 +1420,14 @@ fn check_workflow_index(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     let mut unreadable = Vec::new();
     for (path, file_type) in classified_entries(&root.join(".github/workflows"), &mut unreadable) {
         let extension = path.extension().and_then(|value| value.to_str());
-        if file_type.is_file()
-            && matches!(extension, Some("yml" | "yaml"))
-            && let Some(name) = path.file_name().and_then(|name| name.to_str())
-        {
-            on_disk.insert(name.to_owned());
+        let name = path.file_name().and_then(|value| value.to_str());
+        // Written without a let-chain deliberately: that is a Rust 1.88 feature and this
+        // workspace declares 1.85.0, so the one that shipped here made doctrine-lint
+        // uncompilable on its own advertised MSRV.
+        if file_type.is_file() && matches!(extension, Some("yml" | "yaml")) {
+            if let Some(name) = name {
+                on_disk.insert(name.to_owned());
+            }
         }
     }
     diagnostics.append(&mut unreadable);
@@ -1419,10 +1443,14 @@ fn check_workflow_index(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
         return;
     }
 
+    // Resolved, not prefix-matched. A raw `strip_prefix("workflows/")` rejected the
+    // `./workflows/x.yml` form GitHub follows perfectly well, and accepted a target that
+    // resolves outside the directory. Every other link consumer in this file goes through
+    // `resolve_link`; this one now does too.
     let linked: BTreeSet<String> = outbound_links(&index)
         .iter()
-        .filter_map(|href| href.strip_prefix("workflows/").map(str::to_owned))
-        .map(|target| target.split('#').next().unwrap_or_default().to_owned())
+        .filter_map(|href| resolve_link(root, &index_path, href))
+        .filter_map(|target| target.strip_prefix(".github/workflows/").map(str::to_owned))
         .collect();
 
     for workflow in on_disk.difference(&linked) {
@@ -1439,37 +1467,26 @@ fn check_workflow_index(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     }
 }
 
-/// The one crate that cannot inherit workspace lints, and the table it has to restate.
-const LINT_PARITY_CRATE: &str = "examples/unsafe-evidence";
-
-/// Rejects a divergence between the workspace clippy table and the one crate that copies it.
+/// Rejects any workspace crate whose clippy configuration diverges from the workspace's.
 ///
-/// Cargo has no partial inheritance: `examples/unsafe-evidence` needs `[lints.rust]
-/// unsafe_code = "allow"` — the sole escape hatch from the workspace's `forbid`, scoped
-/// under `RUST-DOC-0001-R016` — and a crate declaring any lint table of its own cannot
-/// also write `[lints] workspace = true`. The duplication is forced by the build system
-/// rather than chosen, which is exactly the case `RUST-DOC-0011-R004` permits a checked
-/// view for.
+/// Cargo has no partial inheritance: a crate needing any `[lints.rust]` entry of its own —
+/// `examples/unsafe-evidence` needs `unsafe_code = "allow"`, the sole escape hatch from the
+/// workspace's `forbid`, scoped under `RUST-DOC-0001-R016` — cannot also write
+/// `[lints] workspace = true`. The duplication is forced by the build system rather than
+/// chosen, which is the case `RUST-DOC-0011-R004` permits a checked view for.
 ///
-/// It had already drifted. 0.9.0 added workspace denies that never reached this crate, so
-/// the corpus shipped the one example carrying `unsafe` — the crate a reader is most
-/// likely to copy — outside the idiom the release said was now enforced everywhere.
-/// `cargo build -v` showed two different `--deny` sets and no gate compared them.
+/// It had already drifted: 0.9.0 added workspace denies that never reached that crate, so
+/// the corpus shipped the one example carrying `unsafe` outside the idiom it teaches.
 ///
-/// Only the clippy table is compared. `[lints.rust]` is where the crates legitimately
-/// differ, and requiring parity there would reject the escape hatch this crate exists for.
-fn check_lint_parity(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
-    let crate_path = format!("{LINT_PARITY_CRATE}/Cargo.toml");
+/// This iterates **every** member rather than one hardcoded path. Guarding the single crate
+/// that had already diverged would leave the next crate to declare its own lint table
+/// silently outside the whole configuration — the same fix-the-instance-not-the-class
+/// mistake this file has now made three times.
+fn check_lint_parity(root: &Path, members: &[String], diagnostics: &mut Vec<Diagnostic>) {
     let workspace_manifest = root.join("Cargo.toml");
-    let crate_manifest = root.join(&crate_path);
-
     let Some(workspace_text) = read_text(&workspace_manifest, diagnostics) else {
         return;
     };
-    let Some(crate_text) = read_text(&crate_manifest, diagnostics) else {
-        return;
-    };
-
     let workspace_lints = match clippy_lints(&workspace_text, &["workspace", "lints", "clippy"]) {
         Ok(lints) => lints,
         Err(reason) => {
@@ -1477,50 +1494,81 @@ fn check_lint_parity(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
             return;
         }
     };
-    let crate_lints = match clippy_lints(&crate_text, &["lints", "clippy"]) {
-        Ok(lints) => lints,
-        Err(reason) => {
-            diagnostics.push(Diagnostic::new(&crate_manifest, reason));
-            return;
-        }
-    };
 
-    // Both directions. A missing entry is the drift that shipped; an extra one is a crate
-    // quietly holding itself to a different standard than the corpus it illustrates.
-    for (lint, level) in &workspace_lints {
-        match crate_lints.get(lint) {
-            None => diagnostics.push(Diagnostic::new(
-                &crate_manifest,
-                format!(
-                    "[lints.clippy] does not carry {lint}, which the workspace sets to \
-                     {level}; Cargo cannot inherit it here, so restate it"
-                ),
-            )),
-            Some(other) if other != level => diagnostics.push(Diagnostic::new(
-                &crate_manifest,
-                format!("[lints.clippy] sets {lint} to {other}, but the workspace sets {level}"),
-            )),
-            Some(_) => {}
+    for member in members {
+        let manifest_path = root.join(member).join("Cargo.toml");
+        if !manifest_path.is_file() {
+            continue;
         }
-    }
-    for lint in crate_lints.keys() {
-        if !workspace_lints.contains_key(lint) {
+        let Some(text) = read_text(&manifest_path, diagnostics) else {
+            continue;
+        };
+        let Ok(document) = toml::from_str::<toml::Value>(&text) else {
+            // A member manifest Cargo can parse and this cannot is a defect in the reader,
+            // not in the manifest; report it rather than skipping the crate silently.
             diagnostics.push(Diagnostic::new(
-                &crate_manifest,
-                format!(
-                    "[lints.clippy] carries {lint}, which the workspace does not set; add it \
-                     to the workspace table or remove it here"
-                ),
+                &manifest_path,
+                "cannot parse this manifest, so its lint configuration was not compared",
             ));
+            continue;
+        };
+        let inherits = document
+            .get("lints")
+            .and_then(|lints| lints.get("workspace"))
+            .and_then(toml::Value::as_bool)
+            == Some(true);
+        if inherits {
+            continue;
+        }
+
+        let Ok(crate_lints) = clippy_lints(&text, &["lints", "clippy"]) else {
+            diagnostics.push(Diagnostic::new(
+                &manifest_path,
+                "declares no [lints] workspace = true and no [lints.clippy] table, so it \
+                 receives none of the workspace clippy configuration",
+            ));
+            continue;
+        };
+
+        // Both directions. A missing entry is the drift that shipped; an extra one is a
+        // crate quietly holding itself to a different standard than the corpus it teaches.
+        for (lint, level) in &workspace_lints {
+            match crate_lints.get(lint) {
+                None => diagnostics.push(Diagnostic::new(
+                    &manifest_path,
+                    format!(
+                        "[lints.clippy] does not carry {lint}, which the workspace sets to \
+                         {level}; Cargo cannot inherit it here, so restate it"
+                    ),
+                )),
+                Some(other) if other != level => diagnostics.push(Diagnostic::new(
+                    &manifest_path,
+                    format!(
+                        "[lints.clippy] sets {lint} to {other}, but the workspace sets {level}"
+                    ),
+                )),
+                Some(_) => {}
+            }
+        }
+        for lint in crate_lints.keys() {
+            if !workspace_lints.contains_key(lint) {
+                diagnostics.push(Diagnostic::new(
+                    &manifest_path,
+                    format!(
+                        "[lints.clippy] carries {lint}, which the workspace does not set; add \
+                         it to the workspace table or remove it here"
+                    ),
+                ));
+            }
         }
     }
 }
 
 /// One `[lints.clippy]` table as lint name to rendered level, read from a TOML path.
 ///
-/// The level is compared as its rendered TOML so that `"deny"` and
-/// `{ level = "deny", priority = -1 }` are distinguishable: a priority carries meaning for
-/// lint-group ordering, and treating the two forms as equal would let the copy drop it.
+/// The level is compared as rendered TOML so `"deny"` and
+/// `{ level = "deny", priority = -1 }` stay distinguishable: a priority carries meaning for
+/// lint-group ordering, and treating the forms as equal would let the copy drop it.
 fn clippy_lints(
     manifest: &str,
     path: &[&str],
@@ -1573,6 +1621,10 @@ fn check_declared_top_level(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
         if !file_type.is_dir() {
             continue;
         }
+        // A sanctioned scratch directory at the root is not undeclared content.
+        if is_scratch_directory(&path) {
+            continue;
+        }
         let name = repository_relative(root, &path);
         if CANONICAL_ROOTS.contains(&name.as_str())
             || REACHABILITY_EXTRA_ROOTS.contains(&name.as_str())
@@ -1620,7 +1672,12 @@ fn check_declared_top_level(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
 /// unrepairable, left in a sibling when that gate was deleted. Doctrine packages keep
 /// their index requirement through [`check_front_matter`], which reads the path from the
 /// manifest rather than from the disk.
-fn check_directory_indexes(root: &Path, members: &[String], diagnostics: &mut Vec<Diagnostic>) {
+fn check_directory_indexes(
+    root: &Path,
+    scope: &[PathBuf],
+    members: &[String],
+    diagnostics: &mut Vec<Diagnostic>,
+) {
     let mut required: BTreeSet<String> = members.iter().cloned().collect();
     let declared: BTreeSet<String> = CANONICAL_ROOTS
         .iter()
@@ -1628,6 +1685,27 @@ fn check_directory_indexes(root: &Path, members: &[String], diagnostics: &mut Ve
         .map(|root| (*root).to_owned())
         .collect();
     required.extend(declared.iter().cloned());
+
+    // A directory something links to is a directory a reader can arrive at, so it owes the
+    // reader an index. This comes from the LINK GRAPH, not from a filesystem walk: the
+    // difference is that a link is committed content this repository owns, while "what is
+    // on disk" is a question needing another tool's ignore semantics. Deriving the set from
+    // the walk failed on a gitignored scratch directory; dropping it entirely lost the
+    // obligation for two dozen nested indexes, and `case-studies/README.md` could link a
+    // directory with nothing to read in it while every gate stayed green.
+    for file in scope {
+        let Some(text) = read_text(file, &mut Vec::new()) else {
+            continue;
+        };
+        for href in outbound_links(&text) {
+            let Some(target) = resolve_link(root, file, &href) else {
+                continue;
+            };
+            if !target.is_empty() && root.join(&target).is_dir() {
+                required.insert(target);
+            }
+        }
+    }
 
     for directory in required {
         if INDEXLESS_DIRECTORIES
@@ -2356,6 +2434,16 @@ fn check_reachability(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
 /// then `(/)`. Only the link checker catches that, and only in the generated file.
 fn check_path_references(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     for file in reachability_scope(root, diagnostics) {
+        // A document GitHub renders somewhere other than the repository cannot satisfy
+        // this rule. `.github/pull_request_template.md` is injected as a pull-request
+        // body, where a relative URL resolves against the pull-request page and 404s, so
+        // the remedy this check names would break the file for its only audience.
+        if PATH_REFERENCE_EXEMPTIONS
+            .iter()
+            .any(|(exempt, _)| *exempt == repository_relative(root, &file))
+        {
+            continue;
+        }
         let Some(text) = read_text(&file, diagnostics) else {
             continue;
         };
@@ -3073,11 +3161,7 @@ fn collect_files(
 ) {
     for (path, file_type) in classified_entries(directory, unreadable) {
         if file_type.is_dir() {
-            if path
-                .file_name()
-                .and_then(|name| name.to_str())
-                .is_some_and(|name| SCRATCH_DIRECTORY_NAMES.contains(&name))
-            {
+            if is_scratch_directory(&path) {
                 continue;
             }
             collect_files(&path, unreadable, visit);
@@ -3103,7 +3187,9 @@ fn collect_repository_files(
                     std::path::Component::Normal(value) => value.to_str(),
                     _ => None,
                 });
-            if matches!(top, Some(".git" | "node_modules" | "target" | "templates")) {
+            if is_scratch_directory(&path)
+                || matches!(top, Some(".git" | "node_modules" | "target" | "templates"))
+            {
                 continue;
             }
             collect_repository_files(root, &path, unreadable, visit);
@@ -3262,8 +3348,8 @@ mod tests {
         workspace_package_version,
     };
     use super::{
-        CANONICAL_ROOTS, LINT_PARITY_CRATE, SCRATCH_DIRECTORY_NAMES, UNDECLARED_TOP_LEVEL,
-        clippy_lints, expand_member_globs, workspace_excludes,
+        CANONICAL_ROOTS, PATH_REFERENCE_EXEMPTIONS, UNDECLARED_TOP_LEVEL, check_declared_top_level,
+        check_lint_parity, check_workflow_index, expand_member_globs, workspace_excludes,
     };
     use super::{
         ENFORCEMENT_FIELD, GENERATED_IN_CANONICAL_ROOTS, REACHABILITY_EXEMPTIONS,
@@ -3277,7 +3363,9 @@ mod tests {
         INDEXLESS_DIRECTORIES, check_directory_indexes, check_workspace_crate_coverage,
         workspace_members,
     };
-    use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity, states_obligations};
+    use doctrine_manifest::{
+        AgentRole, DoctrineStatus, SCRATCH_DIRECTORY_NAMES, Verbosity, states_obligations,
+    };
     use std::collections::BTreeSet;
     use std::fs;
     use std::path::{Path, PathBuf};
@@ -4707,6 +4795,7 @@ mod tests {
         for (label, register) in [
             ("REACHABILITY_EXEMPTIONS", REACHABILITY_EXEMPTIONS),
             ("INDEXLESS_DIRECTORIES", INDEXLESS_DIRECTORIES),
+            ("PATH_REFERENCE_EXEMPTIONS", PATH_REFERENCE_EXEMPTIONS),
             ("UNDECLARED_TOP_LEVEL", UNDECLARED_TOP_LEVEL),
         ] {
             for (path, reason) in register {
@@ -4717,6 +4806,125 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// The three gates added in 0.9.0 had no test invoking them, while EVIDENCE.md said a
+    /// violation was seeded for one. Each is exercised here through the gate itself, not
+    /// through a re-implementation of its predicate.
+    #[test]
+    fn the_new_gates_report_their_own_violation() {
+        let root = temporary_directory("new-gates");
+        fs::create_dir_all(root.join(".github/workflows")).unwrap();
+        fs::create_dir_all(root.join("guides")).unwrap();
+        fs::create_dir_all(root.join("wip")).unwrap();
+        fs::write(root.join(".github/workflows/ci.yml"), "name: ci\n").unwrap();
+        fs::write(root.join(".github/AUTOMATION.md"), "# Automation\n").unwrap();
+
+        let mut top_level = Vec::new();
+        check_declared_top_level(&root, &mut top_level);
+        let reported: Vec<String> = top_level
+            .iter()
+            .map(|diagnostic| diagnostic.path.to_string_lossy().replace('\\', "/"))
+            .collect();
+        assert!(
+            reported.iter().any(|path| path.ends_with("guides")),
+            "an undeclared top-level directory was not reported; got {reported:?}"
+        );
+        assert!(
+            !reported.iter().any(|path| path.ends_with("wip")),
+            "sanctioned scratch space must not be reported as undeclared; got {reported:?}"
+        );
+
+        let mut workflow = Vec::new();
+        check_workflow_index(&root, &mut workflow);
+        assert!(
+            workflow
+                .iter()
+                .any(|diagnostic| diagnostic.message.contains("ci.yml")),
+            "a workflow the index does not link was not reported"
+        );
+
+        // The passing direction, through the same gate: once the index links it, silence.
+        fs::write(
+            root.join(".github/AUTOMATION.md"),
+            "# Automation\n\n[ci](workflows/ci.yml)\n",
+        )
+        .unwrap();
+        let mut linked = Vec::new();
+        check_workflow_index(&root, &mut linked);
+        assert!(
+            linked.is_empty(),
+            "a linked workflow was still reported; got {linked:?}"
+        );
+
+        // And the `./` form GitHub follows, which a raw prefix match rejected.
+        fs::write(
+            root.join(".github/AUTOMATION.md"),
+            "# Automation\n\n[ci](./workflows/ci.yml)\n",
+        )
+        .unwrap();
+        let mut dotted = Vec::new();
+        check_workflow_index(&root, &mut dotted);
+        assert!(
+            dotted.is_empty(),
+            "a ./-relative workflow link must resolve; got {dotted:?}"
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    /// Lint parity reaches every member that does not inherit, not one hardcoded crate.
+    #[test]
+    fn lint_parity_reports_any_crate_that_does_not_inherit() {
+        let root = temporary_directory("lint-parity");
+        fs::write(
+            root.join("Cargo.toml"),
+            "[workspace.lints.clippy]\nall = \"deny\"\nredundant_clone = \"deny\"\n",
+        )
+        .unwrap();
+        for (name, lints) in [
+            ("inherits", "[lints]\nworkspace = true\n"),
+            (
+                "copies",
+                "[lints.clippy]\nall = \"deny\"\nredundant_clone = \"deny\"\n",
+            ),
+            ("drifted", "[lints.clippy]\nall = \"deny\"\n"),
+            ("silent", ""),
+        ] {
+            fs::create_dir_all(root.join(name)).unwrap();
+            fs::write(
+                root.join(name).join("Cargo.toml"),
+                format!("[package]\nname = \"{name}\"\n{lints}"),
+            )
+            .unwrap();
+        }
+
+        let members: Vec<String> = ["inherits", "copies", "drifted", "silent"]
+            .iter()
+            .map(|name| (*name).to_owned())
+            .collect();
+        let mut diagnostics = Vec::new();
+        check_lint_parity(&root, &members, &mut diagnostics);
+        let reported: Vec<String> = diagnostics
+            .iter()
+            .map(|diagnostic| diagnostic.path.to_string_lossy().replace('\\', "/"))
+            .collect();
+
+        for quiet in ["inherits", "copies"] {
+            assert!(
+                !reported.iter().any(|path| path.contains(quiet)),
+                "{quiet} matches the workspace and must not be reported; got {reported:?}"
+            );
+        }
+        for loud in ["drifted", "silent"] {
+            assert!(
+                reported.iter().any(|path| path.contains(loud)),
+                "{loud} receives none of the workspace configuration and was not reported; \
+                 got {reported:?}"
+            );
+        }
+
+        let _ = fs::remove_dir_all(&root);
     }
 
     /// The scratch-directory constant and `.gitignore` state one convention twice, because
@@ -4821,28 +5029,29 @@ mod tests {
         assert!(workspace_excludes("[workspace]\nexclude = \"crates/x\"\n").is_err());
     }
 
-    /// The real manifests, not a fixture. Cargo cannot inherit lints into a crate that
-    /// declares any lint table of its own, so this pair is a forced copy, and it drifted
-    /// silently once: 0.9.0 added workspace denies that never reached the crate holding
-    /// every `unsafe` block in the repository.
+    /// The real workspace, through the real gate. Cargo cannot inherit lints into a crate
+    /// declaring any lint table of its own, so every such crate is a forced copy; 0.9.0
+    /// added workspace denies that reached none of them.
     #[test]
-    fn the_lint_copy_matches_the_workspace_table() {
+    fn every_real_crate_matches_the_workspace_lint_table() {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-        let workspace = fs::read_to_string(root.join("Cargo.toml")).unwrap();
-        let crate_manifest =
-            fs::read_to_string(root.join(LINT_PARITY_CRATE).join("Cargo.toml")).unwrap();
-
-        let workspace_lints = clippy_lints(&workspace, &["workspace", "lints", "clippy"]).unwrap();
-        let crate_lints = clippy_lints(&crate_manifest, &["lints", "clippy"]).unwrap();
-
+        let cargo = fs::read_to_string(root.join("Cargo.toml")).unwrap();
+        let members = workspace_members(&cargo).unwrap();
         assert!(
-            workspace_lints.len() > 3,
-            "read {} workspace lints, so this asserted nothing",
-            workspace_lints.len()
+            members.len() > 5,
+            "read {} members, so this asserted nothing",
+            members.len()
         );
-        assert_eq!(
-            workspace_lints, crate_lints,
-            "{LINT_PARITY_CRATE} has drifted from the workspace clippy table"
+
+        let mut diagnostics = Vec::new();
+        check_lint_parity(&root, &members, &mut diagnostics);
+        let messages: Vec<String> = diagnostics
+            .iter()
+            .map(|diagnostic| format!("{}: {}", diagnostic.path.display(), diagnostic.message))
+            .collect();
+        assert!(
+            messages.is_empty(),
+            "a crate has drifted from the workspace clippy table: {messages:?}"
         );
     }
 
@@ -5014,7 +5223,8 @@ mod tests {
 
         let members = vec!["tools/indexed".to_owned(), "tools/bare".to_owned()];
         let mut diagnostics = Vec::new();
-        check_directory_indexes(&root, &members, &mut diagnostics);
+        let scope = read_scope(&root);
+        check_directory_indexes(&root, &scope, &members, &mut diagnostics);
 
         let reported: Vec<String> = diagnostics
             .iter()

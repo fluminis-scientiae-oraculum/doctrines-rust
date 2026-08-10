@@ -31,7 +31,7 @@ has an inbound link, every backticked path that resolves on disk is also linked,
 every workspace crate is linked from prose outside itself, and every crate and
 every directory holding maintained Markdown has an index. Each answers a question
 about the corpus using only the corpus. Its own
-[package README](doctrine-lint/README.md) lists the two registers and what they
+[package README](doctrine-lint/README.md) lists the registers and what they
 exempt, and says which checks were removed and why.
 
 ## `bundle-agent-context`

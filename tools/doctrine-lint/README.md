@@ -33,7 +33,7 @@ are stated. Filler markers appear nowhere. Callouts are limited to a closed
 vocabulary. Every HTML comment in maintained Markdown is a well-formed verbosity
 annotation, and no pack declares the widest tier.
 
-**Connectivity.** Four checks, described below.
+**Connectivity.** Seven checks, described below.
 
 **Enforcement and evidence.** Every rule names an enforcing artifact that exists,
 or states why it is unenforceable. Every review gate declares whether it is
@@ -61,7 +61,7 @@ from sitting outside all of them unnoticed.
 `check_directory_indexes` requires an index of **declared** directories only —
 workspace members plus the root lists — never of directories discovered by
 walking. Deriving the requirement from whatever Markdown happened to be on disk
-made a gitignored `wip/` scratch directory fail the mandatory sequence, would
+made a gitignored scratch directory fail the mandatory sequence, would
 have forced an index into the GitHub issue-template directory, which GitHub renders as a
 selectable issue template, and silently exempted a directory holding only dated
 records. Doctrine packages keep their index requirement through

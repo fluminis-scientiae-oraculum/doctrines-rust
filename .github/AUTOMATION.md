@@ -7,12 +7,18 @@ re-runs a command a contributor can run locally, and the root
 
 ## Workflows
 
-| Workflow                                       | Runs on                  | What it gates                                                                                                        |
-| ---------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| [Doctrine CI](workflows/doctrine-ci.yml)       | pull request, push       | Markdown format and lint, Rust format, Clippy, the full test suite, `doctrine-lint`, bundle drift, dependency policy |
-| [Rust Examples](workflows/rust-examples.yml)   | pull request, push       | every example crate at the workspace MSRV and at stable, plus Miri on pinned nightly                                 |
-| [Links](workflows/links.yml)                   | pull request, push, cron | every Markdown link resolves, including inside the generated bundles                                                 |
-| [Release distributions](workflows/release.yml) | a `v*` tag               | the tag agrees with `repository_version`, and the committed bundles still match source                               |
+| Workflow                                       | Runs on                          | What it gates                                                                                                        |
+| ---------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| [Doctrine CI](workflows/doctrine-ci.yml)       | pull request, push, manual       | Markdown format and lint, Rust format, Clippy, the full test suite, `doctrine-lint`, bundle drift, dependency policy |
+| [Rust Examples](workflows/rust-examples.yml)   | pull request, push, manual       | every example crate at the workspace MSRV and at stable, plus Miri on pinned nightly                                 |
+| [Links](workflows/links.yml)                   | pull request, push, cron, manual | every Markdown link resolves, including inside the generated bundles                                                 |
+| [Release distributions](workflows/release.yml) | a `v*` tag, manual               | the tag agrees with `repository_version`, and the committed bundles still match source                               |
+
+Every workflow also declares `workflow_dispatch`, so a maintainer with write
+access can start any of them by hand from the Actions tab — `release.yml`
+included, which takes a tag as a free-text input. That matters most for the one
+job that escalates, so it is stated rather than left to be discovered in the
+YAML.
 
 Three of the four run with read-only permissions. `release.yml` is the
 exception: its publish job needs `contents: write`, the grant sits on that job

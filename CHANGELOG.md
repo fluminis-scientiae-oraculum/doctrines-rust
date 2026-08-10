@@ -42,6 +42,24 @@ is minor because the new gates add requirements a future change has to satisfy.
   the same working tree with the same dependency, and reproduced the same false failure.
   The index requirement is now derived from declared artifacts only — `[workspace] members`
   plus the root lists — never from a filesystem walk.
+- A fifth review round found fifteen more, all fixed here. `doctrine-lint` no longer
+  compiled on the workspace MSRV of 1.85.0 — a Rust 1.88 let-chain — and nothing caught it
+  because the same release had excluded the tool crates from the only MSRV job; that job
+  now checks the whole workspace. `.github/README.md` would have replaced the repository's
+  front page on GitHub, which resolves it before the root `README.md`; the automation index
+  is now `.github/AUTOMATION.md` and the directory is registered as index-free.
+- The scratch-directory skip reached one of four walkers. It is now a single predicate in
+  `doctrine-manifest` that `doctrine-lint`'s two walks, its forbidden-marker scan, and
+  `bundle-agent-context` all consult, so a sanctioned `wip/` no longer fails the mandatory
+  sequence three commands after passing the first.
+- Narrowing the index obligation to declared directories had dropped it for roughly two
+  dozen nested indexes. It is restored from the link graph — a directory something links to
+  owes the reader an index — which is committed content rather than a filesystem walk.
+- `check_workflow_index` resolved links by raw text prefix, rejecting the `./` form GitHub
+  follows and passing a dangling target; `check_lint_parity` guarded one hardcoded crate
+  rather than every crate that cannot inherit workspace lints; and `[workspace] exclude` was
+  subtracted from explicitly listed members, which Cargo does not do and which silently
+  removed the crate from every membership gate.
 - Three claims that had stopped being true: `doctrine-lint`'s README advertised a control
   test deleted with that gate, the root `README.md` said every invocation resolves to the
   pinned toolchain when the MSRV matrix and the Miri job deliberately override it, and
@@ -60,7 +78,7 @@ is minor because the new gates add requirements a future change has to satisfy.
   names exactly the workflows on disk; and the one crate that cannot inherit workspace
   clippy lints restates them without drift.
 - Eleven package indexes: one per `tools/` crate, one per `examples/` crate that lacked one,
-  and `.github/README.md`, which describes what each workflow gates and which issue form
+  and `.github/AUTOMATION.md`, which describes what each workflow gates and which issue form
   answers which question.
 - A `Repository configuration` section in the root `README.md` linking every root
   configuration file and naming what each governs, and a paragraph in `rfcs/README.md` and

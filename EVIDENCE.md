@@ -11,7 +11,7 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Ninety-two tooling tests across `doctrine-lint`, `doctrine-manifest`, and
+- Ninety-four tooling tests across `doctrine-lint`, `doctrine-manifest`, and
   `bundle-agent-context` exercise doctrine linting, decision-record validation,
   doctrine-index agreement with the manifest, counted-claim, rule-citation and
   duplicated-validation-sequence drift detection, per-rule enforcement and
@@ -19,9 +19,12 @@ proof.
 - Eleven of those hold the repository's own connectivity and configuration. Three seed a
   violation and require the matching diagnostic: a workspace crate that only its own
   contents link, which is an island rather than a reachable crate; a crate with no index;
-  and a workflow the index does not name. One asserts the opposite direction, that a
-  directory found by walking is _not_ required to carry an index, because deriving that
-  requirement from the tree failed on a gitignored scratch directory. Two hold a forced
+  and a workflow the index does not name. Each of those runs through the gate itself
+  rather than through a re-implementation of its predicate — the three checks added in
+  0.9.0 first shipped with none, while this ledger already claimed one. One asserts the
+  opposite direction, that a directory found by walking is _not_ required to carry an
+  index, because deriving that requirement from the tree failed on a gitignored scratch
+  directory. Two hold a forced
   duplicate honest: the scratch-directory constant against `.gitignore`, and the one crate
   that cannot inherit workspace clippy lints against the workspace table. One pins the
   workspace membership parser against a `members` key in a foreign

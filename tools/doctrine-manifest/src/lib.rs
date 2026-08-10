@@ -899,6 +899,36 @@ fn section_end(text: &str, marker: &Marker, total: usize) -> usize {
     total
 }
 
+/// Directory names that are sanctioned scratch space at any depth.
+///
+/// A contributor's own working notes are not repository content, and a gate that reports
+/// them fails on a correct repository inside a sequence the README calls mandatory before
+/// every commit. That is the expensive direction: the only escapes are deleting the notes
+/// or editing a tool.
+///
+/// This lives in the shared library because **four** walkers reach a scratch directory —
+/// two in `doctrine-lint`, one behind its forbidden-marker scan, and one in
+/// `bundle-agent-context`. The constant was first added to a single walker, and the other
+/// three kept failing; a convention consulted through one predicate cannot drift the way
+/// four copies of a name can.
+///
+/// It is a declaration, not a reimplementation. `.gitignore` states the same convention as
+/// `**/wip/`, and a test in `doctrine-lint` holds the two in agreement. Reading
+/// `.gitignore` itself would mean reproducing its pattern language — precedence, negation,
+/// anchoring, directory-only matching — which is the unbounded correctness set that got the
+/// file-coverage gate deleted in 0.9.0.
+pub const SCRATCH_DIRECTORY_NAMES: &[&str] = &["wip"];
+
+/// Whether a path's own final component names sanctioned scratch space.
+///
+/// Every walker asks this one question, so a name added above reaches all of them at once.
+#[must_use]
+pub fn is_scratch_directory(path: &std::path::Path) -> bool {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| SCRATCH_DIRECTORY_NAMES.contains(&name))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{

@@ -53,6 +53,15 @@ jobs:
           --exclude bundle-agent-context
           --exclude doctrine-manifest
 
+      # The exclusions above are about which TESTS this matrix runs. They must not decide
+      # which crates are held to the MSRV: excluding the tools from the test step also
+      # removed them from the only job building on 1.85.0, and doctrine-lint then shipped
+      # a Rust 1.88 let-chain that made the gate uncompilable on the version this
+      # repository advertises. Checking the whole workspace is cheap and covers every
+      # crate, including any added later.
+      - name: Check the whole workspace compiles at this toolchain
+        run: cargo check --locked --workspace --all-targets
+
   miri:
     name: Unsafe evidence (Miri nightly-2026-07-13)
     runs-on: ubuntu-latest

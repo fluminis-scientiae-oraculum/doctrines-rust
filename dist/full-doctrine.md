@@ -137,7 +137,7 @@ Canonical content has distinct responsibilities:
 - [`tools/`](../tools/README.md) contains the doctrine linter, the deterministic context bundler, and
   the [`doctrine-manifest`](../tools/doctrine-manifest/README.md) crate both decode the manifests
   through, so one schema-owned vocabulary has one decoder rather than one per tool.
-- [`.github/`](../.github/README.md) holds what runs the checks rather than what defines them: the
+- [`.github/`](../.github/AUTOMATION.md) holds what runs the checks rather than what defines them: the
   workflows, the issue forms, and the pull-request template.
 
 Definitions flow into doctrine; doctrine constrains patterns, boundary guides, reviews, and
@@ -289,7 +289,7 @@ dependency audit, format, and lint as a distinct pull-request gate,
 then repeats Rust formatting, Clippy, tests, schema validation, bundle drift detection,
 dependency policy, and link checks with read-only repository permissions. CI confirms locally
 discovered behavior; it is not the first compiler, linter, or formatter. The workflows that
-repeat it are described in [`.github/`](../.github/README.md).
+repeat it are described in [`.github/`](../.github/AUTOMATION.md).
 
 ### Repository configuration
 
@@ -325,7 +325,7 @@ Three directories override those Markdown rules for a stated reason.
 [`rfcs/`](../rfcs/README.md) allows a second title, because its template carries an instructional
 one above the replacement one; [`templates/`](../templates/README.md) allows that and repeated
 section names, which become unique once a template is instantiated; and
-[`.github/`](../.github/README.md) allows a document to open below the top heading level, because a
+[`.github/`](../.github/AUTOMATION.md) allows a document to open below the top heading level, because a
 pull-request body template does. All three also allow inline HTML, because an authoring
 skeleton and an issue form carry the angle-bracket notation an author replaces.
 

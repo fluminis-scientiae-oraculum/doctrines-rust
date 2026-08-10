@@ -18,7 +18,7 @@ existing material, [doctrine proposal](.github/ISSUE_TEMPLATE/doctrine-proposal.
 normative ground, and [guarantee overclaim](.github/ISSUE_TEMPLATE/guarantee-overclaim.yml) for
 prose that claims more than its mechanism establishes. A pull request opens against the
 [pull-request template](.github/pull_request_template.md), which asks for the affected rule IDs
-and the exact validation commands that were run. [`.github/`](.github/README.md) describes the
+and the exact validation commands that were run. [`.github/`](.github/AUTOMATION.md) describes the
 workflows those reports and changes then meet.
 
 An RFC is mandatory for a new doctrine, a normative rule addition or weakening, a new escape

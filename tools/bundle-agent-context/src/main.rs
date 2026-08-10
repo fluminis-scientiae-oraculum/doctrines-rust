@@ -1,3 +1,4 @@
+use doctrine_manifest::is_scratch_directory;
 use doctrine_manifest::{
     AgentManifest, AgentPack, DoctrineManifest, RfcStatus, SourcePolicy, Verbosity,
     filter_by_verbosity, front_matter, states_obligations,
@@ -1156,6 +1157,12 @@ fn collect_files(directory: &Path, files: &mut Vec<PathBuf>) -> Result<(), Strin
         let entry = entry
             .map_err(|error| format!("cannot read an entry of {}: {error}", directory.display()))?;
         let path = entry.path();
+        // The same sanctioned scratch space doctrine-lint skips. Without this, a
+        // contributor's `foundations/wip/scratch.md` made `bundle-agent-context check`
+        // fail and `generate` refuse, one command after doctrine-lint reported valid.
+        if is_scratch_directory(&path) {
+            continue;
+        }
         // `Path::is_dir` and `Path::is_file` follow symbolic links and report `false`
         // for a metadata error, so a link is classified as whatever it points at and a
         // classification failure is indistinguishable from "neither". `file_type`
