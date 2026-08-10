@@ -46,7 +46,7 @@ must choose.
 Choosing a non-poisoning lock removes the poison signal, not the possibility
 that a panic interrupted a multi-step invariant update. The same review must
 therefore define whether unwinding can expose partial state and how the
-component repairs or abandons it. In the pinned Rust 1.97.1 documentation,
+component repairs or abandons it. In the Rust 1.97.1 documentation,
 `std::sync::nonpoison` is present but nightly-only and experimental; consumers
 must check the documentation for their actual toolchain rather than infer
 stability from the namespace.

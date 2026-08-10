@@ -1804,8 +1804,9 @@ being taught and failure location remains clear.
 **Review evidence.** Search results, invariant comments where not obvious, and negative tests
 for external input.
 
-**Enforcement.** Unenforceable: No production unwrap or expect exists to justify; clippy config does
-not deny them
+**Enforcement.**
+[`tools/bundle-agent-context/src/main.rs`](../../tools/bundle-agent-context/src/main.rs) — two
+production `expect` calls whose message states the invariant that makes failure a defect
 
 ## RUST-DOC-0002-R011 — Preserve security and reconciliation evidence
 
@@ -2628,8 +2629,8 @@ but MUST record reproducible seeds and isolate effects.
 **Review evidence.** Temporary resource strategy, seed capture, controlled
 clock, and parallel-run results.
 
-**Enforcement.** [`examples/src/lib.rs`](../../examples/src/lib.rs) — the inventory test scopes its
-reads to the manifest directory
+**Enforcement.** [`examples/src/lib.rs`](../../examples/src/lib.rs) — every read in the inventory
+test derives from `CARGO_MANIFEST_DIR` rather than the working directory
 
 ## RUST-DOC-0008-R021 — State evidence limits
 

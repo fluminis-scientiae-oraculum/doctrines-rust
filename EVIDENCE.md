@@ -11,27 +11,57 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Ninety-five tooling tests across `doctrine-lint`, `doctrine-manifest`, and
+- Three tests in that same crate are the executable evidence for
+  `RUST-DOC-0008-R022`: one shows the vacuous form passing against data that
+  violates the invariant, and two show the accepted forms — a positive control,
+  and a paired assertion whose expected count is non-zero — failing against that
+  same data. They were absent from this ledger for the whole of the release that
+  introduced the rule they enforce, so the counts above summed to three fewer
+  tests than the workspace runs. An evidence ledger that omits the evidence for
+  proving observation is the exact defect `RUST-DOC-0008-R022` describes.
+- One hundred tooling tests across `doctrine-lint`, `doctrine-manifest`, and
   `bundle-agent-context` exercise doctrine linting, decision-record validation,
   doctrine-index agreement with the manifest, counted-claim, rule-citation and
   duplicated-validation-sequence drift detection, per-rule enforcement and
-  per-gate check declarations, and deterministic bundle generation.
-- Eleven of those hold the repository's own connectivity and configuration. Three seed a
-  violation and require the matching diagnostic: a workspace crate that only its own
-  contents link, which is an island rather than a reachable crate; a crate with no index;
-  and a workflow the index does not name. Each of those runs through the gate itself
-  rather than through a re-implementation of its predicate — the three checks added in
-  0.9.0 first shipped with none, while this ledger already claimed one. One asserts the
-  opposite direction, that a directory found by walking is _not_ required to carry an
-  index, because deriving that requirement from the tree failed on a gitignored scratch
-  directory. Two hold a forced
-  duplicate honest: the scratch-directory constant against `.gitignore`, and the one crate
-  that cannot inherit workspace clippy lints against the workspace table. One pins the
-  workspace membership parser against a `members` key in a foreign
-  table, an array closing on its last value, a literal string, and a comment. Two control
-  the checks themselves: that every register entry states a reason, and that every
-  registered path still exists — a register entry for a deleted file silences nothing and
-  conceals that the register is stale.
+  per-gate check declarations, pinned-toolchain agreement, and deterministic
+  bundle generation.
+- Five of those hold every restatement of a pinned toolchain equal to the file
+  that declares it. Seven positions are disagreed with in turn — the clippy MSRV,
+  a matrix toolchain, a matrix display name, the Miri install step, the Miri job
+  name, a documented Miri invocation, and the CI install step — and each reports
+  the diagnostic naming that position. Two of the seven were absent from the first
+  version of that test, and a mutation run found their guards could be deleted
+  with the suite still green. One further test asserts that a corpus documenting
+  no Miri invocation is reported rather than passing, because "no mismatch found"
+  and "nothing was read" are otherwise the same observation, and one asserts
+  against the real tree that such an invocation is still there to read.
+- A group of those holds the repository's own connectivity and configuration.
+  Three seed a violation and require the matching diagnostic: a workspace crate
+  that only its own contents link, which is an island rather than a reachable
+  crate; a crate with no index; and a workflow the index does not name. Each runs
+  through the gate itself rather than through a re-implementation of its
+  predicate — the three checks added in 0.9.0 first shipped with none, while this
+  ledger already claimed one. The index test asserts the opposite direction in the
+  same run: a directory found by walking is _not_ required to carry an index,
+  because deriving that requirement from the tree failed on a gitignored scratch
+  directory. Two hold a forced duplicate honest: the scratch-directory constant
+  against `.gitignore`, and every crate that cannot inherit the workspace clippy
+  table against that table. Three pin the workspace membership parser — against a
+  `members` key in a foreign table, an array closing on its last value, a literal
+  string and a comment; against a trailing slash; and against an `exclude` list
+  subtracted from an expanded glob. Two control the checks themselves: that every
+  register entry states a reason, and that every registered path still exists — a
+  register entry for a deleted file silences nothing and conceals that the
+  register is stale.
+
+  This bullet opened with a count of eleven for three releases. The items after it
+  described nine, two of which were the same test counted twice, so the figure
+  agreed with nothing — neither the sentences beneath it nor the suite. It states
+  no total now, for the reason
+  [`tools/doctrine-lint/README.md`](tools/doctrine-lint/README.md) gives for its
+  own register table: a hand-maintained integer restating a fact the source
+  already holds is the drift this repository has a check for.
+
 - The island test is mutation-controlled: deleting the guard it is named for makes it
   fail. An earlier version of the same test passed with that guard removed, because its
   fixture sat outside every declared root and the crate was reported for a different
@@ -40,8 +70,11 @@ proof.
   generated pack receives: each malformation Prettier preserves unchanged, a
   tilde fence closed by inner backticks, non-monotone nesting, idempotence, and
   the rejection of every tier in a file that states obligations. The other six
-  tests in that crate predate the annotation and check decoded vocabularies
-  against the artifacts that own them. One bundler test asserts that link
+  tests in that crate predate the annotation: four check a decoded vocabulary
+  against the artifact that owns it, one rejects a misspelled doctrine status at
+  the parse boundary, and one distinguishes the ways front-matter extraction can
+  fail. This sentence previously said all six checked a vocabulary, which
+  contradicted the count in the next paragraph of this same file. One bundler test asserts that link
   targets are still validated inside a section the ceiling withholds, so link
   checking does not depend on what any pack receives, and one linter test
   asserts against the real manifests that no source a role pack lists can be
@@ -58,9 +91,14 @@ proof.
   linter's walk and the bundler's, so an entry naming a target outside the
   repository cannot reach a scan or a generated bundle.
 - A dedicated CI job reruns the five `unsafe-evidence` unit tests under Miri on
-  pinned nightly `nightly-2026-07-13`.
+  the nightly its own workflow pins. The date is not repeated here: every
+  restatement of it that a reader could run is held equal to that workflow by
+  `check_pinned_versions`, and a copy in this sentence would be one the check
+  cannot see.
 
-The ordinary workspace suite runs on pinned Rust 1.97.1 and MSRV 1.85.0. Miri
+The ordinary workspace suite runs on the pinned toolchain and on the declared
+MSRV, which [`rust-toolchain.toml`](rust-toolchain.toml) and
+[`Cargo.toml`](Cargo.toml) name. Miri
 requires nightly and supplements rather than replaces the safety argument.
 
 ## Doctrine-to-evidence map

@@ -259,9 +259,12 @@ This file names no version number, for the same reason it no longer repeats the 
 
 ## Local validation
 
-The pinned development toolchain is Rust 1.97.1. The workspace MSRV is Rust 1.85.0, the first
-stable release supporting Edition 2024; selected dependencies declare compatibility with that
-floor. Markdown tooling uses the exact Node.js, Prettier, and markdownlint-cli2 versions pinned
+The pinned development toolchain is the channel [`rust-toolchain.toml`](../rust-toolchain.toml)
+declares, and the workspace MSRV is the `rust-version` in [`Cargo.toml`](../Cargo.toml) — the first
+stable release supporting Edition 2024, which selected dependencies declare compatibility with.
+Neither number is repeated here: `doctrine-lint` holds every restatement of them equal to those
+two files, and a copy in this paragraph would be one more place a bump has to reach. Markdown
+tooling uses the exact Node.js, Prettier, and markdownlint-cli2 versions pinned
 by `.node-version` and [`package-lock.json`](../package-lock.json). Run from the repository root:
 
 ```bash
@@ -3192,8 +3195,9 @@ being taught and failure location remains clear.
 **Review evidence.** Search results, invariant comments where not obvious, and negative tests
 for external input.
 
-**Enforcement.** Unenforceable: No production unwrap or expect exists to justify; clippy config does
-not deny them
+**Enforcement.**
+[`tools/bundle-agent-context/src/main.rs`](../tools/bundle-agent-context/src/main.rs) — two
+production `expect` calls whose message states the invariant that makes failure a defect
 
 ## RUST-DOC-0002-R011 — Preserve security and reconciliation evidence
 
@@ -4923,7 +4927,7 @@ must choose.
 Choosing a non-poisoning lock removes the poison signal, not the possibility
 that a panic interrupted a multi-step invariant update. The same review must
 therefore define whether unwinding can expose partial state and how the
-component repairs or abandons it. In the pinned Rust 1.97.1 documentation,
+component repairs or abandons it. In the Rust 1.97.1 documentation,
 `std::sync::nonpoison` is present but nightly-only and experimental; consumers
 must check the documentation for their actual toolchain rather than infer
 stability from the namespace.
@@ -9365,8 +9369,8 @@ but MUST record reproducible seeds and isolate effects.
 **Review evidence.** Temporary resource strategy, seed capture, controlled
 clock, and parallel-run results.
 
-**Enforcement.** [`examples/src/lib.rs`](../examples/src/lib.rs) — the inventory test scopes its
-reads to the manifest directory
+**Enforcement.** [`examples/src/lib.rs`](../examples/src/lib.rs) — every read in the inventory
+test derives from `CARGO_MANIFEST_DIR` rather than the working directory
 
 ## RUST-DOC-0008-R021 — State evidence limits
 
@@ -9703,7 +9707,7 @@ reference** for every gate.
 | T17  | Is each compile-fail source minimal?                   | judgment                                                                    | one prohibition             | unrelated errors                             | high     | simplify              |
 | T18  | Does diagnostic fail for intended reason?              | judgment                                                                    | semantic inspection         | missing import causes pass                   | critical | repair fixture        |
 | T19  | Was `.stderr` change reviewed?                         | judgment                                                                    | focused diff rationale      | overwrite accepted blindly                   | critical | inspect               |
-| T20  | Is pinned compiler used for UI evidence?               | mechanical(grep -q 'channel = "1.97.1"' rust-toolchain.toml)                | toolchain config            | diagnostics vary unnoticed                   | high     | pin                   |
+| T20  | Is pinned compiler used for UI evidence?               | mechanical(cargo test --locked -p doctrine-compile-fail)                    | toolchain config            | diagnostics vary unnoticed                   | high     | pin                   |
 | T21  | Are real codecs exercised?                             | judgment                                                                    | serialization integration   | hand-built domain only                       | high     | cross boundary        |
 | T22  | Is real database behavior exercised where needed?      | judgment                                                                    | integration setup           | in-memory map stands for isolation           | critical | add DB test           |
 | T23  | Are migrations tested from old fixtures?               | judgment                                                                    | version fixtures            | fresh schema only                            | high     | migrate               |
@@ -9731,7 +9735,7 @@ reference** for every gate.
 | T45  | Are golden fixtures sourced and versioned?             | judgment                                                                    | provenance                  | unexplained blob                             | medium   | document              |
 | T46  | Are flaky signatures retained?                         | judgment                                                                    | issue/log evidence          | rerun erases failure                         | high     | capture first         |
 | T47  | Is retry temporary and visible?                        | judgment                                                                    | owner/expiry                | permanent CI reruns                          | high     | fix cause             |
-| T48  | Are tests isolated in parallel?                        | mechanical(cargo test --workspace --all-features --locked)                  | unique resources            | shared fixed port/file                       | high     | allocate uniquely     |
+| T48  | Are tests isolated in parallel?                        | judgment                                                                    | unique resources            | shared fixed port/file                       | high     | allocate uniquely     |
 | T49  | Are environment mutations restored safely?             | judgment                                                                    | scoped guard/process        | global env races                             | high     | isolate process       |
 | T50  | Are clocks controlled?                                 | judgment                                                                    | injected/paused clock       | wall-clock sleep                             | high     | abstract time         |
 | T51  | Is randomness seeded?                                  | judgment                                                                    | recorded seed               | irreproducible fuzz failure                  | high     | capture               |

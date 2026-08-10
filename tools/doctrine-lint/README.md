@@ -40,6 +40,25 @@ or states why it is unenforceable. Every review gate declares whether it is
 judgment or a named mechanical command. Every generated file under
 [`dist/`](../../dist/README.md) carries its banner.
 
+**Pinned toolchains.** Three versions decide how this repository builds: the
+development channel, the MSRV, and the Miri nightly. Each is declared once and
+restated several times — in the clippy configuration, the examples matrix and its
+display names, the CI install step, the Miri job's own name and install step, and
+every Miri invocation the corpus gives a reader to run.
+`check_pinned_versions` holds each restatement equal to the file that declares it,
+reading [`rust-toolchain.toml`](../../rust-toolchain.toml),
+`[workspace.package] rust-version`, and the workflow through the same parsers
+Cargo and the workflow runner use. It never asks what rustup would resolve on a
+contributor's machine, which is not a question this repository can decide from
+what it owns.
+
+The scan reads a toolchain only where one could actually be resolved: a named
+channel, or a spec containing a digit. This paragraph is why. Its first draft
+wrote a metasyntactic `cargo +…` command to describe the check, and the check
+read that stand-in name as a toolchain and reported this file — a gate whose own
+documentation cannot be written without tripping it is a gate that will trip on
+the next author too.
+
 ## The connectivity gates
 
 The repository is a graph a reader navigates by clicking. These checks hold the
