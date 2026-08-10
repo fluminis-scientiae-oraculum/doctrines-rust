@@ -11,24 +11,24 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Ninety-three tooling tests across `doctrine-lint`, `doctrine-manifest`, and
+- Ninety-two tooling tests across `doctrine-lint`, `doctrine-manifest`, and
   `bundle-agent-context` exercise doctrine linting, decision-record validation,
   doctrine-index agreement with the manifest, counted-claim, rule-citation and
   duplicated-validation-sequence drift detection, per-rule enforcement and
   per-gate check declarations, and deterministic bundle generation.
-- Twelve of those hold the repository's own connectivity. Four seed a violation
+- Eleven of those hold the repository's own connectivity. Four seed a violation
   and require the matching diagnostic: a workspace crate no document links, a
   crate or prose directory with no index, a non-Markdown file no document names,
-  and drift in either direction between the workspace members and the workflow
-  that tests them. Four pin the parsers those checks depend on: that a mention
-  names a whole file rather than the tail of a longer one, that the walk honours
-  the repository's own ignore patterns, that the membership parser stops at the
-  array and skips comments, and that the workflow package list is read from the
-  test step alone. Four control the checks themselves rather than their subject:
-  that the walk reaches [`.github/`](.github/README.md), that every register
-  entry states a reason, that every registered path still exists, and that the
-  membership parser reads either array shape. A register entry for a deleted
-  file silences nothing and conceals that the register is stale.
+  and a crate that only its own contents link, which is an island rather than a
+  reachable crate. Four pin the parsers those checks depend on: that a mention
+  names a whole file on both sides and survives multibyte text, that the walk
+  honours the repository's declared ignore patterns and reports every pattern it
+  cannot express, that the workspace membership is read from the `[workspace]`
+  table alone, and that a stray Markdown directory is told apart from a dated
+  record. Three control the checks themselves rather than their subject: that the
+  walk reaches [`.github/`](.github/README.md), that every register entry states
+  a reason, and that every registered path still exists. A register entry for a
+  deleted file silences nothing and conceals that the register is stale.
 - Twelve of those govern the verbosity annotation that decides which sections a
   generated pack receives: each malformation Prettier preserves unchanged, a
   tilde fence closed by inner backticks, non-monotone nesting, idempotence, and

@@ -136,13 +136,12 @@ const UNREFERENCED_FILE_EXEMPTIONS: &[(&str, &str)] = &[
 /// `dist` is generated and already held to exact set equality by the bundler's own
 /// drift check; the rest are not repository content at all. Naming them here keeps the
 /// walk's boundary a decision rather than an accident of whatever the walker skipped.
+///
+/// Matched at the repository root only, as the name says. Matching these names at any
+/// depth silently unwalked a nested `dist` or `target` that no drift check covers.
+/// Depth is the ignore file's job: `/target/` is root-anchored there and
+/// `node_modules/` is not, and [`IgnoreRules`] honours that distinction.
 const UNSCANNED_TOP_LEVEL: &[&str] = &[".git", "node_modules", "target", "dist"];
-
-/// The workspace member prefix whose crates are exercised by the examples workflow.
-const EXAMPLE_MEMBER_PREFIX: &str = "examples";
-
-/// The workflow whose package list restates the example half of the workspace.
-const EXAMPLE_WORKFLOW: &str = ".github/workflows/rust-examples.yml";
 
 const ACTIVE_RECORD_DIRECTORY: &str = "decisions/active/";
 const ARCHIVED_RECORD_DIRECTORY: &str = "decisions/archive/";
@@ -369,24 +368,40 @@ fn check_connectivity(root: &Path, diagnostics: &mut Vec<Diagnostic>) {
     let Some(cargo) = read_text(&cargo_path, diagnostics) else {
         return;
     };
-    let members = workspace_members(&cargo);
-    if members.is_empty() {
-        diagnostics.push(Diagnostic::new(
-            &cargo_path,
-            "workspace members are missing or could not be read as a list of quoted paths",
-        ));
-        return;
-    }
+    let members = match workspace_members(&cargo) {
+        Ok(members) if !members.is_empty() => members,
+        Ok(_) => {
+            diagnostics.push(Diagnostic::new(
+                &cargo_path,
+                "[workspace] members is empty, so every membership check would examine nothing",
+            ));
+            return;
+        }
+        Err(reason) => {
+            diagnostics.push(Diagnostic::new(
+                &cargo_path,
+                format!("cannot read [workspace] members: {reason}"),
+            ));
+            return;
+        }
+    };
 
-    // Walked with a throwaway diagnostic sink: `check_reachability` already ran this
-    // same walk and reported whatever it could not read.
-    let mut walked = Vec::new();
-    let scope = reachability_scope(root, &mut walked);
+    // Walked and read ONCE, with a throwaway sink: `check_reachability` already ran this
+    // same walk and read these same files, and reported whatever it could not. Letting
+    // each sub-check re-read the scope with the real sink turned one unreadable file
+    // into four identical diagnostics.
+    let mut discarded = Vec::new();
+    let scope: Vec<(PathBuf, String)> = reachability_scope(root, &mut discarded)
+        .into_iter()
+        .filter_map(|path| {
+            let text = read_text(&path, &mut discarded)?;
+            Some((path, text))
+        })
+        .collect();
 
     check_workspace_crate_coverage(root, &scope, &members, diagnostics);
     check_directory_indexes(root, &scope, &members, diagnostics);
     check_referenced_files(root, &scope, diagnostics);
-    check_example_workflow_packages(root, &members, diagnostics);
 }
 
 fn validate_schema(
@@ -1128,114 +1143,52 @@ fn check_repository_version(
     }
 }
 
-fn workspace_package_version(cargo: &str) -> Option<&str> {
-    let mut in_workspace_package = false;
-    for line in cargo.lines() {
-        let line = line.trim();
-        if line.starts_with('[') {
-            in_workspace_package = line == "[workspace.package]";
-            continue;
-        }
-        if !in_workspace_package {
-            continue;
-        }
-        if let Some(value) = line.strip_prefix("version = \"") {
-            return value.strip_suffix('"');
-        }
-    }
-    None
+/// The `[workspace.package] version`.
+///
+/// Parsed rather than pattern-matched: the line reader returned `None` for
+/// `version = "0.9.0" # bumped`, which made a correct manifest look like one missing
+/// its version.
+fn workspace_package_version(cargo: &str) -> Option<String> {
+    let document: toml::Value = toml::from_str(cargo).ok()?;
+    document
+        .get("workspace")?
+        .get("package")?
+        .get("version")?
+        .as_str()
+        .map(str::to_owned)
 }
 
 /// The `[workspace] members` paths, in declaration order.
 ///
-/// Read line by line for the reason [`workspace_package_version`] is: this binary
-/// decodes YAML because the manifests are the corpus, and adding a TOML dependency to
-/// read two fields would widen the dependency surface a doctrine repository audits.
-/// The list is a flat array of quoted strings, and a shape this parser cannot read is
-/// reported by its caller rather than silently yielding an empty membership.
-fn workspace_members(cargo: &str) -> Vec<String> {
-    let mut members = Vec::new();
-    let mut in_members = false;
-    for line in cargo.lines() {
-        let line = strip_toml_comment(line.trim());
-        if in_members {
-            // A section header ends the array whatever the bracket did. Relying on a
-            // line that *starts* with `]` meant an array closing as `"last"]` never
-            // ended, and the rest of the manifest — versions, licences, dependency
-            // paths — arrived as workspace members.
-            if line.starts_with('[') {
-                break;
-            }
-            let closed = line.contains(']');
-            for value in quoted_values(line) {
-                members.push(value);
-            }
-            if closed {
-                break;
-            }
-        } else if let Some(rest) = line.strip_prefix("members = [") {
-            in_members = true;
-            let closed = rest.contains(']');
-            for value in quoted_values(rest) {
-                members.push(value);
-            }
-            if closed {
-                break;
-            }
-        }
-    }
-    members
-}
-
-/// One TOML line with any trailing comment removed.
+/// Parsed with a real TOML reader rather than by hand. The line-based version this
+/// replaces entered the array on the first `members = [` in *any* table, left it only
+/// on a line beginning `]`, and saw only double-quoted strings — so a `members` key
+/// under `[workspace.metadata.*]`, an array closing as `"last"]`, or a legal literal
+/// string `'examples/foo'` each produced a wrong membership silently. Three checks run
+/// off this list, so a silent misread is a silent false pass.
 ///
-/// A commented-out member is not a member. Without this, `# "examples/retired",` put a
-/// phantom crate into the membership every connectivity check then demanded a link and
-/// a README for.
-fn strip_toml_comment(line: &str) -> &str {
-    let mut in_string = false;
-    for (index, character) in line.char_indices() {
-        match character {
-            '"' => in_string = !in_string,
-            '#' if !in_string => return line[..index].trim_end(),
-            _ => {}
-        }
-    }
-    line
-}
-
-/// Every double-quoted substring on one line, without the quotes.
-fn quoted_values(line: &str) -> Vec<String> {
-    let mut values = Vec::new();
-    let mut rest = line;
-    while let Some(open) = rest.find('"') {
-        let after = &rest[open + 1..];
-        let Some(close) = after.find('"') else {
-            break;
-        };
-        values.push(after[..close].to_owned());
-        rest = &after[close + 1..];
-    }
-    values
-}
-
-/// The `name` field of a crate manifest.
-fn package_name(cargo: &str) -> Option<&str> {
-    let mut in_package = false;
-    for line in cargo.lines() {
-        let line = line.trim();
-        if line.starts_with('[') {
-            in_package = line == "[package]";
-            continue;
-        }
-        if !in_package {
-            continue;
-        }
-        if let Some(value) = line.strip_prefix("name = \"") {
-            return value.strip_suffix('"');
-        }
-    }
-    None
+/// A malformed manifest, or a `members` value that is not an array of strings, yields
+/// `Err` so the caller reports it instead of proceeding on an empty list.
+fn workspace_members(cargo: &str) -> Result<Vec<String>, String> {
+    let document: toml::Value = toml::from_str(cargo).map_err(|error| format!("{error}"))?;
+    let Some(members) = document
+        .get("workspace")
+        .and_then(|workspace| workspace.get("members"))
+    else {
+        return Err("[workspace] has no members key".to_owned());
+    };
+    let Some(entries) = members.as_array() else {
+        return Err("[workspace] members is not an array".to_owned());
+    };
+    entries
+        .iter()
+        .map(|entry| {
+            entry
+                .as_str()
+                .map(str::to_owned)
+                .ok_or_else(|| format!("[workspace] members entry {entry} is not a string"))
+        })
+        .collect()
 }
 
 /// Rejects a workspace crate that no maintained Markdown links to.
@@ -1251,44 +1204,51 @@ fn package_name(cargo: &str) -> Option<&str> {
 /// question the check asks is whether a reader can get there at all.
 fn check_workspace_crate_coverage(
     root: &Path,
-    scope: &[PathBuf],
+    scope: &[(PathBuf, String)],
     members: &[String],
     diagnostics: &mut Vec<Diagnostic>,
 ) {
-    let mut linked: BTreeSet<String> = BTreeSet::new();
-    for file in scope {
-        let Some(text) = read_text(file, diagnostics) else {
-            continue;
-        };
-        for href in outbound_links(&text) {
-            if let Some(target) = resolve_link(root, file, &href) {
-                linked.insert(target);
-            }
-        }
-    }
-
     for member in members {
         let prefix = format!("{member}/");
         // A member that contains another member is credited only by a link that is not
         // already crediting the nested crate; otherwise `examples` could never fail,
-        // because every link into `examples/typestate/` would satisfy it.
+        // because every link into `examples/typestate/` would satisfy it. The nested
+        // path is compared whole as well as by prefix, because a bare directory link
+        // resolves without a trailing slash.
         let nested: Vec<String> = members
             .iter()
             .filter(|other| other.as_str() != member.as_str() && other.starts_with(&prefix))
-            .map(|other| format!("{other}/"))
+            .cloned()
             .collect();
-        let covered = linked.iter().any(|target| {
-            if target != member && !target.starts_with(&prefix) {
+
+        let covered = scope.iter().any(|(file, text)| {
+            let from = repository_relative(root, file);
+            // A link from inside the crate does not establish that a reader can reach
+            // the crate. Two crate-local documents linking each other satisfied this
+            // gate while forming an island unreachable from anywhere else.
+            if from == *member || from.starts_with(&prefix) {
                 return false;
             }
-            !nested.iter().any(|inner| target.starts_with(inner))
+            outbound_links(text).iter().any(|href| {
+                let Some(target) = resolve_link(root, file, href) else {
+                    return false;
+                };
+                if target != *member && !target.starts_with(&prefix) {
+                    return false;
+                }
+                !nested
+                    .iter()
+                    .any(|inner| target == *inner || target.starts_with(&format!("{inner}/")))
+            })
         });
+
         if !covered {
             diagnostics.push(Diagnostic::new(
                 root.join(member),
                 format!(
                     "workspace member {member} is a Cargo dependency of this repository that no \
-                     maintained Markdown links to; link the crate or a file inside it from an index"
+                     maintained Markdown outside it links to; link the crate or a file inside it \
+                     from an index elsewhere"
                 ),
             ));
         }
@@ -1308,13 +1268,13 @@ fn check_workspace_crate_coverage(
 /// feed is an exemption nobody reads.
 fn check_directory_indexes(
     root: &Path,
-    scope: &[PathBuf],
+    scope: &[(PathBuf, String)],
     members: &[String],
     diagnostics: &mut Vec<Diagnostic>,
 ) {
     let mut required: BTreeSet<String> = members.iter().cloned().collect();
 
-    for file in scope {
+    for (file, _) in scope {
         let relative = repository_relative(root, file);
         if let Some((directory, _)) = relative.rsplit_once('/') {
             required.insert(directory.to_owned());
@@ -1369,22 +1329,28 @@ fn check_directory_indexes(
 /// The mention has to be whole. A plain substring search reported `ci.yml` as covered
 /// because some document mentioned `doctrine-ci.yml`, which silently exempted every
 /// file whose name ends in an already-mentioned one.
-fn check_referenced_files(root: &Path, scope: &[PathBuf], diagnostics: &mut Vec<Diagnostic>) {
+///
+/// Markdown outside every connectivity root is reported here rather than skipped.
+/// Dropping it by extension left it checked by nothing at all: [`check_reachability`]
+/// walks only the declared roots, so a document in an undeclared directory was subject
+/// to no inbound-link rule and no index rule — the blind spot this whole group exists
+/// to close, reopened one directory over.
+fn check_referenced_files(
+    root: &Path,
+    scope: &[(PathBuf, String)],
+    diagnostics: &mut Vec<Diagnostic>,
+) {
     let mut prose = String::new();
-    for file in scope {
-        if let Some(text) = read_text(file, diagnostics) {
-            prose.push_str(&text);
-            prose.push('\n');
-        }
+    for (_, text) in scope {
+        prose.push_str(text);
+        prose.push('\n');
     }
 
     let ignored = IgnoreRules::read(root, diagnostics);
     let mut unreadable = Vec::new();
     let mut candidates = Vec::new();
-    collect_scannable_files(root, &ignored, &mut unreadable, &mut |path| {
-        if path.extension().and_then(|value| value.to_str()) != Some("md") {
-            candidates.push(path.to_path_buf());
-        }
+    collect_scannable_files(root, root, &ignored, &mut unreadable, &mut |path| {
+        candidates.push(path.to_path_buf());
     });
     diagnostics.append(&mut unreadable);
 
@@ -1396,6 +1362,24 @@ fn check_referenced_files(root: &Path, scope: &[PathBuf], diagnostics: &mut Vec<
         {
             continue;
         }
+
+        if path.extension().and_then(|value| value.to_str()) == Some("md") {
+            // The test is the DIRECTORY, not scope membership. `CHANGELOG.md` and each
+            // `rfcs/<state>/RFC-*.md` sit under a declared root and are excluded from the
+            // maintained set on purpose, as dated records; reporting them would demand
+            // they be moved somewhere that does not exist.
+            if !within_declared_root(&relative) {
+                diagnostics.push(Diagnostic::new(
+                    &path,
+                    "Markdown in a directory no connectivity root declares, so no \
+                     inbound-link or index rule reaches it; move it under a declared root, \
+                     or add its directory to CANONICAL_ROOTS or REACHABILITY_EXTRA_ROOTS",
+                ));
+            }
+            // Anything under a declared root is the reachability gate's business.
+            continue;
+        }
+
         let name = match relative.rsplit_once('/') {
             Some((_, name)) => name,
             None => relative.as_str(),
@@ -1411,216 +1395,156 @@ fn check_referenced_files(root: &Path, scope: &[PathBuf], diagnostics: &mut Vec<
     }
 }
 
-/// Whether `prose` names `needle` as a whole path or filename rather than as the tail of
-/// a longer one.
+/// Whether `prose` names `needle` as a whole path or filename, rather than as part of a
+/// longer one on either side.
 ///
-/// `"doctrine-ci.yml".contains("ci.yml")` is true, so an unanchored search credited a
-/// file nothing had ever mentioned. A mention counts only when the character before it
-/// cannot be part of the same name.
+/// Three defects have lived in this predicate, and each needs its own control.
 ///
-/// `/` is a boundary, not a continuation. Treating it as part of the name was worse than
-/// the hole it closed: `workflows/doctrine-ci.yml` stopped naming `doctrine-ci.yml`, and
-/// six files every index really does link were reported as unnamed.
+/// Unanchored, `"doctrine-ci.yml".contains("ci.yml")` credited a file nothing had ever
+/// mentioned. Anchoring only the left side then let a *prefix* through the same way:
+/// `deny.toml.license` credited `deny.toml`. Both sides are checked here.
+///
+/// `/` is a boundary, not a continuation. Counting it as part of the name broke every
+/// legitimate path mention — `workflows/doctrine-ci.yml` stopped naming
+/// `doctrine-ci.yml` — so only characters that can appear *within* one path segment
+/// continue a name.
+///
+/// Scanning is by `match_indices`, which yields char boundaries. Advancing a byte index
+/// by hand could land inside a multibyte character, and slicing there panics: a file
+/// named `émile.txt` beside a mention of `legacy-émile.txt` aborted the whole lint with
+/// a backtrace instead of a diagnostic.
 fn names_whole(prose: &str, needle: &str) -> bool {
     if needle.is_empty() {
         return false;
     }
-    let mut from = 0;
-    while let Some(offset) = prose[from..].find(needle) {
-        let start = from + offset;
-        let boundary = prose[..start].chars().next_back().is_none_or(|character| {
-            !(character.is_alphanumeric() || matches!(character, '-' | '_' | '.'))
-        });
-        if boundary {
-            return true;
-        }
-        from = start + 1;
-    }
-    false
+    let continues_a_name =
+        |character: char| character.is_alphanumeric() || matches!(character, '-' | '_' | '.');
+
+    prose.match_indices(needle).any(|(start, matched)| {
+        let before = prose[..start].chars().next_back();
+        let after = prose[start + matched.len()..].chars().next();
+        !before.is_some_and(continues_a_name) && !after.is_some_and(continues_a_name)
+    })
 }
 
-/// The ignore patterns the repository already declares, so a contributor's local files
-/// are not reported as unreferenced corpus content.
+/// The ignore patterns the repository declares, so a contributor's local files are not
+/// reported as unreferenced corpus content.
 ///
 /// A walk of the working tree is not a walk of the repository. `.lycheecache` is written
 /// by the link workflow and an editor leaves `*.swp` beside the file being edited; both
-/// are in `.gitignore`, and both made the repository's own mandatory validation sequence
-/// fail with a diagnostic whose only remedy was registering someone's scratch file.
+/// are ignored, and both made the repository's own mandatory validation sequence fail
+/// with a diagnostic whose only remedy was registering someone's scratch file.
 ///
-/// This reads `.gitignore` rather than calling Git, because this binary calls no external
-/// process. It understands a deliberate subset — a bare name, a `*.suffix`, and a
-/// directory with any of `/`, `**/`, or a trailing slash — which is every pattern the
-/// file uses, asserted by test. Negation (`!`) is not supported and is reported rather
-/// than silently misread, because a pattern this walk cannot honor must not look honored.
+/// Read from `.gitignore` and `.git/info/exclude` — files, not Git: this binary calls no
+/// external process. A pattern outside the supported subset is REPORTED, never quietly
+/// turned into one that cannot match. The first version of this reader detected only
+/// negation and silently converted `docs/build/`, `build/*.log` and `temp*` into names
+/// no basename could equal, which is precisely the "a rule this walk ignores must not
+/// look obeyed" state its own comment claimed to prevent.
+///
+/// Not read: a user's global `core.excludesFile`, and nested `.gitignore` files. Both
+/// need Git or a config parser, so files they cover are reported and must be registered.
+/// That limit is stated in `tools/doctrine-lint/README.md` rather than left to be
+/// discovered.
 #[derive(Debug, Default)]
 struct IgnoreRules {
+    /// Names ignored at any depth, from an unanchored pattern such as `node_modules/`.
     names: Vec<String>,
+    /// Repository-relative paths ignored only at the root, from `/target/`.
+    rooted: Vec<String>,
+    /// Extensions ignored at any depth, from `*.swp`.
     suffixes: Vec<String>,
 }
 
 impl IgnoreRules {
-    fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Self {
-        let path = root.join(".gitignore");
-        let Ok(text) = fs::read_to_string(&path) else {
-            // An absent .gitignore is a repository that ignores nothing, which is a
-            // legitimate state; an unreadable one is reported by the walk that needs it.
-            return Self::default();
-        };
+    const SOURCES: &'static [&'static str] = &[".gitignore", ".git/info/exclude"];
 
+    fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Self {
         let mut rules = Self::default();
-        for line in text.lines() {
-            let pattern = line.trim();
-            if pattern.is_empty() || pattern.starts_with('#') {
+        for source in Self::SOURCES {
+            let path = root.join(source);
+            if !path.is_file() {
+                // A repository need not have either file; absence ignores nothing.
                 continue;
             }
-            if pattern.starts_with('!') {
-                diagnostics.push(Diagnostic::new(
-                    &path,
-                    format!(
-                        "negated ignore pattern {pattern} is not honored by the connectivity \
-                         walk; re-express it, or the walk will skip files this repository \
-                         means to track"
-                    ),
-                ));
+            let Some(text) = read_text(&path, diagnostics) else {
+                // Present but unreadable is a defect, not an empty ignore list. Silently
+                // returning no rules made every contributor scratch file fail the gate
+                // with nothing pointing at the cause.
                 continue;
-            }
-            let bare = pattern
-                .trim_start_matches("**/")
-                .trim_start_matches('/')
-                .trim_end_matches('/');
-            if let Some(suffix) = bare.strip_prefix('*') {
-                rules.suffixes.push(suffix.to_owned());
-            } else if !bare.is_empty() {
-                rules.names.push(bare.to_owned());
-            }
+            };
+            rules.absorb(&path, &text, diagnostics);
         }
         rules
     }
 
-    fn ignores(&self, name: &str) -> bool {
+    fn absorb(&mut self, path: &Path, text: &str, diagnostics: &mut Vec<Diagnostic>) {
+        for line in text.lines() {
+            let pattern = line.trim_end_matches(['\r', ' ', '\t']).trim_start();
+            if pattern.is_empty() || pattern.starts_with('#') {
+                continue;
+            }
+
+            let rooted = pattern.starts_with('/');
+            let body = pattern
+                .trim_start_matches("**/")
+                .trim_start_matches('/')
+                .trim_end_matches('/');
+
+            if let Some(suffix) = body.strip_prefix("*.") {
+                if !suffix.contains(['*', '?', '/', '[']) {
+                    self.suffixes.push(format!(".{suffix}"));
+                    continue;
+                }
+            }
+            if !body.contains(['*', '?', '[', '!', '/']) && !body.is_empty() {
+                if rooted {
+                    self.rooted.push(body.to_owned());
+                } else {
+                    self.names.push(body.to_owned());
+                }
+                continue;
+            }
+
+            // Everything else — negation, a mid-path slash, an embedded wildcard, a
+            // character class — is named rather than approximated.
+            diagnostics.push(Diagnostic::new(
+                path,
+                format!(
+                    "ignore pattern {pattern} is outside the subset this walk understands                      (a bare name, a `*.suffix`, or either anchored with a leading or                      trailing slash); re-express it, or the walk will scan paths this                      repository means to ignore"
+                ),
+            ));
+        }
+    }
+
+    /// Whether an entry is ignored. `relative` is repository-relative so a rooted
+    /// pattern can be told from one that applies at any depth.
+    fn ignores(&self, relative: &str, name: &str) -> bool {
         self.names.iter().any(|ignored| ignored == name)
+            || self.rooted.iter().any(|ignored| ignored == relative)
             || self
                 .suffixes
                 .iter()
-                .any(|suffix| !suffix.is_empty() && name.ends_with(suffix.as_str()))
+                .any(|suffix| name.ends_with(suffix.as_str()))
     }
 }
 
-/// Rejects a drift between the workspace's example crates and the workflow that runs them.
+/// Whether a repository-relative path sits under a directory some connectivity root
+/// declares, or at the repository root itself.
 ///
-/// The examples workflow lists every package it tests as an explicit `-p` argument,
-/// which is a second, hand-maintained copy of the example half of `[workspace] members`.
-/// An example crate added to the workspace and forgotten here compiles locally and is
-/// never tested in CI, and the run stays green because the crate it omits is the crate
-/// nobody asked it to build.
-///
-/// Set equality in both directions: a package tested but no longer a member is drift too,
-/// and it fails the run with a Cargo error whose cause is this file rather than the
-/// workspace.
-fn check_example_workflow_packages(
-    root: &Path,
-    members: &[String],
-    diagnostics: &mut Vec<Diagnostic>,
-) {
-    let workflow_path = root.join(EXAMPLE_WORKFLOW);
-    let Some(workflow) = read_text(&workflow_path, diagnostics) else {
-        return;
+/// This is the union the Markdown gates actually cover: a repository-root document, or
+/// anything beneath [`CANONICAL_ROOTS`] or [`REACHABILITY_EXTRA_ROOTS`]. A document
+/// outside it is subject to no inbound-link rule and no index rule, which is the blind
+/// spot the connectivity group exists to close.
+fn within_declared_root(relative: &str) -> bool {
+    let Some((directory, _)) = relative.rsplit_once('/') else {
+        // A repository-root document; `root_documents` covers these.
+        return true;
     };
-
-    let mut expected: BTreeSet<String> = BTreeSet::new();
-    for member in members {
-        if member != EXAMPLE_MEMBER_PREFIX
-            && !member.starts_with(&format!("{EXAMPLE_MEMBER_PREFIX}/"))
-        {
-            continue;
-        }
-        let manifest_path = root.join(member).join("Cargo.toml");
-        let Some(manifest) = read_text(&manifest_path, diagnostics) else {
-            continue;
-        };
-        match package_name(&manifest) {
-            Some(name) => {
-                expected.insert(name.to_owned());
-            }
-            None => diagnostics.push(Diagnostic::new(
-                &manifest_path,
-                "package name is missing or is not a quoted string",
-            )),
-        }
-    }
-
-    let tested = workflow_test_packages(&workflow);
-    if tested.is_empty() {
-        diagnostics.push(Diagnostic::new(
-            &workflow_path,
-            "no `cargo test` step naming packages was found; this check compares that \
-             step against the workspace, so an unrecognised shape would compare nothing",
-        ));
-        return;
-    }
-
-    for missing in expected.difference(&tested) {
-        diagnostics.push(Diagnostic::new(
-            &workflow_path,
-            format!(
-                "example package {missing} is a workspace member that this workflow never tests"
-            ),
-        ));
-    }
-    for extra in tested.difference(&expected) {
-        diagnostics.push(Diagnostic::new(
-            &workflow_path,
-            format!("package {extra} is tested here but is not an example workspace member"),
-        ));
-    }
-}
-
-/// The packages a `cargo test` step in this workflow names.
-///
-/// Scoped to that step rather than to the file. Harvesting every `-p` in the workflow
-/// credited the Miri job and any YAML comment, so a crate tested only under Miri — or
-/// merely mentioned in a comment — satisfied the very gate that exists to prove the
-/// matrix builds it.
-///
-/// `cargo miri test` is excluded by name: it is a different command with a different
-/// toolchain, and treating its arguments as matrix coverage is the confusion this
-/// scoping removes. A package name may contain `_`, which the argument scanner has to
-/// accept or an underscored crate reports drift in both directions forever.
-fn workflow_test_packages(workflow: &str) -> BTreeSet<String> {
-    let mut packages = BTreeSet::new();
-    let mut in_test_step = false;
-    for line in workflow.lines() {
-        let line = match line.find('#') {
-            Some(index) => &line[..index],
-            None => line,
-        };
-        let trimmed = line.trim();
-        if trimmed.contains("cargo test") && !trimmed.contains("miri") {
-            in_test_step = true;
-        } else if !trimmed.starts_with("-p ") {
-            // The folded scalar continues only through further `-p` arguments; any
-            // other line is the next key, step, or job.
-            in_test_step = false;
-        }
-        if !in_test_step {
-            continue;
-        }
-        let mut rest = trimmed;
-        while let Some(offset) = rest.find("-p ") {
-            let after = &rest[offset + 3..];
-            let name: String = after
-                .chars()
-                .take_while(|character| {
-                    character.is_ascii_alphanumeric() || matches!(character, '-' | '_')
-                })
-                .collect();
-            if !name.is_empty() {
-                packages.insert(name);
-            }
-            rest = after;
-        }
-    }
-    packages
+    CANONICAL_ROOTS
+        .iter()
+        .chain(REACHABILITY_EXTRA_ROOTS)
+        .any(|declared| directory == *declared || directory.starts_with(&format!("{declared}/")))
 }
 
 /// One repository-relative path with forward slashes, for comparison against a register.
@@ -1633,32 +1557,35 @@ fn repository_relative(root: &Path, path: &Path) -> String {
 
 /// Walks every file the connectivity gates consider repository content.
 ///
-/// The skipped set is [`UNSCANNED_TOP_LEVEL`] plus the repository's own ignore patterns,
-/// rather than whatever a walker happened to exclude, so what the gate cannot see is
-/// written down. `templates/` is walked here, unlike in the marker scan, because
-/// scaffolding is still a file somebody has to be able to find.
-///
-/// The skip test is by directory *name* at any depth, not by first path component.
-/// `.gitignore` writes `node_modules/` and `**/wip/` without a leading slash, meaning
-/// those names at any depth; a depth-one test walked `tools/node_modules` and reported
-/// every file under it.
+/// The skipped set is [`UNSCANNED_TOP_LEVEL`] at the root plus the repository's own
+/// ignore patterns at the depth each declares, rather than whatever a walker happened
+/// to exclude, so what the gate cannot see is written down. `templates/` is walked here,
+/// unlike in the marker scan, because scaffolding is still a file somebody has to be
+/// able to find.
 fn collect_scannable_files(
+    root: &Path,
     directory: &Path,
     ignored: &IgnoreRules,
     unreadable: &mut Vec<Diagnostic>,
     visit: &mut impl FnMut(&Path),
 ) {
     for (path, file_type) in classified_entries(directory, unreadable) {
+        let relative = repository_relative(root, &path);
         let name = path
             .file_name()
             .map(|value| value.to_string_lossy().into_owned())
             .unwrap_or_default();
+        if ignored.ignores(&relative, &name) {
+            continue;
+        }
         if file_type.is_dir() {
-            if UNSCANNED_TOP_LEVEL.contains(&name.as_str()) || ignored.ignores(&name) {
+            // The register is about the repository's own top level, so it is tested
+            // against a path with no separator in it.
+            if !relative.contains('/') && UNSCANNED_TOP_LEVEL.contains(&relative.as_str()) {
                 continue;
             }
-            collect_scannable_files(&path, ignored, unreadable, visit);
-        } else if file_type.is_file() && !ignored.ignores(&name) {
+            collect_scannable_files(root, &path, ignored, unreadable, visit);
+        } else if file_type.is_file() {
             visit(&path);
         }
     }
@@ -3258,10 +3185,10 @@ mod tests {
         scan_marker_file, table_row_cells, unknown_alert, validation_sequence_copies,
     };
     use super::{
-        EXAMPLE_WORKFLOW, INDEXLESS_DIRECTORIES, IgnoreRules, UNREFERENCED_FILE_EXEMPTIONS,
-        UNSCANNED_TOP_LEVEL, check_directory_indexes, check_example_workflow_packages,
-        check_referenced_files, check_workspace_crate_coverage, collect_scannable_files,
-        names_whole, package_name, strip_toml_comment, workflow_test_packages, workspace_members,
+        INDEXLESS_DIRECTORIES, IgnoreRules, UNREFERENCED_FILE_EXEMPTIONS, UNSCANNED_TOP_LEVEL,
+        check_directory_indexes, check_referenced_files, check_workspace_crate_coverage,
+        collect_scannable_files, names_whole, repository_relative, within_declared_root,
+        workspace_members,
     };
     use doctrine_manifest::{AgentRole, DoctrineStatus, Verbosity, states_obligations};
     use std::collections::BTreeSet;
@@ -3274,6 +3201,17 @@ mod tests {
         let _ = fs::remove_dir_all(&path);
         fs::create_dir_all(&path).expect("create temporary test directory");
         path
+    }
+
+    /// The Markdown scope as the connectivity checks receive it: walked once, read once.
+    fn read_scope(root: &Path) -> Vec<(PathBuf, String)> {
+        reachability_scope(root, &mut Vec::new())
+            .into_iter()
+            .filter_map(|path| {
+                let text = fs::read_to_string(&path).ok()?;
+                Some((path, text))
+            })
+            .collect()
     }
 
     /// Writes a record file and returns the repository-relative path it was written to.
@@ -4251,7 +4189,7 @@ mod tests {
     #[test]
     fn workspace_version_comes_from_workspace_package_section() {
         let cargo = "[package]\nversion = \"9.9.9\"\n\n[workspace.package]\nversion = \"0.2.0\"\n";
-        assert_eq!(workspace_package_version(cargo), Some("0.2.0"));
+        assert_eq!(workspace_package_version(cargo).as_deref(), Some("0.2.0"));
     }
 
     #[test]
@@ -4702,34 +4640,6 @@ mod tests {
         );
     }
 
-    /// Reading two fields out of `Cargo.toml` by hand is the price of not taking a TOML
-    /// dependency, so the parser is pinned against both array shapes and against a
-    /// manifest that has no member list at all.
-    #[test]
-    fn workspace_members_are_read_from_either_array_shape() {
-        let multiline = "[workspace]\nresolver = \"3\"\nmembers = [\n    \"examples\",\n    \
-                         \"tools/doctrine-lint\",\n]\n\n[workspace.package]\nversion = \"0.9.0\"\n";
-        assert_eq!(
-            workspace_members(multiline),
-            vec!["examples".to_owned(), "tools/doctrine-lint".to_owned()]
-        );
-
-        let single_line = "[workspace]\nmembers = [\"a\", \"b\"]\nresolver = \"3\"\n";
-        assert_eq!(
-            workspace_members(single_line),
-            vec!["a".to_owned(), "b".to_owned()]
-        );
-
-        // The version line after the array must not be swept up as a member.
-        assert!(!workspace_members(multiline).contains(&"0.9.0".to_owned()));
-        assert!(workspace_members("[workspace]\nresolver = \"3\"\n").is_empty());
-        assert_eq!(
-            package_name("[package]\nname = \"typestate\"\nversion.workspace = true\n"),
-            Some("typestate")
-        );
-        assert_eq!(package_name("[dependencies]\nname = \"wrong\"\n"), None);
-    }
-
     /// The failing direction for crate coverage: a crate every document mentions in
     /// backticks and none links is exactly the state `tools/doctrine-manifest` was in.
     #[test]
@@ -4750,7 +4660,7 @@ mod tests {
 
         let members = vec!["tools/linked".to_owned(), "tools/mentioned".to_owned()];
         let mut diagnostics = Vec::new();
-        let scope = reachability_scope(&root, &mut Vec::new());
+        let scope = read_scope(&root);
         check_workspace_crate_coverage(&root, &scope, &members, &mut diagnostics);
 
         let messages: Vec<String> = diagnostics
@@ -4773,6 +4683,60 @@ mod tests {
         let _ = fs::remove_dir_all(&root);
     }
 
+    /// Two ways a crate can look covered without being reachable, neither of which the
+    /// first version of this check could tell from real coverage.
+    #[test]
+    fn a_crate_is_covered_only_from_outside_itself_and_never_by_its_own_child() {
+        let root = temporary_directory("crate-coverage-island");
+        fs::create_dir_all(root.join("island/src")).unwrap();
+        fs::create_dir_all(root.join("group/nested")).unwrap();
+        fs::write(root.join("README.md"), "# Root\n\n[group](group/nested)\n").unwrap();
+        // An island: the crate's own README is the only thing linking into it.
+        fs::write(
+            root.join("island/README.md"),
+            "# Island\n\n[source](src/lib.rs)\n",
+        )
+        .unwrap();
+        fs::write(root.join("group/README.md"), "# Group\n").unwrap();
+        fs::write(root.join("group/nested/README.md"), "# Nested\n").unwrap();
+
+        let members = vec![
+            "island".to_owned(),
+            "group".to_owned(),
+            "group/nested".to_owned(),
+        ];
+        let mut diagnostics = Vec::new();
+        let scope = read_scope(&root);
+        check_workspace_crate_coverage(&root, &scope, &members, &mut diagnostics);
+        let messages: Vec<String> = diagnostics
+            .iter()
+            .map(|diagnostic| diagnostic.message.clone())
+            .collect();
+
+        assert!(
+            messages.iter().any(|message| message.contains("island")),
+            "a crate linked only from inside itself is an island, not a covered crate: \
+             {messages:?}"
+        );
+        assert!(
+            !messages
+                .iter()
+                .any(|message| message.contains("group/nested")),
+            "the nested crate is linked from the root and is covered"
+        );
+        // The bare directory link `group/nested` resolves with no trailing slash, which
+        // is exactly the shape the first nested guard failed to exclude.
+        assert!(
+            messages
+                .iter()
+                .any(|message| message.contains("workspace member group ")),
+            "a link that credits the nested crate must not also credit its container: \
+             {messages:?}"
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
     /// Both index obligations fail in this tree: one crate has no README, and one
     /// directory holds Markdown without one. Neither would be visible to the
     /// reachability gate, which asks only whether each document is linked.
@@ -4790,7 +4754,7 @@ mod tests {
 
         let members = vec!["tools/indexed".to_owned(), "tools/bare".to_owned()];
         let mut diagnostics = Vec::new();
-        let scope = reachability_scope(&root, &mut Vec::new());
+        let scope = read_scope(&root);
         check_directory_indexes(&root, &scope, &members, &mut diagnostics);
 
         let reported: Vec<String> = diagnostics
@@ -4830,7 +4794,7 @@ mod tests {
         fs::write(root.join("unnamed.toml"), "unnamed = true\n").unwrap();
 
         let mut diagnostics = Vec::new();
-        let scope = reachability_scope(&root, &mut Vec::new());
+        let scope = read_scope(&root);
         check_referenced_files(&root, &scope, &mut diagnostics);
 
         let reported: Vec<String> = diagnostics
@@ -4867,7 +4831,7 @@ mod tests {
         let mut unreadable = Vec::new();
         let mut seen: BTreeSet<String> = BTreeSet::new();
         let ignored = IgnoreRules::read(&root, &mut Vec::new());
-        collect_scannable_files(&root, &ignored, &mut unreadable, &mut |path| {
+        collect_scannable_files(&root, &root, &ignored, &mut unreadable, &mut |path| {
             seen.insert(
                 path.strip_prefix(&root)
                     .unwrap_or(path)
@@ -4939,6 +4903,22 @@ mod tests {
         assert!(!names_whole("unnamed.toml is ignored", "named.toml"));
         assert!(!names_whole("bundle-agent-context", "agent-context"));
 
+        // The hole the first anchoring attempt left open: a PREFIX of a mentioned name
+        // is not a mention either. Anchoring only the left side let these through, and
+        // the test written to pin this function asserted only the suffix direction.
+        assert!(!names_whole(
+            "deny.toml.license holds the policy",
+            "deny.toml"
+        ));
+        assert!(!names_whole("see clippy.tomlx here", "clippy.toml"));
+        assert!(!names_whole("links.yml-old was removed", "links.yml"));
+
+        // Byte arithmetic on a failed match must not split a character. Advancing by one
+        // byte after a non-boundary hit panicked here, aborting the whole lint.
+        assert!(!names_whole("legacy-émile.txt", "émile.txt"));
+        assert!(names_whole("the file émile.txt is named", "émile.txt"));
+        assert!(!names_whole("ünicode-clippy.toml", "clippy.toml"));
+
         // The overcorrection: a path separator introduces a name, it does not continue one.
         assert!(names_whole(
             "[Doctrine CI](workflows/doctrine-ci.yml)",
@@ -4972,7 +4952,7 @@ mod tests {
 
         let ignored = IgnoreRules::read(&root, &mut Vec::new());
         let mut seen = BTreeSet::new();
-        collect_scannable_files(&root, &ignored, &mut Vec::new(), &mut |path| {
+        collect_scannable_files(&root, &root, &ignored, &mut Vec::new(), &mut |path| {
             seen.insert(
                 path.strip_prefix(&root)
                     .unwrap_or(path)
@@ -5002,142 +4982,124 @@ mod tests {
             );
         }
 
-        // A pattern this matcher cannot honour is reported, never silently misread.
-        fs::write(root.join(".gitignore"), "build/\n!build/keep.txt\n").unwrap();
+        // `/target/` is root-anchored, so a nested one is NOT ignored by it — it has to
+        // stay visible, because the register that skips the root `target` is top-level
+        // only and nothing else covers a nested build directory.
+        fs::create_dir_all(root.join("crate/target")).unwrap();
+        fs::write(root.join("crate/target/artifact.bin"), "x").unwrap();
+        let mut nested = BTreeSet::new();
+        collect_scannable_files(&root, &root, &ignored, &mut Vec::new(), &mut |path| {
+            nested.insert(repository_relative(&root, path));
+        });
+        assert!(
+            nested.contains("crate/target/artifact.bin"),
+            "a root-anchored pattern was applied at depth: {nested:?}"
+        );
+
+        // Every pattern outside the supported subset is REPORTED, not quietly turned
+        // into one that can never match. Only negation was detected before, so
+        // `docs/build/`, `build/*.log` and `temp*` became names no basename could equal.
+        fs::write(
+            root.join(".gitignore"),
+            "!build/keep.txt\ndocs/build/\nbuild/*.log\ntemp*\nfine.log\n*.tmp\n",
+        )
+        .unwrap();
         let mut diagnostics = Vec::new();
-        let _ = IgnoreRules::read(&root, &mut diagnostics);
-        assert_eq!(diagnostics.len(), 1, "a negated pattern must be reported");
+        let rules = IgnoreRules::read(&root, &mut diagnostics);
+        assert_eq!(
+            diagnostics.len(),
+            4,
+            "each unsupported pattern must be named: {diagnostics:?}"
+        );
+        assert!(rules.ignores("fine.log", "fine.log"));
+        assert!(rules.ignores("a/b/scratch.tmp", "scratch.tmp"));
+
+        // Present but unreadable is a defect, not an empty ignore list.
+        fs::write(root.join(".gitignore"), [0xffu8, 0xfe]).unwrap();
+        let mut unreadable = Vec::new();
+        let _ = IgnoreRules::read(&root, &mut unreadable);
+        assert!(
+            !unreadable.is_empty(),
+            "an unreadable ignore file must be reported, not silently ignored"
+        );
 
         let _ = fs::remove_dir_all(&root);
     }
 
-    /// The membership parser has to end where the array ends. Its only exit was a line
-    /// starting with `]`, so an array closing as `"last"]` never ended and the rest of
-    /// the manifest — versions, licences, dependency paths — arrived as members.
+    /// The membership feeds three checks, so a silent misread is a silent false pass.
+    /// The hand-rolled reader this replaces entered the array on the first `members = [`
+    /// in ANY table, left it only on a line beginning `]`, and saw only double quotes.
     #[test]
-    fn workspace_members_stop_at_the_array_and_ignore_comments() {
-        let closing_on_last_value = "[workspace]\nmembers = [\n    \"examples\",\n    \
-             \"tools/doctrine-lint\"]\n\n[workspace.package]\nversion = \"0.9.0\"\n\
-             license = \"MIT OR Apache-2.0\"\n";
+    fn workspace_members_come_from_the_workspace_table_alone() {
+        // A `members` key in a foreign table, placed first — legal TOML in any order.
+        let foreign = "[workspace.metadata.tool]\nmembers = [\"bogus\"]\n\n\
+             [workspace]\nmembers = [\"examples\", \"tools/doctrine-lint\"]\n";
         assert_eq!(
-            workspace_members(closing_on_last_value),
+            workspace_members(foreign).expect("parses"),
             vec!["examples".to_owned(), "tools/doctrine-lint".to_owned()],
-            "the parser ran past the closing bracket and swept in the package section"
+            "a members key outside [workspace] was read as the membership"
         );
 
-        let commented = "[workspace]\nmembers = [\n    \"examples\",\n    \
-             # \"examples/retired\",\n    \"tools/doctrine-lint\",\n]\n";
+        // An array closing on its last value's line, which `taplo fmt` produces.
+        let closing_on_last = "[workspace]\nmembers = [\n  \"examples\",\n  \"tools/x\"]\n\n\
+             [workspace.package]\nversion = \"0.9.0\"\nlicense = \"MIT OR Apache-2.0\"\n";
         assert_eq!(
-            workspace_members(commented),
-            vec!["examples".to_owned(), "tools/doctrine-lint".to_owned()],
-            "a commented-out member is not a member"
+            workspace_members(closing_on_last).expect("parses"),
+            vec!["examples".to_owned(), "tools/x".to_owned()],
+            "the parser ran past the closing bracket into the package section"
         );
 
-        // A missing bracket must not swallow the file either.
-        let unterminated = "[workspace]\nmembers = [\n    \"examples\",\n\n[workspace.package]\n\
-             version = \"0.9.0\"\n";
-        assert_eq!(workspace_members(unterminated), vec!["examples".to_owned()]);
+        // TOML literal strings are legal and interchangeable here.
+        let literal = "[workspace]\nmembers = [ 'examples/foo', \"examples/bar\" ]\n";
+        assert_eq!(
+            workspace_members(literal).expect("parses"),
+            vec!["examples/foo".to_owned(), "examples/bar".to_owned()],
+            "a literal-string member was dropped from the membership"
+        );
 
-        assert_eq!(strip_toml_comment("a = \"b#c\" # tail"), "a = \"b#c\"");
+        // A comment is not a member.
+        let commented = "[workspace]\nmembers = [\n  \"examples\",\n  # \"examples/retired\",\n]\n";
+        assert_eq!(
+            workspace_members(commented).expect("parses"),
+            vec!["examples".to_owned()]
+        );
+
+        // A shape that cannot be read is an error the caller reports, not an empty list.
+        assert!(workspace_members("[workspace]\nresolver = \"3\"\n").is_err());
+        assert!(workspace_members("[workspace]\nmembers = \"examples\"\n").is_err());
+        assert!(workspace_members("this is not toml {{{").is_err());
+
+        // A trailing comment no longer hides the version, as it did when this was
+        // matched with strip_prefix on a quoted literal.
+        assert_eq!(
+            workspace_package_version("[workspace.package]\nversion = \"0.9.0\" # bumped\n")
+                .as_deref(),
+            Some("0.9.0")
+        );
     }
 
-    /// The workflow list is a hand-maintained second copy of the example half of the
-    /// workspace, and it has to be read from the step that actually builds the matrix.
-    /// Harvesting every `-p` in the file credited the Miri job and any YAML comment, so a
-    /// crate tested only under Miri satisfied the gate that exists to prove otherwise.
+    /// Every Markdown gate walks a declared root, so a document outside all of them is
+    /// subject to no inbound-link rule and no index rule. Dated records live *inside* a
+    /// declared root and are excluded from the maintained set on purpose — reporting
+    /// them would demand they move somewhere that does not exist.
     #[test]
-    fn workflow_packages_come_from_the_test_step_alone() {
-        let workflow = r"
-jobs:
-  examples:
-    steps:
-      - name: Test
-        run: >-
-          cargo test --locked
-          -p kept
-          -p under_scored
-
-  miri:
-    steps:
-      - run: cargo miri test --locked -p miri_only
-
-  # A comment naming -p commented_only must not count.
-";
-        let packages = workflow_test_packages(workflow);
-
-        assert!(packages.contains("kept"));
+    fn declared_roots_cover_dated_records_but_not_a_stray_directory() {
         assert!(
-            packages.contains("under_scored"),
-            "an underscore is legal in a package name; truncating it reports drift forever"
+            within_declared_root("README.md"),
+            "a root document is covered"
         );
         assert!(
-            !packages.contains("miri_only"),
-            "the Miri job is a different command and is not matrix coverage"
+            within_declared_root("CHANGELOG.md"),
+            "a dated root record is covered"
         );
-        assert!(
-            !packages.contains("commented_only"),
-            "a package named only in a comment is not tested"
-        );
-        assert!(workflow_test_packages("jobs:\n  build:\n    steps: []\n").is_empty());
-    }
-
-    /// Drift in both directions. The workflow list is a hand-maintained second copy of
-    /// the example half of the workspace, and a crate missing from it is never tested by
-    /// a run that still reports success.
-    #[test]
-    fn example_workflow_drift_is_reported_in_both_directions() {
-        let root = temporary_directory("workflow-packages");
-        fs::create_dir_all(root.join("examples/kept")).unwrap();
-        fs::create_dir_all(root.join("examples/dropped")).unwrap();
-        fs::create_dir_all(root.join(".github/workflows")).unwrap();
-        fs::write(
-            root.join("examples/kept/Cargo.toml"),
-            "[package]\nname = \"kept\"\n",
-        )
-        .unwrap();
-        fs::write(
-            root.join("examples/dropped/Cargo.toml"),
-            "[package]\nname = \"dropped\"\n",
-        )
-        .unwrap();
-        fs::write(
-            root.join(EXAMPLE_WORKFLOW),
-            "jobs:\n  examples:\n    steps:\n      - run: |\n          cargo test \\\n          \
-             -p kept \\\n          -p ghost\n",
-        )
-        .unwrap();
-
-        let members = vec![
-            "examples/kept".to_owned(),
-            "examples/dropped".to_owned(),
-            "tools/doctrine-lint".to_owned(),
-        ];
-        let mut diagnostics = Vec::new();
-        check_example_workflow_packages(&root, &members, &mut diagnostics);
-
-        let messages: Vec<String> = diagnostics
-            .iter()
-            .map(|diagnostic| diagnostic.message.clone())
-            .collect();
-        assert!(
-            messages.iter().any(|message| message.contains("dropped")),
-            "a member the workflow never tests was not reported; got {messages:?}"
-        );
-        assert!(
-            messages.iter().any(|message| message.contains("ghost")),
-            "a tested package that is not a member was not reported; got {messages:?}"
-        );
-        assert!(
-            !messages.iter().any(|message| message.contains("kept")),
-            "a package present on both sides must not be reported"
-        );
-        assert!(
-            !messages
-                .iter()
-                .any(|message| message.contains("doctrine-lint")),
-            "a tools crate is not an example and must not be expected in this workflow"
-        );
-
-        let _ = fs::remove_dir_all(&root);
+        assert!(within_declared_root("rfcs/accepted/RFC-0001-x.md"));
+        assert!(within_declared_root(
+            "doctrines/0001-invalid-states/doctrine.md"
+        ));
+        assert!(within_declared_root("tools/doctrine-lint/README.md"));
+        assert!(!within_declared_root("zz-probe/note.md"));
+        assert!(!within_declared_root("docs/guide/intro.md"));
+        // A directory whose name merely starts with a declared root is not inside it.
+        assert!(!within_declared_root("toolsmith/note.md"));
     }
 }

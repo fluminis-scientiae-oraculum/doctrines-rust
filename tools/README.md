@@ -28,11 +28,11 @@ banners. It prints path-specific diagnostics and exits nonzero on any finding.
 
 The same command carries the connectivity gates: every maintained Markdown file
 has an inbound link, every backticked path that resolves on disk is also linked,
-every workspace crate is linked from prose, every crate and every directory
-holding maintained Markdown has an index, and every remaining file is either
-named by some document or registered with a stated reason. Its own
-[package README](doctrine-lint/README.md) lists each register and what it
-exempts.
+every workspace crate is linked from prose outside itself, every crate and every
+directory holding maintained Markdown has an index, and every remaining file is
+either named by some document or registered with a stated reason. Its own
+[package README](doctrine-lint/README.md) lists each register, what it exempts,
+and what the walk deliberately cannot see.
 
 ## `bundle-agent-context`
 

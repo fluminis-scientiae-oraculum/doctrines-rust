@@ -41,18 +41,17 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
 
+      # Excluding the three tools is how this job says "the examples". Listing the
+      # examples instead made a second copy of `[workspace] members`, and an example
+      # crate forgotten here was never built by this matrix while the run stayed green.
+      # The exclusion list is the half that does not grow: a new example is covered the
+      # day it is added, and the tools are already tested by Doctrine CI on stable.
       - name: Test executable examples and compiler rejection evidence
         run: >-
-          cargo test --locked
-          -p doctrine-examples
-          -p domain-modeling
-          -p validated-newtypes
-          -p typestate
-          -p staged-protocol
-          -p boundary-validation
-          -p distributed-outcomes
-          -p unsafe-evidence
-          -p doctrine-compile-fail
+          cargo test --locked --workspace
+          --exclude doctrine-lint
+          --exclude bundle-agent-context
+          --exclude doctrine-manifest
 
   miri:
     name: Unsafe evidence (Miri nightly-2026-07-13)

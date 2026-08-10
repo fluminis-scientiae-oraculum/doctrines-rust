@@ -4,7 +4,7 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
-## [0.9.0] — 2026-08-09
+## [0.9.0] — 2026-08-10
 
 Connects every file, directory, and crate the corpus had left unreachable, and gates the
 connection so the next one cannot land unnoticed. No normative meaning changes; the version
@@ -35,28 +35,30 @@ is minor because the new gates add requirements a future change has to satisfy.
 - A `Repository configuration` section in the root `README.md` linking every root
   configuration file and naming what each governs, and a paragraph in `rfcs/README.md` and
   `templates/README.md` explaining the nested Markdown-lint override each directory carries.
-- Four checks in `doctrine-lint`. A workspace crate has to be linked from prose; a crate and
-  any directory holding maintained Markdown has to carry an index; every remaining file has
-  to be named by some document; and the `-p` package list in `rust-examples.yml` has to equal
-  the example half of `[workspace] members` in both directions. That list was a
-  hand-maintained second copy with nothing comparing it.
+- Three checks in `doctrine-lint`. A workspace crate has to be linked from prose outside
+  itself; a crate and any directory holding maintained Markdown has to carry an index; and
+  every remaining file has to be named by some document, with Markdown outside every
+  declared root reported rather than silently uncovered.
+- `rust-examples.yml` now runs `cargo test --workspace --exclude` the three tools instead of
+  naming each example with `-p`. The `-p` list was a second copy of `[workspace] members`,
+  and the exclusion list is the half that does not grow, so a new example crate is tested
+  the day it is added and there is no longer a duplicate to keep in sync.
 - `.github` joins the reachability scope, which is what made the pull-request template's
   defects visible at all.
 - Three registers — `INDEXLESS_DIRECTORIES`, `UNREFERENCED_FILE_EXEMPTIONS`, and
   `UNSCANNED_TOP_LEVEL` — recording what is deliberately unconnected and why, in the shape
   `REACHABILITY_EXEMPTIONS` already used. Every entry states a reason, and a test asserts
   each reason is long enough to be one and that each named path still exists.
-- Twelve tests. Each new check is exercised on a seeded violation rather than on the passing
-  corpus; four more pin the parsers the checks depend on, and four control the checks
-  themselves — that the walk reaches `.github/`, that every register entry states a reason,
-  that every registered path still exists, and that the membership parser reads either array
-  shape. Every check was also positive-controlled live: seeded in the working tree, observed
-  failing with its own diagnostic, and restored.
+- Eleven tests. Each new check is exercised on a seeded violation rather than on the passing
+  corpus; four pin the parsers the checks depend on, and three control the checks themselves.
+  Every check was also positive-controlled live: seeded in the working tree, observed failing
+  with its own diagnostic, and restored.
+- A `toml` dependency, so the workspace manifest is parsed rather than pattern-matched.
 
 ### Fixed before release in 0.9.0
 
-An adversarial review of this change found six defects in the new checks, each reproduced and
-then fixed here rather than shipped:
+Two adversarial review rounds found twenty-one defects in the new checks. Every one was
+reproduced and fixed here rather than shipped. The first round found six:
 
 - The new walk read the working tree, not the repository, so a contributor with an editor
   open (`*.swp`) or who had run the link checker (`.lycheecache`) failed the mandatory local
@@ -75,6 +77,28 @@ then fixed here rather than shipped:
   matrix builds it. The `-p` scanner also truncated any package name at an underscore.
 - Three checks each re-walked the Markdown scope, so one unreadable entry or symbolic link
   was reported once per check.
+
+A second round, run against those repairs, found fifteen more — most of them in the repairs
+themselves. The three worst were a crash and two silent false passes:
+
+- `names_whole`, written to fix the first round's anchoring bug, advanced a byte index by
+  hand after a failed match. On a multibyte filename that index could land inside a
+  character, and slicing there aborted the whole lint with a backtrace instead of a
+  diagnostic — no result at all for any check, rather than a wrong one.
+- The same function anchored only the character _before_ a match, so a filename that was a
+  prefix of a mentioned one was credited: `deny.toml` passed because a document named
+  `deny.toml.license`. The test written to pin that function asserted only the suffix
+  direction.
+- The workflow gate armed on any line containing `cargo test`, so a package named in a log
+  message satisfied it while CI silently stopped building that crate.
+
+The rest were of a kind: hand-rolled parsers for three specified formats. The response was to
+stop hand-rolling them rather than patch them again — a real TOML reader for the manifest,
+deletion of the YAML gate in favour of removing the duplicate list it guarded, and an ignore
+matcher that reports every pattern outside its subset instead of silently turning it into one
+that cannot match. `UNSCANNED_TOP_LEVEL` also returned to matching at the repository root
+only, with depth left to the ignore file's own anchoring, which is what distinguishes a
+nested `target/` from the root one.
 
 ## [0.8.1] — 2026-08-08
 

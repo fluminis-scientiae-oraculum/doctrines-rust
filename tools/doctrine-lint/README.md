@@ -46,20 +46,20 @@ The repository is a graph a reader navigates by clicking. These checks hold the
 invariant that every node in it is reachable, or is registered as deliberately
 not.
 
-| Check                            | Obligation                                                                                |
-| -------------------------------- | ----------------------------------------------------------------------------------------- |
-| `check_reachability`             | every maintained Markdown file has at least one inbound link                              |
-| `check_path_references`          | every backticked path that resolves on disk is also linked, once per document             |
-| `check_workspace_crate_coverage` | every Cargo workspace member is linked, as a directory or a file inside it                |
-| `check_directory_indexes`        | every workspace crate, and every directory holding maintained Markdown, has a `README.md` |
-| `check_referenced_files`         | every remaining file is named by some maintained Markdown                                 |
+| Check                            | Obligation                                                                                         |
+| -------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `check_reachability`             | every maintained Markdown file has at least one inbound link                                       |
+| `check_path_references`          | every backticked path that resolves on disk is also linked, once per document                      |
+| `check_workspace_crate_coverage` | every Cargo workspace member is linked, as a directory or a file inside it                         |
+| `check_directory_indexes`        | every workspace crate, and every directory holding maintained Markdown, has a `README.md`          |
+| `check_referenced_files`         | every remaining file is named by some maintained Markdown, and no Markdown sits outside every root |
 
-A sixth, `check_example_workflow_packages`, is connectivity of a different kind:
-the `-p` package list in
-[`.github/workflows/rust-examples.yml`](../../.github/workflows/rust-examples.yml)
-has to equal the example half of the workspace, in both directions. That list is
-a hand-maintained second copy of `[workspace] members`, and an example crate
-missing from it is never tested by a run that still reports success.
+There was briefly a sixth, comparing the `-p` package list in the examples
+workflow against the workspace. It is gone, and the workflow now says
+`--workspace --exclude` the three tools instead of naming each example. A gate
+that guards a duplicated list is worth less than not duplicating the list: the
+`-p` form had to be kept in sync, and the check that watched it could be
+satisfied by a package named in a comment or tested only under Miri.
 
 `check_reachability` asks about inbound links, not reachability from the root: a
 file linked only by an unreachable file passes. That is the weaker claim, and it
@@ -68,21 +68,35 @@ is the one made rather than the one the name suggests.
 `check_referenced_files` accepts a bare mention where the others demand a link.
 Requiring a Markdown link to every crate manifest would add thirteen links no
 reader wants; requiring the name to appear at all catches the class that matters,
-which is a file the corpus has never heard of. The mention has to name the whole
-file: a plain substring search credited `ci.yml` because some document mentioned
-`doctrine-ci.yml`. The cost that remains is that two files with the _same_
-basename cover each other, which is why this check does not replace
-`check_path_references`.
+which is a file the corpus has never heard of.
+
+The mention has to name the whole file, on both sides. An unanchored search
+credited a file because a longer name ended in its name; anchoring only the left
+side then let a prefix through the same way. Two costs remain, and neither is
+fixable without turning this into a link check: two files with the _same_
+basename cover each other, and prose that discusses a filename names it. This
+document does that deliberately in places, which is one reason this check does
+not replace `check_path_references`.
 
 Its walk is over the repository, not over whatever is on disk. It reads
-[`.gitignore`](../../.gitignore) — it does not call Git — and honours a
-deliberate subset of that syntax: a bare name, a suffix wildcard, and a
-directory written with a leading slash, a leading double-star, or a trailing
-slash, which is every pattern the file uses. A pattern it cannot honour, such as
-a negation, is reported rather than silently misread, because a rule this walk
-ignores must not look obeyed. The skip test matches a directory name at any
-depth, since the ignore file names build directories without anchoring them to
-the root and means them everywhere.
+[`.gitignore`](../../.gitignore) and Git's per-repository exclude file — files,
+not Git; this binary calls no external process — and honours a deliberate subset
+of that syntax: a bare name, a `*.suffix`, and either anchored with a leading or
+trailing slash. Anchoring is respected, so a root-anchored pattern does not
+apply at depth and an unanchored one does.
+
+**Every pattern outside that subset is reported.** Not only a negation: a
+mid-path slash, an embedded wildcard, and a character class are named too. The
+first version detected negation alone and silently turned the rest into names no
+file could equal, which is the "a rule this walk ignores must not look obeyed"
+state its own comment claimed to prevent. A present-but-unreadable ignore file is
+reported for the same reason.
+
+Two ignore sources are **not** read, because both need Git or a config parser: a
+user's global `core.excludesFile`, and nested `.gitignore` files. A file covered
+only by those is reported here and has to be registered. If you keep editor or
+tool state in the tree, put its pattern in [`.gitignore`](../../.gitignore) or in
+the per-repository exclude file instead.
 
 ## The registers
 
@@ -98,7 +112,7 @@ explained once by the paragraph below rather than one at a time.
 | `REACHABILITY_EXEMPTIONS`      | documents a reader opens directly, and generator inputs |
 | `INDEXLESS_DIRECTORIES`        | directories that legitimately carry no index            |
 | `UNREFERENCED_FILE_EXEMPTIONS` | files no document names, correctly                      |
-| `UNSCANNED_TOP_LEVEL`          | directories no connectivity gate walks, at any depth    |
+| `UNSCANNED_TOP_LEVEL`          | repository-root directories no connectivity gate walks  |
 
 This table deliberately carries no entry counts. A count here would be a
 hand-maintained integer restating a fact the source already holds — the drift
@@ -109,6 +123,12 @@ Read the constants.
 rather than left as an accident of whichever walker skipped what. `dist/` is on
 it because the bundler's own drift check already holds that tree to exact set
 equality, over every extension.
+
+It applies at the repository root only, as its name says. Matching those names at
+any depth silently unwalked a nested `dist` or `target` that no drift check
+covers. Depth belongs to the ignore file, which anchors the build directory to
+the root and leaves the dependency directory unanchored, and that distinction is
+honoured.
 
 An empty register is the healthy state, and `INDEXLESS_DIRECTORIES` is empty.
 Build layout — `src`, `tests`, `ui` — needs no entry, because it holds no
@@ -126,15 +146,18 @@ that introduced them.
 ## Evidence
 
 Each check is exercised in both directions — a tree that passes, and the same tree
-with one seeded violation that fails. Two further tests control the file sets
-against the real repository rather than a fixture: one asserts the Markdown scope
-reaches every extra root, the other that the non-Markdown walk reaches
-[`.github/`](../../.github/README.md),
-[`templates/`](../../templates/README.md), and the compile-fail cases, and
-descends into none of the four
-directories it declares it skips. A check can pass its predicate control because
-its file list omitted the file it was supposed to read, and a repository that
-passes looks identical either way.
+with one seeded violation that fails. Further tests pin the parsers the checks
+depend on, and control the file sets against the real repository rather than a
+fixture: that the Markdown scope reaches every extra root, and that the
+non-Markdown walk reaches [`.github/`](../../.github/README.md),
+[`templates/`](../../templates/README.md) and the compile-fail cases while
+descending into none of the directories it declares it skips.
+
+A check can pass its predicate control because its file list omitted the file it
+was supposed to read, and a repository that passes looks identical either way.
+Two review rounds found defects here that every green run had hidden, so each
+control names the specific wrong behaviour it exists to catch rather than
+asserting the check merely fires.
 
 ```text
 cargo test --locked -p doctrine-lint
