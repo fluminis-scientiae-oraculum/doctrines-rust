@@ -1,7 +1,7 @@
 # Repository evidence map
 
 This inventory describes executable evidence shipped with repository version
-0.8.1. It is a claim ledger, not a coverage percentage. The 208 normative rules
+0.9.0. It is a claim ledger, not a coverage percentage. The 208 normative rules
 define review obligations; no test count implies one test per rule or universal
 proof.
 
@@ -11,11 +11,31 @@ proof.
 - Nine `trybuild` UI cases preserve selected compiler rejections.
 - One inventory test keeps example directories, package names, and workspace
   membership aligned.
-- Eighty tooling tests across `doctrine-lint`, `doctrine-manifest`, and
+- Ninety-five tooling tests across `doctrine-lint`, `doctrine-manifest`, and
   `bundle-agent-context` exercise doctrine linting, decision-record validation,
   doctrine-index agreement with the manifest, counted-claim, rule-citation and
   duplicated-validation-sequence drift detection, per-rule enforcement and
   per-gate check declarations, and deterministic bundle generation.
+- Eleven of those hold the repository's own connectivity and configuration. Three seed a
+  violation and require the matching diagnostic: a workspace crate that only its own
+  contents link, which is an island rather than a reachable crate; a crate with no index;
+  and a workflow the index does not name. Each of those runs through the gate itself
+  rather than through a re-implementation of its predicate — the three checks added in
+  0.9.0 first shipped with none, while this ledger already claimed one. One asserts the
+  opposite direction, that a directory found by walking is _not_ required to carry an
+  index, because deriving that requirement from the tree failed on a gitignored scratch
+  directory. Two hold a forced
+  duplicate honest: the scratch-directory constant against `.gitignore`, and the one crate
+  that cannot inherit workspace clippy lints against the workspace table. One pins the
+  workspace membership parser against a `members` key in a foreign
+  table, an array closing on its last value, a literal string, and a comment. Two control
+  the checks themselves: that every register entry states a reason, and that every
+  registered path still exists — a register entry for a deleted file silences nothing and
+  conceals that the register is stale.
+- The island test is mutation-controlled: deleting the guard it is named for makes it
+  fail. An earlier version of the same test passed with that guard removed, because its
+  fixture sat outside every declared root and the crate was reported for a different
+  reason than the one under test.
 - Twelve of those govern the verbosity annotation that decides which sections a
   generated pack receives: each malformation Prettier preserves unchanged, a
   tilde fence closed by inner backticks, non-monotone nesting, idempotence, and

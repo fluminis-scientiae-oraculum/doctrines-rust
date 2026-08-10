@@ -10,7 +10,7 @@ pub struct VerifiedEmailAddress {
 }
 
 impl VerifiedEmailAddress {
-    fn from_accepted_evidence(address: String, verification_id: String) -> Self {
+    const fn from_accepted_evidence(address: String, verification_id: String) -> Self {
         Self {
             evidence: (address, verification_id),
         }
@@ -36,7 +36,7 @@ pub struct ProviderOwnershipEvidence {
 
 impl ProviderOwnershipEvidence {
     #[cfg(test)]
-    fn recorded_by_provider(address: String, verification_id: String) -> Self {
+    const fn recorded_by_provider(address: String, verification_id: String) -> Self {
         Self {
             address,
             verification_id,

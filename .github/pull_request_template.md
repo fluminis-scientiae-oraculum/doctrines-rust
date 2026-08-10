@@ -12,7 +12,8 @@
 
 - [ ] Normative meaning is unchanged, or the governing RFC is linked below.
 - [ ] Any required RFC is accepted and identifies compatibility and migration effects.
-- [ ] `manifest/doctrines.yaml` and `manifest/agents.yaml` reflect changed discovery or pack selection.
+- [ ] `manifest/doctrines.yaml` and
+      `manifest/agents.yaml` reflect changed discovery or pack selection.
 - [ ] Source notes and attribution identify new external inputs and repository refinements.
 - [ ] Examples include positive and negative evidence proportionate to the claim.
 - [ ] Compiler `.stderr` changes were inspected for semantic cause, not accepted mechanically.
@@ -30,7 +31,7 @@
 ## Local validation
 
 Run the complete local validation sequence in the root
-[`README.md`](../README.md#local-validation), then record the exact commands and their
+the root `README.md`, then record the exact commands and their
 observed outcomes here. Do not restate the sequence: it is maintained in one place.
 
 ```text

@@ -12,6 +12,15 @@ claim, and tooling fixes with unchanged doctrine meaning. Open an issue first wh
 needs domain discussion, affects several doctrines, introduces a new representation policy,
 or reports a guarantee overclaim whose safe resolution is uncertain.
 
+Three issue forms carry the questions each report needs answered:
+[doctrine correction](.github/ISSUE_TEMPLATE/doctrine-correction.yml) for an inaccuracy in
+existing material, [doctrine proposal](.github/ISSUE_TEMPLATE/doctrine-proposal.yml) for new
+normative ground, and [guarantee overclaim](.github/ISSUE_TEMPLATE/guarantee-overclaim.yml) for
+prose that claims more than its mechanism establishes. A pull request opens against the
+[pull-request template](.github/pull_request_template.md), which asks for the affected rule IDs
+and the exact validation commands that were run. [`.github/`](.github/AUTOMATION.md) describes the
+workflows those reports and changes then meet.
+
 An RFC is mandatory for a new doctrine, a normative rule addition or weakening, a new escape
 hatch, doctrine supersession, a change to normative-term meaning, significant distribution
 restructuring, license change, or MSRV policy change. Follow [`rfcs/README.md`](rfcs/README.md); an issue can
@@ -148,7 +157,8 @@ validation workflow uses read-only permissions and also rejects high-severity np
 It confirms local checks. Do not push work whose first formatter, compiler, test, linter, or
 dependency audit will be CI.
 
-One workflow is not read-only. `release.yml` runs on a `v*` tag and needs `contents: write`
+One workflow is not read-only.
+[`.github/workflows/release.yml`](.github/workflows/release.yml) runs on a `v*` tag and needs `contents: write`
 to publish. The grant is on that job rather than the file, and the job publishes nothing until
 the tag matches `repository_version` and `bundle-agent-context -- check` confirms the committed
 bundles still match canonical source. It builds no artifact of its own: it packages the `dist/`
@@ -156,7 +166,8 @@ files already committed at that tag.
 
 ## Reporting a guarantee overclaim
 
-Use the guarantee-overclaim issue form. Identify the exact prose claim or type name, the
+Use the [guarantee-overclaim issue form](.github/ISSUE_TEMPLATE/guarantee-overclaim.yml).
+Identify the exact prose claim or type name, the
 implementation that establishes evidence, the stronger fact not proved, any bypass or
 external mutability, operational severity, and safer wording or design. Security-sensitive
 claims may instead use private reporting described in [`SECURITY.md`](SECURITY.md).

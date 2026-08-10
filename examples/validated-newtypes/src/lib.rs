@@ -195,7 +195,7 @@ pub struct OwnershipProof {
 
 impl OwnershipProof {
     #[cfg(test)]
-    fn recorded_by_provider(address: EmailAddress, verification_id: String) -> Self {
+    const fn recorded_by_provider(address: EmailAddress, verification_id: String) -> Self {
         Self {
             address,
             verification_id,

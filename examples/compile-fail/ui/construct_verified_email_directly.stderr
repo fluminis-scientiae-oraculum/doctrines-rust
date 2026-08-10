@@ -6,5 +6,5 @@ error[E0624]: associated function `from_accepted_evidence` is private
   |
  ::: src/lib.rs
   |
-  |     fn from_accepted_evidence(address: String, verification_id: String) -> Self {
-  |     --------------------------------------------------------------------------- private associated function defined here
+  |     const fn from_accepted_evidence(address: String, verification_id: String) -> Self {
+  |     --------------------------------------------------------------------------------- private associated function defined here

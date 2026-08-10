@@ -16,18 +16,19 @@ members = [
 ]
 
 [workspace.package]
-version = "0.8.1"
+version = "0.9.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.85.0"
 repository = "https://github.com/fluminis-scientiae-oraculum/doctrines-rust"
 
 [workspace.dependencies]
-doctrine-manifest = { version = "0.8.1", path = "tools/doctrine-manifest" }
+doctrine-manifest = { version = "0.9.0", path = "tools/doctrine-manifest" }
 jsonschema = { version = "0.49.1", default-features = false }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 serde_yaml_ng = "0.10.0"
+toml = "1.1.4"
 trybuild = "1.0.118"
 
 [workspace.lints.rust]
@@ -38,3 +39,33 @@ all = { level = "deny", priority = -1 }
 pedantic = { level = "deny", priority = -1 }
 module_name_repetitions = "allow"
 must_use_candidate = "allow"
+
+# Selected lints from the unstable `nursery` group, named individually rather than
+# enabled as a group. The group as a whole moves between toolchains, and this workspace
+# pins one; naming each lint keeps a toolchain bump from turning unrelated new lints into
+# build failures, while still holding the corpus to the idiom it teaches.
+#
+# `missing_const_for_fn` found nine functions across the examples and both binaries that
+# could be `const` and were not. A doctrine repository about making guarantees visible in
+# the type system should not leave compile-time evaluability implicit.
+missing_const_for_fn = "deny"
+# `redundant_clone` catches a clone whose value is never read again. It is named because
+# the connectivity work introduced two.
+redundant_clone = "deny"
+
+# Recorded because a comment here previously claimed the opposite, and a false claim
+# about what a lint enforces is worse than no claim: it stops the next reviewer looking.
+#
+# `ptr_arg` (in `all`) rejects `&String` and `&Vec<T>` as a *parameter*, which is the
+# shape that matters at an API boundary. Nothing clippy ships rejects the same shape
+# *collected* — `let refs: Vec<&String> = owned.iter().collect()` passes every lint in
+# this file, verified against the pinned toolchain. The two occurrences fixed in 0.9.0
+# were found by reading, and that shape is held by review alone.
+
+# Waiver, scoped and reasoned rather than silent. `option_if_let_else` rewrites a
+# two-armed `match` on an `Option` into `map_or_else`, whose arguments are the default
+# FIRST and the mapping second — the reverse of the reading order, and a documented
+# source of transposed-argument mistakes. This corpus optimises for a reader following
+# prose and code together, so the named-variant `match` stays. Revisit if the lint learns
+# to leave the legible form alone.
+option_if_let_else = "allow"

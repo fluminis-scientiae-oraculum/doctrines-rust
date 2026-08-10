@@ -4,6 +4,199 @@ All notable changes are documented here. Repository releases follow semantic ver
 the corpus is pre-1.0: patch releases preserve normative meaning, minor releases may add
 compatible normative requirements, and major releases may change doctrine contracts.
 
+## [0.9.0] — 2026-08-10
+
+Connects every file, directory, and crate the corpus had left unreachable, and gates the
+connection so the next one cannot land unnoticed. No normative meaning changes; the version
+is minor because the new gates add requirements a future change has to satisfy.
+
+### Fixed in 0.9.0
+
+- `tools/README.md` described "two Rust CLIs" and never named `doctrine-manifest`, the
+  library both binaries decode the manifests through. It was the one workspace member no
+  Markdown file had ever linked — mentioned six times in backticks, reachable from nowhere.
+- `examples/README.md` inventoried seven crates while the workspace held nine. The missing
+  two were `staged-protocol` and `doctrine-examples`, the latter being the crate the
+  directory itself compiles to and the named enforcement artifact for three rules of
+  `RUST-DOC-0008`. Crate names in both indexes were backticks rather than links.
+- `.github/pull_request_template.md` had no inbound link from anywhere in the repository,
+  and named four manifest and generated paths in backticks that navigated nowhere. Neither
+  defect was visible, because no scan reached `.github/`.
+- `CONTRIBUTING.md` and the root `README.md` referred to "the guarantee-overclaim issue
+  form" in prose a reader could not click. All three issue forms, the pull-request template,
+  and the release workflow are now links.
+- `EVIDENCE.md` claimed eighty tooling tests when the workspace held eighty-one.
+- A fourth review round found fifteen defects in the gates this release adds, and all
+  fifteen are fixed here. Three made a gate silently wrong: crate coverage credited a link
+  whose target does not exist, so a typo satisfied the very check written to catch a crate
+  linked from nowhere; deleting the file-coverage gate silently removed a second obligation
+  nobody reasoned about, leaving Markdown outside every declared root subject to no rule;
+  and the dated-record filter let a directory of archived records escape the index
+  requirement. Five made the gates fail on correct repositories inside the sequence the
+  README calls mandatory — a trailing-slash or globbed `[workspace] members` entry, a
+  Cargo-excluded crate, a gitignored `wip/` scratch directory, a Markdown issue template,
+  and a directory name that does not round-trip through `to_string_lossy`, which blamed a
+  correct `Cargo.toml` with a diagnostic no edit to it could clear.
+- The file-coverage gate was deleted in this release because a check needing another tool's
+  ignore semantics cannot be made correct, but `check_directory_indexes` was left walking
+  the same working tree with the same dependency, and reproduced the same false failure.
+  The index requirement is now derived from declared artifacts only — `[workspace] members`
+  plus the root lists — never from a filesystem walk.
+- A fifth review round found fifteen more, all fixed here. `doctrine-lint` no longer
+  compiled on the workspace MSRV of 1.85.0 — a Rust 1.88 let-chain — and nothing caught it
+  because the same release had excluded the tool crates from the only MSRV job; that job
+  now checks the whole workspace. `.github/README.md` would have replaced the repository's
+  front page on GitHub, which resolves it before the root `README.md`; the automation index
+  is now `.github/AUTOMATION.md` and the directory is registered as index-free.
+- The scratch-directory skip reached one of four walkers. It is now a single predicate in
+  `doctrine-manifest` that `doctrine-lint`'s two walks, its forbidden-marker scan, and
+  `bundle-agent-context` all consult, so a sanctioned `wip/` no longer fails the mandatory
+  sequence three commands after passing the first.
+- Narrowing the index obligation to declared directories had dropped it for roughly two
+  dozen nested indexes. It is restored from the link graph — a directory something links to
+  owes the reader an index — which is committed content rather than a filesystem walk.
+- `check_workflow_index` resolved links by raw text prefix, rejecting the `./` form GitHub
+  follows and passing a dangling target; `check_lint_parity` guarded one hardcoded crate
+  rather than every crate that cannot inherit workspace lints; and `[workspace] exclude` was
+  subtracted from explicitly listed members, which Cargo does not do and which silently
+  removed the crate from every membership gate.
+- A sixth review round found fifteen more, all fixed here. The worst was a test this
+  repository's own `RUST-DOC-0008-R022` forbids: the lint-parity test asserted an empty
+  diagnostic list guarded only by a members-list length, so renaming the single
+  non-inheriting crate would have made it pass having compared nothing. It now counts the
+  comparisons it performed and fails if that count is zero. The only test of the index
+  gate contained no Markdown links at all, leaving the branch it was updated to cover dead
+  during its own run; its fixture now links a directory, generated output, and scratch
+  space, and the branch is mutation-controlled.
+- The link-derived index obligation shipped without the two carve-outs its four sibling
+  consumers already carried, so a link to a directory under `dist/` demanded an index the
+  bundler never emits, and a link to scratch space demanded one inside a gitignored tree.
+  It also concluded absence from a partial read; it now reports the shortfall instead.
+- `check_lint_parity` had been moved behind `check_connectivity`'s four early returns, so a
+  malformed unrelated manifest key silently stopped it running; it reads its own membership
+  and is dispatched independently. A member with no `Cargo.toml` was skipped in silence and
+  is now reported, because no other gate examined it either.
+- The scratch predicate was applied at different points in the two crates — before the
+  symlink guard in one, after it in the other — so a committed symlink named `wip` made the
+  two tools contradict each other one command apart. They now agree.
+- Eight doc comments and README rows described code the same commits had changed: the index
+  gate's own comment still declared its required set was never discovered, the membership
+  reader's rustdoc argued for the exclude behaviour that was reversed, and the workflow
+  index's comment still named the file the rename exists to abolish. A register was spliced
+  between a neighbouring register's doc comment and its declaration, leaving each described
+  by the other's.
+- `PATH_REFERENCE_EXEMPTIONS` suspended the whole check rather than the linking rule, which
+  removed the last verification that the pull-request template names real files. The
+  exemption is now narrow: those paths must still exist.
+- Three claims that had stopped being true: `doctrine-lint`'s README advertised a control
+  test deleted with that gate, the root `README.md` said every invocation resolves to the
+  pinned toolchain when the MSRV matrix and the Miri job deliberately override it, and
+  `examples/boundary-validation` promised it reused the shared bound while re-implementing
+  it, duplicate constant included. The example now uses `BoundedName`.
+- The workspace clippy denies added in this release never reached
+  `examples/unsafe-evidence`, the one crate holding `unsafe`, because Cargo cannot inherit
+  lints into a crate that declares any lint table of its own. The copy is now compared
+  mechanically. A comment claiming two lints rejected a collected `Vec<&String>` was false
+  in both directions and is replaced by a statement of what nothing enforces.
+
+### Added in 0.9.0
+
+- `check_declared_top_level`, `check_workflow_index`, and `check_lint_parity`: every
+  top-level directory is a declared root or is registered with a reason; the workflow index
+  names exactly the workflows on disk; and the one crate that cannot inherit workspace
+  clippy lints restates them without drift.
+- Eleven package indexes: one per `tools/` crate, one per `examples/` crate that lacked one,
+  and `.github/AUTOMATION.md`, which describes what each workflow gates and which issue form
+  answers which question.
+- A `Repository configuration` section in the root `README.md` linking every root
+  configuration file and naming what each governs, and a paragraph in `rfcs/README.md` and
+  `templates/README.md` explaining the nested Markdown-lint override each directory carries.
+- Two checks in `doctrine-lint`. A workspace crate has to be linked from prose outside
+  itself, so a crate whose own README is its only inbound link is reported as the island it
+  is; and a crate, or any directory holding maintained Markdown, has to carry an index.
+- `rust-examples.yml` now runs `cargo test --workspace --exclude` the three tools instead of
+  naming each example with `-p`. The `-p` list was a second copy of `[workspace] members`,
+  and the exclusion list is the half that does not grow, so a new example crate is tested
+  the day it is added and there is no longer a duplicate to keep in sync.
+- `.github` joins the reachability scope, which is what made the pull-request template's
+  defects visible at all.
+- One register, `INDEXLESS_DIRECTORIES`, recording directories that deliberately carry no
+  index, in the shape `REACHABILITY_EXEMPTIONS` already used. It is empty, which is the
+  healthy state. Every entry states a reason, and a test asserts each reason is long enough
+  to be one and that each named path still exists.
+- Selected `clippy::nursery` lints in `[workspace.lints.clippy]`, named individually rather
+  than enabled as a group so a toolchain bump cannot turn unrelated new lints into build
+  failures. `missing_const_for_fn` found nine functions across the examples and both
+  binaries that could be `const` and were not. `option_if_let_else` is allowed with a
+  stated reason: it rewrites a two-armed `match` into `map_or_else`, whose default argument
+  comes first, and this corpus optimises for a reader following prose and code together.
+- Six tests. Each new check is exercised on a seeded violation rather than on the passing
+  corpus, one pins the workspace-membership parser, and two control the checks themselves.
+  Every check was also positive-controlled live: seeded in the working tree, observed
+  failing with its own diagnostic, and restored. The island test is mutation-controlled —
+  deleting the guard it is named for makes it fail.
+- A `toml` dependency, so the workspace manifest is parsed rather than pattern-matched.
+
+### Fixed before release in 0.9.0
+
+Two adversarial review rounds found twenty-one defects in the new checks. Every one was
+reproduced and fixed here rather than shipped. The first round found six:
+
+- The new walk read the working tree, not the repository, so a contributor with an editor
+  open (`*.swp`) or who had run the link checker (`.lycheecache`) failed the mandatory local
+  validation sequence. It now honours `.gitignore`, and reports a pattern it cannot express
+  instead of silently misreading it.
+- The walk pruned skipped directories by first path component only, so a nested
+  `node_modules/` or `target/` was descended into and every file under it reported.
+- The mention test was an unanchored substring search: `ci.yml` counted as named because a
+  document mentioned `doctrine-ci.yml`. Anchoring it then over-corrected — treating `/` as
+  part of a name un-named six files their indexes do link — so a separator is a boundary.
+- The workspace-member parser left the array only on a line beginning `]`, so an array
+  closing as `"last"]` swept the rest of the manifest in as members, and a commented-out
+  member counted as live.
+- The workflow package list was harvested from the whole file, so a crate tested only by the
+  Miri job, or merely named in a YAML comment, satisfied the gate that exists to prove the
+  matrix builds it. The `-p` scanner also truncated any package name at an underscore.
+- Three checks each re-walked the Markdown scope, so one unreadable entry or symbolic link
+  was reported once per check.
+
+A second round, run against those repairs, found fifteen more — most of them in the repairs
+themselves. The three worst were a crash and two silent false passes:
+
+- `names_whole`, written to fix the first round's anchoring bug, advanced a byte index by
+  hand after a failed match. On a multibyte filename that index could land inside a
+  character, and slicing there aborted the whole lint with a backtrace instead of a
+  diagnostic — no result at all for any check, rather than a wrong one.
+- The same function anchored only the character _before_ a match, so a filename that was a
+  prefix of a mentioned one was credited: `deny.toml` passed because a document named
+  `deny.toml.license`. The test written to pin that function asserted only the suffix
+  direction.
+- The workflow gate armed on any line containing `cargo test`, so a package named in a log
+  message satisfied it while CI silently stopped building that crate.
+
+The rest were of a kind: hand-rolled parsers for three specified formats. The response was to
+stop hand-rolling them rather than patch them again — a real TOML reader for the manifest,
+and deletion of the YAML gate in favour of removing the duplicate list it guarded.
+
+A third round, run against those repairs in turn, found fifteen more, and nine of them were
+in one gate: the check requiring every remaining file to be named by some document, together
+with the ignore matcher it needed. Six of the nine were the mandatory gate rejecting a
+correct repository — a filename ending a sentence, a `git worktree` checkout, a developer's
+own exclude file, a gitignored scratch directory, ordinary editor state, a file documented
+in the accepted RFC that introduced it.
+
+That gate is now deleted, and the deletion is the finding. Answering "is every file named
+somewhere?" needs a walk of the working tree, and a working tree is the repository plus
+whatever a contributor's tools left in it, so correctness meant reimplementing `.gitignore`.
+Each round made the matcher more faithful and each round it was still not Git, with the
+failures landing in a pre-commit sequence the repository calls mandatory. The question was
+worth asking once — it found twenty-six files named by nothing, and they are connected now —
+but the answer did not need a permanent gate, and the gate cost more than it returned.
+
+What survived is the two checks that caught the defects this release exists to fix: the one
+that found the shared manifest library linked from nowhere, and the one that found this very
+crate without an index. Both answer a question about the corpus using only the corpus.
+
 ## [0.8.1] — 2026-08-08
 
 Repairs prose the `0.8.0` rationale audit damaged, and closes the schema gap that audit
